@@ -19,6 +19,7 @@ function Scatterplot(x, y, w, h, id) {
    
    this.clickedPoint = null;
    this.hoveredPoint = -1;
+   this.dragEvent = null;
    // Function objects, these should be implemented by the controller
    // Each components should get its own set of listeners,
    // do not share unless there is a reason to
@@ -42,6 +43,7 @@ function Scatterplot(x, y, w, h, id) {
 Scatterplot.prototype.init = function() {
    
    var myRef = this;
+  
    // Initialize the main container
    this.widget = d3.select(this.id).append("svg")      
       .attr("width", this.width)
@@ -62,15 +64,11 @@ Scatterplot.prototype.render = function( vdata ) {
    this.displayData = vdata;
    this.dataLength = this.displayData.length;
    var myRef = this;  
-   var drag = d3.behavior.drag()
-    .origin(function(d){ //Set the starting point of the drag interaction
-	   return d;
-	})
-    .on("drag", dragmove);
+  
 	
    // Remove the data points
-   this.widget.data([this.displayData] ).selectAll("circle").remove();
-   
+   this.widget.data([this.displayData] ).selectAll("circle").remove(); 
+	
    // Render the data points
    this.widget.selectAll("circle")
       .data(this.displayData.map(function (d,i) {
@@ -87,14 +85,20 @@ Scatterplot.prototype.render = function( vdata ) {
 	  .attr("r", function(d) {
          return Math.sqrt(100 - d.y);
       })
-	  .style("cursor", "pointer")
-	  .call(drag)
+	  .style("cursor", "pointer")     
    ;   
-   function dragmove(d) {
-	  d3.select("#scatter").selectAll("g").selectAll("circle")
-		  .attr("cx", d3.event.x)
-		 .attr("cy", d3.event.y);
-    }
+   
+  
+}
+//Updates the display when a drag event is occurring
+Scatterplot.prototype.updateDrag = function() {
+    this.widget.selectAll("circle")
+	 .attr("cx", function(d) {
+        return d.x;
+       })
+     .attr("cy", function(d) {
+        return d.y;
+      });	  
 }
 
 
