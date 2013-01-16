@@ -28,8 +28,7 @@ scatterplot.init();
 					       d.x = d3.event.x;
 						   d.y = d3.event.y;                            			   
                            scatterplot.updateDrag();						   
-					  });
-
+					  });	
 //Mouse in, out and click
 scatterplot.widget.selectAll("circle")
 				  .on("click", function (d){ 

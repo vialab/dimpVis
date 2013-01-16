@@ -50,8 +50,7 @@ Scatterplot.prototype.init = function() {
       .attr("height", this.height)
       .style("position", "absolute")
       .style("left", this.xpos + "px")
-      .style("top", this.ypos + "px")
-      .append("g")      
+      .style("top", this.ypos + "px")      
    ; 
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +74,8 @@ Scatterplot.prototype.render = function( vdata ) {
 	        return {x:d[0], y:d[1], id:i};
 	  }))
       .enter()
-      .append("circle")
+      .append("g");
+   this.widget.selectAll("g").append("svg:circle")
       .attr("cx", function(d) {
         return d.x;
        })
@@ -86,7 +86,20 @@ Scatterplot.prototype.render = function( vdata ) {
          return Math.sqrt(100 - d.y);
       })
 	  .style("cursor", "pointer")     
-   ;   
+   ;  
+   
+ //Testing drawing paths between two points
+ var path1 = [{x:100, y:33},{x:300,y:95}];
+ var line = d3.svg.line()
+    .x(function(d) { return d.x; })
+    .y(function(d) { return d.y; })
+    .interpolate("basis");	
+ 
+ this.widget.selectAll("g").append("svg:path")
+                                  .attr("d", line(path1))
+								  .style("stroke-width", 2)
+								  .style("stroke", "steelblue")
+								   .style("fill", "none");  
    
   
 }
@@ -98,7 +111,8 @@ Scatterplot.prototype.updateDrag = function() {
        })
      .attr("cy", function(d) {
         return d.y;
-      });	  
+      });	
+  
 }
 
 
