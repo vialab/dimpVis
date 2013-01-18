@@ -70,13 +70,15 @@ Scatterplot.prototype.render = function( vdata ) {
 	
    // Render the data points
    this.widget.selectAll("circle")
-      .data(this.displayData.map(function (d,i) {
-	        return {x:d[0], y:d[1], id:i};
+     .data(this.displayData.map(function (d,i) {
+	        return {x:d[0],y:d[1],nodes:d[2],id:i};
 	  }))
+	 // .data(this.displayData)
       .enter()
-      .append("g");
+      .append("g")
+	  .attr("id",function (d) {return "g"+d.id;});
    this.widget.selectAll("g").append("svg:circle")
-      .attr("cx", function(d) {
+      .attr("cx", function(d) {	     
         return d.x;
        })
      .attr("cy", function(d) {
@@ -89,24 +91,13 @@ Scatterplot.prototype.render = function( vdata ) {
    ;  
    
  //Testing drawing paths between points
- /**var path1data = [{x:100, y:33},{x:300,y:95},{x:400,y:90}];
  var line = d3.svg.line()
-    .x(function(d) { return d.x; })
-    .y(function(d) { return d.y; })
-    .interpolate("basis");	
- 
- this.widget.selectAll("g").append("svg:path")
-                                  .attr("d", line(path1data))
-								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
-								   .style("fill", "none");  */
-     var path1data = [{x:0, y:33},{x:300,y:95},{x:400,y:15}];
-	 var path2data = [{x:250, y:50},{x:100,y:30}];
-     
-	 var line = d3.svg.line()
-    .x(function(d) { return d.x; })
-    .y(function(d) { return d.y; })
-    .interpolate("basis");	
+    .x(function(d) { return d[0]; })
+    .y(function(d) { return d[1]; })
+    .interpolate("basis");
+
+     /**var path1data = [{x:0, y:33},{x:300,y:95},{x:400,y:15}];
+	 var path2data = [{x:250, y:50},{x:100,y:30}]; 	
  
     var path = this.widget.append("svg:path")
                                   .attr("d", line(path1data))
@@ -117,6 +108,12 @@ Scatterplot.prototype.render = function( vdata ) {
 	var path2 = this.widget.append("svg:path")
 								  .attr("id","2")
                                   .attr("d", line(path2data))
+								  .style("stroke-width", 2)
+								  .style("stroke", "steelblue")
+								   .style("fill", "none");*/
+    this.widget.selectAll("g").append("svg:path")
+                                  .attr("d", function(d){ return line(d.nodes); })
+								  .attr("id",function (d){return "p"+d.id;})
 								  .style("stroke-width", 2)
 								  .style("stroke", "steelblue")
 								   .style("fill", "none");
@@ -137,23 +134,27 @@ Scatterplot.prototype.updateDraggedPoint = function() {
 }
 //Updates the display when a point is being dragged 
 Scatterplot.prototype.updateDrag = function(clickedPoint) {	 
-       var point = this.findPointOnCurve("1");
+       var ref = this;
 	  this.widget.selectAll("circle")     
         .attr("cx", function(d){
-		      if (d.id == clickedPoint)
+		      var point = ref.findPointOnCurve(d.id);	
+		     // if (d.id == clickedPoint)
 			      return point.x;
-			  return d.x;
+			 // return d.x;
 		})
         .attr("cy", function(d){
-		    if(d.id==clickedPoint)
+		 var point = ref.findPointOnCurve(d.id);	
+		   // if(d.id==clickedPoint)
 			     return point.y;
-			return d.y;
+			//return d.y;
 		});
   
 }
 Scatterplot.prototype.findPointOnCurve = function(pathId){
     //Code from: http://bl.ocks.org/3824661	
-    var path = this.widget.select("path");	
+   // var path = this.widget.select("path");	
+   var path = d3.select("#scatter").select("svg").select("#g"+pathId).select("#p"+pathId); //Note: valid id's have to begin with a letter
+  
 	 var pathEl = path.node();
 	 var pathLength = pathEl.getTotalLength();
 	 //var BBox = pathEl.getBBox(); //gets the bounding box of the geometry
