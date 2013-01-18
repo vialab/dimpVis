@@ -1,10 +1,8 @@
 
 
 var data = [
-                  [ 5,     20 ],
-                  [ 480,   90 ],
                   [ 250,   50 ],
-                  [ 100,   33 ]         
+                  [ 0,   33 ]         
                  
               ];
 var data_2 = [
@@ -13,14 +11,14 @@ var data_2 = [
                   [ 475,   44 ],
                   [ 25,    67 ]                  
               ];
-var scatterplot   = new Scatterplot(0, 50, 500, 500, "#scatter");
+var scatterplot   = new Scatterplot(0, 0, 500, 500, "#scatter");
 scatterplot.init();
  scatterplot.render( data );
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the scatterplot
 ////////////////////////////////////////////////////////////////////////////////
- /**scatterplot.dragEvent = d3.behavior.drag()
+ scatterplot.dragEvent = d3.behavior.drag()
                        .origin(function(d){ //Set the starting point of the drag interaction
 							return d;
 	                   })
@@ -28,7 +26,7 @@ scatterplot.init();
 					       d.x = d3.event.x;
 						   d.y = d3.event.y; 						 
                            scatterplot.updateDraggedPoint();						   
-					  });	*/
+					  });	
 //Mouse in, out and click
 scatterplot.widget.selectAll("circle")
 				  .on("click", function (d){ 

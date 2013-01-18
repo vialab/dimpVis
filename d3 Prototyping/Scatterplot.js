@@ -83,7 +83,7 @@ Scatterplot.prototype.render = function( vdata ) {
         return d.y;
       })
 	  .attr("r", function(d) {
-         return Math.sqrt(100 - d.y);
+         return Math.sqrt(100 - d.y);		 
       })
 	  .style("cursor", "pointer")     
    ;  
@@ -100,6 +100,26 @@ Scatterplot.prototype.render = function( vdata ) {
 								  .style("stroke-width", 2)
 								  .style("stroke", "steelblue")
 								   .style("fill", "none");  */
+     var path1data = [{x:0, y:33},{x:300,y:95},{x:400,y:15}];
+	 var path2data = [{x:250, y:50},{x:100,y:30}];
+     
+	 var line = d3.svg.line()
+    .x(function(d) { return d.x; })
+    .y(function(d) { return d.y; })
+    .interpolate("basis");	
+ 
+    var path = this.widget.append("svg:path")
+                                  .attr("d", line(path1data))
+								  .attr("id","1")
+								  .style("stroke-width", 2)
+								  .style("stroke", "steelblue")
+								   .style("fill", "none");
+	var path2 = this.widget.append("svg:path")
+								  .attr("id","2")
+                                  .attr("d", line(path2data))
+								  .style("stroke-width", 2)
+								  .style("stroke", "steelblue")
+								   .style("fill", "none");
    
   
 }
@@ -116,52 +136,49 @@ Scatterplot.prototype.updateDraggedPoint = function() {
   
 }
 //Updates the display when a point is being dragged 
-Scatterplot.prototype.updateDrag = function(clickedPoint) {
-    
-    
-	 //Code adapted from: http://bl.ocks.org/3824661
-	 var path1data = [{x:100, y:33},{x:300,y:95},{x:400,y:90}];
-     var line = d3.svg.line()
-    .x(function(d) { return d.x; })
-    .y(function(d) { return d.y; })
-    .interpolate("basis");	
- 
-    var path = this.widget.append("svg:path")
-                                  .attr("d", line(path1data))
-								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
-								   .style("fill", "none");
-	 var pathEl = path.node();
-	 var pathLength = pathEl.getTotalLength();
-	 var BBox = pathEl.getBBox(); //gets the bounding box of the geometry
-	 var scale = pathLength/BBox.width;
-	 var offsetLeft = document.getElementById("scatter").offsetLeft;
-	 
-	 var x = d3.event.pageX - offsetLeft; 
-	 console.log(x);
-      var beginning = x, end = pathLength, target;
-      while (true) {
-        target = Math.floor((beginning + end) / 2);
-        pos = pathEl.getPointAtLength(target);
-        if ((target === end || target === beginning) && pos.x !== x) {
-            break;
-        }
-        if (pos.x > x)      end = target;
-        else if (pos.x < x) beginning = target;
-        else                break; //position found
-      }
+Scatterplot.prototype.updateDrag = function(clickedPoint) {	 
+       var point = this.findPointOnCurve("1");
 	  this.widget.selectAll("circle")     
         .attr("cx", function(d){
 		      if (d.id == clickedPoint)
-			      return x;
+			      return point.x;
 			  return d.x;
 		})
         .attr("cy", function(d){
-		     if(d.id==clickedPoint)
-			     return pos.y;
+		    if(d.id==clickedPoint)
+			     return point.y;
 			return d.y;
 		});
   
+}
+Scatterplot.prototype.findPointOnCurve = function(pathId){
+    //Code from: http://bl.ocks.org/3824661	
+    var path = this.widget.select("path");	
+	 var pathEl = path.node();
+	 var pathLength = pathEl.getTotalLength();
+	 //var BBox = pathEl.getBBox(); //gets the bounding box of the geometry
+	 //var scale = pathLength/BBox.width;
+	 //Number of pixels the upper left corner of current element is offset to the left within the parent
+	 //var offsetLeft = document.getElementById("scatter").offsetLeft;
+     
+	 var x = d3.event.pageX; //X-coordinate of the mouse          
+     var beginning = x, end = pathLength, target;
+	 //Binary search for point to draw circle on
+      while (true) {
+        target = Math.floor((beginning + end) / 2); 
+        pos = pathEl.getPointAtLength(target); //Gets the point at the specified distance
+        if ((target === end || target === beginning) && pos.x !== x) {
+            break;
+        }
+        if (pos.x > x)     
+			end = target;
+        else if (pos.x < x) 
+			beginning = target;
+        else                
+			break; //position found
+      }
+	  pos.x = x;
+	  return pos;
 }
 
 
