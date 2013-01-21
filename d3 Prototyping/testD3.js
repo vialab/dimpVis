@@ -10,7 +10,7 @@ var testData = {
      	
 };
 
-var data = [
+/**var data = [
                   [ 0,   50,
 					[[0,50],[100,30],[200,40]] 
 				  ],
@@ -18,12 +18,48 @@ var data = [
 					[[100,33],[300,95],[400,10]]
 				  ]         
                  
+              ];*/
+var data = [
+                  [ 
+					[0,50],[100,30],[200,40]
+				  ],
+                  [
+					[100,33],[300,95],[400,10]
+				  ]        
+                 
               ];
               
           
 var scatterplot   = new Scatterplot(0, 0, 500, 500, "#scatter");
 scatterplot.init();
- scatterplot.render( data );
+//Declare some interaction functions 
+scatterplot.mouseoverFunction = function (d){
+									if (scatterplot.clickedPoint ==-1){
+										scatterplot.hoveredPoint = d.id;
+										scatterplot.showHintPath(scatterplot.hoveredPoint);
+									}
+									//console.log("hovered"+scatterplot.hoveredPoint);
+	                           };
+scatterplot.mouseoutFunction = function (d){
+									if (scatterplot.clickedPoint ==-1){
+										scatterplot.clearHintPath(scatterplot.hoveredPoint);
+										scatterplot.hoveredPoint = -1;
+									}
+									//console.log("cleared");
+	                           };
+scatterplot.clickFunction = function (d){
+								if (scatterplot.clickedPoint != d.id){
+									 scatterplot.clickedPoint = d.id;
+									 scatterplot.showHintPath(scatterplot.clickedPoint);
+								}
+								else {
+									scatterplot.clearHintPath(scatterplot.clickedPoint);
+									scatterplot.clickedPoint = -1;
+								}
+								//console.log("clicked"+scatterplot.clickedPoint);
+									
+	                           };
+scatterplot.render( data, 0);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the scatterplot
@@ -37,34 +73,9 @@ scatterplot.init();
 						   d.y = d3.event.y; 						 
                            scatterplot.updateDraggedPoint();						   
 					  });	
-//Mouse in, out and click
-scatterplot.widget.selectAll(".displayPoints")
-				  .on("click", function (d){ 
-				        if (scatterplot.clickedPoint != d.id){
-                             scatterplot.clickedPoint = d.id;
-							 scatterplot.showHintPath(scatterplot.clickedPoint);
-						}
-                        else {
-						    scatterplot.clearHintPath(scatterplot.clickedPoint);
-							scatterplot.clickedPoint = -1;
-						}
-						//console.log("clicked"+scatterplot.clickedPoint);
-	              })
-	              .on("mouseover", function (d){
-				        if (scatterplot.clickedPoint ==-1){
-							scatterplot.hoveredPoint = d.id;
-							scatterplot.showHintPath(scatterplot.hoveredPoint);
-						}
-						//console.log("hovered"+scatterplot.hoveredPoint);
-	              })
-				  .on("mouseout", function (d){
-				        if (scatterplot.clickedPoint ==-1){
-							scatterplot.clearHintPath(scatterplot.hoveredPoint);
-							scatterplot.hoveredPoint = -1;
-						}
-						//console.log("cleared");
-	               })                  			  
-                   /**.call(scatterplot.dragEvent)*/;
+
+/**scatterplot.widget.selectAll(".displayPoints")				                 			  
+                   .call(scatterplot.dragEvent);*/
 
 
 
@@ -78,3 +89,17 @@ scatterplot.widget.on("mousemove", function (d){
 	   
 var timeSlider   = new Slider(0, 600, 500, 500, "#time");
 timeSlider.init();
+var timeRange = [1,2,3];
+timeSlider.render(timeRange);
+timeSlider.widget.selectAll("rect")
+				  .on("click", function (d){ 
+				        if (timeSlider.clicked != d.id){
+                             timeSlider.clicked = d.id;
+							 scatterplot.render( data, d.id);
+							 //scatterplot.showHintPath(scatterplot.clickedPoint);
+						}
+                        else {						    
+							timeSlider.clicked = -1;
+						}
+						//console.log("clicked"+scatterplot.clickedPoint);
+	              })

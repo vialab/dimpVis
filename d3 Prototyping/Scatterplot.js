@@ -11,7 +11,8 @@ function Scatterplot(x, y, w, h, id) {
    this.id = id; 
 
    // Reference to the main widget
-   this.widget = null;  
+   this.widget = null; 
+   this.currentView = -1;   
 
    // Data used for display
    this.displayData = [];
@@ -20,18 +21,14 @@ function Scatterplot(x, y, w, h, id) {
    this.clickedPoint = -1;
    this.hoveredPoint = -1;
    this.dragEvent = null;
-   // Function objects, these should be implemented by the controller
-   // Each components should get its own set of listeners,
-   // do not share unless there is a reason to
-   //this.nothing = function() { console.log("Not implemented"); };  // DO NOT OVERRIDE THIS !!!
-   //this.mouseoverFunc = this.nothing;
-   //this.mouseoutFunc  = this.nothing;
+  
+   this.placeholder = function() { 
+		console.log("Not implemented"); 
+   }; 
+   this.mouseoverFunction = this.placeholder;
+   this.mouseoutFunction  = this.placeholder;  
+   this.clickFunction = this.placeholder;
 }
-
-
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Prototype functions
@@ -50,33 +47,30 @@ Scatterplot.prototype.init = function() {
       .attr("height", this.height)
       .style("position", "absolute")
       .style("left", this.xpos + "px")
-      .style("top", this.ypos + "px")        	  
+      .style("top", this.ypos + "px")  
+     
    ; 
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Render
+// start = year or instance the view represents
 ////////////////////////////////////////////////////////////////////////////////
-Scatterplot.prototype.render = function( vdata ) {
+Scatterplot.prototype.render = function( vdata, start ) {
     
-   this.widget.attr("transform", "translate(0,0)"); 
-   this.offset = 0;
-   this.displayData = vdata;
-   this.dataLength = this.displayData.length;
-   var myRef = this;  
-  
-	
-   // Remove the data points
-   this.widget.data([this.displayData] ).selectAll("circle").remove(); 
-	
-   // Render the data points
+   this.displayData = vdata;  
+   this.currentView = start;   
+   var myRef = this; 
+   //Remove everything in the svg
+	this.widget.selectAll("g").remove(); 
+   // Draw the data points
    this.widget.selectAll("circle")
      .data(this.displayData.map(function (d,i) {
-	        return {x:d[0],y:d[1],nodes:d[2],id:i};
-	  }))
-	 // .data(this.displayData)
+	        return {nodes:d,id:i,x:d[myRef.currentView][0], y:d[myRef.currentView][1]};
+	  }))	
       .enter()
       .append("g")
 	  .attr("id",function (d) {return "g"+d.id;});
+   
    this.widget.selectAll("g").append("svg:circle")
       .attr("cx", function(d) {	     
         return d.x;
@@ -85,17 +79,20 @@ Scatterplot.prototype.render = function( vdata ) {
         return d.y;
       })
 	  .attr("r", function(d) {
-         return Math.sqrt(100 - d.y);		 
+         return 10;		 
       })
 	  .attr("class", "displayPoints")
-	  .style("cursor", "pointer")     
+	  .style("cursor", "pointer")  
+       .on("mouseover", myRef.mouseoverFunction)
+       .on("mouseout", myRef.mouseoutFunction)	
+       .on("click", myRef.clickFunction)		   
    ;  
    
  //Testing drawing paths between points
  var line = d3.svg.line()
     .x(function(d) { return d[0]; })
     .y(function(d) { return d[1]; })
-    .interpolate("cardinal"); //Needs to pass through all points
+    .interpolate("cardinal"); //Interpolate curve should pass through all points
 
      /**var path1data = [{x:0, y:33},{x:300,y:95},{x:400,y:15}];
 	 var path2data = [{x:250, y:50},{x:100,y:30}]; 	
@@ -131,6 +128,7 @@ Scatterplot.prototype.render = function( vdata ) {
 											.style("fill","none");
   
 }
+
 //TODO:make sure doesn't go out of bounds!
 //Updates the point location when a point is dragged
 Scatterplot.prototype.updateDraggedPoint = function() {
