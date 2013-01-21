@@ -87,6 +87,7 @@ Scatterplot.prototype.render = function( vdata ) {
 	  .attr("r", function(d) {
          return Math.sqrt(100 - d.y);		 
       })
+	  .attr("class", "displayPoints")
 	  .style("cursor", "pointer")     
    ;  
    
@@ -94,7 +95,7 @@ Scatterplot.prototype.render = function( vdata ) {
  var line = d3.svg.line()
     .x(function(d) { return d[0]; })
     .y(function(d) { return d[1]; })
-    .interpolate("basis");
+    .interpolate("cardinal"); //Needs to pass through all points
 
      /**var path1data = [{x:0, y:33},{x:300,y:95},{x:400,y:15}];
 	 var path2data = [{x:250, y:50},{x:100,y:30}]; 	
@@ -115,9 +116,19 @@ Scatterplot.prototype.render = function( vdata ) {
                                   .attr("d", function(d){ return line(d.nodes); })
 								  .attr("id",function (d){return "p"+d.id;})
 								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
+								  .style("stroke", "none")
 								   .style("fill", "none");
-   
+    this.widget.selectAll("g").append("g")                                  
+								  .attr("id",function (d){return "gInner"+d.id;})								  
+								   ;
+	this.widget.selectAll("g").selectAll("g").selectAll("circle")
+                                             .data(function(d) {return d.nodes;})
+											 .enter().append("svg:circle")
+											 .attr("cx", function(d) { return d[0]; })
+											.attr("cy", function(d) { return d[1]; })
+											.attr("r",3)
+											.attr("class","hintPoints")
+											.style("fill","none");
   
 }
 //TODO:make sure doesn't go out of bounds!
@@ -135,26 +146,28 @@ Scatterplot.prototype.updateDraggedPoint = function() {
 //Updates the display when a point is being dragged 
 Scatterplot.prototype.updateDrag = function(clickedPoint) {	 
        var ref = this;
-	  this.widget.selectAll("circle")     
+	   var mouseX = d3.event.pageX;
+	  this.widget.selectAll(".displayPoints")     
         .attr("cx", function(d){
-		      var point = ref.findPointOnCurve(d.id);	
-		     // if (d.id == clickedPoint)
-			      return point.x;
-			 // return d.x;
+		      var startPoint = mouseX - d.x;			  
+		      var point = ref.findPointOnCurve(d.id,startPoint);	
+		      //if (d.id == clickedPoint)		      
+			      return point.x;			  			      
+			 //return d.x;
 		})
         .attr("cy", function(d){
-		 var point = ref.findPointOnCurve(d.id);	
-		   // if(d.id==clickedPoint)
+		      var startPoint = mouseX - d.x;
+		      var point = ref.findPointOnCurve(d.id,startPoint);	
+		    //if(d.id==clickedPoint)
 			     return point.y;
 			//return d.y;
 		});
   
 }
-Scatterplot.prototype.findPointOnCurve = function(pathId){
-    //Code from: http://bl.ocks.org/3824661	
-   // var path = this.widget.select("path");	
-   var path = d3.select("#scatter").select("svg").select("#g"+pathId).select("#p"+pathId); //Note: valid id's have to begin with a letter
-  
+//Start x: where the path begins, used as offset to the left
+Scatterplot.prototype.findPointOnCurve = function(pathId,startX){
+    //Code from: http://bl.ocks.org/3824661	   
+     var path = d3.select("#scatter").select("svg").select("#g"+pathId).select("#p"+pathId); //Note: valid id's have to begin with a letter  
 	 var pathEl = path.node();
 	 var pathLength = pathEl.getTotalLength();
 	 //var BBox = pathEl.getBBox(); //gets the bounding box of the geometry
@@ -162,8 +175,8 @@ Scatterplot.prototype.findPointOnCurve = function(pathId){
 	 //Number of pixels the upper left corner of current element is offset to the left within the parent
 	 //var offsetLeft = document.getElementById("scatter").offsetLeft;
      
-	 var x = d3.event.pageX; //X-coordinate of the mouse          
-     var beginning = x, end = pathLength, target;
+	 //var x = d3.event.pageX - startX; //X-coordinate of the mouse     
+     var beginning = startX, x = startX, end = pathLength, target;
 	 //Binary search for point to draw circle on
       while (true) {
         target = Math.floor((beginning + end) / 2); 
@@ -178,10 +191,20 @@ Scatterplot.prototype.findPointOnCurve = function(pathId){
         else                
 			break; //position found
       }
-	  pos.x = x;
+	 // pos.x = x;
 	  return pos;
 }
-
-
+Scatterplot.prototype.showHintPath = function (id){
+        this.widget.select("#g"+id).select("#p"+id)                                  
+								  .style("stroke", "steelblue");
+        this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintPoints")                                  
+								  .style("fill", "steelblue");								  
+}
+Scatterplot.prototype.clearHintPath = function (id) {
+      this.widget.select("#g"+id).select("#p"+id)                                  
+								  .style("stroke", "none");
+	   this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintPoints")                                  
+								  .style("fill", "none");	
+}
 
 

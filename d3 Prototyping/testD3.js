@@ -12,10 +12,10 @@ var testData = {
 
 var data = [
                   [ 0,   50,
-					[[0,50],[100,30]] 
+					[[0,50],[100,30],[200,40]] 
 				  ],
-                  [ 0,   33 ,
-					[[0,33],[300,95]]
+                  [ 100,   33 ,
+					[[100,33],[300,95],[400,10]]
 				  ]         
                  
               ];
@@ -38,28 +38,43 @@ scatterplot.init();
                            scatterplot.updateDraggedPoint();						   
 					  });	
 //Mouse in, out and click
-scatterplot.widget.selectAll("circle")
+scatterplot.widget.selectAll(".displayPoints")
 				  .on("click", function (d){ 
-				        if (scatterplot.clickedPoint != d.id)
+				        if (scatterplot.clickedPoint != d.id){
                              scatterplot.clickedPoint = d.id;
-                        else 
+							 scatterplot.showHintPath(scatterplot.clickedPoint);
+						}
+                        else {
+						    scatterplot.clearHintPath(scatterplot.clickedPoint);
 							scatterplot.clickedPoint = -1;
-						console.log("clicked"+scatterplot.clickedPoint);
+						}
+						//console.log("clicked"+scatterplot.clickedPoint);
 	              })
 	              .on("mouseover", function (d){
-					    scatterplot.hoveredPoint = d.id;
-						console.log("hovered"+scatterplot.hoveredPoint);
+				        if (scatterplot.clickedPoint ==-1){
+							scatterplot.hoveredPoint = d.id;
+							scatterplot.showHintPath(scatterplot.hoveredPoint);
+						}
+						//console.log("hovered"+scatterplot.hoveredPoint);
 	              })
 				  .on("mouseout", function (d){
-						console.log("cleared");
+				        if (scatterplot.clickedPoint ==-1){
+							scatterplot.clearHintPath(scatterplot.hoveredPoint);
+							scatterplot.hoveredPoint = -1;
+						}
+						//console.log("cleared");
 	               })                  			  
                    /**.call(scatterplot.dragEvent)*/;
 
 
 
 scatterplot.widget.on("mousemove", function (d){
-		  //console.log(d3.svg.mouse(this)); //older version of d3, need to use d3.svg.mouse
+		  //console.log(d3.svg.mouse(this)[0]); //older version of d3, need to use d3.svg.mouse
 		  if (scatterplot.clickedPoint != -1)
 			scatterplot.updateDrag(scatterplot.clickedPoint);
 
 	   });
+	   
+	   
+var timeSlider   = new Slider(0, 600, 500, 500, "#time");
+timeSlider.init();
