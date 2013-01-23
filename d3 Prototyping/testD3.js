@@ -95,8 +95,7 @@ timeSlider.widget.selectAll("rect")
 				  .on("click", function (d){ 
 				        if (timeSlider.clicked != d.id){
                              timeSlider.clicked = d.id;
-							 scatterplot.render( data, d.id);
-							 //scatterplot.showHintPath(scatterplot.clickedPoint);
+							 scatterplot.render( data, d.id);							 
 						}
                         else {						    
 							timeSlider.clicked = -1;

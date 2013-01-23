@@ -92,7 +92,7 @@ Scatterplot.prototype.render = function( vdata, start ) {
  var line = d3.svg.line()
     .x(function(d) { return d[0]; })
     .y(function(d) { return d[1]; })
-    .interpolate("cardinal"); //Interpolate curve should pass through all points
+    .interpolate("linear"); //Interpolate curve should pass through all points, however concaved interpolations falsify the data
 
      /**var path1data = [{x:0, y:33},{x:300,y:95},{x:400,y:15}];
 	 var path2data = [{x:250, y:50},{x:100,y:30}]; 	
@@ -147,50 +147,34 @@ Scatterplot.prototype.updateDrag = function(clickedPoint) {
 	   var mouseX = d3.event.pageX;
 	  this.widget.selectAll(".displayPoints")     
         .attr("cx", function(d){
-		      var startPoint = mouseX - d.x;			  
-		      var point = ref.findPointOnCurve(d.id,startPoint);	
+		      var startX = mouseX - d.x;
+               return startX;			  
+		      //var point = ref.findPointOnCurve(d.id,startPoint);	
+			  //var point = ref.findPointOnCurve(d.id,startPoint);	
 		      //if (d.id == clickedPoint)		      
-			      return point.x;			  			      
+			      //return point.x;			  			      
 			 //return d.x;
 		})
         .attr("cy", function(d){
-		      var startPoint = mouseX - d.x;
-		      var point = ref.findPointOnCurve(d.id,startPoint);	
+		      var startX = mouseX - d.x;
+		      var newY = ref.findPointOnCurve(startX);
+              return newY;			  
 		    //if(d.id==clickedPoint)
-			     return point.y;
+			     //return point.y;
 			//return d.y;
 		});
   
 }
-//Start x: where the path begins, used as offset to the left
-Scatterplot.prototype.findPointOnCurve = function(pathId,startX){
-    //Code from: http://bl.ocks.org/3824661	   
-     var path = d3.select("#scatter").select("svg").select("#g"+pathId).select("#p"+pathId); //Note: valid id's have to begin with a letter  
-	 var pathEl = path.node();
-	 var pathLength = pathEl.getTotalLength();
-	 //var BBox = pathEl.getBBox(); //gets the bounding box of the geometry
-	 //var scale = pathLength/BBox.width;
-	 //Number of pixels the upper left corner of current element is offset to the left within the parent
-	 //var offsetLeft = document.getElementById("scatter").offsetLeft;
-     
-	 //var x = d3.event.pageX - startX; //X-coordinate of the mouse     
-     var beginning = startX, x = startX, end = pathLength, target;
-	 //Binary search for point to draw circle on
-      while (true) {
-        target = Math.floor((beginning + end) / 2); 
-        pos = pathEl.getPointAtLength(target); //Gets the point at the specified distance
-        if ((target === end || target === beginning) && pos.x !== x) {
-            break;
-        }
-        if (pos.x > x)     
-			end = target;
-        else if (pos.x < x) 
-			beginning = target;
-        else                
-			break; //position found
-      }
-	 // pos.x = x;
-	  return pos;
+//Finds the interpolated value of the unknown y-coordinate
+Scatterplot.prototype.findInterpY = function(x){
+    var x0 = 100;
+	var y0 = 33;
+	var x1 = 300;
+	var y1 = 95;
+	//if x >= x1, out of bounds or x<=x0
+	var interpY = y0 + (y1 - y0)*((x - x0)/(x1 - x0));
+	return interpY;
+    
 }
 Scatterplot.prototype.showHintPath = function (id){
         this.widget.select("#g"+id).select("#p"+id)                                  
