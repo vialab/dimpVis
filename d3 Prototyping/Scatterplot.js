@@ -13,7 +13,7 @@ function Scatterplot(x, y, w, h, id) {
    // Reference to the main widget
    this.widget = null; 
    this.currentView = -1;   
-
+   this.motionDirection = 1; //To the right
    // Data used for display
    this.displayData = [];
    this.dataLength = 0;
@@ -21,6 +21,7 @@ function Scatterplot(x, y, w, h, id) {
    this.clickedPoint = -1;
    this.hoveredPoint = -1;
    this.dragEvent = null;
+   
   
    this.placeholder = function() { 
 		console.log("Not implemented"); 
@@ -132,7 +133,7 @@ Scatterplot.prototype.render = function( vdata, start ) {
 //TODO:make sure doesn't go out of bounds!
 //Updates the point location when a point is dragged
 Scatterplot.prototype.updateDraggedPoint = function() {
-    this.widget.selectAll("circle")
+    this.widget.selectAll(".displayPoints")
 	 .attr("cx", function(d) {
         return d.x;
        })
@@ -147,31 +148,51 @@ Scatterplot.prototype.updateDrag = function(clickedPoint) {
 	   var mouseX = d3.event.pageX;
 	  this.widget.selectAll(".displayPoints")     
         .attr("cx", function(d){
-		      var startX = mouseX - d.x;
-               return startX;			  
-		      //var point = ref.findPointOnCurve(d.id,startPoint);	
-			  //var point = ref.findPointOnCurve(d.id,startPoint);	
-		      //if (d.id == clickedPoint)		      
-			      //return point.x;			  			      
-			 //return d.x;
+		      if(d.id==clickedPoint){
+			    //Check to make sure mouse is within the defined path of the node
+                if (mouseX < d.x){
+			     return d.x;
+				  }else if (mouseX > d.nodes[d.nodes.length-1][0]){
+					 return d.nodes[d.nodes.length-1][0];
+				  }	              			  
+               return mouseX;
+			}			
+			return d.x;
 		})
-        .attr("cy", function(d){
-		      var startX = mouseX - d.x;
-		      var newY = ref.findPointOnCurve(startX);
-              return newY;			  
-		    //if(d.id==clickedPoint)
-			     //return point.y;
-			//return d.y;
+        .attr("cy", function(d){		   
+		   if (d.id==clickedPoint){	 
+		     //Check to make sure mouse is within the defined path of the node
+              if (mouseX < d.x){
+			     return d.y;
+              }else if (mouseX > d.nodes[d.nodes.length-1][0]){
+			     return d.nodes[d.nodes.length-1][1];
+			  }				  
+			  var x0 = d.nodes[ref.currentView][0];
+			  var y0 = d.nodes[ref.currentView][1];			 
+			  var x1,y1,interpY;
+              //Determine motion direction			  
+			  if (mouseX < x0) {//Moving to the left
+			     ref.motionDirection = -1;			 
+			  }
+			  else {//Moving to the right
+			      ref.motionDirection = 1;				  
+			  }
+			  x1 = d.nodes[ref.currentView+ref.motionDirection][0];
+			  y1 = d.nodes[ref.currentView+ref.motionDirection][1]; 
+              		  
+			  var interpY = ref.findInterpY(mouseX,x0,y0,x1,y1);
+              //Check for a view transition
+              if (mouseX <= x0 || mouseX >=x1)
+                  ref.currentView = ref.currentView + ref.motionDirection;				  
+              return interpY;	   
+		   }
+			return d.y;
 		});
   
 }
+
 //Finds the interpolated value of the unknown y-coordinate
-Scatterplot.prototype.findInterpY = function(x){
-    var x0 = 100;
-	var y0 = 33;
-	var x1 = 300;
-	var y1 = 95;
-	//if x >= x1, out of bounds or x<=x0
+Scatterplot.prototype.findInterpY = function(x,x0,y0,x1,y1){      
 	var interpY = y0 + (y1 - y0)*((x - x0)/(x1 - x0));
 	return interpY;
     
@@ -182,6 +203,25 @@ Scatterplot.prototype.showHintPath = function (id){
         this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintPoints")                                  
 								  .style("fill", "steelblue");								  
 }
+//Emphasize when the point has passed a view change
+/**Scatterplot.prototype.highlightPoint = function (id){
+       this.widget.selectAll(".displayPoints")
+			 .attr("cx", function(d) {
+				return d.x;
+			   })
+			 .attr("cy", function(d) {
+				return d.y;
+			  });							  
+}
+Scatterplot.prototype.clearHighlightPoint = function (id) {
+	 this.widget.selectAll(".displayPoints")
+				 .attr("cx", function(d) {
+					return d.x;
+				   })
+				 .attr("cy", function(d) {
+					return d.y;
+				  });
+}*/
 Scatterplot.prototype.clearHintPath = function (id) {
       this.widget.select("#g"+id).select("#p"+id)                                  
 								  .style("stroke", "none");
