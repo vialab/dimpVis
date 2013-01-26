@@ -1,3 +1,12 @@
+//Try loading and parsing some csv data
+/**var csv_data;
+
+d3.csv("population.csv", function(error, csv_data) {}
+
+  
+  );*/
+
+
 var testData = {
     "1":[
 		{"x":0,"y":33,"year":1990},{"x":300,"y":95,"year":1991}
@@ -10,22 +19,14 @@ var testData = {
      	
 };
 
-/**var data = [
-                  [ 0,   50,
-					[[0,50],[100,30],[200,40]] 
-				  ],
-                  [ 100,   33 ,
-					[[100,33],[300,95],[400,10]]
-				  ]         
-                 
-              ];*/
 var data = [
                   [ 
-					[0,50],[100,30],[200,40]
+					[0,50],[100,30],[200,40],[300,50]
 				  ],
                   [
-					[100,33],[300,95],[400,10]
-				  ]        
+					[100,33],[300,95],[50,10],[30,20]
+				  ]
+                  				  
                  
               ];
               
@@ -50,7 +51,8 @@ scatterplot.mouseoutFunction = function (d){
 scatterplot.clickFunction = function (d){
 								if (scatterplot.clickedPoint != d.id){
 									 scatterplot.clickedPoint = d.id;
-									 scatterplot.showHintPath(scatterplot.clickedPoint);
+									 scatterplot.showHintPath(scatterplot.clickedPoint);								 
+			                         
 								}
 								else {
 									scatterplot.clearHintPath(scatterplot.clickedPoint);
@@ -68,10 +70,8 @@ scatterplot.render( data, 0);
                        .origin(function(d){ //Set the starting point of the drag interaction
 							return d;
 	                   })
-                      .on("drag", function(d){
-					       d.x = d3.event.x;
-						   d.y = d3.event.y; 						 
-                           scatterplot.updateDraggedPoint();						   
+                      .on("drag", function(d){                             		  
+                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);						   
 					  });	
 
 /**scatterplot.widget.selectAll(".displayPoints")				                 			  
@@ -81,8 +81,9 @@ scatterplot.render( data, 0);
 
 scatterplot.widget.on("mousemove", function (d){
 		  //console.log(d3.svg.mouse(this)[0]); //older version of d3, need to use d3.svg.mouse
-		  if (scatterplot.clickedPoint != -1)
+		  if (scatterplot.clickedPoint != -1){
 			scatterplot.updateDrag(scatterplot.clickedPoint);
+			}
 
 	   });
 	   

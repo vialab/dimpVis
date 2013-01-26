@@ -12,8 +12,16 @@ function Scatterplot(x, y, w, h, id) {
 
    // Reference to the main widget
    this.widget = null; 
-   this.currentView = -1;   
-   this.motionDirection = 1; //To the right
+  
+   //The two indices to the two points which form the sub-path the mouse is currently on
+   this.subPathStart = -1;
+   this.subPathEnd = -1;
+   this.currentView = -1;
+   
+   //The number of different instances across dimension (e.g., 4 different views for each year)
+   this.numViews = -1;
+   
+   this.direction = 1; //Forward along the data dimension (e.g., time)
    // Data used for display
    this.displayData = [];
    this.dataLength = 0;
@@ -56,17 +64,24 @@ Scatterplot.prototype.init = function() {
 // Render
 // start = year or instance the view represents
 ////////////////////////////////////////////////////////////////////////////////
-Scatterplot.prototype.render = function( vdata, start ) {
+Scatterplot.prototype.render = function( vdata, start) {
     
    this.displayData = vdata;  
-   this.currentView = start;   
+   this.subPathStart = start; 
+   this.currentView = start;
+    
    var myRef = this; 
    //Remove everything in the svg
 	this.widget.selectAll("g").remove(); 
    // Draw the data points
    this.widget.selectAll("circle")
      .data(this.displayData.map(function (d,i) {
-	        return {nodes:d,id:i,x:d[myRef.currentView][0], y:d[myRef.currentView][1]};
+            //TODO: need point with the largest and smallest x of the nodes, to define path bounds	 
+			//var sX = [50,10];
+			//var lX = [300,95];
+			//var sX = [100,33];
+			//var lX = [400,10];
+	        return {nodes:d,id:i,x:d[myRef.currentView][0], y:d[myRef.currentView][1]/*,smallestX:sX,largestX:lX*/};
 	  }))	
       .enter()
       .append("g")
@@ -83,6 +98,7 @@ Scatterplot.prototype.render = function( vdata, start ) {
          return 10;		 
       })
 	  .attr("class", "displayPoints")
+	   .attr("id", function (d){return "displayPoints"+d.id;})
 	  .style("cursor", "pointer")  
        .on("mouseover", myRef.mouseoverFunction)
        .on("mouseout", myRef.mouseoutFunction)	
@@ -95,72 +111,46 @@ Scatterplot.prototype.render = function( vdata, start ) {
     .y(function(d) { return d[1]; })
     .interpolate("linear"); //Interpolate curve should pass through all points, however concaved interpolations falsify the data
 
-     /**var path1data = [{x:0, y:33},{x:300,y:95},{x:400,y:15}];
-	 var path2data = [{x:250, y:50},{x:100,y:30}]; 	
- 
-    var path = this.widget.append("svg:path")
-                                  .attr("d", line(path1data))
-								  .attr("id","1")
-								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
-								   .style("fill", "none");
-	var path2 = this.widget.append("svg:path")
-								  .attr("id","2")
-                                  .attr("d", line(path2data))
-								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
-								   .style("fill", "none");*/
-    this.widget.selectAll("g").append("svg:path")
-                                  .attr("d", function(d){ return line(d.nodes); })
-								  .attr("id",function (d){return "p"+d.id;})
-								  .style("stroke-width", 2)
-								  .style("stroke", "none")
-								   .style("fill", "none");
     this.widget.selectAll("g").append("g")                                  
-								  .attr("id",function (d){return "gInner"+d.id;})								  
+								  .attr("id",function (d){return "gInner"+d.id;})
+                                   .attr("class","gInner")										  
 								   ;
-	this.widget.selectAll("g").selectAll("g").selectAll("circle")
+	this.widget.selectAll("g").selectAll(".gInner").selectAll("circle")
                                              .data(function(d) {return d.nodes;})
 											 .enter().append("svg:circle")
 											 .attr("cx", function(d) { return d[0]; })
 											.attr("cy", function(d) { return d[1]; })
-											.attr("r",3)
+											.attr("r",4)
 											.attr("class","hintPoints")
 											.style("fill","none");
+											    
+    this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
+                                  .attr("d", function(d){ 
+								         return line(d.nodes); 
+								  })
+								  .attr("id",function (d){return "p"+d.id;})
+								  .style("stroke-width", 2)
+								  .style("stroke", "none")
+								   .style("fill", "none");
   
 }
 
-//TODO:make sure doesn't go out of bounds!
-//Updates the point location when a point is dragged
-Scatterplot.prototype.updateDraggedPoint = function() {
-    this.widget.selectAll(".displayPoints")
-	 .attr("cx", function(d) {
-        return d.x;
-       })
-     .attr("cy", function(d) {
-        return d.y;
-      });	
-  
-}
+
 //Updates the display when a point is being dragged 
 Scatterplot.prototype.updateDrag = function(clickedPoint) {	 
        var ref = this;
 	   var mouseX = d3.event.pageX;
-	  this.widget.selectAll(".displayPoints")     
-        .attr("cx", function(d){
-		      if(d.id==clickedPoint){
+	  this.widget.select("#displayPoints"+clickedPoint)     
+        .attr("cx", function(d){		      
 			    //Check to make sure mouse is within the defined path of the node
                 if (mouseX < d.x){
-			     return d.x;
+			        return d.x;
 				  }else if (mouseX > d.nodes[d.nodes.length-1][0]){
 					 return d.nodes[d.nodes.length-1][0];
 				  }	              			  
-               return mouseX;
-			}			
-			return d.x;
+               return mouseX;			
 		})
         .attr("cy", function(d){		   
-		   if (d.id==clickedPoint){	 
 		     //Check to make sure mouse is within the defined path of the node
               if (mouseX < d.x){
 			     return d.y;
@@ -168,29 +158,32 @@ Scatterplot.prototype.updateDrag = function(clickedPoint) {
 			     return d.nodes[d.nodes.length-1][1];
 			  }				  
 			  var x0 = d.nodes[ref.currentView][0];
-			  var y0 = d.nodes[ref.currentView][1];			 
-			  var x1,y1,interpY;
-              //Determine motion direction			  
-			  if (mouseX < x0) {//Moving to the left
-			     ref.motionDirection = -1;			 
-			  }
-			  else {//Moving to the right
-			      ref.motionDirection = 1;				  
-			  }
-			  x1 = d.nodes[ref.currentView+ref.motionDirection][0];
-			  y1 = d.nodes[ref.currentView+ref.motionDirection][1]; 
+			  var y0 = d.nodes[ref.currentView][1];			  
+			  var x1 = d.nodes[ref.currentView+1][0];
+			  var y1 = d.nodes[ref.currentView+1][1]; 
               		  
 			  var interpY = ref.findInterpY(mouseX,x0,y0,x1,y1);
               //Check for a view transition
-              if (mouseX <= x0 || mouseX >=x1)
-                  ref.currentView = ref.currentView + ref.motionDirection;				  
-              return interpY;	   
-		   }
-			return d.y;
+              if (mouseX <= x0 || mouseX >=x1){
+                  ref.currentView = ref.currentView + 1;
+				  ref.updateView(ref.currentView);
+              }				  
+              return interpY;   
 		});
   
 }
 
+
+//Update the rest of the view
+Scatterplot.prototype.updateView = function(newView){    
+	  this.widget.selectAll(".displayPoints")     
+        .attr("cx", function(d){		      	
+			return d.nodes[newView][0];
+		})
+        .attr("cy", function(d){		   
+		  return d.nodes[newView][1];
+		});  
+}
 //Finds the interpolated value of the unknown y-coordinate
 Scatterplot.prototype.findInterpY = function(x,x0,y0,x1,y1){      
 	var interpY = y0 + (y1 - y0)*((x - x0)/(x1 - x0));
