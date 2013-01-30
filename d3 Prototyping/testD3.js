@@ -88,18 +88,27 @@ scatterplot.widget.on("mousemove", function (d){
 	   });
 	   
 	   
-var timeSlider   = new Slider(0, 600, 500, 500, "#time");
-timeSlider.init();
-var timeRange = [1,2,3];
-timeSlider.render(timeRange);
-timeSlider.widget.selectAll("rect")
-				  .on("click", function (d){ 
-				        if (timeSlider.clicked != d.id){
-                             timeSlider.clicked = d.id;
-							 scatterplot.render( data, d.id);							 
-						}
-                        else {						    
-							timeSlider.clicked = -1;
-						}
-						//console.log("clicked"+scatterplot.clickedPoint);
-	              })
+////////////////////////////////////////////////////////////////////////////////
+// Create new slider facilitating changing to the different views of the visualization
+////////////////////////////////////////////////////////////////////////////////   
+var slider   = new Slider(50, 600, 500, 500, "#time",3);
+slider.init();
+slider.render();
+				  
+////////////////////////////////////////////////////////////////////////////////
+// Define some interaction functions for the slider
+////////////////////////////////////////////////////////////////////////////////
+ slider.dragEvent = d3.behavior.drag()
+                      // .origin([0,50])
+                      .on("drag", function(){                             
+							slider.updateDraggedSlider(d3.event.x);
+                            //d.y = d3.event.y;							
+                           //scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);						   
+					  })
+					  .on("dragend",function (){
+					      slider.snapToTick(d3.event.x);
+                          scatterplot.render( data, slider.sliderPos);					      
+					  });	
+
+slider.widget.select("#slidingTick")				                 			  
+                   .call(slider.dragEvent);
