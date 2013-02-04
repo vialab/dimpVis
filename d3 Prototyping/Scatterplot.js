@@ -16,13 +16,12 @@ function Scatterplot(x, y, w, h, id) {
    this.currentView = -1;
    this.nextView = -1;
    //The number of different instances across dimension (e.g., 4 different views for each year)
-   this.numViews = -1;
+   this.numViews = 10;
    
    this.direction = 1; //Forward along the data dimension (e.g., time)
    // Data used for display
-   this.displayData = [];
-   this.dataLength = 0;
-   
+   this.displayData = [];   
+   this.labels = [];
    this.clickedPoint = -1;
    this.hoveredPoint = -1;
    this.dragEvent = null;
@@ -61,13 +60,13 @@ Scatterplot.prototype.init = function() {
 // Render
 // start = year or instance the view represents
 ////////////////////////////////////////////////////////////////////////////////
-Scatterplot.prototype.render = function( vdata, start) {
-    
+Scatterplot.prototype.render = function( vdata, start, l) {
+    this.labels = l;
    this.displayData = vdata;   
    this.currentView = start;
    if (this.currentView ==0){//First point on path			        
 			this.nextView = this.currentView+1;
-	}else if (this.currentView == 2){  //Last point of path				
+	}else if (this.currentView == this.numViews){  //Last point of path				
 		   this.nextView = this.currentView;
 		   this.currentView = this.currentView -1;
 	}else { //A point somewhere in the middle				     
@@ -79,12 +78,22 @@ Scatterplot.prototype.render = function( vdata, start) {
    // Draw the data points
    this.widget.selectAll("circle")
      .data(this.displayData.map(function (d,i) {
-            //TODO: need point with the largest and smallest x of the nodes, to define path bounds	 
-			//var sX = [50,10];
-			//var lX = [300,95];
-			//var sX = [100,33];
-			//var lX = [400,10];
-	        return {nodes:d,id:i,x:d[myRef.currentView][0], y:d[myRef.currentView][1]/*,smallestX:sX,largestX:lX*/};
+             //Create a list of nodes (x,y) point pairs for each country
+			 //Dataset goes from 1955 to 2005 (11 increments)
+			 //Try fertility vs population:
+			 var points = [];		
+			 points[0] = [d.F1955*100, d.Pop1955/10000];
+			 points[1] = [d.F1960*100, d.Pop1960/10000];
+			 points[2] = [d.F1965*100, d.Pop1965/10000];
+			 points[3] = [d.F1970*100, d.Pop1970/10000];
+			 points[4] = [d.F1975*100, d.Pop1975/10000];
+			 points[5] = [d.F1980*100, d.Pop1980/10000];
+			 points[6] = [d.F1985*100, d.Pop1985/10000];
+			 points[7] = [d.F1990*100, d.Pop1990/10000];
+			 points[8] = [d.F1995*100, d.Pop1995/10000];
+			 points[9] = [d.F2000*100, d.Pop2000/10000];
+			 points[10] = [d.F2005*100, d.Pop2005/10000];			
+	        return {nodes:points,id:i,x:points[myRef.currentView][0], y:points[myRef.currentView][1],country:d.Country,group:d.Group,cluster:d.Cluster};
 	  }))	
       .enter()
       .append("g")
@@ -101,7 +110,7 @@ Scatterplot.prototype.render = function( vdata, start) {
          return 10;		 
       })
 	  .attr("stroke", "none")
-	  .attr("stroke-width", "0")
+	  .attr("stroke-width", "2")
 	  .attr("class", "displayPoints")
 	   .attr("id", function (d){return "displayPoints"+d.id;})
 	  .style("cursor", "pointer")  
@@ -127,16 +136,27 @@ Scatterplot.prototype.render = function( vdata, start) {
 											.attr("cy", function(d) { return d[1]; })
 											.attr("r",4)
 											.attr("class","hintPoints")
-											.style("fill","none");
+											.style("fill","none")
+    this.widget.selectAll("g").selectAll(".gInner").selectAll("text").data(function(d) {return d.nodes;})
+								   .enter()
+								   .append("svg:text")
+                                         .text(function(d) { return myRef.labels[0]; })
+										    .attr("x", function(d) {return d[0]})
+										 .attr("y", function (d) {  return d[1]; })
+										  .attr("font-family", "sans-serif")
+									   .attr("font-size", "12px")
+									   .attr("fill", "none")
+									   .attr("text-anchor","middle")
+									   .attr("class","hintLabels");
 											    
-    this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
+    /**this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
                                   .attr("d", function(d){ 
 								         return line(d.nodes); 
 								  })
 								  .attr("id",function (d){return "p"+d.id;})
 								  .style("stroke-width", 2)
 								  .style("stroke", "none")
-								   .style("fill", "none");
+								   .style("fill", "none");*/
   
 }
 
@@ -191,12 +211,13 @@ Scatterplot.prototype.updateView = function(id,newView){
 }
 */
 //Updates the dragged point - for drag mouse event
-Scatterplot.prototype.updateDraggedPoint = function(id,mouseX) {	 
+Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {	 
        var ref = this;
 	   
 	  this.widget.select("#displayPoints"+id)     
         .attr("cx", function(d){		
-                 //Get the two points which compose the current sub-path dragged along		
+                 //Get the two points which compose the current sub-path dragged along	
+                console.log("current: "+ref.currentView+" next: "+ref.nextView);				 
 		        var pt1 = d.nodes[ref.currentView][0];
                 var pt2 = d.nodes[ref.nextView][0];		
                 var bounds = ref.checkBounds(pt1,pt2,mouseX);				
@@ -255,14 +276,14 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX) {
 					 }
 				 }		  
 		})
-		.attr("stroke","none")
-		.attr("stroke-width",0);
+		.attr("stroke","steelblue")
+		;
   
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Snap the draggable point to the nearest view
 ////////////////////////////////////////////////////////////////////////////////
-Scatterplot.prototype.snapToView = function( mouseX, mouseY) {
+Scatterplot.prototype.snapToView = function( id, mouseX, mouseY) {
      var ref = this;
     this.widget.selectAll(".displayPoints")
 	           .attr("cx",function (d){	
@@ -284,6 +305,38 @@ Scatterplot.prototype.snapToView = function( mouseX, mouseY) {
                      }else { //Snap to current View					    
 					    return d.nodes[ref.currentView][1];
                     }					 
+	             })
+				 .attr("stroke",function(d){
+				    if (d.id == id)
+					   return "steelblue";
+				 })
+		         ;
+	
+  
+}
+////////////////////////////////////////////////////////////////////////////////
+// Update the view according to what is selected on the slider
+// TODO: add transition
+////////////////////////////////////////////////////////////////////////////////
+Scatterplot.prototype.updateView = function( newView) {
+     var ref = this;
+	 //Update the view tracker variables
+	 if (newView ==0){//First point on path
+            ref.currentView = newView	 
+			ref.nextView = newView+1;
+	}else if (newView == ref.numViews){  //Last point of path				
+		   ref.nextView = newView;
+		   ref.currentView = newView -1;
+	}else { //A point somewhere in the middle
+        ref.currentView = newView;	
+		ref.nextView = newView + 1;
+	}
+    this.widget.selectAll(".displayPoints")
+	           .attr("cx",function (d){	
+			           return d.nodes[ref.currentView][0];
+			        })
+				 .attr("cy",function (d){	
+			        return d.nodes[ref.currentView][1];					 
 	             });
 	
   
@@ -304,35 +357,39 @@ Scatterplot.prototype.calculateDistance = function(x1,y1,x2,y2){
 //Checks if a mouse position is within bounds of a defined path
 //Returns a point if the mouse position is equal to it or has crossed it
 //Returns 'ok' if the mouse is within bounds
-Scatterplot.prototype.checkBounds = function(x1,x2,mouseX){ 
+Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){ 
     var start,end;
-	if (x1>x2){
-	 end = x1;
-	 start = x2;
+	if (pt1>pt2){
+	 end = pt1;
+	 start = pt2;
 	}else{
-	  start = x1;
-	  end = x2;
+	  start = pt1;
+	  end = pt2;
 	}
 	//Check if mouse is between path defined by (start,end)
-	if (mouseX <= start){
+	if (mouse < start){
 	   return start;
-	}else if (mouseX >=end){
+	}else if (mouse >end){
 	   return end;
 	}
 	return "ok";	
 }
 Scatterplot.prototype.showHintPath = function (id){
-        this.widget.select("#g"+id).select("#p"+id)                                  
-								  .style("stroke", "steelblue");
+       //this.widget.select("#g"+id).select("#p"+id)                                  
+								  //.style("stroke", "steelblue");
         this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintPoints")                                  
-								  .style("fill", "steelblue");								  
+								  .style("fill", "steelblue");	
+        this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintLabels")                                  
+								  .style("fill", "steelblue");									  
 }
 
 Scatterplot.prototype.clearHintPath = function (id) {
-      this.widget.select("#g"+id).select("#p"+id)                                  
-								  .style("stroke", "none");
+      //this.widget.select("#g"+id).select("#p"+id)                                  
+								  //.style("stroke", "none");
 	   this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintPoints")                                  
-								  .style("fill", "none");	
+								  .style("fill", "none");
+       this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintLabels")                                  
+								  .style("fill", "none");									  
 }
 
 

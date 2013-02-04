@@ -1,4 +1,4 @@
-
+var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"];
 var data = [
                   [ 
 					[0,50],[100,30],[200,40],[300,50]
@@ -11,7 +11,7 @@ var data = [
               ];
               
           
-var scatterplot   = new Scatterplot(0, 0, 500, 500, "#scatter");
+var scatterplot   = new Scatterplot(0, 5, 900, 800, "#scatter");
 scatterplot.init();
 //Declare some interaction functions for the scatterplot 
 scatterplot.mouseoverFunction = function (d){
@@ -41,8 +41,8 @@ scatterplot.clickFunction = function (d){
 								//console.log("clicked"+scatterplot.clickedPoint);
 									
 	                           };
-scatterplot.render( data, 0);
-
+//scatterplot.render( data, 0);
+scatterplot.render( dataset, 0,years);
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the scatterplot
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,13 +51,14 @@ scatterplot.render( data, 0);
 							return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
 	                   })
                       .on("drag", function(d){                             		  
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x);	
+                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);	
                            scatterplot.showHintPath(d.id);	                          					   
 					  })
 					  .on("dragend",function (d){
-					      scatterplot.snapToView(d3.event.x,d3.event.y);   
+					      scatterplot.snapToView(d.id,d3.event.x,d3.event.y);   
                          scatterplot.clearHintPath(d.id);	
-                         //TODO: update slider						 
+                         slider.updateSlider(scatterplot.currentView);
+                         //console.log(scatterplot.currentView);						 
 					  });	
 
 scatterplot.widget.selectAll(".displayPoints")				                 			  
@@ -77,44 +78,23 @@ scatterplot.widget.selectAll(".displayPoints")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(50, 500, 500, 500, "#time",3);
+var slider   = new Slider(15, 700, 700, 100, "#time",11,years);
 slider.init();
 slider.render();
 				  
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the slider
 ////////////////////////////////////////////////////////////////////////////////
- slider.dragEvent = d3.behavior.drag()
-                      // .origin([0,50])
+ slider.dragEvent = d3.behavior.drag()                      
                       .on("drag", function(){                             
 							slider.updateDraggedSlider(d3.event.x);                            						   
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);
-                          //TODO: update scatter					      
+                          scatterplot.updateView(slider.sliderPos);					      
 					  });	
 
 slider.widget.select("#slidingTick")				                 			  
                    .call(slider.dragEvent);	   
 				   
 				   
-////////////////////////////////////////////////////////////////////////////////
-// Test reading in population json data
-////////////////////////////////////////////////////////////////////////////////
-/**var scatterplot2 = d3.select("#scatter2").append("svg")
-    .attr("width", 800)
-    .attr("height", 1200) 
-    .style("position", "absolute")
-      .style("left", "0px")
-      .style("top", "700px")	
-    .append("g")
-        ;
-
-scatterplot2.selectAll("circle")
-      .data(dataset)
-      .enter().append("circle")
-        .attr("cx",  function (d) { return d.F1955*100; } )
-        .attr("cy", function (d) { return d.Pop1955/10000; } )
-        .attr("r", function (d) { return d.Cluster*2 + 1; } )
-		.append("title")
-      .text(function(d) { return d.Country; });  */

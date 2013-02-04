@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
-function Slider(x, y, w, h, id,num) {
+function Slider(x, y, w, h, id,num,labels) {
 
    // Position and size attributes
    this.xpos = x;
@@ -15,6 +15,7 @@ function Slider(x, y, w, h, id,num) {
    this.sliderPos = x; //The horizontal position of the slider tick, changes while its dragged
    this.tickSpacing = 50; //Distance between ticks
    this.tickPositions = []; //All x locations of the ticks on the slider
+   this.tickLabels = labels;
    //Generate a list of all x locations for each tick
    for (var i=0; i < this.numTicks; i++){
        if (i==0){
@@ -58,7 +59,7 @@ Slider.prototype.render = function() {
    // Render the slider ticks
    this.widget.selectAll("rect")
      .data(this.tickPositions.map(function (d,i) {
-	        return {id:i,value:d};
+	        return {id:i,value:d,label:ref.tickLabels[i]};
 	  }))	 
       .enter()  
 	  .append("g")
@@ -77,7 +78,7 @@ Slider.prototype.render = function() {
     //Slider labels for each tick  
    this.widget.selectAll("g")
       .append("svg:text")
-      .text(function(d) { return d.id; })
+      .text(function(d) { return d.label; })
 	  .attr("x", function(d) {return d.value})
 	 .attr("y", function (d) {
 	       return 45;
@@ -131,6 +132,19 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 				   }
 				   //Dragged within bounds of the entire slider
 				    return mouseX;  
+				   			       
+	});
+	
+  
+}
+////////////////////////////////////////////////////////////////////////////////
+// Update the location of the slider tick according to dragged data object
+////////////////////////////////////////////////////////////////////////////////
+Slider.prototype.updateSlider = function( newLocation ) {
+     var ref = this;
+    this.widget.select("#slidingTick")
+	           .attr("x",function (){	
+                   return ref.tickPositions[newLocation];
 				   			       
 	});
 	
