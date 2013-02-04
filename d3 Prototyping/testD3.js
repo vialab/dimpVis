@@ -54,7 +54,7 @@ scatterplot.render( dataset, 0,years);
                            scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);	
                            scatterplot.showHintPath(d.id);	                          					   
 					  })
-					  .on("dragend",function (d){
+					  .on("dragend",function (d){					    
 					      scatterplot.snapToView(d.id,d3.event.x,d3.event.y);   
                          scatterplot.clearHintPath(d.id);	
                          slider.updateSlider(scatterplot.currentView);

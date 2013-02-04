@@ -73,7 +73,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 	}else { //A point somewhere in the middle				     
 		this.nextView = this.currentView + 1;
 	}
-   
+  
    //Remove everything in the svg
 	//this.widget.selectAll("g").remove(); 
 	
@@ -173,14 +173,14 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 									   .attr("text-anchor","middle")
 									   .attr("class","hintLabels");
 											    
-    /**this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
+    this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
                                   .attr("d", function(d){ 
 								         return line(d.nodes); 
 								  })
 								  .attr("id",function (d){return "p"+d.id;})
 								  .style("stroke-width", 2)
 								  .style("stroke", "none")
-								   .style("fill", "none");*/
+								   .style("fill", "none");
 	
   
 }
@@ -242,11 +242,11 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 	  this.widget.select("#displayPoints"+id)     
         .attr("cx", function(d){		
                  //Get the two points which compose the current sub-path dragged along	
-                console.log("current: "+ref.currentView+" next: "+ref.nextView);				 
+               			 
 		        var pt1 = d.nodes[ref.currentView][0];
                 var pt2 = d.nodes[ref.nextView][0];		
                 var bounds = ref.checkBounds(pt1,pt2,mouseX);				
-                if (ref.currentView ==0 && bounds == pt1){//First point on path, out of bounds				
+                if (ref.currentView ==0 && bounds == pt1){//First point on path, out of bounds	 				
 					   return pt1;									
 				  }else if (ref.nextView == (d.nodes.length-1) && bounds == pt2){  //Last point of path, out of bounds									  
 					  return pt2;				
@@ -310,34 +310,26 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 ////////////////////////////////////////////////////////////////////////////////
 Scatterplot.prototype.snapToView = function( id, mouseX, mouseY) {
      var ref = this;
-    this.widget.selectAll(".displayPoints")
-	           .attr("cx",function (d){	
-			        var distanceCurrent = ref.calculateDistance(mouseX,mouseY, d.nodes[ref.currentView][0], d.nodes[ref.currentView][1]);
+	 this.widget.select("#displayPoints"+id)	           
+				 .attr("cy",function (d){	
+			        var distanceCurrent = ref.calculateDistance(mouseX,mouseY, d.nodes[ref.currentView][0], d.nodes[ref.currentView][1]);					
 					var distanceNext = 	ref.calculateDistance(mouseX,mouseY, d.nodes[ref.nextView][0], d.nodes[ref.nextView][1]);	
                     if (distanceCurrent > distanceNext){ //Snap to next view					    
-					    return d.nodes[ref.nextView][0];
-                     }else { //Snap to current View					    
-					    return d.nodes[ref.currentView][0];
-                    }					 
-	             })
-				 .attr("cy",function (d){	
-			        var distanceCurrent = ref.calculateDistance(mouseX,mouseY, d.nodes[ref.currentView][0], d.nodes[ref.currentView][1]);
-					var distanceNext = 	ref.calculateDistance(mouseX,mouseY, d.nodes[ref.nextView][0], d.nodes[ref.nextView][1]);	
-                    if (distanceCurrent > distanceNext){ //Snap to next view
 					    ref.currentView = ref.nextView;
-						ref.nextView = ref.nextView +1;
-					    return d.nodes[ref.currentView][1];
-                     }else { //Snap to current View					    
-					    return d.nodes[ref.currentView][1];
-                    }					 
+						ref.nextView = ref.nextView +1;					   
+                     }					 
+	             });	
+    this.widget.selectAll(".displayPoints")
+	           .attr("cx",function (d){	
+			        return d.nodes[ref.currentView][0];                    					 
+	             })
+				 .attr("cy",function (d){		        				    
+					return d.nodes[ref.currentView][1];                   					 
 	             })
 				 .attr("stroke",function(d){
 				    if (d.id == id)
 					   return "steelblue";
-				 })
-		         ;
-	
-  
+				 });
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Update the view according to what is selected on the slider
@@ -400,8 +392,8 @@ Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){
 	return "ok";	
 }
 Scatterplot.prototype.showHintPath = function (id){
-       //this.widget.select("#g"+id).select("#p"+id)                                  
-								  //.style("stroke", "steelblue");
+       this.widget.select("#p"+id)                                  
+					.style("stroke", "steelblue");
         this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
 								  .style("fill", "steelblue");	
         this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
@@ -409,8 +401,8 @@ Scatterplot.prototype.showHintPath = function (id){
 }
 
 Scatterplot.prototype.clearHintPath = function (id) {
-      //this.widget.select("#g"+id).select("#p"+id)                                  
-								  //.style("stroke", "none");
+      this.widget.select("#p"+id)                                  
+				.style("stroke", "none");
 	   this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
 								  .style("fill", "none");
        this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
