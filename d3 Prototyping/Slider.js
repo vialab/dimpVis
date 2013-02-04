@@ -15,21 +15,15 @@ function Slider(x, y, w, h, id,num) {
    this.sliderPos = x; //The horizontal position of the slider tick, changes while its dragged
    this.tickSpacing = 50; //Distance between ticks
    this.tickPositions = []; //All x locations of the ticks on the slider
+   //Generate a list of all x locations for each tick
    for (var i=0; i < this.numTicks; i++){
        if (i==0){
 	        this.tickPositions[i] = this.xpos;
 	   }else {
 	         this.tickPositions[i] =  this.tickPositions[i-1] + this.tickSpacing;
 	   }      
-   }  
-   this.clicked = -1;
+   }     
 }
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // Prototype functions
 ////////////////////////////////////////////////////////////////////////////////
