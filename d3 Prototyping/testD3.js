@@ -11,7 +11,7 @@ var data = [
               ];
               
           
-var scatterplot   = new Scatterplot(0, 5, 900, 800, "#scatter");
+var scatterplot   = new Scatterplot(50, 100, 500, 500, "#scatter",30);
 scatterplot.init();
 //Declare some interaction functions for the scatterplot 
 scatterplot.mouseoverFunction = function (d){
@@ -74,7 +74,7 @@ scatterplot.widget.selectAll(".displayPoints")
 
 	   });*/
 	   
-	   
+
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
-function Scatterplot(x, y, w, h, id) {
+function Scatterplot(x, y, w, h, id,p) {
 
    // Position and size attributes
    this.xpos = x;
@@ -9,7 +9,7 @@ function Scatterplot(x, y, w, h, id) {
    this.width = w;
    this.height = h;
    this.id = id; 
-
+   this.padding = p
    // Reference to the main widget
    this.widget = null;  
  
@@ -40,20 +40,19 @@ function Scatterplot(x, y, w, h, id) {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-// Initializes a container group 
+// Initializes the svg 
 ////////////////////////////////////////////////////////////////////////////////
 Scatterplot.prototype.init = function() {
-   
-   var myRef = this;
   
    // Initialize the main container
    this.widget = d3.select(this.id).append("svg")      
-      .attr("width", this.width)
-      .attr("height", this.height)
-      .style("position", "absolute")
-      .style("left", this.xpos + "px")
-      .style("top", this.ypos + "px")  
-     
+      .attr("width", this.width+(this.padding*2))
+      .attr("height", this.height+(this.padding*2))
+     // .style("position", "absolute")
+     // .style("left", this.xpos + "px")
+      //.style("top", this.ypos + "px")  
+     .append("g")
+     .attr("transform", "translate(" + this.padding + "," + this.padding + ")")
    ; 
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +60,9 @@ Scatterplot.prototype.init = function() {
 // start = year or instance the view represents
 ////////////////////////////////////////////////////////////////////////////////
 Scatterplot.prototype.render = function( vdata, start, l) {
-    this.labels = l;
+  var myRef = this; 
+	
+   this.labels = l;
    this.displayData = vdata;   
    this.currentView = start;
    if (this.currentView ==0){//First point on path			        
@@ -72,39 +73,62 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 	}else { //A point somewhere in the middle				     
 		this.nextView = this.currentView + 1;
 	}
-   var myRef = this; 
+   
    //Remove everything in the svg
-	this.widget.selectAll("g").remove(); 
+	//this.widget.selectAll("g").remove(); 
+	
+	//Create the scales 	  
+	  var xScale = d3.scale.linear().domain([0,10]).range([0,myRef.width]);   
+     var yScale =  d3.scale.linear().domain([0, 200]).range([myRef.height,0]);
+	 var xAxis = d3.svg.axis()
+                     .scale(xScale)
+					 .orient("bottom");
+	var yAxis = d3.svg.axis()
+                     .scale(yScale)
+					 .orient("left");
+	 // Add the x-axis
+    this.widget.append("g")
+		.attr("class", "axis")
+		.attr("transform", "translate("+myRef.padding+"," + myRef.height + ")")
+		.call(xAxis);
+
+     // Add the y-axis
+     this.widget.append("g")
+			.attr("class", "axis")
+			.attr("transform", "translate("+ myRef.padding+ ",0)")
+			.call(yAxis); 
+	 
    // Draw the data points
-   this.widget.selectAll("circle")
+  this.widget.selectAll("circle")
      .data(this.displayData.map(function (d,i) {
              //Create a list of nodes (x,y) point pairs for each country
 			 //Dataset goes from 1955 to 2005 (11 increments)
 			 //Try fertility vs population:
 			 var points = [];		
-			 points[0] = [d.F1955*100, d.Pop1955/10000];
-			 points[1] = [d.F1960*100, d.Pop1960/10000];
-			 points[2] = [d.F1965*100, d.Pop1965/10000];
-			 points[3] = [d.F1970*100, d.Pop1970/10000];
-			 points[4] = [d.F1975*100, d.Pop1975/10000];
-			 points[5] = [d.F1980*100, d.Pop1980/10000];
-			 points[6] = [d.F1985*100, d.Pop1985/10000];
-			 points[7] = [d.F1990*100, d.Pop1990/10000];
-			 points[8] = [d.F1995*100, d.Pop1995/10000];
-			 points[9] = [d.F2000*100, d.Pop2000/10000];
-			 points[10] = [d.F2005*100, d.Pop2005/10000];			
-	        return {nodes:points,id:i,x:points[myRef.currentView][0], y:points[myRef.currentView][1],country:d.Country,group:d.Group,cluster:d.Cluster};
+			 points[0] = [xScale(d.F1955), yScale(d.L1955)];
+			 points[1] = [xScale(d.F1960), yScale(d.L1960)];
+			 points[2] = [xScale(d.F1965), yScale(d.L1965)];
+			 points[3] = [xScale(d.F1970), yScale(d.L1970)];
+			 points[4] = [xScale(d.F1975), yScale(d.L1975)];
+			 points[5] = [xScale(d.F1980), yScale(d.L1980)];
+			 points[6] = [xScale(d.F1985), yScale(d.L1985)];
+			 points[7] = [xScale(d.F1990), yScale(d.L1990)];
+			 points[8] = [xScale(d.F1995), yScale(d.L1995)];
+			 points[9] = [xScale(d.F2000), yScale(d.L2000)];
+			 points[10] = [xScale(d.F2005), yScale(d.L2005)];			
+	        return {nodes:points,id:i,country:d.Country,group:d.Group,cluster:d.Cluster};
 	  }))	
       .enter()
-      .append("g")
-	  .attr("id",function (d) {return "g"+d.id;});
-   
-   this.widget.selectAll("g").append("svg:circle")
+      .append("g")	  
+	  //.attr("id",function (d) {return "g"+d.id;})
+	  .attr("class","gDisplayPoints");
+   this.widget.selectAll(".gDisplayPoints").append("svg:circle")
       .attr("cx", function(d) {	     
-        return d.x;
+        return d.nodes[myRef.currentView][0];
        })
      .attr("cy", function(d) {
-        return d.y;
+        //return 10;
+		return d.nodes[myRef.currentView][1];
       })
 	  .attr("r", function(d) {
          return 10;		 
@@ -125,11 +149,11 @@ Scatterplot.prototype.render = function( vdata, start, l) {
     .y(function(d) { return d[1]; })
     .interpolate("linear"); //Interpolate curve should pass through all points, however concaved interpolations falsify the data
 
-    this.widget.selectAll("g").append("g")                                  
+    this.widget.selectAll(".gDisplayPoints").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
                                    .attr("class","gInner")										  
 								   ;
-	this.widget.selectAll("g").selectAll(".gInner").selectAll("circle")
+	this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
                                              .data(function(d) {return d.nodes;})
 											 .enter().append("svg:circle")
 											 .attr("cx", function(d) { return d[0]; })
@@ -137,10 +161,10 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 											.attr("r",4)
 											.attr("class","hintPoints")
 											.style("fill","none")
-    this.widget.selectAll("g").selectAll(".gInner").selectAll("text").data(function(d) {return d.nodes;})
+    this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("text").data(function(d) {return d.nodes;})
 								   .enter()
 								   .append("svg:text")
-                                         .text(function(d) { return myRef.labels[0]; })
+                                         .text(function(d,i) { return myRef.labels[i]; })
 										    .attr("x", function(d) {return d[0]})
 										 .attr("y", function (d) {  return d[1]; })
 										  .attr("font-family", "sans-serif")
@@ -157,6 +181,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 								  .style("stroke-width", 2)
 								  .style("stroke", "none")
 								   .style("fill", "none");*/
+	
   
 }
 
@@ -377,18 +402,18 @@ Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){
 Scatterplot.prototype.showHintPath = function (id){
        //this.widget.select("#g"+id).select("#p"+id)                                  
 								  //.style("stroke", "steelblue");
-        this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintPoints")                                  
+        this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
 								  .style("fill", "steelblue");	
-        this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintLabels")                                  
+        this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
 								  .style("fill", "steelblue");									  
 }
 
 Scatterplot.prototype.clearHintPath = function (id) {
       //this.widget.select("#g"+id).select("#p"+id)                                  
 								  //.style("stroke", "none");
-	   this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintPoints")                                  
+	   this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
 								  .style("fill", "none");
-       this.widget.select("#g"+id).select("#gInner"+id).selectAll(".hintLabels")                                  
+       this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
 								  .style("fill", "none");									  
 }
 
