@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
-function Slider(x, y, w, h, id,num,labels) {
+function Slider(x, y, w, h, id,num,labels,description) {
 
    // Position and size attributes
    this.xpos = x;
@@ -10,12 +10,14 @@ function Slider(x, y, w, h, id,num,labels) {
    this.height = h;
    this.id = id; 
    this.numTicks  = num;
+   this.title = description;
    // Reference to the main widget
    this.widget = null;  
    this.sliderPos = x; //The horizontal position of the slider tick, changes while its dragged
    this.tickSpacing = 50; //Distance between ticks
    this.tickPositions = []; //All x locations of the ticks on the slider
    this.tickLabels = labels;
+   this.displayColour = "#ff7f0e";
    //Generate a list of all x locations for each tick
    for (var i=0; i < this.numTicks; i++){
        if (i==0){
@@ -72,7 +74,7 @@ Slider.prototype.render = function() {
      .attr("y", 10)
 	  .attr("width", 1)	
      .attr("height", 20)	  
-      .attr("fill", "gray")
+      .attr("fill", ref.displayColour)
 	  .attr("class","ticks")
 	  ;  
     //Slider labels for each tick  
@@ -84,9 +86,9 @@ Slider.prototype.render = function() {
 	       return 45;
 	  })
 	  .attr("font-family", "sans-serif")
-   .attr("font-size", "12px")
-   .attr("fill", "gray")
-   .attr("text-anchor","middle");
+	   .attr("font-size", "12px")
+	   .attr("fill", ref.displayColour)
+	   .attr("text-anchor","middle");
    //Draw a long line through all ticks
    this.widget.append("rect").attr("class","sliderAxis")
                .attr("x",ref.xpos)
@@ -95,7 +97,7 @@ Slider.prototype.render = function() {
 			       return (ref.tickPositions[ref.numTicks-1] - ref.xpos);
 			   })	
                .attr("height", 2)	  
-               .attr("fill", "gray")
+               .attr("fill", ref.displayColour)
 	        ;
   //Draw the draggable slider tick
   this.widget.append("rect")
@@ -104,7 +106,7 @@ Slider.prototype.render = function() {
 	  .attr("width", 5)	
      .attr("height", 20)	  
 	  .attr("stroke", "white")
-      .attr("fill", "gray")
+      .attr("fill", ref.displayColour)
 	  .style("cursor", "pointer") 
       .attr("id","slidingTick");	  
    /**

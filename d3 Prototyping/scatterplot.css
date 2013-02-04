@@ -1,5 +1,21 @@
 .axis path, .axis line {
   fill: none;
-  stroke: #000;
+  stroke: #c7c7c7;
   shape-rendering: crispEdges;
+}
+.axis text{
+  font-family: sans-serif;
+  font-size:11px;
+  fill:#c7c7c7;
+}
+.axisLabel {
+  font-family: sans-serif;
+  font-size:12px;
+  text-anchor: end;
+  fill:#c7c7c7;
+}
+.gInner text {
+  font-family: sans-serif;
+  font-size:11px; 
+  text-anchor:middle;  
 }

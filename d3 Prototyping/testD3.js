@@ -11,7 +11,7 @@ var data = [
               ];
               
           
-var scatterplot   = new Scatterplot(50, 100, 500, 500, "#scatter",30);
+var scatterplot   = new Scatterplot(50, 100, 550, 550, "#scatter",30);
 scatterplot.init();
 //Declare some interaction functions for the scatterplot 
 scatterplot.mouseoverFunction = function (d){
@@ -30,16 +30,15 @@ scatterplot.mouseoutFunction = function (d){
 	                           };
 scatterplot.clickFunction = function (d){
 								if (scatterplot.clickedPoint != d.id){
+								      scatterplot.clearHintPath(scatterplot.clickedPoint);
 									 scatterplot.clickedPoint = d.id;
-									 scatterplot.showHintPath(scatterplot.clickedPoint);								 
-			                         
+									 scatterplot.showHintPath(scatterplot.clickedPoint);			                         
 								}
 								else {
 									scatterplot.clearHintPath(scatterplot.clickedPoint);
 									scatterplot.clickedPoint = -1;
 								}
-								//console.log("clicked"+scatterplot.clickedPoint);
-									
+								
 	                           };
 //scatterplot.render( data, 0);
 scatterplot.render( dataset, 0,years);
@@ -55,10 +54,9 @@ scatterplot.render( dataset, 0,years);
                            scatterplot.showHintPath(d.id);	                          					   
 					  })
 					  .on("dragend",function (d){					    
-					      scatterplot.snapToView(d.id,d3.event.x,d3.event.y);   
-                         scatterplot.clearHintPath(d.id);	
-                         slider.updateSlider(scatterplot.currentView);
-                         //console.log(scatterplot.currentView);						 
+					         scatterplot.snapToView(d.id,d3.event.x,d3.event.y);   
+							 scatterplot.clearHintPath(d.id);	
+							 slider.updateSlider(scatterplot.currentView);                         						 
 					  });	
 
 scatterplot.widget.selectAll(".displayPoints")				                 			  
@@ -66,19 +64,16 @@ scatterplot.widget.selectAll(".displayPoints")
 
 
 
-/**.widget.on("mousemove", function (d){
-		  //console.log(d3.svg.mouse(this)[0]); //older version of d3, need to use d3.svg.mouse
+/**scatterplot.widget.on("mousemove", function (d){		  
 		  if (scatterplot.clickedPoint != -1){
-			scatterplot.updateDrag(scatterplot.clickedPoint);
+			scatterplot.updateDraggedPoint(scatterplot.clickedPoint,d3.svg.mouse(this)[0],d3.svg.mouse(this)[1]);
 			}
-
-	   });*/
-	   
+	   }); */  
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(15, 700, 700, 100, "#time",11,years);
+var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years");
 slider.init();
 slider.render();
 				  
