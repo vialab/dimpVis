@@ -86,7 +86,7 @@ slider.render();
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);
-                          scatterplot.updateView(slider.sliderPos);					      
+                          scatterplot.changeView_slider(slider.sliderPos);					      
 					  });	
 
 slider.widget.select("#slidingTick")				                 			  

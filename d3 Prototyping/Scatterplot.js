@@ -10,6 +10,7 @@ function Scatterplot(x, y, w, h, id,p) {
    this.height = h;
    this.id = id; 
    this.padding = p
+   this.hintColour = "steelblue";
    // Reference to the main widget
    this.widget = null;  
  
@@ -235,6 +236,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					}else if (bounds == pt2){  //Beyond nextView
 					  ref.currentView = ref.nextView;
 					  ref.nextView = ref.currentView +1;
+					  ref.redrawView(id);
 					  return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
 					}else{ //Within current sub-path
 					   return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
@@ -243,6 +245,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					if (bounds == pt1){  //Beyond 					    
 					    ref.nextView = ref.currentView;
 						ref.currentView = ref.currentView - 1;
+						ref.redrawView(id);
 					    return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
 					}else if (bounds == pt2){  //Out of Bounds					  
 					  return pt2_y;
@@ -250,13 +253,15 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					   return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
 					}
 				  }	else { //A point somewhere in the middle
-				     if (bounds == pt1){ //Passed current					    
+				     if (bounds == pt1){ //Passed current                         					 
 					    ref.nextView = ref.currentView;
 						ref.currentView = ref.currentView-1;
+						 ref.redrawView(id);
 					    return pt1_y;
 					 }else if (bounds == pt2){ //Passed next
 					    ref.currentView = ref.nextView;
 					    ref.nextView = ref.nextView +1;
+						 ref.redrawView(id);
 					    return pt2_y;
 					 }else{
 					    return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
@@ -279,23 +284,12 @@ Scatterplot.prototype.snapToView = function( id, mouseX, mouseY) {
 						ref.nextView = ref.nextView +1;					   
                      }					 
 	             });	
-    this.widget.selectAll(".displayPoints")
-	           .attr("cx",function (d){	
-			        return d.nodes[ref.currentView][0];                    					 
-	             })
-				 .attr("cy",function (d){		        				    
-					return d.nodes[ref.currentView][1];                   					 
-	             })
-				 .attr("stroke",function(d){
-				    if (d.id == id)
-					   return "steelblue";
-				 });
+    ref.redrawView(id);
 }
 ////////////////////////////////////////////////////////////////////////////////
-// Update the view according to what is selected on the slider
-// TODO: add transition
+// Changes the view according to what is selected on the slider widget
 ////////////////////////////////////////////////////////////////////////////////
-Scatterplot.prototype.updateView = function( newView) {
+Scatterplot.prototype.changeView_slider = function( newView) {
      var ref = this;
 	 //Update the view tracker variables
 	 if (newView ==0){//First point on path
@@ -308,16 +302,27 @@ Scatterplot.prototype.updateView = function( newView) {
         ref.currentView = newView;	
 		ref.nextView = newView + 1;
 	}
+    ref.redrawView("null"); //redraw the points for the currently selected view
+}
+////////////////////////////////////////////////////////////////////////////////
+// Redraws the points on the scatterplot
+// Note: 'id' is optional, only if a point should be highlighted (during drag)
+////////////////////////////////////////////////////////////////////////////////
+Scatterplot.prototype.redrawView = function(id) {
+     var ref = this;
     this.widget.selectAll(".displayPoints")
 	           .attr("cx",function (d){	
 			           return d.nodes[ref.currentView][0];
 			        })
 				 .attr("cy",function (d){	
 			        return d.nodes[ref.currentView][1];					 
-	             });
-	
-  
+	             })
+				 .attr("stroke",function(d){
+				    if (d.id == id)
+					   return "steelblue";
+				 }); 
 }
+
 //Finds the interpolated value of the unknown y-coordinate
 Scatterplot.prototype.findInterpY = function(x,x0,y0,x1,y1){      
 	var interpY = y0 + (y1 - y0)*((x - x0)/(x1 - x0));
@@ -353,13 +358,13 @@ Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){
 }
 Scatterplot.prototype.showHintPath = function (id){
      this.widget.select("#displayPoints"+id)                                  
-					.style("stroke", "steelblue");
+					.style("stroke", this.hintColour);
        this.widget.select("#p"+id)                                  
-					.style("stroke", "steelblue");
+					.style("stroke", this.hintColour);
         this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
-								  .style("fill", "steelblue");	
+								  .style("fill", this.hintColour);	
         this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
-								  .style("fill", "steelblue");									  
+								  .style("fill", this.hintColour);									  
 }
 
 Scatterplot.prototype.clearHintPath = function (id) {
