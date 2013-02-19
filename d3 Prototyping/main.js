@@ -127,5 +127,5 @@ barchart.render(dataset);
 							 //slider.updateSlider(scatterplot.currentView);                             						 
 					  });	
 
-barchart.widget.selectAll(".displayBarsTips")				                 			  
+barchart.widget.selectAll(".displayBars")				                 			  
                    .call(barchart.dragEvent);

@@ -12,6 +12,9 @@
    this.labels = l;
    this.numBars = -1; //Total number of bars (points along x-axis) in the dataset
    this.draggedBar = -1;
+   this.hintColour = "#aec7e8";
+   this.fadeColour = "#c7c7c7";
+   this.barColour = "steelblue";
    //Event functions, declared in main.js  
    this.placeholder = function() { 
 		console.log("Not implemented"); 
@@ -76,19 +79,22 @@ this.widget.selectAll("rect")
 			 heights[8] = [i*ref.barWidth, ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
 			 heights[9] = [i*ref.barWidth, ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
 			 heights[10] = [i*ref.barWidth, ref.yPos - d.Pop2005/100000, d.Pop2005/100000];	
-             //Find the largest height, tallest bar
-			 var tallestBar = -1;			
+             //Find the largest height, tallest bar and the shortest bar to define dragging bounds
+			 var tallestBar = -1;	
+             var shortestBar = 1000000;			 
              for (var j=0;j<heights.length;j++){			       
 			     if (heights[j][1] > tallestBar){
 				       tallestBar = j;
 				  }
+				  if (heights[j][0] < shortestBar){
+				      shortestBar = j;
+				  }
 			 }			 
-	        return {nodes:heights,id:i,country:d.Country,highestBar:tallestBar};
+	        return {nodes:heights,id:i,country:d.Country,highestBar:tallestBar,lowestBar:shortestBar};
 	  }))
      .enter().append("g").attr("class","gDisplayBars");
 
 	
-  
 	//Render the bars 
 this.widget.selectAll(".gDisplayBars")
      .append("rect")
@@ -96,7 +102,7 @@ this.widget.selectAll(".gDisplayBars")
      .attr("y", function(d){ return d.nodes[ref.currentView][1];})
      .attr("width", ref.barWidth)
      .attr("height", function(d) { return d.nodes[ref.currentView][2]; })
-	 .attr("fill", "steelblue")
+	 .attr("fill", this.barColour)
 	// .attr("stroke", "#FFF")
 	 //.attr("stroke-width",5)
 	 .attr("class", "displayBars")
@@ -111,10 +117,10 @@ this.widget.selectAll(".gDisplayBars")
      .attr("y", function(d){ return d.nodes[ref.currentView][1];})
      .attr("width", ref.barWidth)
      .attr("height", 5)
-	 .attr("fill", "black")
+	 .attr("fill", this.barColour)
 	// .attr("stroke", "white")
 	// .attr("stroke-width",5)
-	 .attr("class", "displayBarsTips")
+	 .attr("class", "displayBars")
 	 .attr("id", function (d){return "displayBarsTips"+d.id;})
 	 .style("cursor", "ns-resize")
 	;
@@ -170,8 +176,8 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
      this.widget.select("#displayBars"+id)
 	            .attr("height", function (d){				
-				    if (mouseY >= ref.yPos){ //Past base of bars, out of bounds
-					   return 5;
+				    if (mouseY >= d.nodes[d.lowestBar][1]){ //Past base of bars, out of bounds
+					   return d.nodes[d.lowestBar][2];
 					}else if (mouseY < (d.nodes[d.highestBar][1])){ //Past highest point, out of bounds
 					   return d.nodes[d.highestBar][2];
 					}					
@@ -187,8 +193,8 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 				    return (barHeight + yDirection*Math.abs(yDiff - barHeight)); 
 				})
 				.attr("y", function(d){ 
-                    if (mouseY >= ref.yPos){
-					   return ref.yPos;
+                    if (mouseY >= d.nodes[d.lowestBar][1]){
+					   return d.nodes[d.lowestBar][1];
 					} else if (mouseY < d.nodes[d.highestBar][1]){
 					   return d.nodes[d.highestBar][1];
                     }				
@@ -196,8 +202,8 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 				});
 	this.widget.select("#displayBarsTips"+id)	          
 				.attr("y", function(d){ 
-                     if (mouseY >= ref.yPos){
-					   return ref.yPos;
+                     if (mouseY >= d.nodes[d.lowestBar][1]){
+					   return d.nodes[d.lowestBar][1];
 					} else if (mouseY < d.nodes[d.highestBar][1]){
 					   return d.nodes[d.highestBar][1];
                     }			
@@ -206,13 +212,27 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 				});
 }
 //Displays hint info
-Barchart.prototype.showHintPath = function (id){          
+Barchart.prototype.showHintPath = function (id){    
+        var ref = this;      
         this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
-								  .style("fill", "grey");	
+								  .style("fill", this.hintColour);	
+		this.widget.selectAll(".displayBars")
+		                                   .transition().duration(400)
+		                                   .style("fill", function (d){
+		                                           if (id != d.id)
+												      return ref.fadeColour;
+		                                    });		
 }
 //Clears hint info
  Barchart.prototype.clearHintPath = function (id){
+        var ref = this;
         this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
-								  .style("fill", "none");	
+								  .style("fill", "none");
+		this.widget.selectAll(".displayBars")
+		                                   .transition().duration(400)
+		                                   .style("fill", function (d){
+		                                           return ref.barColour;
+		                                    });
+        								  
  }
 
