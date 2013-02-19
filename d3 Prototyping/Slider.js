@@ -11,6 +11,8 @@ function Slider(x, y, w, h, id,num,labels,description) {
    this.id = id; 
    this.numTicks  = num;
    this.title = description;
+   this.currentTick = 0; //Start the slider always at the first tick
+   this.nextTick = 1;  //The next tick after the current one
    // Reference to the main widget
    this.widget = null;  
    this.sliderPos = x; //The horizontal position of the slider tick, changes while its dragged
@@ -108,15 +110,7 @@ Slider.prototype.render = function() {
 	  .attr("stroke", "white")
       .attr("fill", ref.displayColour)
 	  .style("cursor", "pointer") 
-      .attr("id","slidingTick");	  
-   /**
-   this.widget.append("triangle")
-              .attr("id", "goForward");
-	
-	this.widget.append("triangle")
-	           .attr("id","goBackward");*/
-
-  
+      .attr("id","slidingTick"); 
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Update the location of the slider tick during drag movement
@@ -124,23 +118,42 @@ Slider.prototype.render = function() {
 Slider.prototype.updateDraggedSlider = function( mouseX ) {
      var ref = this;
     this.widget.select("#slidingTick")
-	           .attr("x",function (){	
-                   var lowerBound = ref.xpos;
-                   var upperBound = ref.tickPositions[ref.numTicks-1];
-                   if (mouseX <lowerBound){
-				       return lowerBound;
-				   }else if (mouseX > upperBound){
-				       return upperBound;
-				   }
-				   //Dragged within bounds of the entire slider
-				    return mouseX;  
-				   			       
+	           .attr("x",function (){                   			   
+				   var current = ref.tickPositions[ref.currentTick];
+				   var next = ref.tickPositions[ref.nextTick];				   
+                   if (ref.currentTick == 0){ //First tick
+				       //Out of bounds: Passed first tick
+					   if (mouseX <= current){
+					      return current;
+					   }else if (mouseX >= next){
+					       ref.currentTick = ref.nextTick;
+						   ref.nextTick = ref.currentTick+1;					   
+						}
+						  return mouseX;			       
+				   }else if (ref.nextTick == (ref.numTicks-1)){ //Last tick
+				       //Out of bounds: Passed last tick
+					   if (mouseX>= next){
+					      return next;
+					   }else if (mouseX <= current){
+					        ref.nextick = ref.currentTick;
+							ref.currentTick--;						
+					   }
+					   return mouseX;
+				   }else{
+				        if (mouseX <= current){
+						    ref.nextTick = ref.currentTick;
+							ref.currentTick--;
+						}else if (mouseX>=next){
+						    ref.currentTick = ref.nextTick;
+							ref.nextTick++;
+						}						
+						return mouseX;
+				   }				 		   			       
 	});
-	
   
 }
 ////////////////////////////////////////////////////////////////////////////////
-// Update the location of the slider tick according to dragged data object
+// Update the location of the slider tick according to dragged data point/object
 ////////////////////////////////////////////////////////////////////////////////
 Slider.prototype.updateSlider = function( newLocation ) {
      var ref = this;
@@ -148,31 +161,25 @@ Slider.prototype.updateSlider = function( newLocation ) {
 	           .attr("x",function (){	
                    return ref.tickPositions[newLocation];
 				   			       
-	});
-	
-  
+	});  
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Snap the draggable tick to the nearest tick on the slider (mouse released
 // indicating end of drag event)
 ////////////////////////////////////////////////////////////////////////////////
-Slider.prototype.snapToTick = function( mouseX ) {
+Slider.prototype.snapToTick = function(mouseX) {
      var ref = this;
     this.widget.select("#slidingTick")
 	           .attr("x",function (){	
-			        var minDistance = 1000000000;
-					var nearestTick = null;
-                   //Search for the nearest tick
-                   	for (var i=0;i<ref.tickPositions.length;i++){
-					      var distance = Math.abs(ref.tickPositions[i] - mouseX);
-						  if (distance < minDistance){
-						      minDistance = distance;
-							  nearestTick = i;
-						  }
-                    }
-					ref.sliderPos = nearestTick;
-                    return ref.tickPositions[nearestTick];					
-	             });
-	
-  
+			         var current = ref.tickPositions[ref.currentTick];
+				     var next = ref.tickPositions[ref.nextTick];	
+					 var currentDist = Math.abs(current - mouseX);
+					 var nextDist = Math.abs(next - mouseX);
+					 if (currentDist > nextDist){
+					    ref.currentTick = ref.nextTick;
+						ref.nextTick++;
+						return next;
+					}
+					return current;					 
+	             });  
 }

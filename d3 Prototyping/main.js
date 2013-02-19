@@ -1,34 +1,22 @@
-var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"];
-var data = [
-                  [ 
-					[0,50],[100,30],[200,40],[300,50]
-				  ],
-                  [
-					[100,33],[300,95],[50,10],[30,20]
-				  ]
-                  				  
-                 
-              ];
-              
+var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels              
           
 var scatterplot   = new Scatterplot(50, 100, 550, 550, "#scatter",30);
 scatterplot.init();
 //Declare some interaction functions for the scatterplot 
 scatterplot.mouseoverFunction = function (d){
-									if (scatterplot.clickedPoint ==-1){
+									if (scatterplot.draggedPoint == -1){
+									    //scatterplot.clearHintPath(scatterplot.draggedPoint);
 										scatterplot.hoveredPoint = d.id;
-										scatterplot.showHintPath(scatterplot.hoveredPoint);
-									}
-									//console.log("hovered"+scatterplot.hoveredPoint);
+										//scatterplot.showHintPath(scatterplot.hoveredPoint);
+									}									
 	                           };
 scatterplot.mouseoutFunction = function (d){
-									if (scatterplot.clickedPoint ==-1){
-										scatterplot.clearHintPath(scatterplot.hoveredPoint);
+									if (scatterplot.draggedPoint ==-1){
+										//scatterplot.clearHintPath(scatterplot.hoveredPoint);
 										scatterplot.hoveredPoint = -1;
-									}
-									//console.log("cleared");
+									}									
 	                           };
-scatterplot.clickFunction = function (d){
+/**scatterplot.clickFunction = function (d){
 								if (scatterplot.clickedPoint != d.id){
 								      scatterplot.clearHintPath(scatterplot.clickedPoint);
 									 scatterplot.clickedPoint = d.id;
@@ -39,8 +27,8 @@ scatterplot.clickFunction = function (d){
 									scatterplot.clickedPoint = -1;
 								}
 								
-	                           };
-//scatterplot.render( data, 0);
+	                           };*/
+
 scatterplot.render( dataset, 0,years);
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the scatterplot
@@ -49,26 +37,33 @@ scatterplot.render( dataset, 0,years);
                        .origin(function(d){ //Set the starting point of the drag interaction
 							return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
 	                   })
-                      .on("drag", function(d){                             		  
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);	
-                           scatterplot.showHintPath(d.id);	                          					   
+					   .on("dragstart", function(d){    
+                           if (scatterplot.draggedPoint != d.id){
+							       scatterplot.clearHintPath(scatterplot.draggedPoint);
+								   scatterplot.draggedPoint = d.id;   
+                                   scatterplot.showHintPath(d.id);  								   
+							}                                                 						   
+					  })
+                      .on("drag", function(d){  
+                           var view = scatterplot.currentView;					  
+                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
+						   if (scatterplot.currentView != view){
+                                  slider.updateSlider(scatterplot.currentView);	
+							}								  
 					  })
 					  .on("dragend",function (d){					    
-					         scatterplot.snapToView(d.id,d3.event.x,d3.event.y);   
-							 scatterplot.clearHintPath(d.id);	
-							 slider.updateSlider(scatterplot.currentView);                         						 
+					         scatterplot.snapToView(d.id,d3.event.x,d3.event.y);						 	
+							 slider.updateSlider(scatterplot.currentView);                             						 
 					  });	
 
 scatterplot.widget.selectAll(".displayPoints")				                 			  
                    .call(scatterplot.dragEvent);
 
-
-
 /**scatterplot.widget.on("mousemove", function (d){		  
 		  if (scatterplot.clickedPoint != -1){
 			scatterplot.updateDraggedPoint(scatterplot.clickedPoint,d3.svg.mouse(this)[0],d3.svg.mouse(this)[1]);
 			}
-	   }); */  
+	   });*/
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
@@ -81,12 +76,17 @@ slider.render();
 // Define some interaction functions for the slider
 ////////////////////////////////////////////////////////////////////////////////
  slider.dragEvent = d3.behavior.drag()                      
-                      .on("drag", function(){                             
-							slider.updateDraggedSlider(d3.event.x);                            						   
+                      .on("drag", function(){   
+                            var previous = slider.currentTick;					  
+							slider.updateDraggedSlider(d3.event.x);
+                            if (previous != slider.currentTick){						
+                                scatterplot.changeView_slider(slider.currentTick);							
+                           }	
+						   slider.updateDraggedSlider(d3.event.x);												   
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);
-                          scatterplot.changeView_slider(slider.sliderPos);					      
+                          scatterplot.changeView_slider(slider.currentTick);					      
 					  });	
 
 slider.widget.select("#slidingTick")				                 			  

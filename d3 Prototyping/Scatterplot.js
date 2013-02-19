@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Constructor
+// Used to draw the scatterplot
 ////////////////////////////////////////////////////////////////////////////////
 function Scatterplot(x, y, w, h, id,p) {
 
@@ -10,10 +10,14 @@ function Scatterplot(x, y, w, h, id,p) {
    this.height = h;
    this.id = id; 
    this.padding = p
+   
+   //Colours
    this.hintColour = "steelblue";
+   this.grey = "#7f7f7f";
+   
    // Reference to the main widget
    this.widget = null;  
- 
+   //Variables to track dragged point location within path ("view switches")
    this.currentView = -1;
    this.nextView = -1;
    //The number of different instances across dimension (e.g., 4 different views for each year)
@@ -25,9 +29,11 @@ function Scatterplot(x, y, w, h, id,p) {
    this.labels = [];
    this.clickedPoint = -1;
    this.hoveredPoint = -1;
+   this.draggedPoint = -1;
+   this.dragging = 0;
    this.dragEvent = null;
    
-  
+   //Event functions, declared in main.js  
    this.placeholder = function() { 
 		console.log("Not implemented"); 
    }; 
@@ -59,6 +65,7 @@ Scatterplot.prototype.init = function() {
 ////////////////////////////////////////////////////////////////////////////////
 // Render
 // start = year or instance the view represents
+// l =  labels for the hint path
 ////////////////////////////////////////////////////////////////////////////////
 Scatterplot.prototype.render = function( vdata, start, l) {
   var myRef = this; 
@@ -141,57 +148,37 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 	  }))	
       .enter()
       .append("g")	  
-	  .attr("class","gDisplayPoints");
-   
-   this.widget.selectAll(".gDisplayPoints").append("svg:circle")
-      .attr("cx", function(d) {	     
-        return d.nodes[myRef.currentView][0];
-       })
-     .attr("cy", function(d) {
-        //return 10;
-		return d.nodes[myRef.currentView][1];
-      })
-	  .attr("r", function(d) {
-         return 8;		 
-      })
-	  .attr("stroke", "none")
-	  .attr("stroke-width", "2")
-	  .attr("class", "displayPoints")
-	  .attr("fill","#7f7f7f")
-	   .attr("id", function (d){return "displayPoints"+d.id;})
-	  .style("cursor", "pointer")  
-       .on("mouseover", myRef.mouseoverFunction)
-       .on("mouseout", myRef.mouseoutFunction)	
-       .on("click", myRef.clickFunction)		   
-   ;  
+	  .attr("class","gDisplayPoints"); 
    
  //Drawing paths between points
  var line = d3.svg.line()
     .x(function(d) { return d[0]; })
     .y(function(d) { return d[1]; })
-    .interpolate("linear"); //Interpolate curve should pass through all points, however concaved interpolations falsify the data
-
+    .interpolate("linear"); //Interpolate curve should pass through all points, however curved interpolations falsify the data
+   
     this.widget.selectAll(".gDisplayPoints").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
                                    .attr("class","gInner")										  
-								   ;
+	 //Render the hint points							   ;
 	this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
                                              .data(function(d) {return d.nodes;})
 											 .enter().append("svg:circle")
 											 .attr("cx", function(d) { return d[0]; })
 											.attr("cy", function(d) { return d[1]; })
-											.attr("r",4)
+											.attr("r",9)
 											.attr("class","hintPoints")
 											.style("fill","none")
+											.attr("filter", "url(#blur)");
+	//Render the hint path labels
     this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("text")
 	                                        .data(function(d) {return d.nodes;}).enter()								  
 								            .append("svg:text")
                                             .text(function(d,i) { return myRef.labels[i]; })
 												.attr("x", function(d) {return d[0]})
-												.attr("y", function (d) {  return d[1]; })												
+												.attr("y", function (d) {  return d[1] + 12; })												
 											   .attr("fill", "none")											  
 											   .attr("class","hintLabels");
-										    
+	//Render the hint path line									    
     this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
                                   .attr("d", function(d){ 
 								         return line(d.nodes); 
@@ -201,8 +188,27 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 								  .style("stroke", "none")
 								   .style("fill", "none")
 								    .attr("filter", "url(#blur)");
-	
-  
+     
+	 //Render the actual data points last, so that they are displayed on top of the hint path
+     this.widget.selectAll(".gDisplayPoints").append("svg:circle")
+							  .attr("cx", function(d) {	     
+								   return d.nodes[myRef.currentView][0];
+							   })
+							 .attr("cy", function(d) {        
+								   return d.nodes[myRef.currentView][1];
+							  })
+							  .attr("r", function(d) {
+								   return 8;		 
+							  })
+							  .attr("stroke", "none")
+							  .attr("stroke-width", "2")
+							  .attr("class", "displayPoints")
+							  .attr("fill",myRef.grey)
+							   .attr("id", function (d){return "displayPoints"+d.id;})
+							  .style("cursor", "pointer")  
+							   .on("mouseover", myRef.mouseoverFunction)
+							   .on("mouseout", myRef.mouseoutFunction)	
+							   .on("click", myRef.clickFunction);  
 }
 
 //Updates the dragged point - for drag mouse event
@@ -211,8 +217,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 	   
 	  this.widget.select("#displayPoints"+id)     
         .attr("cx", function(d){		
-                 //Get the two points which compose the current sub-path dragged along	
-               			 
+                 //Get the two points which compose the current sub-path dragged along	               			 
 		        var pt1 = d.nodes[ref.currentView][0];
                 var pt2 = d.nodes[ref.nextView][0];		
                 var bounds = ref.checkBounds(pt1,pt2,mouseX);				
@@ -235,7 +240,8 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                 var pt2 = d.nodes[ref.nextView][0];	
                 var pt1_y = d.nodes[ref.currentView][1];
                 var pt2_y = d.nodes[ref.nextView][1];					
-                var bounds = ref.checkBounds(pt1,pt2,mouseX);		
+                var bounds = ref.checkBounds(pt1,pt2,mouseX);
+                var interpY;				
 		     //Check to make sure mouse is in bounds
                 if (ref.currentView ==0){//First point on path			       
 					if (bounds == pt1){  //Out of Bounds
@@ -246,7 +252,9 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					  ref.redrawView(id);
 					  return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
 					}else{ //Within current sub-path
-					   return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					   //ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					   return interpY;
 					}					
 				  }else if (ref.nextView == (d.nodes.length-1)){  //Last point of path
 					if (bounds == pt1){  //Beyond 					    
@@ -270,7 +278,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					    ref.nextView = ref.nextView +1;
 						 ref.redrawView(id);
 					    return pt2_y;
-					 }else{
+					 }else{ //Within current sub-path
 					    return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
 					 }
 				 }		  
@@ -278,7 +286,23 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
   
 }
 //"Animates" the rest of points while a point is dragged
-Scatterplot.prototype.animatePoints = function(){
+Scatterplot.prototype.animatePoints = function(currentX,currentY,x1,y1,x2,y2,id){
+    var ref = this;
+   var distanceOfLine = ref.calculateDistance(x1,y1,x2,y2);
+   var distanceTravelled = ref.calculateDistance(currentX,currentY,x1,y1);
+   var distanceRatio = Math.round((distanceTravelled/distanceOfLine)*100);
+   if (distanceRatio % 20 ==0){
+	   this.widget.selectAll(".displayPoints")
+				  //.transition().duration(800)
+				   .attr("cx",function (d){	
+						   return d.nodes[ref.currentView][0];
+						})
+					 .attr("cy",function (d){	
+						return d.nodes[ref.currentView][1];					 
+					 })
+					 ; 
+   }
+   console.log(distanceRatio);
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Snap the draggable point to the nearest view
@@ -321,17 +345,14 @@ Scatterplot.prototype.changeView_slider = function( newView) {
 Scatterplot.prototype.redrawView = function(id) {
      var ref = this;
     this.widget.selectAll(".displayPoints")
-	          .transition().duration(800)
+	          //.transition().duration(800)
 	           .attr("cx",function (d){	
 			           return d.nodes[ref.currentView][0];
 			        })
 				 .attr("cy",function (d){	
 			        return d.nodes[ref.currentView][1];					 
 	             })
-				 .attr("stroke",function(d){
-				    if (d.id == id)
-					   return ref.hintColour;
-				 }); 
+				 ; 
 }
 
 //Finds the interpolated value of the unknown y-coordinate
@@ -368,23 +389,23 @@ Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){
 	return "ok";	
 }
 Scatterplot.prototype.showHintPath = function (id){
-     this.widget.select("#displayPoints"+id)                                  
-					.style("stroke", this.hintColour);
+     /**this.widget.select("#displayPoints"+id)                                  
+					.style("stroke", this.hintColour);*/
        this.widget.select("#p"+id)                                  
 					.style("stroke", this.hintColour);
-        this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
-								  .style("fill", this.hintColour);	
+        /**this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
+								  .style("fill", this.hintColour);	*/
         this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
-								  .style("fill", this.hintColour);									  
+								  .style("fill", this.grey);									  
 }
 
 Scatterplot.prototype.clearHintPath = function (id) {
-     this.widget.select("#displayPoints"+id)                                  
-					.style("stroke", "none");
+     /**this.widget.select("#displayPoints"+id)                                  
+					.style("stroke", "none");*/
       this.widget.select("#p"+id)                                  
 				.style("stroke", "none");
-	   this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
-								  .style("fill", "none");
+	   /**this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
+								  .style("fill", "none");*/
        this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
 								  .style("fill", "none");									  
 }
