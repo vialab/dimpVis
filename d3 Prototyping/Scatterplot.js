@@ -78,6 +78,12 @@ Scatterplot.prototype.render = function( vdata, start, l) {
    //Remove everything in the svg - only need this if calling render more than once after page is loaded
 	//this.widget.selectAll("g").remove(); 
 	
+	//Add the blur filter to the SVG so other elements can call it
+	this.widget.append("svg:defs")
+				.append("svg:filter")
+			    .attr("id", "blur")
+				.append("svg:feGaussianBlur")
+				.attr("stdDeviation", 5);
 	//Create the scales 	  
 	  var xScale = d3.scale.linear().domain([0,10]).range([0,myRef.width]);   
      var yScale =  d3.scale.linear().domain([10, 80]).range([myRef.height,0]);
@@ -185,7 +191,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 												.attr("y", function (d) {  return d[1]; })												
 											   .attr("fill", "none")											  
 											   .attr("class","hintLabels");
-											    
+										    
     this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
                                   .attr("d", function(d){ 
 								         return line(d.nodes); 
@@ -193,7 +199,8 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 								  .attr("id",function (d){return "p"+d.id;})
 								  .style("stroke-width", 2)
 								  .style("stroke", "none")
-								   .style("fill", "none");
+								   .style("fill", "none")
+								    .attr("filter", "url(#blur)");
 	
   
 }
@@ -270,6 +277,9 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 		});
   
 }
+//"Animates" the rest of points while a point is dragged
+Scatterplot.prototype.animatePoints = function(){
+}
 ////////////////////////////////////////////////////////////////////////////////
 // Snap the draggable point to the nearest view
 ////////////////////////////////////////////////////////////////////////////////
@@ -311,6 +321,7 @@ Scatterplot.prototype.changeView_slider = function( newView) {
 Scatterplot.prototype.redrawView = function(id) {
      var ref = this;
     this.widget.selectAll(".displayPoints")
+	          .transition().duration(800)
 	           .attr("cx",function (d){	
 			           return d.nodes[ref.currentView][0];
 			        })
@@ -319,7 +330,7 @@ Scatterplot.prototype.redrawView = function(id) {
 	             })
 				 .attr("stroke",function(d){
 				    if (d.id == id)
-					   return "steelblue";
+					   return ref.hintColour;
 				 }); 
 }
 
