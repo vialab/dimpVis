@@ -16,6 +16,10 @@ scatterplot.mouseoutFunction = function (d){
 										scatterplot.hoveredPoint = -1;
 									}									
 	                           };
+scatterplot.clickHintLabelFunction = function (d, i){
+										scatterplot.changeView(i);
+										slider.updateSlider(i); 
+									};
 /**scatterplot.clickFunction = function (d){
 								if (scatterplot.clickedPoint != d.id){
 								      scatterplot.clearHintPath(scatterplot.clickedPoint);
@@ -80,14 +84,14 @@ slider.render();
                             var previous = slider.currentTick;					  
 							slider.updateDraggedSlider(d3.event.x);
                             if (previous != slider.currentTick){						
-                                scatterplot.changeView_slider(slider.currentTick);							
+                                scatterplot.changeView(slider.currentTick);							
                            }	
 						    slider.updateDraggedSlider(d3.event.x);
                             scatterplot.clearHintPath(scatterplot.draggedPoint);						   
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);
-                          scatterplot.changeView_slider(slider.currentTick);					      
+                          scatterplot.changeView(slider.currentTick);					      
 					  });	
 
 slider.widget.select("#slidingTick")				                 			  
