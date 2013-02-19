@@ -92,9 +92,10 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 				.append("svg:feGaussianBlur")
 				.attr("stdDeviation", 5);
 	//Create the scales 	  
-	  var xScale = d3.scale.linear().domain([0,10]).range([0,myRef.width]);   
+	 var xScale = d3.scale.linear().domain([0,10]).range([0,myRef.width]);   
      var yScale =  d3.scale.linear().domain([10, 80]).range([myRef.height,0]);
-	 var xAxis = d3.svg.axis()
+	//Define the axes
+	var xAxis = d3.svg.axis()
                      .scale(xScale)
 					 .orient("bottom");
 	var yAxis = d3.svg.axis()
@@ -158,8 +159,8 @@ Scatterplot.prototype.render = function( vdata, start, l) {
    
     this.widget.selectAll(".gDisplayPoints").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
-                                   .attr("class","gInner")										  
-	 //Render the hint points							   ;
+                                   .attr("class","gInner");									  
+	 //Render the hint points							   
 	this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
                                              .data(function(d) {return d.nodes;})
 											 .enter().append("svg:circle")
