@@ -97,7 +97,7 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new bar chart
 ////////////////////////////////////////////////////////////////////////////////   
-var barchart   = new Barchart(700, 700, 800, 100 , "#bargraph",years);
+var barchart   = new Barchart(700, 900, 800, 250 , "#bargraph",years);
 barchart.init();
 barchart.mouseoverFunction = function (d){
 									console.log("hover");								
@@ -109,22 +109,23 @@ barchart.render(dataset);
 ////////////////////////////////////////////////////////////////////////////////
  barchart.dragEvent = d3.behavior.drag()
                        .origin(function(d){ //Set the starting point of the drag interaction
-							return {x:d.x,y:d.nodes[barchart.currentView]};
+							return {x:d.x,y:d.nodes[barchart.currentView][1]};
 	                   })
-					   /**.on("dragstart", function(d){    
-                           if (scatterplot.draggedPoint != d.id){
-							       scatterplot.clearHintPath(scatterplot.draggedPoint);
-								   scatterplot.draggedPoint = d.id;   
-                                   scatterplot.showHintPath(d.id);  								   
+					   .on("dragstart", function(d){    
+                           if (barchart.draggedBar != d.id){
+							       barchart.clearHintPath(barchart.draggedBar);
+								   barchart.draggedBar = d.id;   
+                                   barchart.showHintPath(d.id);  								   
 							}                                                 						   
-					  })*/
-                      .on("drag", function(d){                            
-                           barchart.updateDraggedBar(d.id,d3.event.x,d3.event.y);						   								  
-					  });
-					  /**.on("dragend",function (d){					    
-					         scatterplot.snapToView(d.id,d3.event.x,d3.event.y);						 	
-							 slider.updateSlider(scatterplot.currentView);                             						 
-					  });	*/
+					  })
+                      .on("drag", function(d){    
+                            //console.log(d3.event.y+" "+(barchart.yPos - d.nodes[barchart.currentView]));				  
+                           barchart.updateDraggedBar(d.id,d3.event.y);						   								  
+					  })
+					  .on("dragend",function (d){					    
+					         //barchart.snapToView(d.id,d3.event.x,d3.event.y);						 	
+							 //slider.updateSlider(scatterplot.currentView);                             						 
+					  });	
 
-barchart.widget.selectAll(".displayBars")				                 			  
+barchart.widget.selectAll(".displayBarsTips")				                 			  
                    .call(barchart.dragEvent);

@@ -294,7 +294,7 @@ Scatterplot.prototype.animatePoints = function(currentX,currentY,x1,y1,x2,y2,id)
    var distanceRatio = Math.round((distanceTravelled/distanceOfLine)*100);
    if (distanceRatio % 20 ==0){
 	   this.widget.selectAll(".displayPoints")
-				  //.transition().duration(800)
+				  //.transition().duration(400)
 				   .attr("cx",function (d){	
 						   return d.nodes[ref.currentView][0];
 						})
@@ -346,7 +346,7 @@ Scatterplot.prototype.changeView_slider = function( newView) {
 Scatterplot.prototype.redrawView = function(id) {
      var ref = this;
     this.widget.selectAll(".displayPoints")
-	          //.transition().duration(800)
+	          .transition().duration(400)
 	           .attr("cx",function (d){	
 			           return d.nodes[ref.currentView][0];
 			        })

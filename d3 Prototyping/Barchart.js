@@ -6,11 +6,12 @@
    this.id = id;
    this.widget = null; //Reference to svg container
    this.displayData = null;
-   this.barWidth = 20;
+   this.barWidth = 25;
+   this.barSpacing = 10; //Spacing between bars
    this.currentView = 0;
    this.labels = l;
    this.numBars = -1; //Total number of bars (points along x-axis) in the dataset
-   
+   this.draggedBar = -1;
    //Event functions, declared in main.js  
    this.placeholder = function() { 
 		console.log("Not implemented"); 
@@ -51,6 +52,7 @@ this.widget.selectAll("rect")
 			 //Dataset goes from 1955 to 2005 (11 increments)
 			 //Try population:
 			 var heights = [];		
+				
 			 /**heights[0] = yScale(d.Pop1955);
 			 heights[1] = yScale(d.Pop1960);
 			 heights[2] = yScale(d.Pop1965);
@@ -62,34 +64,73 @@ this.widget.selectAll("rect")
 			 heights[8] = yScale(d.Pop1995);
 			 heights[9] = yScale(d.Pop2000);
 			 heights[10] = yScale(d.Pop2005);*/	
-            heights[0] = d.Pop1955/100000;
-			 heights[1] = d.Pop1960/100000;
-			 heights[2] = d.Pop1965/100000;
-			 heights[3] = d.Pop1970/100000;
-			 heights[4] = d.Pop1975/100000;
-			 heights[5] = d.Pop1980/100000;
-			 heights[6] = d.Pop1985/100000;
-			 heights[7] = d.Pop1990/100000;
-			 heights[8] = d.Pop1995/100000;
-			 heights[9] = d.Pop2000/100000;
-			 heights[10] = d.Pop2005/100000;			 
-	        return {x:i*ref.barWidth,nodes:heights,id:i,country:d.Country,group:d.Group,cluster:d.Cluster};
+			 //Change this later**********, because 'x' should be hardcoded			 
+             heights[0] = [i*ref.barWidth, ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
+			 heights[1] = [i*ref.barWidth,ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
+			 heights[2] = [i*ref.barWidth,ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
+			 heights[3] = [i*ref.barWidth, ref.yPos - d.Pop1970/100000, d.Pop1970/100000];
+			 heights[4] = [i*ref.barWidth, ref.yPos - d.Pop1975/100000, d.Pop1975/100000];
+			 heights[5] = [i*ref.barWidth, ref.yPos - d.Pop1980/100000, d.Pop1980/100000];
+			 heights[6] = [i*ref.barWidth, ref.yPos - d.Pop1985/100000, d.Pop1985/100000];
+			 heights[7] = [i*ref.barWidth, ref.yPos - d.Pop1990/100000, d.Pop1990/100000];
+			 heights[8] = [i*ref.barWidth, ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
+			 heights[9] = [i*ref.barWidth, ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
+			 heights[10] = [i*ref.barWidth, ref.yPos - d.Pop2005/100000, d.Pop2005/100000];	
+             //Find the largest height, tallest bar
+			 var tallestBar = -1;			
+             for (var j=0;j<heights.length;j++){			       
+			     if (heights[j][1] > tallestBar){
+				       tallestBar = j;
+				  }
+			 }			 
+	        return {nodes:heights,id:i,country:d.Country,highestBar:tallestBar};
 	  }))
      .enter().append("g").attr("class","gDisplayBars");
 
 	
-     this.widget.selectAll(".gDisplayBars").append("g")                                  
+  
+	//Render the bars 
+this.widget.selectAll(".gDisplayBars")
+     .append("rect")
+     .attr("x", function(d){return d.nodes[ref.currentView][0];})
+     .attr("y", function(d){ return d.nodes[ref.currentView][1];})
+     .attr("width", ref.barWidth)
+     .attr("height", function(d) { return d.nodes[ref.currentView][2]; })
+	 .attr("fill", "steelblue")
+	// .attr("stroke", "#FFF")
+	 //.attr("stroke-width",5)
+	 .attr("class", "displayBars")
+	 .attr("id", function (d){return "displayBars"+d.id;})	       	 
+	.on("mouseover", ref.mouseoverFunction)
+    .on("mouseout", ref.mouseoutFunction);
+
+//Render the tips of the bars for dragging
+this.widget.selectAll(".gDisplayBars")
+     .append("rect")
+     .attr("x", function(d){return d.nodes[ref.currentView][0];})
+     .attr("y", function(d){ return d.nodes[ref.currentView][1];})
+     .attr("width", ref.barWidth)
+     .attr("height", 5)
+	 .attr("fill", "black")
+	// .attr("stroke", "white")
+	// .attr("stroke-width",5)
+	 .attr("class", "displayBarsTips")
+	 .attr("id", function (d){return "displayBarsTips"+d.id;})
+	 .style("cursor", "ns-resize")
+	;
+	
+	this.widget.selectAll(".gDisplayBars").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
                                   .attr("class","gInner");
     //Render the hint bars							   
-	/**this.widget.selectAll(".gDisplayBars").selectAll(".gInner").selectAll("rect")
+	this.widget.selectAll(".gDisplayBars").selectAll(".gInner").selectAll("rect")
                                              .data(function(d) {return d.nodes;})
 											 .enter().append("svg:rect")
-											 .attr("x", 0)
-											 .attr("y", ref.yPos)
+											 .attr("x", function (d) {return d[0];})
+											 .attr("y", function (d) {return d[1];})
 											 .attr("width", ref.barWidth)
-											.attr("height", function(d) { return d; })
-											.attr("class","hintBars")
+											.attr("height", function(d) { return 3; })
+											.attr("class","hintBars")	                                          												
 											.style("fill","none");
 											
 	//Render the hint labels
@@ -97,24 +138,11 @@ this.widget.selectAll("rect")
 	                                        .data(function(d) {return d.nodes;}).enter()								  
 								            .append("svg:text")
                                             .text(function(d,i) { return ref.labels[i]; })
-												.attr("x", function (d,i){return ref.barWidth*i})
-												.attr("y", function (d) {return d;})												
+												.attr("x", function (d,i){return (d[0]+(ref.barWidth*1.5));})
+												.attr("y", function (d) {return d[1];})												
 											   .attr("fill", "none")											  
-											   .attr("class","hintLabels");*/
-//Render the bars last
-this.widget.selectAll(".gDisplayBars")
-     .append("rect")
-     .attr("x", function(d){return d.x;})
-     .attr("y", function(d){ return(ref.yPos - d.nodes[ref.currentView]);})
-     .attr("width", ref.barWidth)
-     .attr("height", function(d) { return d.nodes[ref.currentView]; })
-	 .attr("fill", "steelblue")
-	 .attr("stroke", "#FFF")
-	 .attr("class", "displayBars")
-	 .attr("id", function (d){return "displayBars"+d.id;})
-	.style("cursor", "pointer")  
-	.on("mouseover", ref.mouseoverFunction)
-    .on("mouseout", ref.mouseoutFunction);
+											   .attr("class","hintBars");
+
 	
 /**var x = d3.scale.linear()
       .domain([0, 1])
@@ -137,13 +165,54 @@ chart.append("text")
  }
 
  //Update height of dragged bar
-Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
+ //Base of bar is ref.yPos, top of bar is ref.yPos - barHeight, as defined during data initialization
+Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
      this.widget.select("#displayBars"+id)
-	            .attr("height", function (d){
-				    return mouseY;
+	            .attr("height", function (d){				
+				    if (mouseY >= ref.yPos){ //Past base of bars, out of bounds
+					   return 5;
+					}else if (mouseY < (d.nodes[d.highestBar][1])){ //Past highest point, out of bounds
+					   return d.nodes[d.highestBar][2];
+					}					
+				                           					
+                    var yDiff = Math.abs(mouseY - ref.yPos); 
+					var barHeight = d.nodes[ref.currentView][2];	
+					var barTop = d.nodes[ref.currentView][1];					
+					if (mouseY > barTop)
+					   yDirection = -1;
+					else 
+					    yDirection = 1;
+                    				
+				    return (barHeight + yDirection*Math.abs(yDiff - barHeight)); 
+				})
+				.attr("y", function(d){ 
+                    if (mouseY >= ref.yPos){
+					   return ref.yPos;
+					} else if (mouseY < d.nodes[d.highestBar][1]){
+					   return d.nodes[d.highestBar][1];
+                    }				
+					return mouseY;
+				});
+	this.widget.select("#displayBarsTips"+id)	          
+				.attr("y", function(d){ 
+                     if (mouseY >= ref.yPos){
+					   return ref.yPos;
+					} else if (mouseY < d.nodes[d.highestBar][1]){
+					   return d.nodes[d.highestBar][1];
+                    }			
+					 
+					return mouseY;
 				});
 }
-  
- 
+//Displays hint info
+Barchart.prototype.showHintPath = function (id){          
+        this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
+								  .style("fill", "grey");	
+}
+//Clears hint info
+ Barchart.prototype.clearHintPath = function (id){
+        this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
+								  .style("fill", "none");	
+ }
 
