@@ -280,7 +280,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 				     if (bounds == pt1){ //Passed current                         					 
 					    ref.nextView = ref.currentView;
 						ref.currentView = ref.currentView-1;
-						 ref.redrawView(id);
+						ref.redrawView(id);
 					    return pt1_y;
 					 }else if (bounds == pt2){ //Passed next
 					    ref.currentView = ref.nextView;
@@ -288,11 +288,12 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 						 ref.redrawView(id);
 					    return pt2_y;
 					 }else{ //Within current sub-path
-					     //ref.animatePoints(mouseX,pt1, pt2,id);
+					    //ref.animatePoints(mouseX,pt1, pt2,id);
 					    return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
 					 }
-				 }		  
-		});
+				 }
+               
+		});				
   
 }
 //"Animates" the rest of points while a point is dragged
@@ -317,8 +318,8 @@ Scatterplot.prototype.animatePoints = function(mouseX,x1,x2,id){
 								 var pt2_y = d.nodes[ref.nextView][1];	
 								 var newX = d.nodes[ref.currentView][0] - deltaX*ratio;			
 								return ref.findInterpY(newX,pt1,pt1_y,pt2,pt2_y);
-						}						
-                        //return d.nodes[ref.currentView][1];						
+								//return d.nodes[ref.currentView][1];	
+						}		                       				
 					 });				
    //console.log(ratio);
 }
@@ -341,8 +342,8 @@ Scatterplot.prototype.snapToView = function( id, mouseX, mouseY) {
 ////////////////////////////////////////////////////////////////////////////////
 // Changes the view, newView is the index of the view
 ////////////////////////////////////////////////////////////////////////////////
-Scatterplot.prototype.changeView = function( newView) {
-     var ref = this;
+Scatterplot.prototype.changeView = function( newView) {     
+	 var ref = this;
 	 //Update the view tracker variables
 	 if (newView ==0){//First point on path
             ref.currentView = newView	 

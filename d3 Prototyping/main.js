@@ -87,11 +87,13 @@ slider.render();
                                 scatterplot.changeView(slider.currentTick);							
                            }	
 						    slider.updateDraggedSlider(d3.event.x);
-                            scatterplot.clearHintPath(scatterplot.draggedPoint);						   
+                            scatterplot.clearHintPath(scatterplot.draggedPoint);
+                            barchart.clearHintPath(barchart.draggedBar);							
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);
-                          scatterplot.changeView(slider.currentTick);					      
+                          scatterplot.changeView(slider.currentTick);
+                          barchart.changeView(slider.currentTick);					      
 					  });	
 
 slider.widget.select("#slidingTick")				                 			  
@@ -104,7 +106,7 @@ slider.widget.select("#slidingTick")
 var barchart   = new Barchart(700, 900, 800, 250 , "#bargraph",years);
 barchart.init();
 barchart.mouseoverFunction = function (d){
-									console.log("hover");								
+									//console.log("hover");								
 	                           };
 barchart.render(dataset);
 
@@ -119,7 +121,8 @@ barchart.render(dataset);
                            if (barchart.draggedBar != d.id){
 							       barchart.clearHintPath(barchart.draggedBar);
 								   barchart.draggedBar = d.id;   
-                                   barchart.showHintPath(d.id);  								   
+                                   barchart.showHintPath(d.id); 
+                                   barchart.resolveViews(d.id,d.heights);						   
 							}                                                 						   
 					  })
                       .on("drag", function(d){    
@@ -127,7 +130,7 @@ barchart.render(dataset);
                            barchart.updateDraggedBar(d.id,d3.event.y);						   								  
 					  })
 					  .on("dragend",function (d){					    
-					         //barchart.snapToView(d.id,d3.event.x,d3.event.y);						 	
+					         barchart.snapToView(d.id,d3.event.y,d.heights);						 	
 							 //slider.updateSlider(scatterplot.currentView);                             						 
 					  });	
 
