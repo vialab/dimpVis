@@ -173,7 +173,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 						    ref.currentViewIndex = ref.nextViewIndex;
 							ref.nextViewIndex++;
 						    ref.currentView = d.heights[ref.currentViewIndex][1];
-                            ref.redrawView();							
+                            ref.redrawView(-1);							
 						}
 						//Otherwise, mouse is within bounds
 						return mouseY;
@@ -184,7 +184,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 						   ref.nextViewIndex = ref.currentViewIndex;
 						   ref.currentViewIndex--;
 						   ref.currentView = d.heights[ref.currentViewIndex][1];
-                           ref.redrawView();						   
+                           ref.redrawView(-1);						   
 						}
 						//Otherwise, mouse is in bounds
 						return mouseY;
@@ -193,12 +193,12 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 					        ref.nextViewIndex = ref.currentViewIndex;
 							ref.currentViewIndex--;	
                             ref.currentView = d.heights[ref.currentViewIndex][1];	
-							ref.redrawView();
+							ref.redrawView(-1);
 					   }else if (mouseY <=next){ //Passed next
 					       ref.currentViewIndex = ref.nextViewIndex;
 						   ref.nextViewIndex++;	
                            ref.currentView = d.heights[ref.currentViewIndex][1];	
-						   ref.redrawView();
+						   ref.redrawView(-1);
 					   }						
 					   //Within bounds
 					   return mouseY;
@@ -225,22 +225,25 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
  }
  //Redraws the barchart view 
  //This function does not update any tracker variables
-Barchart.prototype.redrawView = function (){
-       var ref = this;	   
+Barchart.prototype.redrawView = function (view){      
+       var displayView = this.currentView;
+       if (view!=-1){
+	     displayView = view;
+	    }	   
        this.widget.selectAll(".displayBars")
 		          //.transition().duration(400)
 		          .attr("height", function (d){				          
-		                  return d.nodes[ref.currentView][2];
+		                  return d.nodes[displayView][2];
 		           })
 				   .attr("y", function (d){
-				         return d.nodes[ref.currentView][1];
+				         return d.nodes[displayView][1];
 				   });	
 }
 //Updates the tracker variables according to the new view
 //Then calls the redraw function to update the display
 Barchart.prototype.changeView = function (newView){    
      this.currentView = newView;  
-     this.redrawView(); 
+     this.redrawView(-1); 
 }
 //Snaps to the nearest view (in terms of mouse location distance and the bar being dragged)
 Barchart.prototype.snapToView = function (id, mouseY,h){
@@ -254,8 +257,13 @@ Barchart.prototype.snapToView = function (id, mouseY,h){
 			ref.currentViewIndex = ref.nextViewIndex;
 			ref.nextViewIndex++;			
             ref.currentView = h[ref.currentViewIndex][1];   					                    				
-		}	
-      ref.redrawView();				
+		}
+      if (ref.nextViewIndex == ref.totalHeights){
+	      ref.redrawView(ref.currentView+1);		
+       }else{
+	      ref.redrawView(-1);		
+       }	   
+      		
 }
 //Resolves the view variable indices, called when a new bar is dragged
 //This function is needed because currentView and currentViewIndex do not match
