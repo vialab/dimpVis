@@ -8,8 +8,7 @@
    this.widget = null; //Reference to svg container
    //Display variables
    this.displayData = null;
-   this.barWidth = 25;
-   this.barSpacing = 10; //Spacing between bars
+   this.barWidth = 30;  
    this.hintColour = "#aec7e8";
    this.fadeColour = "#c7c7c7";
    this.barColour = "steelblue";
@@ -92,7 +91,10 @@ this.widget.selectAll("rect")
             ref.totalHeights = h.length -1;			
 	        return {nodes:data,id:i,country:d.Country,heights:h};
 	  }))
-     .enter().append("g").attr("class","gDisplayBars");
+     .enter()
+	 .append("g")
+	 .attr("class","gDisplayBars")
+	  .attr("id", function (d){return "gDisplayBars"+d.id;});
 
 	
 	//Render the bars 
@@ -115,26 +117,7 @@ this.widget.selectAll(".gDisplayBars")
 	this.widget.selectAll(".gDisplayBars").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
                                   .attr("class","gInner");
-    //Render the hint bars							   
-	this.widget.selectAll(".gDisplayBars").selectAll(".gInner").selectAll("rect")
-                                             .data(function(d) {return d.nodes;})
-											 .enter().append("svg:rect")
-											 .attr("x", function (d) {return d[0];})
-											 .attr("y", function (d) {return d[1];})
-											 .attr("width", ref.barWidth)
-											.attr("height", function(d) { return 3; })
-											.attr("class","hintBars")	                                          												
-											.style("fill","none");
-											
-	//Render the hint labels
-    this.widget.selectAll(".gDisplayBars").selectAll(".gInner").selectAll("text")
-	                                        .data(function(d) {return d.nodes;}).enter()								  
-								            .append("svg:text")
-                                            .text(function(d,i) { return ref.labels[i]; })
-												.attr("x", function (d,i){return (d[0]+(ref.barWidth*1.5));})
-												.attr("y", function (d) {return d[1];})												
-											   .attr("fill", "none")											  
-											   .attr("class","hintBars");
+    
 
 	
 /**var x = d3.scale.linear()
@@ -269,8 +252,7 @@ Barchart.prototype.snapToView = function (id, mouseY,h){
 	   if (currentDist > nextDist && ref.nextViewIndex != ref.totalHeights){ //Passed next, advance the variables forward
 			//Make sure the nextViewIndex wasn't the last one to avoid index out of bounds
 			ref.currentViewIndex = ref.nextViewIndex;
-			ref.nextViewIndex++;
-			console.log("adding"+ref.currentView);
+			ref.nextViewIndex++;			
             ref.currentView = h[ref.currentViewIndex][1];   					                    				
 		}	
       ref.redrawView();				
@@ -299,9 +281,9 @@ Barchart.prototype.resolveViews = function (id,h){
 			    
 }
 //Displays hint info
-Barchart.prototype.showHintPath = function (id){    
+Barchart.prototype.showHintPath = function (id,d){    
         var ref = this;      
-        this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
+        /**this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
 								  .style("fill", this.hintColour);	
 		/**this.widget.selectAll(".displayBars")
 		                                   .transition().duration(400)
@@ -309,12 +291,30 @@ Barchart.prototype.showHintPath = function (id){
 		                                           if (id != d.id)
 												      return ref.fadeColour;
 		                                    });		*/
+	//Render the hint bars							   
+	 this.widget.select("#gInner"+id).selectAll("rect").data(d).enter()
+											 .append("svg:rect")
+											 .attr("x", function (d) {return d[0];})
+											 .attr("y", function (d) {return d[1];})
+											 .attr("width", ref.barWidth)
+											.attr("height", function(d) { return 3; })											                                       												
+											.style("fill",ref.hintColour);
+											
+	//Render the hint labels
+   this.widget.select("#gInner"+id).selectAll("text").data(d).enter()	                                     						  
+								            .append("svg:text")
+                                            .text(function(d,i) { return ref.labels[i]; })
+												.attr("x", function (d,i){return (d[0]+(ref.barWidth*1.5));})
+												.attr("y", function (d) {return d[1];})												
+											   .attr("fill", ref.hintColour); 
+											   
 }
 //Clears hint info
  Barchart.prototype.clearHintPath = function (id){
         var ref = this;
-        this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
-								  .style("fill", "none");
+        this.widget.select("#gInner"+id).selectAll("text").remove();  
+        this.widget.select("#gInner"+id).selectAll("rect").remove();    		
+								  
 		/**this.widget.selectAll(".displayBars")
 		                                   .transition().duration(400)
 		                                   .style("fill", function (d){

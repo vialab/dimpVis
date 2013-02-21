@@ -45,7 +45,8 @@ scatterplot.render( dataset, 0,years);
                            if (scatterplot.draggedPoint != d.id){
 							       scatterplot.clearHintPath(scatterplot.draggedPoint);
 								   scatterplot.draggedPoint = d.id;   
-                                   scatterplot.showHintPath(d.id);  								   
+                                   scatterplot.showHintPath(d.id); 
+                                   scatterplot.fadeOutPoints(d.id); 								   
 							}                                                 						   
 					  })
                       .on("drag", function(d){  
@@ -53,10 +54,11 @@ scatterplot.render( dataset, 0,years);
                            scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
 						   if (scatterplot.currentView != view){
                                   slider.updateSlider(scatterplot.currentView);	
-							}	                          					
+							}	 
+                            scatterplot.showHintPath(d.id);  								
 					  })
 					  .on("dragend",function (d){					    
-					         scatterplot.snapToView(d.id,d3.event.x,d3.event.y);						 	
+					         scatterplot.snapToView(d.id,d3.event.x,d3.event.y,d.nodes);						 	
 							 slider.updateSlider(scatterplot.currentView);                             						 
 					  });	
 
@@ -79,16 +81,19 @@ slider.render();
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the slider
 ////////////////////////////////////////////////////////////////////////////////
- slider.dragEvent = d3.behavior.drag()                      
+ slider.dragEvent = d3.behavior.drag()  
+						.on("dragstart", function(){                               
+                            scatterplot.clearHintPath(scatterplot.draggedPoint);
+                            barchart.clearHintPath(barchart.draggedBar);							
+					     }) 
                       .on("drag", function(){   
                             var previous = slider.currentTick;					  
 							slider.updateDraggedSlider(d3.event.x);
                             if (previous != slider.currentTick){						
-                                scatterplot.changeView(slider.currentTick);							
+                                scatterplot.changeView(slider.currentTick);	
+                                barchart.changeView(slider.currentTick);									
                            }	
-						    slider.updateDraggedSlider(d3.event.x);
-                            scatterplot.clearHintPath(scatterplot.draggedPoint);
-                            barchart.clearHintPath(barchart.draggedBar);							
+						    slider.updateDraggedSlider(d3.event.x);                          						
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);
@@ -105,9 +110,6 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////   
 var barchart   = new Barchart(700, 900, 800, 250 , "#bargraph",years);
 barchart.init();
-barchart.mouseoverFunction = function (d){
-									//console.log("hover");								
-	                           };
 barchart.render(dataset);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,16 +123,20 @@ barchart.render(dataset);
                            if (barchart.draggedBar != d.id){
 							       barchart.clearHintPath(barchart.draggedBar);
 								   barchart.draggedBar = d.id;   
-                                   barchart.showHintPath(d.id); 
+                                   barchart.showHintPath(d.id,d.nodes); 
                                    barchart.resolveViews(d.id,d.heights);						   
 							}                                                 						   
 					  })
                       .on("drag", function(d){    
-                            //console.log(d3.event.y+" "+(barchart.yPos - d.nodes[barchart.currentView]));				  
-                           barchart.updateDraggedBar(d.id,d3.event.y);						   								  
+                           var view = barchart.currentView;					  
+                           barchart.updateDraggedBar(d.id,d3.event.y);	
+						   if (barchart.currentView != view){
+                                  slider.updateSlider(barchart.currentView);	
+							}						
+                           					   								  
 					  })
 					  .on("dragend",function (d){					    
-					         barchart.snapToView(d.id,d3.event.y,d.heights);						 	
+					         barchart.snapToView(d.id,d3.event.y,d.heights);							 
 							 //slider.updateSlider(scatterplot.currentView);                             						 
 					  });	
 

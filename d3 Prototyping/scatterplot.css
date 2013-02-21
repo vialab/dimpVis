@@ -19,3 +19,10 @@
   font-size:11px; 
   text-anchor:middle;  
 }
+
+.gInner .hintLabels {
+  font-family: sans-serif;
+  font-weight:bold;
+  font-size:11px; 
+  text-anchor:middle;  
+}
