@@ -54,12 +54,14 @@ scatterplot.render( dataset, 0,years);
                            scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
 						   if (scatterplot.currentView != view){
                                   slider.updateSlider(scatterplot.currentView);	
+								  barchart.changeView(scatterplot.currentView);
 							}	 
-                            scatterplot.showHintPath(d.id);  								
+                            //scatterplot.showHintPath(d.id);  								
 					  })
 					  .on("dragend",function (d){					    
 					         scatterplot.snapToView(d.id,d3.event.x,d3.event.y,d.nodes);						 	
-							 slider.updateSlider(scatterplot.currentView);                             						 
+							 slider.updateSlider(scatterplot.currentView);  
+                             barchart.changeView(scatterplot.currentView);							 
 					  });	
 
 scatterplot.widget.selectAll(".displayPoints")				                 			  
@@ -122,6 +124,7 @@ barchart.render(dataset);
 					   .on("dragstart", function(d){    
                            if (barchart.draggedBar != d.id){
 							       barchart.clearHintPath(barchart.draggedBar);
+								   scatterplot.clearHintPath(scatterplot.draggedPoint);
 								   barchart.draggedBar = d.id;   
                                    barchart.showHintPath(d.id,d.nodes); 
                                    barchart.resolveViews(d.id,d.heights);						   
@@ -131,13 +134,15 @@ barchart.render(dataset);
                            var view = barchart.currentView;					  
                            barchart.updateDraggedBar(d.id,d3.event.y);	
 						   if (barchart.currentView != view){
-                                  slider.updateSlider(barchart.currentView);	
+                                  slider.updateSlider(barchart.currentView);
+                                  scatterplot.changeView(barchart.currentView);									  
 							}						
                            					   								  
 					  })
 					  .on("dragend",function (d){					    
 					         barchart.snapToView(d.id,d3.event.y,d.heights);							 
-							 //slider.updateSlider(scatterplot.currentView);                             						 
+							 slider.updateSlider(barchart.currentView); 
+                             scatterplot.changeView(barchart.currentView);									 
 					  });	
 
 barchart.widget.selectAll(".displayBars")				                 			  
