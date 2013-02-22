@@ -1,26 +1,22 @@
- function Barchart(width,height,x,y,id,l){
+ function Piechart(width,height,x,y,id,l){
    //Widget initializaton variables
    this.width = width;
    this.height = height;
    this.xPos = x;
    this.yPos = y;
    this.id = id;
+   this.radius = 120;
    this.widget = null; //Reference to svg container
    //Display variables
-   this.displayData = null;
-   this.barWidth = 30;  
+   this.displayData = null;    
    this.hintColour = "#aec7e8";
    this.fadeColour = "#c7c7c7";
    this.barColour = "steelblue";
    //View index tracker variables
-   this.currentView = 0; //Starting view of the bars (first year)
-   this.currentViewIndex = 0; //Starting view of the bars, in terms of the sorted heights array (first year)
-  
-   this.nextViewIndex = 1;
-   this.totalHeights = -1; //Last index in the heights sorted array
+   this.currentView = 0; //Starting view of the piechart (first year)   
    //View information variables
    this.labels = l;
-   this.numBars = -1; //Total number of bars (points along x-axis) in the dataset
+   this.numArcs = -1; //Total number of arcs in the piechart
    this.draggedBar = -1;   
    //Event functions, all declared in main.js  
    this.placeholder = function() { 
@@ -30,7 +26,7 @@
    this.mouseoutFunction  = this.placeholder;  
    this.dragEvent = null;   
  }
- Barchart.prototype.init = function(){
+ Piechart.prototype.init = function(){
     // Initialize the main container
    this.widget = d3.select(this.id).append("svg")      
       .attr("width", this.width)
@@ -39,37 +35,68 @@
       .style("left", this.xPos + "px")
       .style("top", this.yPos + "px")  
      .append("g")
-     //.attr("transform", "translate(" + this.xPos + "," + this.yPos + ")")
+     .attr("transform", "translate(" + this.xPos/3 + "," + this.yPos/3 + ")")
    ;     
  }
- Barchart.prototype.render = function(data){
+ Piechart.prototype.render = function(data){
       var ref = this;
 	  this.displayData = data;
-	  this.numBars = data.length; 
-       //Create the scales 
-     //var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
-     //var yScale =  d3.scale.linear().domain([0, 100000]).range([ref.height,0]);
-this.widget.selectAll("rect")
+	  this.numArcs = data.length;
+      var arcs = d3.svg.arc()
+	                   .outerRadius(ref.radius);
+      var layout = d3.layout.pie()
+	                        .value(function (d) { return d.value;});
+	  this.widget.selectAll("g")
+	             .data(layout(this.displayData.map(function (d,i){
+				     var segments = [];					 
+				     return {id:i,value:d.value,label:d.label,nodes:segments};
+				 })))
+				 .enter()
+				 .append("g")				 
+				 .append("path")
+				 .attr("fill","steelblue")
+				 .style("stroke","white")
+				 .style("stroke-width",2)
+				 .attr("id",function (d,i){
+				      return "displayArcs"+i;
+				 })
+				 .attr("d", arcs)
+				 .on("mouseover",function (d,i){
+				     ref.widget.select("#displayArcs"+i).transition().duration(1000)
+                     .attrTween("d", tween({ value : 0 }));
+				 });
+				 
+function tween(b) {
+      return function(a) {
+        var i = d3.interpolate(a, b);
+        for (var key in b) a[key] = b[key]; // update data
+        return function(t) {
+              return arcs(i(t));
+        };
+      };
+}
+				 /**.append("text")
+				 .attr("transform", function(d) {      
+						//we have to make sure to set these before calling arc.centroid
+						d.innerRadius = 0;
+						d.outerRadius = ref.radius;
+						return "translate(" + arc.centroid(d) + ")";       
+                })
+				.attr("text-anchor", "middle")                          //center the text on it's origin
+                 .text(function(d, i) { return data[i].label; })*/  
+				
+	 
+/**this.widget.selectAll("rect")
     .data(this.displayData.map(function (d,i) {
              //Create a list of heights (y) for each country
 			 //Dataset goes from 1955 to 2005 (11 increments)
 			 //Try population:
 			 var heights = [];		
              var data = [];			 
-			 /**heights[0] = yScale(d.Pop1955);
-			 heights[1] = yScale(d.Pop1960);
-			 heights[2] = yScale(d.Pop1965);
-			 heights[3] = yScale(d.Pop1970);
-			 heights[4] = yScale(d.Pop1975);
-			 heights[5] = yScale(d.Pop1980);
-			 heights[6] = yScale(d.Pop1985);
-			 heights[7] = yScale(d.Pop1990);
-			 heights[8] = yScale(d.Pop1995);
-			 heights[9] = yScale(d.Pop2000);
-			 heights[10] = yScale(d.Pop2005);*/	
+			 
 			 //TODO: Change this later because 'x' is being repeated
             //Reason for doing this is for the hint path of heights		
-            //Array format is: data[viewIndex] = [x of top of bar, y of top of bar, height of bar]	          		 
+            //Array format is: data[viewIndex] = [x of top of bar, y of top of bar, height of bar]			
              data[0] = [i*ref.barWidth, ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
 			 data[1] = [i*ref.barWidth,ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
 			 data[2] = [i*ref.barWidth,ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
@@ -82,7 +109,7 @@ this.widget.selectAll("rect")
 			 data[9] = [i*ref.barWidth, ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
 			 data[10] = [i*ref.barWidth, ref.yPos - d.Pop2005/100000, d.Pop2005/100000];
             //Populate an array of only heights, so that they can be sorted in ascending order
-			for (j=0;j<data.length;j++){
+			for (var j=0;j<data.length;j++){
 			    heights[j] = [];
 			    heights[j][0] = data[j][2];
 				heights[j][1] = j;
@@ -120,29 +147,12 @@ this.widget.selectAll(".gDisplayBars")
     
 
 	
-/**var x = d3.scale.linear()
-      .domain([0, 1])
-      .range([0, ref.width]);
-  
-      var y = d3.scale.linear()
-      .domain([0, 300])
-     .rangeRound([0, ref.height]);*/
-/**chart.append("line")
-    .attr("x1", 0)
-     .attr("x2", ref.width * data.length)
-     .attr("y1", ref.height - .5)
-     .attr("y2", ref.height - .5)
-     .style("stroke", "#000");
-	 
-chart.append("text")
-    .attr("x", ref.xPos)
-     .attr("y", ref.yPos+ref.height+10)
-    .text(id);*/     
+*/    
  }
 
  //Update height of dragged bar
  //Base of bar is ref.yPos, top of bar is ref.yPos - barHeight, as defined during data initialization
-Barchart.prototype.updateDraggedBar = function (id,mouseY){
+Piechart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
      this.widget.select("#displayBars"+id)
 	            .attr("height", function (d){
@@ -206,26 +216,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 				});	
 }
 
- //Sorts the array of heights[heightValue, viewIndex] in ascending order
- // using a bubble sort
- Barchart.prototype.sortHeights = function (array){
-    var n = array.length;
-     do {
-        var swapped = false;
-        for (var i = 1; i < n; i++ ) {
-           if (array[i - 1][0] > array[i][0]) {
-              var temp = array[i-1];
-              array[i-1] = array[i];
-              array[i] = temp;			  
-              swapped = true;
-           }
-        }
-     } while (swapped);
-	 return array;	
- }
- //Redraws the barchart view 
- //This function does not update any tracker variables
-Barchart.prototype.redrawView = function (view){      
+ Piechart.prototype.redrawView = function (view){      
        var displayView = this.currentView;
        if (view!=-1){
 	     displayView = view;
@@ -241,12 +232,12 @@ Barchart.prototype.redrawView = function (view){
 }
 //Updates the tracker variables according to the new view
 //Then calls the redraw function to update the display
-Barchart.prototype.changeView = function (newView){    
+Piechart.prototype.changeView = function (newView){    
      this.currentView = newView;  
      this.redrawView(-1); 
 }
 //Snaps to the nearest view (in terms of mouse location distance and the bar being dragged)
-Barchart.prototype.snapToView = function (id, mouseY,h){
+Piechart.prototype.snapToView = function (id, mouseY,h){
        var ref = this;    
 	   var current =  ref.yPos - h[ref.currentViewIndex][0];
 	   var next = ref.yPos - h[ref.nextViewIndex][0];	
@@ -268,7 +259,7 @@ Barchart.prototype.snapToView = function (id, mouseY,h){
 //Resolves the view variable indices, called when a new bar is dragged
 //This function is needed because currentView and currentViewIndex do not match
 // Need to pass the id of the bar being dragged and the sorted array of heights
-Barchart.prototype.resolveViews = function (id,h){
+Piechart.prototype.resolveViews = function (id,h){
        var ref = this;       
 	   var newIndex = -1;
 	   //Search for the index corresponding to 'currentView'
@@ -289,7 +280,7 @@ Barchart.prototype.resolveViews = function (id,h){
 			    
 }
 //Displays hint info
-Barchart.prototype.showHintPath = function (id,d){    
+Piechart.prototype.showHintPath = function (id,d){    
         var ref = this;      
         /**this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
 								  .style("fill", this.hintColour);	
@@ -318,7 +309,7 @@ Barchart.prototype.showHintPath = function (id,d){
 											   
 }
 //Clears hint info
- Barchart.prototype.clearHintPath = function (id){
+ Piechart.prototype.clearHintPath = function (id){
         var ref = this;
         this.widget.select("#gInner"+id).selectAll("text").remove();  
         this.widget.select("#gInner"+id).selectAll("rect").remove();    		

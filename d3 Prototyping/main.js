@@ -110,7 +110,7 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new bar chart
 ////////////////////////////////////////////////////////////////////////////////   
-var barchart   = new Barchart(700, 900, 800, 250 , "#bargraph",years);
+var barchart   = new Barchart(700, 950, 800, 250 , "#bargraph",years);
 barchart.init();
 barchart.render(dataset);
 
@@ -147,3 +147,17 @@ barchart.render(dataset);
 
 barchart.widget.selectAll(".displayBars")				                 			  
                    .call(barchart.dragEvent);
+				   
+////////////////////////////////////////////////////////////////////////////////
+// Create new pie chart
+////////////////////////////////////////////////////////////////////////////////  
+ var piedata = [{"label":"one", "value":20}, 
+            {"label":"two", "value":50}, 
+            {"label":"three", "value":30}]; 
+/**var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",years);
+piechart.init();
+piechart.render(piedata);*/
+
+////////////////////////////////////////////////////////////////////////////////
+// Define some interaction functions for the piechart
+////////////////////////////////////////////////////////////////////////////////
