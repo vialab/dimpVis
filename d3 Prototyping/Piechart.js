@@ -44,6 +44,10 @@
 	  this.numArcs = data.length;
       var arcs = d3.svg.arc()
 	                   .outerRadius(ref.radius);
+	 
+	 var enlargearcs = d3.svg.arc()
+	                   .outerRadius(ref.radius+10);
+					   
       var layout = d3.layout.pie()
 	                        .value(function (d) { return d.value;});
 	  this.widget.selectAll("g")
@@ -60,19 +64,19 @@
 				 .attr("id",function (d,i){
 				      return "displayArcs"+i;
 				 })
-				 .attr("d", arcs)
+				 .attr("class","DisplayArcs")
+				 .attr("d", arcs)				
 				 .on("mouseover",function (d,i){
-				     ref.widget.select("#displayArcs"+i).transition().duration(1000)
-                     .attrTween("d", tween({ value : 0 }));
+				     ref.widget.selectAll(".DisplayArcs")
+					 .attr("d", enlargearcs);
+                     
 				 });
 				 
-function tween(b) {
-      return function(a) {
-        var i = d3.interpolate(a, b);
-        for (var key in b) a[key] = b[key]; // update data
-        return function(t) {
-              return arcs(i(t));
-        };
+function tween(a) {
+      var i = d3.interpolate(this._current, a);
+      this._current = i(0);
+      return function(t) {
+           return arcs(i(t));
       };
 }
 				 /**.append("text")

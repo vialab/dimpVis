@@ -154,9 +154,9 @@ barchart.widget.selectAll(".displayBars")
  var piedata = [{"label":"one", "value":20}, 
             {"label":"two", "value":50}, 
             {"label":"three", "value":30}]; 
-/**var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",years);
+var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",years);
 piechart.init();
-piechart.render(piedata);*/
+piechart.render(piedata);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the piechart
