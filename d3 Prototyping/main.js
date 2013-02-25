@@ -151,9 +151,14 @@ barchart.widget.selectAll(".displayBars")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new pie chart
 ////////////////////////////////////////////////////////////////////////////////  
- var piedata = [{"label":"one", "value":20}, 
-            {"label":"two", "value":50}, 
-            {"label":"three", "value":30}]; 
+var piedata = [{"label":"one", "value":[20,50,30]}, 
+            {"label":"two", "value":[40,30,30]}, 
+            {"label":"three", "value":[10,20,70]}]; 
+/**var pieset = {
+  apples: [53245, 28479, 19697, 24037, 40245],
+  oranges: [200, 200, 200, 200, 200]
+};*/
+			
 var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",years);
 piechart.init();
 piechart.render(piedata);
@@ -161,3 +166,32 @@ piechart.render(piedata);
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the piechart
 ////////////////////////////////////////////////////////////////////////////////
+/**piechart.mouseoverFunction = function (d){
+                                    piechart.currentView = 1;
+									piechart.render(piedata);									
+	                           };*/
+							   
+piechart.dragEvent = d3.behavior.drag()
+                      /** .origin(function(d){ //Set the starting point of the drag interaction
+							//return {x:d.x,y:d.nodes[barchart.currentView][1]};
+	                   })
+					  /** .on("dragstart", function(d){    
+                           if (barchart.draggedBar != d.id){
+							       barchart.clearHintPath(barchart.draggedBar);
+								   scatterplot.clearHintPath(scatterplot.draggedPoint);
+								   barchart.draggedBar = d.id;   
+                                   barchart.showHintPath(d.id,d.nodes); 
+                                   barchart.resolveViews(d.id,d.heights);						   
+							}                                                 						   
+					  })*/
+                      .on("drag", function(d){                           		  
+                           piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);                          					   								  
+					  });
+					  /**.on("dragend",function (d){					    
+					         barchart.snapToView(d.id,d3.event.y,d.heights);							 
+							 slider.updateSlider(barchart.currentView); 
+                             scatterplot.changeView(barchart.currentView);									 
+					  });	*/
+
+piechart.widget.selectAll(".DisplayArcs")				                 			  
+                   .call(piechart.dragEvent);

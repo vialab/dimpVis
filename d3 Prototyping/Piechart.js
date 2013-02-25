@@ -14,6 +14,8 @@
    this.barColour = "steelblue";
    //View index tracker variables
    this.currentView = 0; //Starting view of the piechart (first year)   
+   this.previousAngleStart = 0; //An accumulation of all previous angles when the piechart is drawn   
+   this.previousAngleEnd = 0;
    //View information variables
    this.labels = l;
    this.numArcs = -1; //Total number of arcs in the piechart
@@ -42,182 +44,91 @@
       var ref = this;
 	  this.displayData = data;
 	  this.numArcs = data.length;
+	  
       var arcs = d3.svg.arc()
-	                   .outerRadius(ref.radius);
-	 
-	 var enlargearcs = d3.svg.arc()
-	                   .outerRadius(ref.radius+10);
-					   
-      var layout = d3.layout.pie()
-	                        .value(function (d) { return d.value;});
-	  this.widget.selectAll("g")
-	             .data(layout(this.displayData.map(function (d,i){
-				     var segments = [];					 
-				     return {id:i,value:d.value,label:d.label,nodes:segments};
-				 })))
+	                   .outerRadius(ref.radius)
+					   .startAngle(function (d) {                             
+							ref.previousAngleEnd += (d / 100) * 2 * Math.PI;
+							return ref.previousAngleStart;
+					   })
+					   .endAngle(function (d) { 
+					        ref.previousAngleStart += (d / 100) * 2 * Math.PI;														
+							return ref.previousAngleEnd; 
+					   });
+	var hintArcs = d3.svg.arc()
+	                   .outerRadius(ref.radius)
+					   .startAngle(function (d) {                           				   
+							return 0;
+					   })
+					   .endAngle(function (d) { 					       											
+							return (d / 100) * 2 * Math.PI;			
+					   });
+	 //Here, each "d" node represents a view
+	this.widget.selectAll("path")
+                 .data(this.displayData.map(function (d,i) { 
+                      //An array of all start and end angles for this year
+					  //Format: allAngles[] = {start, end} angles in rads
+                      var allAngles = [];
+					  var previousStartAngle = 0;
+					  var previousEndAngle = 0;
+					  for (var j=0;j< d.value.length;j++){					      
+					      allAngles[j] = [];
+						  allAngles[j][0] = previousStartAngle;
+						  previousEndAngle += (d.value[j] / 100) * 2 * Math.PI;							  
+						  allAngles[j][1] = previousEndAngle;
+						  previousStartAngle += (d.value[j] / 100) * 2 * Math.PI;				  
+					  }
+					 
+                      //An array of previous values (angles) for drawing the segments					  
+	                  return {nodes:d.value,id:i};
+	              }))
 				 .enter()
-				 .append("g")				 
-				 .append("path")
+                 .append("g")
+                 .attr("class","gDisplayArcs");
+                				 
+this.widget.selectAll(".gDisplayArcs").append("path")
 				 .attr("fill","steelblue")
 				 .style("stroke","white")
 				 .style("stroke-width",2)
-				 .attr("id",function (d,i){
-				      return "displayArcs"+i;
-				 })
+				 .attr("class","displayArcs")
+				 .attr("id", function (d) {return "displayArcs"+d.id;})				
 				 .attr("class","DisplayArcs")
-				 .attr("d", arcs)				
-				 .on("mouseover",function (d,i){
-				     ref.widget.selectAll(".DisplayArcs")
-					 .attr("d", enlargearcs);
-                     
+				 .attr("d", function (d) {return arcs(d.nodes[1]);})
+				 .on("mouseover",function (d) { 
+				   console.log(d.startAngle);
+				 })				
+				.on("click",function (d,i){                                    
+				    /** ref.widget.selectAll(".DisplayArcs").transition().duration(1000)
+					 .attr("d", enlargearcs);	*/
+					 ref.widget.selectAll("path").attr("d", function(d){ 
+								         return arcs(d.nodes[0]); 
+					  });
 				 });
-				 
-function tween(a) {
-      var i = d3.interpolate(this._current, a);
-      this._current = i(0);
-      return function(t) {
-           return arcs(i(t));
-      };
-}
-				 /**.append("text")
-				 .attr("transform", function(d) {      
-						//we have to make sure to set these before calling arc.centroid
-						d.innerRadius = 0;
-						d.outerRadius = ref.radius;
-						return "translate(" + arc.centroid(d) + ")";       
-                })
-				.attr("text-anchor", "middle")                          //center the text on it's origin
-                 .text(function(d, i) { return data[i].label; })*/  
-				
-	 
-/**this.widget.selectAll("rect")
-    .data(this.displayData.map(function (d,i) {
-             //Create a list of heights (y) for each country
-			 //Dataset goes from 1955 to 2005 (11 increments)
-			 //Try population:
-			 var heights = [];		
-             var data = [];			 
-			 
-			 //TODO: Change this later because 'x' is being repeated
-            //Reason for doing this is for the hint path of heights		
-            //Array format is: data[viewIndex] = [x of top of bar, y of top of bar, height of bar]			
-             data[0] = [i*ref.barWidth, ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
-			 data[1] = [i*ref.barWidth,ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
-			 data[2] = [i*ref.barWidth,ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
-			 data[3] = [i*ref.barWidth, ref.yPos - d.Pop1970/100000, d.Pop1970/100000];
-			 data[4] = [i*ref.barWidth, ref.yPos - d.Pop1975/100000, d.Pop1975/100000];
-			 data[5] = [i*ref.barWidth, ref.yPos - d.Pop1980/100000, d.Pop1980/100000];
-			 data[6] = [i*ref.barWidth, ref.yPos - d.Pop1985/100000, d.Pop1985/100000];
-			 data[7] = [i*ref.barWidth, ref.yPos - d.Pop1990/100000, d.Pop1990/100000];
-			 data[8] = [i*ref.barWidth, ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
-			 data[9] = [i*ref.barWidth, ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
-			 data[10] = [i*ref.barWidth, ref.yPos - d.Pop2005/100000, d.Pop2005/100000];
-            //Populate an array of only heights, so that they can be sorted in ascending order
-			for (var j=0;j<data.length;j++){
-			    heights[j] = [];
-			    heights[j][0] = data[j][2];
-				heights[j][1] = j;
-			}
-			var h = ref.sortHeights(heights);    
-            ref.totalHeights = h.length -1;			
-	        return {nodes:data,id:i,country:d.Country,heights:h};
-	  }))
-     .enter()
-	 .append("g")
-	 .attr("class","gDisplayBars")
-	  .attr("id", function (d){return "gDisplayBars"+d.id;});
-
-	
-	//Render the bars 
-this.widget.selectAll(".gDisplayBars")
-     .append("rect")
-     .attr("x", function(d){return d.nodes[ref.currentView][0];})
-     .attr("y", function(d){ return d.nodes[ref.currentView][1];})
-     .attr("width", ref.barWidth)
-     .attr("height", function(d) { return d.nodes[ref.currentView][2]; })
-	 .attr("fill", this.barColour)
-	 .attr("stroke", "#FFF")
-	 .attr("stroke-width",5)
-	 .attr("class", "displayBars")
-	 .attr("id", function (d){return "displayBars"+d.id;})
-     .style("cursor", "ns-resize")	 
-	.on("mouseover", ref.mouseoverFunction)
-    .on("mouseout", ref.mouseoutFunction);
-
-	
-	this.widget.selectAll(".gDisplayBars").append("g")                                  
+this.widget.selectAll(".gDisplayArcs").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
                                   .attr("class","gInner");
-    
-
-	
-*/    
+//Render the hint pie segments						   
+/**this.widget.selectAll(".gInner").selectAll("path").data(function (d) {return d.nodes;}).enter().append("path")
+                                             .attr("d", function (d) { 											       
+											       return hintArcs(d);
+											 })											 										                                       												
+											.style("fill","none")
+											.style("stroke",this.hintColour);*/
+											
+//Render the hint labels
+   /**this.widget.selectAll(".gInner").selectAll("text").data(function (d){return d.nodes;}).enter()	                                     						  
+								            .append("svg:text")
+                                            .text(function(d,i) { return ref.labels[i]; })
+												.attr("x", function (d,i){ return 0;})
+												.attr("y", function (d) {return 100;})												
+											   .attr("fill", ref.hintColour); */
  }
 
- //Update height of dragged bar
- //Base of bar is ref.yPos, top of bar is ref.yPos - barHeight, as defined during data initialization
-Piechart.prototype.updateDraggedBar = function (id,mouseY){
-     var ref = this;
-     this.widget.select("#displayBars"+id)
-	            .attr("height", function (d){
-                    var current =  ref.yPos - d.heights[ref.currentViewIndex][0];
-					var next = ref.yPos - d.heights[ref.nextViewIndex][0];				  
-                   if (ref.currentViewIndex ==0 && mouseY >= current){ //At lowest bar and out of bounds
-					    return d.heights[ref.currentViewIndex][0];
-                    } else if (ref.nextViewIndex == ref.totalHeights && mouseY <= next){ //At the highest bar and out of bounds
-					    return d.heights[ref.nextViewIndex][0];
-					}					
-				    //Somewhere in the middle                       					
-                    var yDiff = Math.abs(mouseY - ref.yPos); 
-					var barHeight = d.heights[ref.currentViewIndex][0];	
-					var barTopY = ref.yPos - d.heights[ref.currentViewIndex][0];					
-					if (mouseY > barTopY)
-					   yDirection = -1;
-					else 
-					    yDirection = 1;                    				
-				    return (barHeight + yDirection*Math.abs(yDiff - barHeight)); 
-				})
-				.attr("y", function(d){ 
-				    var current =  ref.yPos - d.heights[ref.currentViewIndex][0];
-					var next = ref.yPos - d.heights[ref.nextViewIndex][0];					
-                    if (ref.currentViewIndex ==0){ //At lowest bar
-					    if (mouseY >= current){ //Passed lowest bar, out of bounds
-						    return current;
-						}else if (mouseY <= next){ //Passed the next bar height, update tracker variables
-						    ref.currentViewIndex = ref.nextViewIndex;
-							ref.nextViewIndex++;
-						    ref.currentView = d.heights[ref.currentViewIndex][1];
-                            ref.redrawView(-1);							
-						}
-						//Otherwise, mouse is within bounds
-						return mouseY;
-                    } else if (ref.nextViewIndex == ref.totalHeights){ //At the highest bar
-					    if (mouseY <= next){ //Passed highest, out of bounds
-						   return next;
-						}else if (mouseY >= current){ //Passed current, update tracker variables
-						   ref.nextViewIndex = ref.currentViewIndex;
-						   ref.currentViewIndex--;
-						   ref.currentView = d.heights[ref.currentViewIndex][1];
-                           ref.redrawView(-1);						   
-						}
-						//Otherwise, mouse is in bounds
-						return mouseY;
-					}else { //At a bar somewhere in  the middle
-					   if (mouseY >= current){ //Passed current
-					        ref.nextViewIndex = ref.currentViewIndex;
-							ref.currentViewIndex--;	
-                            ref.currentView = d.heights[ref.currentViewIndex][1];	
-							ref.redrawView(-1);
-					   }else if (mouseY <=next){ //Passed next
-					       ref.currentViewIndex = ref.nextViewIndex;
-						   ref.nextViewIndex++;	
-                           ref.currentView = d.heights[ref.currentViewIndex][1];	
-						   ref.redrawView(-1);
-					   }						
-					   //Within bounds
-					   return mouseY;
-                   }	                    
-				});	
+ //Updates the angle of a dragged pie segment
+Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
+     var ref = this;	
+     //this.widget.select("#displayArcs"+id)
+	            
 }
 
  Piechart.prototype.redrawView = function (view){      
