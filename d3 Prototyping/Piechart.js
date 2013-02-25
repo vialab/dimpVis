@@ -6,6 +6,7 @@
    this.yPos = y;
    this.id = id;
    this.radius = 120;
+   this.labelOffset = 140;
    this.widget = null; //Reference to svg container
    //Display variables
    this.displayData = null;    
@@ -64,6 +65,7 @@
 					   });
 	var hintArcs = d3.svg.arc()
 	                   .outerRadius(ref.radius)
+					   .innerRadius(0) //Need to set this for arc.centroid function to work..
 					   .startAngle(function (d) {                           				   
 							return d[0];
 					   })
@@ -84,7 +86,7 @@
 						  ref.startAngle[j] += (d.value[j] / 100) * 2 * Math.PI;				  
 					  }					 
                       //An array of previous values (angles) for drawing the segments					  
-	                  return {nodes:allValues,id:i};
+	                  return {nodes:allValues,id:i,startAngle:0,endAngle:0,outerRadius:ref.radius};
 	              }))
 				 .enter()
                  .append("g")
@@ -99,39 +101,78 @@ this.widget.selectAll(".gDisplayArcs").append("path")
 				 .attr("class","DisplayArcs")
 				 .attr("d", function (d) {return arcs(d.nodes[ref.currentView]);})
 				 .on("mouseover",function (d) { 
-				   console.log(d.nodes);
+				   //console.log(d.nodes);
 				 })				
 				.on("click",function (d,i){                                    
 				    /** ref.widget.selectAll(".DisplayArcs").transition().duration(1000)
 					 .attr("d", enlargearcs);	*/
-					 ref.widget.selectAll("path").attr("d", function(d){ 
+					 /**ref.widget.selectAll("path").attr("d", function(d){ 
 							return arcs(d.nodes[0]); 
-					  });
+					  });*/
 				 });
 this.widget.selectAll(".gDisplayArcs").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
                                   .attr("class","gInner");
+
 //Render the hint pie segments						   
 this.widget.selectAll(".gInner").selectAll("path").data(function (d) {return d.nodes;}).enter().append("path")
                                              .attr("d", function (d) { 											       
 											       return hintArcs(d);
 											 })											 										                                       												
 											.style("fill","none")
-											.style("stroke",this.hintColour);
+											.style("stroke",this.hintColour)
+											.attr("class","hintArcs");
 											
 //Render the hint labels
-   /**this.widget.selectAll(".gInner").selectAll("text").data(function (d){return d.nodes;}).enter()	                                     						  
+  this.widget.selectAll(".gInner").selectAll("text").data(function (d){return d.nodes;}).enter()	                                     						  
 								            .append("svg:text")
-                                            .text(function(d,i) { return ref.labels[i]; })
-												.attr("x", function (d,i){ return 0;})
-												.attr("y", function (d) {return 100;})												
-											   .attr("fill", ref.hintColour); */
+                                            .text(function(d,i) { return ref.labels[i]; })									  
+                                               .attr("transform", function (d){
+											        var center = hintArcs.centroid(d);
+													var x = center[0];
+													var y = center[1];
+													var hypot = Math.sqrt(x*x + y*y);
+													var transX = (x/hypot)*(ref.labelOffset);
+													var transY = (y/hypot)*(ref.labelOffset);													
+													return "translate("+transX+","+transY+")";
+												})	
+                                               	.attr("text-anchor", function (d){
+												    var angleSum = (d[0] + d[1])/2;
+													if (angleSum > Math.PI)
+													    return "end";
+													return "start";
+												})											
+											   .attr("fill", ref.hintColour)
+											   .attr("class","hintLabels"); 
  }
 
  //Updates the angle of a dragged pie segment
 Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
      var ref = this;	
-     //this.widget.select("#displayArcs"+id)
+	 //Function for re-drawing a dragged arc
+	 var draggedArc = d3.svg.arc()
+	                   .outerRadius(ref.radius)
+					   .innerRadius(0) 
+					   .startAngle(function (d) {                          					   
+							return d.startAngle;
+					   })
+					   .endAngle(function (d) {                            					   
+							return d.endAngle;								
+					   });
+     this.widget.select("#displayArcs"+id)
+	            .attr("d", function (d) {    
+                     d.startAngle = d.nodes[ref.currentView][0];				
+                     var centroid = draggedArc.centroid(d);
+					 var x = centroid[0]/ref.radius;
+					 var y = centroid[1]/ref.radius;
+                     var opp = Math.abs(mouseX - x);
+					 var adj = Math.abs (mouseY - y);
+                     //Get the angle
+                     var angle = Math.atan(opp/adj);
+                     d.endAngle = angle + d.startAngle;					 
+ 					 console.log(angle);                    			 
+				     return draggedArc(d);
+				});
 	            
 }
 
