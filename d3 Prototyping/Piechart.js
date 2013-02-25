@@ -15,10 +15,13 @@
    //View index tracker variables
    this.currentView = 0; //Starting view of the piechart (first year)   
    this.previousAngleStart = 0; //An accumulation of all previous angles when the piechart is drawn   
-   this.previousAngleEnd = 0;
+   this.previousAngleEnd = 0;  
+   this.startAngle = [];
+   this.endAngle = [];
    //View information variables
    this.labels = l;
    this.numArcs = -1; //Total number of arcs in the piechart
+   this.numViews = l.length;
    this.draggedBar = -1;   
    //Event functions, all declared in main.js  
    this.placeholder = function() { 
@@ -44,43 +47,44 @@
       var ref = this;
 	  this.displayData = data;
 	  this.numArcs = data.length;
-	  
+	  //Initialize all angle tracker variables to 0, assuming the order of the piechart segments never changes (e.g., no sorting of angle values)
+	  //TODO: might move this to init
+	  for (var j=0;j<this.numViews;j++){
+	      this.startAngle[j] = 0;
+		  this.endAngle[j] = 0;
+	  }
+	  //Functions for drawing the pie segments (svg arcs)
       var arcs = d3.svg.arc()
 	                   .outerRadius(ref.radius)
-					   .startAngle(function (d) {                             
-							ref.previousAngleEnd += (d / 100) * 2 * Math.PI;
-							return ref.previousAngleStart;
+					   .startAngle(function (d) {                          
+							return d[0];
 					   })
-					   .endAngle(function (d) { 
-					        ref.previousAngleStart += (d / 100) * 2 * Math.PI;														
-							return ref.previousAngleEnd; 
+					   .endAngle(function (d) { 				        													
+							return d[1]; 
 					   });
 	var hintArcs = d3.svg.arc()
 	                   .outerRadius(ref.radius)
 					   .startAngle(function (d) {                           				   
-							return 0;
+							return d[0];
 					   })
 					   .endAngle(function (d) { 					       											
-							return (d / 100) * 2 * Math.PI;			
+							return d[0] + (d[1] / 100) * 2 * Math.PI;			
 					   });
 	 //Here, each "d" node represents a view
 	this.widget.selectAll("path")
                  .data(this.displayData.map(function (d,i) { 
-                      //An array of all start and end angles for this year
+                      //An array of all start and end angles for each view
 					  //Format: allAngles[] = {start, end} angles in rads
-                      var allAngles = [];
-					  var previousStartAngle = 0;
-					  var previousEndAngle = 0;
-					  for (var j=0;j< d.value.length;j++){					      
-					      allAngles[j] = [];
-						  allAngles[j][0] = previousStartAngle;
-						  previousEndAngle += (d.value[j] / 100) * 2 * Math.PI;							  
-						  allAngles[j][1] = previousEndAngle;
-						  previousStartAngle += (d.value[j] / 100) * 2 * Math.PI;				  
-					  }
-					 
+                      var allValues = [];					
+					  for (var j=0;j< ref.numViews;j++){					      
+					      allValues[j] = [];
+						  allValues[j][0] = ref.startAngle[j];
+						  ref.endAngle[j] += (d.value[j] / 100) * 2 * Math.PI;							  
+						  allValues[j][1] = ref.endAngle[j];
+						  ref.startAngle[j] += (d.value[j] / 100) * 2 * Math.PI;				  
+					  }					 
                       //An array of previous values (angles) for drawing the segments					  
-	                  return {nodes:d.value,id:i};
+	                  return {nodes:allValues,id:i};
 	              }))
 				 .enter()
                  .append("g")
@@ -93,27 +97,27 @@ this.widget.selectAll(".gDisplayArcs").append("path")
 				 .attr("class","displayArcs")
 				 .attr("id", function (d) {return "displayArcs"+d.id;})				
 				 .attr("class","DisplayArcs")
-				 .attr("d", function (d) {return arcs(d.nodes[1]);})
+				 .attr("d", function (d) {return arcs(d.nodes[ref.currentView]);})
 				 .on("mouseover",function (d) { 
-				   console.log(d.startAngle);
+				   console.log(d.nodes);
 				 })				
 				.on("click",function (d,i){                                    
 				    /** ref.widget.selectAll(".DisplayArcs").transition().duration(1000)
 					 .attr("d", enlargearcs);	*/
 					 ref.widget.selectAll("path").attr("d", function(d){ 
-								         return arcs(d.nodes[0]); 
+							return arcs(d.nodes[0]); 
 					  });
 				 });
 this.widget.selectAll(".gDisplayArcs").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
                                   .attr("class","gInner");
 //Render the hint pie segments						   
-/**this.widget.selectAll(".gInner").selectAll("path").data(function (d) {return d.nodes;}).enter().append("path")
+this.widget.selectAll(".gInner").selectAll("path").data(function (d) {return d.nodes;}).enter().append("path")
                                              .attr("d", function (d) { 											       
 											       return hintArcs(d);
 											 })											 										                                       												
 											.style("fill","none")
-											.style("stroke",this.hintColour);*/
+											.style("stroke",this.hintColour);
 											
 //Render the hint labels
    /**this.widget.selectAll(".gInner").selectAll("text").data(function (d){return d.nodes;}).enter()	                                     						  

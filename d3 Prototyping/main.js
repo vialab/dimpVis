@@ -151,15 +151,15 @@ barchart.widget.selectAll(".displayBars")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new pie chart
 ////////////////////////////////////////////////////////////////////////////////  
-var piedata = [{"label":"one", "value":[20,50,30]}, 
-            {"label":"two", "value":[40,30,30]}, 
-            {"label":"three", "value":[10,20,70]}]; 
+var piedata = [{"label":"one", "value":[20,40,20]}, 
+            {"label":"two", "value":[50,30,10]}, 
+            {"label":"three", "value":[30,30,70]}]; 
 /**var pieset = {
   apples: [53245, 28479, 19697, 24037, 40245],
   oranges: [200, 200, 200, 200, 200]
 };*/
-			
-var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",years);
+var pieLabels = ["1995","2000","2005"];	
+var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",pieLabels);
 piechart.init();
 piechart.render(piedata);
 
