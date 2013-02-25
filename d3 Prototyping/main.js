@@ -151,17 +151,14 @@ barchart.widget.selectAll(".displayBars")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new pie chart
 ////////////////////////////////////////////////////////////////////////////////  
-var piedata = [{"label":"one", "value":[20,40,20]}, 
+/** piedata = [{"label":"one", "value":[20,40,10]}, 
             {"label":"two", "value":[50,30,10]}, 
-            {"label":"three", "value":[30,30,70]}]; 
-/**var pieset = {
-  apples: [53245, 28479, 19697, 24037, 40245],
-  oranges: [200, 200, 200, 200, 200]
-};*/
+            {"label":"three", "value":[30,30,80]}]; */
+
 var pieLabels = ["1995","2000","2005"];	
 var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",pieLabels);
 piechart.init();
-piechart.render(piedata);
+piechart.render(pieDataset);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the piechart
@@ -172,26 +169,18 @@ piechart.render(piedata);
 	                           };*/
 							   
 piechart.dragEvent = d3.behavior.drag()
-                      /** .origin(function(d){ //Set the starting point of the drag interaction
-							//return {x:d.x,y:d.nodes[barchart.currentView][1]};
-	                   })
-					  /** .on("dragstart", function(d){    
-                           if (barchart.draggedBar != d.id){
-							       barchart.clearHintPath(barchart.draggedBar);
-								   scatterplot.clearHintPath(scatterplot.draggedPoint);
-								   barchart.draggedBar = d.id;   
-                                   barchart.showHintPath(d.id,d.nodes); 
-                                   barchart.resolveViews(d.id,d.heights);						   
-							}                                                 						   
-					  })*/
+                      /**.origin(function(d){ //Set the starting point of the drag interaction
+							return {x:d3.event.x,y:d3.event.y};
+	                   })*/
+					   .on("dragstart", function(d){    
+                          piechart.showHintPath(d.id);                                              						   
+					  })
                       .on("drag", function(d){                           		  
                            piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);                          					   								  
-					  });
-					  /**.on("dragend",function (d){					    
-					         barchart.snapToView(d.id,d3.event.y,d.heights);							 
-							 slider.updateSlider(barchart.currentView); 
-                             scatterplot.changeView(barchart.currentView);									 
-					  });	*/
+					  })
+					  .on("dragend",function (d){					    
+					         piechart.clearHintPath(d.id);								 
+					  });	
 
 piechart.widget.selectAll(".DisplayArcs")				                 			  
                    .call(piechart.dragEvent);

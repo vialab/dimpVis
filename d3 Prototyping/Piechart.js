@@ -66,7 +66,8 @@
 	var hintArcs = d3.svg.arc()
 	                   .outerRadius(ref.radius)
 					   .innerRadius(0) //Need to set this for arc.centroid function to work..
-					   .startAngle(function (d) {                           				   
+					   .startAngle(function (d) { 
+                            //TODO: hints not always drawn from start angle (pie layout changes everytime different data is displayed..)					   
 							return d[0];
 					   })
 					   .endAngle(function (d) { 					       											
@@ -74,19 +75,19 @@
 					   });
 	 //Here, each "d" node represents a view
 	this.widget.selectAll("path")
-                 .data(this.displayData.map(function (d,i) { 
+                 .data(this.displayData.map(function (d,i) {                     					  
                       //An array of all start and end angles for each view
 					  //Format: allAngles[] = {start, end} angles in rads
                       var allValues = [];					
 					  for (var j=0;j< ref.numViews;j++){					      
 					      allValues[j] = [];
 						  allValues[j][0] = ref.startAngle[j];
-						  ref.endAngle[j] += (d.value[j] / 100) * 2 * Math.PI;							  
+						  ref.endAngle[j] += d.values[j] * 2 * Math.PI;							  
 						  allValues[j][1] = ref.endAngle[j];
-						  ref.startAngle[j] += (d.value[j] / 100) * 2 * Math.PI;				  
+						  ref.startAngle[j] += d.values[j] * 2 * Math.PI;				  
 					  }					 
                       //An array of previous values (angles) for drawing the segments					  
-	                  return {nodes:allValues,id:i,startAngle:0,endAngle:0,outerRadius:ref.radius};
+	                  return {nodes:allValues,cluster:d.clusterLabel,id:i,startAngle:0,endAngle:0,outerRadius:ref.radius};
 	              }))
 				 .enter()
                  .append("g")
@@ -100,6 +101,7 @@ this.widget.selectAll(".gDisplayArcs").append("path")
 				 .attr("id", function (d) {return "displayArcs"+d.id;})				
 				 .attr("class","DisplayArcs")
 				 .attr("d", function (d) {return arcs(d.nodes[ref.currentView]);})
+				 .attr("title", function (d){ return d.cluster;})
 				 .on("mouseover",function (d) { 
 				   //console.log(d.nodes);
 				 })				
@@ -120,7 +122,7 @@ this.widget.selectAll(".gInner").selectAll("path").data(function (d) {return d.n
 											       return hintArcs(d);
 											 })											 										                                       												
 											.style("fill","none")
-											.style("stroke",this.hintColour)
+											.style("stroke","none")
 											.attr("class","hintArcs");
 											
 //Render the hint labels
@@ -142,7 +144,7 @@ this.widget.selectAll(".gInner").selectAll("path").data(function (d) {return d.n
 													    return "end";
 													return "start";
 												})											
-											   .attr("fill", ref.hintColour)
+											   .attr("fill", "none")
 											   .attr("class","hintLabels"); 
  }
 
@@ -165,15 +167,19 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                      var centroid = draggedArc.centroid(d);
 					 var x = centroid[0]/ref.radius;
 					 var y = centroid[1]/ref.radius;
-                     var opp = Math.abs(mouseX - x);
-					 var adj = Math.abs (mouseY - y);
-                     //Get the angle
+					 console.log("mouseX: "+mouseX+" mouseY: "+mouseY+" x: "+x+" y: "+y);
+                     var adj = Math.abs(mouseX - x);
+					 var opp = Math.abs (mouseY-y);	                     
                      var angle = Math.atan(opp/adj);
+					 var angleDeg = (angle*180)/Math.PI;
+					 console.log(angleDeg);
+					 //var angle = Math.atan2(mouseX-x,mouseY-y);
+					 /**var adj = Math.abs(mouseX - x);					                    
+                     var angle = Math.acos(adj/ref.radius);*/
                      d.endAngle = angle + d.startAngle;					 
- 					 console.log(angle);                    			 
+ 					// console.log("Start: "+d.nodes[ref.currentView][0]+"End: "+d.nodes[ref.currentView][1]+" Computed: "+d.endAngle);                    			 
 				     return draggedArc(d);
-				});
-	            
+				});	            
 }
 
  Piechart.prototype.redrawView = function (view){      
@@ -242,43 +248,19 @@ Piechart.prototype.resolveViews = function (id,h){
 //Displays hint info
 Piechart.prototype.showHintPath = function (id,d){    
         var ref = this;      
-        /**this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
+        this.widget.select("#gInner"+id).selectAll(".hintArcs")                                  
+								  .style("stroke", this.hintColour);	
+		this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
 								  .style("fill", this.hintColour);	
-		/**this.widget.selectAll(".displayBars")
-		                                   .transition().duration(400)
-		                                   .style("fill", function (d){
-		                                           if (id != d.id)
-												      return ref.fadeColour;
-		                                    });		*/
-	//Render the hint bars							   
-	 this.widget.select("#gInner"+id).selectAll("rect").data(d).enter()
-											 .append("svg:rect")
-											 .attr("x", function (d) {return d[0];})
-											 .attr("y", function (d) {return d[1];})
-											 .attr("width", ref.barWidth)
-											.attr("height", function(d) { return 3; })											                                       												
-											.style("fill",ref.hintColour);
-											
-	//Render the hint labels
-   this.widget.select("#gInner"+id).selectAll("text").data(d).enter()	                                     						  
-								            .append("svg:text")
-                                            .text(function(d,i) { return ref.labels[i]; })
-												.attr("x", function (d,i){return (d[0]+(ref.barWidth*1.5));})
-												.attr("y", function (d) {return d[1];})												
-											   .attr("fill", ref.hintColour); 
 											   
 }
 //Clears hint info
  Piechart.prototype.clearHintPath = function (id){
         var ref = this;
-        this.widget.select("#gInner"+id).selectAll("text").remove();  
-        this.widget.select("#gInner"+id).selectAll("rect").remove();    		
-								  
-		/**this.widget.selectAll(".displayBars")
-		                                   .transition().duration(400)
-		                                   .style("fill", function (d){
-		                                           return ref.barColour;
-		                                    });*/
+         this.widget.select("#gInner"+id).selectAll(".hintArcs")                                  
+								  .style("stroke", "none");	
+		this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
+								  .style("fill", "none");	
         								  
  }
 
