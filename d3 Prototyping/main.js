@@ -51,7 +51,7 @@ scatterplot.render( dataset, 0,years);
 					  })
                       .on("drag", function(d){  
                            var view = scatterplot.currentView;					  
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
+                           scatterplot.updateDraggedPoint(d.id,d3.svg.mouse(this)[0],d3.svg.mouse(this)[1]);
 						   if (scatterplot.currentView != view){
                                   slider.updateSlider(scatterplot.currentView);	
 								  barchart.changeView(scatterplot.currentView);
@@ -151,14 +151,14 @@ barchart.widget.selectAll(".displayBars")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new pie chart
 ////////////////////////////////////////////////////////////////////////////////  
-/** piedata = [{"label":"one", "value":[20,40,10]}, 
-            {"label":"two", "value":[50,30,10]}, 
-            {"label":"three", "value":[30,30,80]}]; */
+piedata = [{"label":"one", "values":[0.2,0.5,0.1]}, 
+            {"label":"two", "values":[0.5,0.3,0.1]}, 
+            {"label":"three", "values":[0.3,0.2,0.8]}]; 
 
 var pieLabels = ["1995","2000","2005"];	
 var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",pieLabels);
 piechart.init();
-piechart.render(pieDataset);
+piechart.render(piedata);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the piechart
