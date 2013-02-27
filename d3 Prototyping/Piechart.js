@@ -70,15 +70,16 @@
 	this.widget.selectAll("path")
                  .data(this.displayData.map(function (d,i) {                     					  
                       //An array of all start and end angles for each view
-					  //Format: allAngles[] = {start, end} angles in rads
+					  //Format: allAngles[] = {start, end, angle-value of actual angle} angles in rads
                       var allValues = [];					
 					  for (var j=0;j< ref.numViews;j++){					      
 					      allValues[j] = [];
 						  allValues[j][0] = ref.startAngle[j];
 						  ref.endAngle[j] += d.values[j] * 2 * Math.PI;							  
 						  allValues[j][1] = ref.endAngle[j];
+						  allValues[j][2] = allValues[j][1] - allValues[j][0];  //End-Start
 						  ref.startAngle[j] += d.values[j] * 2 * Math.PI;				  
-					  }	                    					  
+					  }	                     			  
                       //An array of previous values (angles) for drawing the segments					  
 	                  return {nodes:allValues,/**cluster:d.clusterLabel,*/id:i,startAngle:0,endAngle:0,outerRadius:ref.radius};
 	              }))
@@ -130,19 +131,11 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 					   });
      this.widget.select("#displayArcs"+id)
 	            .attr("d", function (d) {    
-                     d.startAngle = d.nodes[ref.currentView][0];				
-                    /** var centroid = draggedArc.centroid(d);
-					 var centroidX = centroid[0];
-					 var centroidY= centroid[1];				
-				     var hypot = Math.sqrt(x*x + y*y);
-					 var x = (centroidX/hypot);
-					var y = (centroidY/hypot);*/	                 		
+                     d.startAngle = d.nodes[ref.currentView][0];                  	                 		
 					var adj = mouseX - ref.cx;
 					var opp = ref.cy - mouseY;	                   	
                      var angle = Math.atan(opp/adj);				
-                     d.endAngle = d.startAngle + (Math.PI/2 - angle);	
-                     //console.log(angle*(180/Math.PI));								 
- 					// console.log("Start: "+d.nodes[ref.currentView][0]+"End: "+d.nodes[ref.currentView][1]+" Computed: "+d.endAngle);                    			 
+                     d.endAngle = d.startAngle + (Math.PI/2 - angle);	                                    			 
 				     return draggedArc(d);
 				});	            
 }
@@ -213,17 +206,17 @@ Piechart.prototype.resolveViews = function (id,h){
 //Displays hint info
 Piechart.prototype.showHintPath = function (id){    
         var ref = this; 
+		//Arc generator for the hint arcs
 		var hintArcs = d3.svg.arc()
 	                   .outerRadius(ref.radius+5)
 					   .innerRadius(0) //Need to set this for arc.centroid function to work..
-					   .startAngle(function (d) { 
-                            //TODO: hints not always drawn from start angle (pie layout changes everytime different data is displayed..)						
+					   .startAngle(function (d) {                            						
 							return startingAngle;
 					   })
 					   .endAngle(function (d) { 					       											
-							return Math.abs(d[1]-d[0]) + startingAngle;			
+							return d[2] + startingAngle;			
 		               });
-		var startingAngle=0;
+		var startingAngle=0; //Which angle the drag is starting at (depends on the current view)
         //Render the hint pie segments						   
         this.widget.select("#gInner"+id).selectAll("path").data(function (d) {
 		                                              startingAngle = d.nodes[ref.currentView][0];
@@ -244,27 +237,32 @@ Piechart.prototype.showHintPath = function (id){
 								            .append("svg:text")
                                             .text(function(d,i) { return ref.labels[i]; })									  
                                               .attr("transform", function (d){
-											        /**var center = hintArcs.centroid(d);
-													var x = center[0];
-													var y = center[1];
-													var hypot = Math.sqrt(x*x + y*y);
-													var transX = (x/hypot)*(ref.labelOffset);
-													var transY = (y/hypot)*(ref.labelOffset);													
-													return "translate("+transX+","+transY+")"; */                                                   													
-													var x = ref.cx + ref.radius*Math.cos(d[1]);
-                                                    var y = ref.cy+ ref.radius*Math.sin(d[1]);
+											        
+													//Resolve the angle w.r.t to the top of the chart, x and y = 0													
+													var newAngle = startingAngle + d[2];
+													var twoPi = Math.PI*2;
+                                                    var halfPi = Math.PI/2;												
+													var x,y;
+													if (newAngle > twoPi){ //Special case when angle wraps around
+													    newAngle = newAngle - twoPi;
+													}													
+													//Decide which quadrant the new angle's end lies in
+													/**if (newAngle >= 0 && newAngle <= Math.PI/2){ //Quadrant 1													  
+													   newAngle = newAngle - Math.PI/2;
+													   console.log(newAngle*(180)/Math.PI);
+													} else if (newAngle >= threePi && newAngle <= twoPi) { //Quadrant 4
+													   newAngle = Math.PI/2 - newAngle;
+													   console.log(newAngle*(180/Math.PI));
+													}*/												    
+													x = ref.cx + ref.labelOffset*Math.cos(newAngle - halfPi);
+													y = ref.cy+ ref.labelOffset*Math.sin(newAngle - halfPi);
 													return "translate("+x+","+y+")";
-												})	
-                                               /**	.attr("text-anchor", function (d){
-												    var angleSum = (d[0] + d[1])/2;
-													if (angleSum > Math.PI)
-													    return "end";
-													return "start";
-												})	*/												
+													
+												})                                          												
 											   .attr("fill", this.hintColour)
 											   .attr("class","hintLabels");		
-        
-		this.widget.selectAll(".DisplayArcs").style("fill", function (d) {
+    //Clear all other pie segments (for debugging) 
+	this.widget.selectAll(".DisplayArcs").style("fill", function (d) {
 		    if (d.id != id)
 			   return "none";
 		});
