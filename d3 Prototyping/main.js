@@ -178,8 +178,9 @@ piechart.dragEvent = d3.behavior.drag()
                       .on("drag", function(d){                           		  
                            piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);                          					   								  
 					  })
-					  .on("dragend",function (d){					    
-					         piechart.clearHintPath(d.id);								 
+					  .on("dragend",function (d){                             				  
+					         piechart.clearHintPath(d.id);
+                             piechart.redrawView();								 
 					  });	
 
 piechart.widget.selectAll(".DisplayArcs")				                 			  

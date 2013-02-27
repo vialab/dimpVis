@@ -192,3 +192,52 @@ var dataset = [{"Country":"Afghanistan","Pop1955":8891209,"Pop1960":9829450,"Pop
 {"Country":"Yemen","Pop1955":5265327,"Pop1960":5871831,"Pop1965":6510081,"Pop1970":7098239,"Pop1975":7934497,"Pop1980":9132545,"Pop1985":10539928,"Pop1990":12416080,"Pop1995":14859342,"Pop2000":17479206,"Pop2005":20727063,"Group":"Middle East & North Africa","Cluster":5,"F1950":8.2,"F1955":8.3,"F1960":8.4,"F1965":8.55,"F1970":8.7,"F1975":8.7,"F1980":8.7,"F1985":8.4,"F1990":7.7,"F1995":6.726,"F2000":6.022,"F2005":5.501,"L1950":32.548,"L1955":33.97,"L1960":35.18,"L1965":36.984,"L1970":39.848,"L1975":44.175,"L1980":49.113,"L1985":52.922,"L1990":55.599,"L1995":58.02,"L2000":60.308,"L2005":62.698},
 {"Country":"Zambia","Pop1955":2869000,"Pop1960":3254000,"Pop1965":3694000,"Pop1970":4251612,"Pop1975":4923730,"Pop1980":5699777,"Pop1985":6779477,"Pop1990":7941694,"Pop1995":9001866,"Pop2000":10116606,"Pop2005":11261795,"Group":"Sub-Saharan Africa","Cluster":2,"F1950":6.75,"F1955":6.9,"F1960":7.15,"F1965":7.4,"F1970":7.425,"F1975":7.375,"F1980":6.95,"F1985":6.658,"F1990":6.28,"F1995":5.999,"F2000":5.648,"F2005":5.176,"L1950":42.038,"L1955":44.077,"L1960":46.023,"L1965":47.768,"L1970":50.107,"L1975":51.386,"L1980":51.821,"L1985":50.821,"L1990":46.1,"L1995":40.238,"L2000":39.193,"L2005":42.384},
 {"Country":"Zimbabwe","Pop1955":3409017,"Pop1960":4010933,"Pop1965":4685272,"Pop1970":5514536,"Pop1975":6341797,"Pop1980":7169968,"Pop1985":8560378,"Pop1990":10152933,"Pop1995":11111992,"Pop2000":11751323,"Pop2005":12160782,"Group":"Sub-Saharan Africa","Cluster":2,"F1950":6.8,"F1955":7,"F1960":7.3,"F1965":7.4,"F1970":7.4,"F1975":7.3,"F1980":6.74,"F1985":5.656,"F1990":4.773,"F1995":4.054,"F2000":3.563,"F2005":3.186,"L1950":48.451,"L1955":50.469,"L1960":52.358,"L1965":53.995,"L1970":55.635,"L1975":57.674,"L1980":60.363,"L1985":62.351,"L1990":60.377,"L1995":46.809,"L2000":39.989,"L2005":43.487}];
+
+
+//Generate data for the piechart
+//Format of array: 
+// pieDataset = ["clusterLabel":name, "values":[list of all values, one per view]
+var pieDataset = [];
+//Initiliaze general information for all clusters
+pieDataset[0] = [];
+pieDataset[0] = {"clusterLabel":"South Asia","values":[0,0,0,0,0,0,0,0,0,0,0]};
+pieDataset[1] = [];
+pieDataset[1] = {"clusterLabel":"Europe & Central Asia","values":[0,0,0,0,0,0,0,0,0,0,0]};
+pieDataset[2] = [];
+pieDataset[2] = {"clusterLabel":"Sub-Saharan Africa","values":[0,0,0,0,0,0,0,0,0,0,0]};
+pieDataset[3] = [];
+pieDataset[3] = {"clusterLabel":"America","values":[0,0,0,0,0,0,0,0,0,0,0]};
+pieDataset[4] = [];
+pieDataset[4] = {"clusterLabel":"East Asia & Pacific","values":[0,0,0,0,0,0,0,0,0,0,0]};
+pieDataset[5] = [];
+pieDataset[5] = {"clusterLabel":"Middle East & North Africa","values":[0,0,0,0,0,0,0,0,0,0,0]};
+var totals = [0,0,0,0,0,0,0,0,0,0,0];
+//Populate the values array for each cluster, with population totals
+ for (var j = 0;j<dataset.length;j++){    
+      if (dataset[j].Cluster == 0 || dataset[j].Cluster==1 || dataset[j].Cluster==2){
+      var clusterNumber = dataset[j].Cluster;   
+      pieDataset[clusterNumber].values[0] += dataset[j].Pop1955; 
+      pieDataset[clusterNumber].values[1] += dataset[j].Pop1960; 
+      pieDataset[clusterNumber].values[2] += dataset[j].Pop1965;  
+      pieDataset[clusterNumber].values[3] += dataset[j].Pop1970;   	
+	  pieDataset[clusterNumber].values[4] += dataset[j].Pop1975; 
+	  pieDataset[clusterNumber].values[5] += dataset[j].Pop1980; 
+      pieDataset[clusterNumber].values[6] += dataset[j].Pop1985; 
+	  pieDataset[clusterNumber].values[7] += dataset[j].Pop1990; 
+	  pieDataset[clusterNumber].values[8] += dataset[j].Pop1995;    
+	  pieDataset[clusterNumber].values[9] += dataset[j].Pop2000; 
+	  pieDataset[clusterNumber].values[10] += dataset[j].Pop2005;
+}	  
+ }   
+//Get the totals for each view (to divide the values by)
+for (j=0;j<totals.length;j++){
+   for (var k=0;k<pieDataset.length;k++){
+       totals[j] += pieDataset[k].values[j];
+   }  
+}
+//Now, update the piedataset to contain percentages, using the totals array
+for (j=0;j<pieDataset.length;j++){
+   for (k=0;k<totals.length;k++){
+       pieDataset[j].values[k] = pieDataset[j].values[k]/totals[k];
+   }
+}

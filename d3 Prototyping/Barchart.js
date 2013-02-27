@@ -23,9 +23,7 @@
    this.numBars = -1; //Total number of bars (points along x-axis) in the dataset
    this.draggedBar = -1;   
    //Event functions, all declared in main.js  
-   this.placeholder = function() { 
-		//console.log("Not implemented"); 
-   }; 
+   this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
    this.mouseoutFunction  = this.placeholder;  
    this.dragEvent = null;   

@@ -35,9 +35,7 @@ function Scatterplot(x, y, w, h, id,p) {
    this.dragEvent = null;
    
    //Event functions, declared in main.js  
-   this.placeholder = function() { 
-		console.log("Not implemented"); 
-   }; 
+   this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
    this.mouseoutFunction  = this.placeholder;  
    this.clickFunction = this.placeholder;
