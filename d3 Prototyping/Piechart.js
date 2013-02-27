@@ -12,9 +12,8 @@
    this.widget = null; //Reference to svg container
    //Display variables
    this.displayData = null;    
-   this.hintColour = "#aec7e8";
-   this.fadeColour = "#c7c7c7";
-   this.barColour = "steelblue";
+   this.hintColour = "#c7c7c7";  
+   this.colourScale = d3.scale.category20c();
    //View index tracker variables
    this.currentView = 1; //Starting view of the piechart (first year)
    this.currentViewIndex = 0; //Current and next view, indices into the sorted angles array
@@ -39,8 +38,8 @@
    this.mouseoutFunction  = this.placeholder;  
    this.dragEvent = null;   
  }
- Piechart.prototype.init = function(){
-    // Initialize the main container
+ // Initialize the main svg container
+ Piechart.prototype.init = function(){    
    this.widget = d3.select(this.id).append("svg")      
       .attr("width", this.width)
       .attr("height", this.height)
@@ -90,14 +89,14 @@
 					  }	                     			  
                        //Sort the array of angles, ascending order
 					   var aSorted = ref.sortAngles(a);                        			  
-	                  return {nodes:allValues,/**cluster:d.clusterLabel,*/id:i,startAngle:0,endAngle:0,outerRadius:ref.radius,angles:aSorted};
+	                  return {nodes:allValues,/**cluster:d.clusterLabel,*/id:i,startAngle:0,endAngle:0,outerRadius:ref.radius,angles:aSorted,colour:ref.colourScale(i)};
 	              }))
 				 .enter()
                  .append("g")				
                  .attr("class","gDisplayArcs");
                 				 
 this.widget.selectAll(".gDisplayArcs").append("path")
-				 .attr("fill","steelblue")
+				 .attr("fill",function (d){return d.colour;})
 				 .style("stroke","white")
 				 .style("stroke-width",2)
 				 .attr("class","displayArcs")
@@ -274,7 +273,7 @@ Piechart.prototype.showHintPath = function (id){
 		ref.dragStartAngle = 0;
         this.widget.select("#gInner"+id).selectAll("text").remove();  
         this.widget.select("#gInner"+id).selectAll("path").remove();	
-        this.widget.selectAll(".DisplayArcs").style("fill", "steelblue").style("stroke","white");								  
+        this.widget.selectAll(".DisplayArcs").style("fill", function (d){return d.colour;}).style("stroke","white");								  
         								  
  }
  //Sorts the array of angles[angleValue, viewIndex] in ascending order
