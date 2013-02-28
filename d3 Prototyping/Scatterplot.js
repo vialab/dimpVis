@@ -373,7 +373,7 @@ Scatterplot.prototype.redrawView = function(id,view) {
 	 } 
 	 
     this.widget.selectAll(".displayPoints")
-	         // .transition().duration(400)
+	          .transition().duration(400)
 	           .attr("cx",function (d){	
 			           return d.nodes[displayView][0];
 			        })

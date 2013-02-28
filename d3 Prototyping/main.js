@@ -51,7 +51,7 @@ scatterplot.render( dataset, 0,years);
 					  })
                       .on("drag", function(d){  
                            var view = scatterplot.currentView;					  
-                           scatterplot.updateDraggedPoint(d.id,d3.svg.mouse(this)[0],d3.svg.mouse(this)[1]);
+                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
 						   if (scatterplot.currentView != view){
                                   slider.updateSlider(scatterplot.currentView);	
 								  barchart.changeView(scatterplot.currentView);
@@ -173,7 +173,8 @@ piechart.dragEvent = d3.behavior.drag()
 							return {x:d3.event.x,y:d3.event.y};
 	                   })*/
 					   .on("dragstart", function(d){    
-                          piechart.showHintPath(d.id);                                              						   
+                          piechart.showHintPath(d.id);   
+                          piechart.resolveViews(d.id, d.angles);						  
 					  })
                       .on("drag", function(d){                           		  
                            piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);                          					   								  
