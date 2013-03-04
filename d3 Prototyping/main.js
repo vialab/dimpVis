@@ -41,13 +41,12 @@ scatterplot.render( dataset, 0,years);
                        .origin(function(d){ //Set the starting point of the drag interaction
 							return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
 	                   })
-					   .on("dragstart", function(d){    
-                           if (scatterplot.draggedPoint != d.id){
+					   .on("dragstart", function(d){                          
 							       scatterplot.clearHintPath(scatterplot.draggedPoint);
-								   scatterplot.draggedPoint = d.id;   
-                                   scatterplot.showHintPath(d.id); 
-                                   scatterplot.fadeOutPoints(d.id); 								   
-							}                                                 						   
+								   scatterplot.draggedPoint = d.id; 
+                                   barchart.clearHintPath(barchart.draggedBar);								   
+                                   scatterplot.showHintPath(d.id);                          								   
+							                                           						   
 					  })
                       .on("drag", function(d){  
                            var view = scatterplot.currentView;					  
@@ -122,13 +121,13 @@ barchart.render(dataset);
 							return {x:d.x,y:d.nodes[barchart.currentView][1]};
 	                   })
 					   .on("dragstart", function(d){    
-                           if (barchart.draggedBar != d.id){
+                           //if (barchart.draggedBar != d.id){
 							       barchart.clearHintPath(barchart.draggedBar);
 								   scatterplot.clearHintPath(scatterplot.draggedPoint);
 								   barchart.draggedBar = d.id;   
                                    barchart.showHintPath(d.id,d.nodes); 
                                    barchart.resolveViews(d.id,d.heights);						   
-							}                                                 						   
+							//}                                                 						   
 					  })
                       .on("drag", function(d){    
                            var view = barchart.currentView;					  
@@ -181,7 +180,9 @@ piechart.dragEvent = d3.behavior.drag()
 					  })
 					  .on("dragend",function (d){                             				  
 					         piechart.clearHintPath(d.id);
-                             piechart.redrawView();								 
+							 piechart.snapToView(d.id,d.endAngle,d.angles);
+                             //piechart.redrawView();	
+                             //piechart.redrawSegments(d.id,d.startAngle,d.endAngle);							 
 					  });	
 
 piechart.widget.selectAll(".DisplayArcs")				                 			  

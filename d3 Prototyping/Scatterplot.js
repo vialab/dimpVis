@@ -211,6 +211,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 							  .attr("stroke-width", "2")
 							  .attr("class", "displayPoints")
 							  .attr("fill",myRef.grey)
+							  .style("fill-opacity",1)
 							   .attr("id", function (d){return "displayPoints"+d.id;})
 							  .style("cursor", "pointer")  
 							   .on("mouseover", myRef.mouseoverFunction)
@@ -260,7 +261,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					  return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
 					}else{ //Within current sub-path
 					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					   //ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					  // ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
 					   return interpY;
 					}					
 				  }else if (ref.nextView == ref.totalViews){  //Last point of path					
@@ -429,18 +430,14 @@ Scatterplot.prototype.showHintPath = function (id){
 	   this.widget.select("#p"+id)                                  
 					.style("stroke", this.hintColour);     	
        this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
-								  .style("fill", this.grey);       							  
-}
-//Fade out all points except 'id' (dragged point)
-Scatterplot.prototype.fadeOutPoints = function (id){
-  var ref = this;
-  this.widget.selectAll(".displayPoints")
+								  .style("fill", this.grey); 
+        this.widget.selectAll(".displayPoints")
 	           .transition().duration(400)
-	           .style("fill", function (d){
+	           .style("fill-opacity", function (d){
 			       if (d.id != id){
-				      return ref.lightGrey;
+				      return 0.3;
 				   }
-			   }); 	
+			   }); 	      							  
 }
 Scatterplot.prototype.clearHintPath = function (id) {
      /**this.widget.select("#displayPoints"+id)                                  
@@ -452,7 +449,7 @@ Scatterplot.prototype.clearHintPath = function (id) {
      this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
 				.style("fill", "none");	
      this.widget.selectAll(".displayPoints")	           
-	           .style("fill", this.grey);				
+	           .style("fill-opacity", 1);				
 }
 /**Scatterplot.prototype.showHintPoint = function (id){
      this.widget.select("#displayPoints"+id)                                  

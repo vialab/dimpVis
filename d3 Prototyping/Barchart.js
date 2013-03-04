@@ -103,6 +103,7 @@ this.widget.selectAll(".gDisplayBars")
      .attr("width", ref.barWidth)
      .attr("height", function(d) { return d.nodes[ref.currentView][2]; })
 	 .attr("fill", this.barColour)
+	 .style("fill-opacity",1)
 	 .attr("stroke", "#FFF")
 	 .attr("stroke-width",5)
 	 .attr("class", "displayBars")
@@ -289,14 +290,12 @@ Barchart.prototype.resolveViews = function (id,h){
 //Displays hint info
 Barchart.prototype.showHintPath = function (id,d){    
         var ref = this;      
-        /**this.widget.select("#gInner"+id).selectAll(".hintBars")                                  
-								  .style("fill", this.hintColour);	
-		/**this.widget.selectAll(".displayBars")
+		this.widget.selectAll(".displayBars")
 		                                   .transition().duration(400)
-		                                   .style("fill", function (d){
+		                                   .style("fill-opacity", function (d){
 		                                           if (id != d.id)
-												      return ref.fadeColour;
-		                                    });		*/
+												      return 0.4;
+		                                    });		
 	//Render the hint bars							   
 	 this.widget.select("#gInner"+id).selectAll("rect").data(d).enter()
 											 .append("svg:rect")
@@ -320,7 +319,7 @@ Barchart.prototype.showHintPath = function (id,d){
         var ref = this;
         this.widget.select("#gInner"+id).selectAll("text").remove();  
         this.widget.select("#gInner"+id).selectAll("rect").remove();    		
-								  
+		this.widget.selectAll(".displayBars").style("fill-opacity", 1);							  
 		/**this.widget.selectAll(".displayBars")
 		                                   .transition().duration(400)
 		                                   .style("fill", function (d){
