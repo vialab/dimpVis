@@ -57,9 +57,7 @@ Scatterplot.prototype.init = function() {
    this.widget = d3.select(this.id).append("svg")      
       .attr("width", this.width+(this.padding*2))
       .attr("height", this.height+(this.padding*2))
-     // .style("position", "absolute")
-     // .style("left", this.xpos + "px")
-      //.style("top", this.ypos + "px")  
+  
      .append("g")
      .attr("transform", "translate(" + this.padding + "," + this.padding + ")")
    ; 
@@ -184,8 +182,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 												.attr("y", function (d) {  return d[1] + myRef.pointRadius*2; })												
 											   .attr("fill", "none")											  
 											   .attr("class","hintLabels")
-											   .style("cursor","pointer")
-											   //.on("mouseover", this.hoverHintLabelFunction);
+											   .style("cursor","pointer")											  
 											   .on("click", this.clickHintLabelFunction);
 	//Render the hint path line									    
     this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
@@ -362,6 +359,42 @@ Scatterplot.prototype.changeView = function( newView) {
 		ref.nextView = newView + 1;
 	}
     ref.redrawView("null",-1); //redraw the points for the currently selected view
+}
+////////////////////////////////////////////////////////////////////////////////
+// Animates points along a path when fast forwarding is used
+////////////////////////////////////////////////////////////////////////////////
+Scatterplot.prototype.animateAlongPath = function( newView) {     
+	 var ref = this;
+	 //Update the view tracker variables
+	 if (newView ==0){//First point on path
+            ref.currentView = newView	 
+			ref.nextView = newView+1;
+	}else if (newView == ref.numViews){  //Last point of path				
+		   ref.nextView = newView;
+		   ref.currentView = newView -1;
+	}else { //A point somewhere in the middle
+        ref.currentView = newView;	
+		ref.nextView = newView + 1;
+	}
+
+	for (var j=1;j<=ref.currentView;j++){
+	    this.widget.selectAll(".displayPoints")
+	          .transition().duration(1200)
+			  .ease("linear")			 
+	          .attrTween("cx",function (d){	
+			           var interp = d3.interpolate(d.nodes[j-1][0],d.nodes[j][0]);
+						  return function (t){
+						   return interp(t);
+						  };
+			        })
+				 .attrTween("cy",function (d){	
+			       	    var interp = d3.interpolate(d.nodes[j-1][1],d.nodes[j][1]);
+						  return function (t){
+						   return interp(t);
+						  };			 
+	             });	    
+	}
+    //ref.redrawView("null",-1); //redraw the points for the currently selected view
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Redraws the points on the scatterplot

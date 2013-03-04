@@ -25,7 +25,8 @@
    //Event functions, all declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
-   this.mouseoutFunction  = this.placeholder;  
+   this.mouseoutFunction  = this.placeholder; 
+   this.clickHintLabelFunction = this.placeholder;   
    this.dragEvent = null;   
  }
  Barchart.prototype.init = function(){
@@ -244,6 +245,21 @@ Barchart.prototype.changeView = function (newView){
      this.currentView = newView;  
      this.redrawView(-1); 
 }
+//Animates the barchart sequentially by year based on a clicked year
+Barchart.prototype.animateAlongPath = function (newView){    
+     this.currentView = newView;  
+	 for (var j=0;j<=this.currentView;j++){
+		 this.widget.selectAll(".displayBars")
+					  .transition().duration(1200)					  
+					  .attr("height", function (d){	                             						  
+							  return d.nodes[j][2];
+					   })
+					   .attr("y", function (d){
+							 return d.nodes[j][1];
+					   });  
+	 }
+	 
+}
 //Snaps to the nearest view (in terms of mouse location distance and the bar being dragged)
 Barchart.prototype.snapToView = function (id, mouseY,h){
        var ref = this;    
@@ -310,8 +326,10 @@ Barchart.prototype.showHintPath = function (id,d){
 								            .append("svg:text")
                                             .text(function(d,i) { return ref.labels[i]; })
 												.attr("x", function (d,i){return (d[0]+(ref.barWidth*1.5));})
-												.attr("y", function (d) {return d[1];})												
-											   .attr("fill", ref.hintColour); 
+												.attr("y", function (d) {return d[1]+5;})												
+											   .attr("fill", ref.hintColour)
+											   .on("click",this.clickHintLabelFunction)
+											   .style("cursor", "pointer"); 
 											   
 }
 //Clears hint info
