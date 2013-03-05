@@ -144,6 +144,7 @@ chart.append("text")
  //Base of bar is ref.yPos, top of bar is ref.yPos - barHeight, as defined during data initialization
 Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
+	 var currentHeight = -1;
      this.widget.select("#displayBars"+id)
 	            .attr("height", function (d){
                     var current =  ref.yPos - d.heights[ref.currentViewIndex][0];
@@ -155,13 +156,14 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 					}					
 				    //Somewhere in the middle                       					
                     var yDiff = Math.abs(mouseY - ref.yPos); 
-					var barHeight = d.heights[ref.currentViewIndex][0];	
-					var barTopY = ref.yPos - d.heights[ref.currentViewIndex][0];					
-					if (mouseY > barTopY)
+					var barHeight = d.heights[ref.currentViewIndex][0];								
+					if (mouseY > current)
 					   yDirection = -1;
 					else 
-					    yDirection = 1;                    				
-				    return (barHeight + yDirection*Math.abs(yDiff - barHeight)); 
+					    yDirection = 1; 
+                    
+					currentHeight = (barHeight + yDirection*Math.abs(yDiff - barHeight));						
+				    return currentHeight; 
 				})
 				.attr("y", function(d){ 
 				    var current =  ref.yPos - d.heights[ref.currentViewIndex][0];
@@ -170,42 +172,81 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 					    if (mouseY >= current){ //Passed lowest bar, out of bounds
 						    return current;
 						}else if (mouseY <= next){ //Passed the next bar height, update tracker variables
+						    ref.animateBars(mouseY,current,next,currentHeight,id);
 						    ref.currentViewIndex = ref.nextViewIndex;
 							ref.nextViewIndex++;
 						    ref.currentView = d.heights[ref.currentViewIndex][1];
-                            ref.redrawView(-1);							
+							return mouseY;
+                           // ref.redrawView(-1);							
 						}
-						//Otherwise, mouse is within bounds
+						//Otherwise, mouse is within bounds						
+						ref.animateBars(mouseY,current,next,currentHeight,id);
 						return mouseY;
+						
                     } else if (ref.nextViewIndex == ref.totalHeights){ //At the highest bar
 					    if (mouseY <= next){ //Passed highest, out of bounds
 						   return next;
 						}else if (mouseY >= current){ //Passed current, update tracker variables
+						    ref.animateBars(mouseY,current,next,currentHeight,id);
 						   ref.nextViewIndex = ref.currentViewIndex;
 						   ref.currentViewIndex--;
 						   ref.currentView = d.heights[ref.currentViewIndex][1];
-                           ref.redrawView(-1);						   
+						   return mouseY;
+                           //ref.redrawView(-1);						   
 						}
 						//Otherwise, mouse is in bounds
+						 ref.animateBars(mouseY,current,next,currentHeight,id);
 						return mouseY;
 					}else { //At a bar somewhere in  the middle
 					   if (mouseY >= current){ //Passed current
+					        ref.animateBars(mouseY,current,next,currentHeight,id);	
 					        ref.nextViewIndex = ref.currentViewIndex;
 							ref.currentViewIndex--;	
                             ref.currentView = d.heights[ref.currentViewIndex][1];	
-							ref.redrawView(-1);
+							return mouseY;
+							//ref.redrawView(-1);
 					   }else if (mouseY <=next){ //Passed next
+					       ref.animateBars(mouseY,current,next,currentHeight,id);					   
 					       ref.currentViewIndex = ref.nextViewIndex;
 						   ref.nextViewIndex++;	
-                           ref.currentView = d.heights[ref.currentViewIndex][1];	
-						   ref.redrawView(-1);
+                           ref.currentView = d.heights[ref.currentViewIndex][1];
+                           return mouseY;						   
+						   //ref.redrawView(-1);
 					   }						
 					   //Within bounds
+					   ref.animateBars(mouseY,current,next,currentHeight,id);
 					   return mouseY;
                    }	                    
 				});	
 }
-
+//Animates the rest of the bars while one is being dragged
+Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
+    var ref = this;   
+    //Determine the percentage dragged vertically between current and next
+	  var distanceTravelled = Math.abs(mouseY-current);
+	  var totalDistance = Math.abs(next - current);
+	  var distanceRatio = distanceTravelled/totalDistance;      
+	 this.widget.selectAll(".displayBars")		         
+		          .attr("height", function (d){	
+                          if (d.id != id){
+						      var current =  ref.yPos - d.heights[ref.currentViewIndex][0];
+					          var next = ref.yPos - d.heights[ref.nextViewIndex][0];
+							  var addedHeight = Math.abs(next - current)*distanceRatio;
+						      return d.nodes[ref.currentView][2] + addedHeight;
+						  }	
+                          return height;						  
+		           })
+				  .attr("y", function (d){				         
+				         if (d.id != id){
+						   var current =  ref.yPos - d.heights[ref.currentViewIndex][0];
+					       var next = ref.yPos - d.heights[ref.nextViewIndex][0];
+						   var addedHeight = Math.abs(next - current)*distanceRatio;						     
+						   return d.nodes[ref.currentView][1] - addedHeight;
+						 }	  
+                         return mouseY;						 
+				   });	
+	 
+}
  //Sorts the array of heights[heightValue, viewIndex] in ascending order
  // using a bubble sort
  Barchart.prototype.sortHeights = function (array){

@@ -217,6 +217,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 }
 
 //Updates the dragged point - for drag mouse event
+//TODO: refactor this function, lots of repeated code
 Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {	 
        var ref = this;
 	   
@@ -296,8 +297,10 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
   
 }
 //"Animates" the rest of points while a point is dragged
+//TODO: refactor this function, lots of repeated code
 Scatterplot.prototype.animatePoints = function(mouseX,interpY, pt1_x, pt1_y,pt2_x,pt2_y,id){
     var ref = this;
+  //Determine the percentage travelled along the path between current and next
   var distanceTravelled = ref.calculateDistance(mouseX,interpY,pt1_x,pt1_y);
   var totalDistance = ref.calculateDistance(pt1_x,pt1_y,pt2_x,pt2_y);
   var distanceRatio = distanceTravelled/totalDistance;
