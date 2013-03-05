@@ -18,7 +18,8 @@ scatterplot.mouseoutFunction = function (d){
 	                           };
 scatterplot.clickHintLabelFunction = function (d, i){
 										//scatterplot.animateAlongPath(i);
-										//slider.updateSlider(i); 
+										scatterplot.changeView(i);
+										slider.updateSlider(i); 
 									};
 /**scatterplot.clickFunction = function (d){
 								if (scatterplot.clickedPoint != d.id){
@@ -113,7 +114,8 @@ var barchart   = new Barchart(700, 950, 800, 250 , "#bargraph",years);
 barchart.init();
 barchart.clickHintLabelFunction = function (d, i){
 										//barchart.animateAlongPath(i);
-										//slider.updateSlider(i); 
+										barchart.changeView(i);
+										slider.updateSlider(i); 
 									};
 barchart.render(dataset);
 

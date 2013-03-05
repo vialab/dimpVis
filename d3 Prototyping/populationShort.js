@@ -29,16 +29,16 @@ pieDataset[1] = [];
 pieDataset[1] = {"clusterLabel":"Europe & Central Asia","values":[0,0,0,0,0,0,0,0,0,0,0]};
 pieDataset[2] = [];
 pieDataset[2] = {"clusterLabel":"Sub-Saharan Africa","values":[0,0,0,0,0,0,0,0,0,0,0]};
-/**pieDataset[3] = [];
+pieDataset[3] = [];
 pieDataset[3] = {"clusterLabel":"America","values":[0,0,0,0,0,0,0,0,0,0,0]};
-pieDataset[4] = [];
+/**pieDataset[4] = [];
 pieDataset[4] = {"clusterLabel":"East Asia & Pacific","values":[0,0,0,0,0,0,0,0,0,0,0]};
 pieDataset[5] = [];
 pieDataset[5] = {"clusterLabel":"Middle East & North Africa","values":[0,0,0,0,0,0,0,0,0,0,0]};*/
 var totals = [0,0,0,0,0,0,0,0,0,0,0];
 //Populate the values array for each cluster, with population totals
  for (var j = 0;j<dataset.length;j++){    
-      if (dataset[j].Cluster == 0 || dataset[j].Cluster==1 || dataset[j].Cluster==2){
+      if (dataset[j].Cluster == 0 || dataset[j].Cluster==1 || dataset[j].Cluster==2 || dataset[j].Cluster==3){
       var clusterNumber = dataset[j].Cluster;   
       pieDataset[clusterNumber].values[0] += dataset[j].Pop1955; 
       pieDataset[clusterNumber].values[1] += dataset[j].Pop1960; 

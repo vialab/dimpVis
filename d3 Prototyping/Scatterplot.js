@@ -252,21 +252,23 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					if (bounds == pt1){  //Out of Bounds
 					   return pt1_y;
 					}else if (bounds == pt2){  //Beyond nextView
+					  interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					  ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
 					  ref.currentView = ref.nextView;
-					  ref.nextView = ref.currentView +1;
-					  ref.redrawView(id,-1);
-					  return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					  ref.nextView = ref.currentView +1;				
+					  return interpY;
 					}else{ //Within current sub-path
 					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					  // ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
 					   return interpY;
 					}					
 				  }else if (ref.nextView == ref.totalViews){  //Last point of path					
-					if (bounds == pt1){  //Beyond 					    
+					if (bounds == pt1){  //Beyond 
+                         interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					     ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);					
 					    ref.nextView = ref.currentView;
-						ref.currentView = ref.currentView - 1;
-						ref.redrawView(id,-1);						
-					    return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+						ref.currentView = ref.currentView - 1;									
+					    return interpY;
 					}else if (bounds == pt2){  //Out of Bounds					  
 					  return pt2_y;
 					}else{ //Within current sub-path
@@ -281,11 +283,12 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					 }else if (bounds == pt2){ //Passed next
 					    ref.currentView = ref.nextView;
 					    ref.nextView = ref.nextView +1;						
-						 ref.redrawView(id,-1);
+						ref.redrawView(id,-1);
 					    return pt2_y;
 					 }else{ //Within current sub-path
-					   // ref.animatePoints(mouseX,pt1, pt2,id);
-					    return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y,mouseY);
+					    interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y,mouseY);
+					    ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					    return interpY;
 					 }
 				 }
                
@@ -293,35 +296,39 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
   
 }
 //"Animates" the rest of points while a point is dragged
-Scatterplot.prototype.animatePoints = function(mouseX,x1,x2,id){
+Scatterplot.prototype.animatePoints = function(mouseX,interpY, pt1_x, pt1_y,pt2_x,pt2_y,id){
     var ref = this;
-   var deltaX = Math.abs(mouseX - x1);
-   var totalX = Math.abs(x1-x2);
-   var ratio; //Need to ensure denomenator (totalX) is not zero
-   if (totalX == 0)
-     ratio = 0;
-   else{
-     ratio = deltaX/totalX;
-   }     
+  var distanceTravelled = ref.calculateDistance(mouseX,interpY,pt1_x,pt1_y);
+  var totalDistance = ref.calculateDistance(pt1_x,pt1_y,pt2_x,pt2_y);
+  var distanceRatio = distanceTravelled/totalDistance;
+  
    this.widget.selectAll(".displayPoints")				 
 				   .attr("cx",function (d){	
                           if (d.id != id){				   
-							   var newX = d.nodes[ref.currentView][0] - deltaX*ratio;									   
-							   return newX;
+							     var pt1 = d.nodes[ref.currentView][0];
+								 var pt2 = d.nodes[ref.nextView][0];	
+								 var pt1_y = d.nodes[ref.currentView][1];
+								 var pt2_y = d.nodes[ref.nextView][1];
+								 var interpolator = d3.interpolate({x:pt1,y:pt1_y},{x:pt2,y:pt2_y});
+								 var newPoint = interpolator(distanceRatio);
+								 return newPoint.x;
 						   }
+						   return mouseX;
 						})
 					 .attr("cy",function (d){	
 					     if (d.id != id){
 								 var pt1 = d.nodes[ref.currentView][0];
 								 var pt2 = d.nodes[ref.nextView][0];	
 								 var pt1_y = d.nodes[ref.currentView][1];
-								 var pt2_y = d.nodes[ref.nextView][1];	
-								 var newX = d.nodes[ref.currentView][0] - deltaX*ratio;
-								 var newY = ref.findInterpY(newX,pt1,pt1_y,pt2,pt2_y);                                										 
-								return newY;								
-						}		                       				
-					 });				
-   //console.log(ratio);
+								 var pt2_y = d.nodes[ref.nextView][1];
+                                 var interpolator = d3.interpolate({x:pt1,y:pt1_y},{x:pt2,y:pt2_y});
+                                 var newPoint = interpolator(distanceRatio);
+								 return newPoint.y;								 
+															
+						}		
+                        return interpY;						
+					 });			
+ 
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Snap the draggable point to the nearest view

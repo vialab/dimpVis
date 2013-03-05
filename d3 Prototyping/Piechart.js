@@ -38,7 +38,8 @@
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
    this.mouseoutFunction  = this.placeholder;  
-   this.dragEvent = null;   
+   this.dragEvent = null; 
+  //Function for drawing the arc segments   
    this.arcGenerator = d3.svg.arc()
                        .innerRadius(0)
 	                   .outerRadius(this.radius)					   
@@ -94,7 +95,7 @@
 					   var sAngle = ref.angleSum;
 					   var eAngle = sAngle + allValues[ref.currentView];
 					   ref.angleSum += allValues[ref.currentView];		   
-                   	   
+                   	   console.log(allValues);
 	                  return {nodes:allValues,cluster:d.label,id:i,startAngle:sAngle,endAngle:eAngle,outerRadius:ref.radius,angles:aSorted,colour:ref.colourScale(i)};
 	              }))
 				 .enter()
@@ -195,12 +196,8 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 //Animates other segments while a segment is being dragged
 Piechart.prototype.animateSegments = function (id,mouseAngle,angle,current,next){
       var ref = this;	    
-	var angleSumStart = ref.dragStartAngle;
-	var angleSumEnd = ref.dragAngleStart + angle;	
-	var travelled = Math.abs(current - mouseAngle);
-	var total = Math.abs(next - current);
-	var ratio = travelled/total;
-	console.log(ratio);
+	
+	//Determine which view transitioning to, update the rest of the segments, call the interpolator for custom values of t?
     /**this.widget.selectAll(".DisplayArcs")
 	            .attr("d", function (d) {  			 	
                     if (d.id != id){
@@ -223,6 +220,53 @@ Piechart.prototype.animateSegments = function (id,mouseAngle,angle,current,next)
                     }	
                      return ref.arcGenerator(d);					
 				});	*/
+	var travelled = Math.abs(current - mouseAngle);
+	var total = Math.abs(next - current);
+	//var ratio = travelled/total;
+	//console.log(ratio);
+	var amount = total - travelled;
+	console.log(amount);
+	var angleSumStart = ref.dragStartAngle;
+	var angleSumEnd = mouseAngle;
+	var displayView = 2;
+	this.widget.selectAll(".DisplayArcs")
+	             .transition().duration(400)
+	            .attrTween("d", function (d) {                    
+                   var prevStart = d.startAngle; //Save the old angles before they are updated
+				   var prevEnd = d.endAngle;                 				   
+                    /**if (d.id != id){					 
+					   if (d.id < id){ //segments rendered before the dragged segment
+					      d.endAngle = angleSumStart;
+						  d.startAngle = d.endAngle - d.nodes[displayView];
+						  angleSumStart += d.nodes[displayView];											  
+					   }else{ //segments rendered after the dragged one
+					      d.startAngle = angleSumEnd;
+						  d.endAngle = d.startAngle + d.nodes[displayView];
+						  angleSumEnd += d.nodes[displayView];												  
+					   }
+					    var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
+					    //console.log("id: "+d.id+"start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));			
+					    return function (t) {return ref.arcGenerator(interp(t))};
+                    }*/
+                      if (d.id ==1){
+					       d.startAngle = angleSumEnd;
+						   d.endAngle = (d.startAngle + d.nodes[displayView])+amount/2;
+						   angleSumEnd += d.nodes[displayView];
+						   var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
+					    //console.log("id: "+d.id+"start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));			
+					    return function (t) {return ref.arcGenerator(interp(t))};
+                      }	else if (d.id ==2){
+					        d.startAngle = angleSumEnd;
+						   d.endAngle = (d.startAngle + d.nodes[displayView])+amount/2;
+						   angleSumEnd += d.nodes[displayView];
+						   var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
+					    //console.log("id: "+d.id+"start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));			
+					    return function (t) {return ref.arcGenerator(interp(t))};
+                       }					  
+                       var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);					
+					  // console.log("start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));
+					   return function (t) {return ref.arcGenerator(interp(t))};			
+				});
 }
 //Snaps to the nearest view (in terms of mouse location and the segment being dragged)
 Piechart.prototype.snapToView = function (id,mouseAngle,allAngles){
