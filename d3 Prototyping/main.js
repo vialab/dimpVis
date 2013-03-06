@@ -5,8 +5,8 @@ scatterplot.init();
 //Declare some interaction functions for the scatterplot 
 
 scatterplot.clickHintLabelFunction = function (d, i){
-										//scatterplot.animateAlongPath(i);
-										scatterplot.changeView(i);
+										scatterplot.animateAlongPath(scatterplot.currentView, i);
+										//scatterplot.changeView(i);
 										slider.updateSlider(i); 
 									};
 /**scatterplot.clickFunction = function (d){
@@ -99,7 +99,7 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new bar chart
 ////////////////////////////////////////////////////////////////////////////////   
-var barchart   = new Barchart(500, 600, 800, 0 , "#bargraph",years,30);
+var barchart   = new Barchart(600, 600, 800, 0 , "#bargraph",years,30);
 barchart.init();
 barchart.clickHintLabelFunction = function (d, i){
 										//barchart.animateAlongPath(i);

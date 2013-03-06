@@ -252,11 +252,12 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					if (bounds == pt1){  //Out of Bounds
 					   return pt1_y;
 					}else if (bounds == pt2){  //Beyond nextView
-					  interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					  ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					//  interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					 // ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
 					  ref.currentView = ref.nextView;
-					  ref.nextView = ref.currentView +1;				
-					  return interpY;
+					  ref.nextView = ref.currentView +1;
+                      ref.redrawView(id,-1);					  
+					  return pt2_y;
 					}else{ //Within current sub-path
 					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
 					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
@@ -264,15 +265,18 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					}					
 				  }else if (ref.nextView == ref.totalViews){  //Last point of path					
 					if (bounds == pt1){  //Beyond 
-                         interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					     ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);					
+                         //interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					    // ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);					
 					    ref.nextView = ref.currentView;
-						ref.currentView = ref.currentView - 1;									
-					    return interpY;
+						ref.currentView = ref.currentView - 1;	
+                        ref.redrawView(id,-1);						
+					    return pt1_y;
 					}else if (bounds == pt2){  //Out of Bounds					  
 					  return pt2_y;
 					}else{ //Within current sub-path
-					   return ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
+					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					   return interpY;
 					}
 				  }	else { //A point somewhere in the middle				 
 				     if (bounds == pt1){ //Passed current                         					 
@@ -372,21 +376,70 @@ Scatterplot.prototype.changeView = function( newView) {
 ////////////////////////////////////////////////////////////////////////////////
 // Animates points along a path when fast forwarding is used
 ////////////////////////////////////////////////////////////////////////////////
-Scatterplot.prototype.animateAlongPath = function( newView) {     
+Scatterplot.prototype.animateAlongPath = function( previousView, nextView) {     
 	 var ref = this;
 	 //Update the view tracker variables
-	 if (newView ==0){//First point on path
-            ref.currentView = newView	 
-			ref.nextView = newView+1;
-	}else if (newView == ref.numViews){  //Last point of path				
-		   ref.nextView = newView;
-		   ref.currentView = newView -1;
+	 if (nextView ==0){//First point on path
+            ref.currentView = nextView	 
+			ref.nextView = nextView+1;
+	}else if (nextView == ref.numViews){  //Last point of path				
+		   ref.nextView = nextView;
+		   ref.currentView = nextView -1;
 	}else { //A point somewhere in the middle
-        ref.currentView = newView;	
-		ref.nextView = newView + 1;
+        ref.currentView = nextView;	
+		ref.nextView = nextView + 1;
 	}
-
-	for (var j=1;j<=ref.currentView;j++){
+	//Need to do multi-stage transitions
+	//Transition chaining
+   /** var first = this.widget.selectAll(".displayPoints")
+	          .transition().duration(400)
+			  .ease("linear")			 
+	          .attrTween("cx",function (d){	
+			           var interp = d3.interpolate(d.nodes[0][0],d.nodes[1][0]);
+						  return function (t){
+						   return interp(t);
+						  };
+			        })
+				 .attrTween("cy",function (d){	
+			       	    var interp = d3.interpolate(d.nodes[0][1],d.nodes[1][1]);
+						  return function (t){
+						  
+						   return interp(t);
+						  };			 
+	             });
+	var second = first.transition().duration(400)
+	.ease("linear")			 
+	          .attrTween("cx",function (d){	
+			           var interp = d3.interpolate(d.nodes[1][0],d.nodes[2][0]);
+						  return function (t){
+						   return interp(t);
+						  };
+			        })
+				 .attrTween("cy",function (d){	
+			       	    var interp = d3.interpolate(d.nodes[1][1],d.nodes[2][1]);
+						  return function (t){
+						   return interp(t);
+						  };			 
+	             });*/
+	//Using the end function
+	/**this.widget.selectAll(".displayPoints")
+	          .transition().duration(1200)
+			  .ease("linear")			 
+	          .attrTween("cx",function (d){	
+			           var interp = d3.interpolate(d.nodes[0][0],d.nodes[0][0]);
+						  return function (t){
+						   return interp(t);
+						  };
+			        })
+				 .attrTween("cy",function (d){	
+			       	    var interp = d3.interpolate(d.nodes[1][1],d.nodes[1][1]);
+						  return function (t){
+						   return interp(t);
+						  };			 
+	             })
+				 .each("end",ref.transition(1,2));*/
+	ref.transition(0,1);
+	/**for (var j=1;j<ref.currentView;j++){
 	    this.widget.selectAll(".displayPoints")
 	          .transition().duration(1200)
 			  .ease("linear")			 
@@ -401,9 +454,33 @@ Scatterplot.prototype.animateAlongPath = function( newView) {
 						  return function (t){
 						   return interp(t);
 						  };			 
-	             });	    
-	}
+	             });				    
+	}*/
+	
     //ref.redrawView("null",-1); //redraw the points for the currently selected view
+}
+Scatterplot.prototype.transition = function(previous, next) {  
+   var ref = this;
+   if (next == ref.totalViews){ //Stop the recursion
+       return;
+   }   
+   this.widget.selectAll(".displayPoints")
+	          .transition().duration(1200)
+			 // .ease("linear")			 
+	          .attrTween("cx",function (d){	
+			           var interp = d3.interpolate(d.nodes[previous][0],d.nodes[next][0]);
+						  return function (t){
+						   return interp(t);
+						  };
+			        })
+				 .attrTween("cy",function (d){	
+			       	    var interp = d3.interpolate(d.nodes[previous][1],d.nodes[next][1]);
+						  return function (t){
+						   return interp(t);
+						  };			 
+	             })	
+                 .each("end", ref.transition((previous+1),(next+1)));				 
+				 
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Redraws the points on the scatterplot

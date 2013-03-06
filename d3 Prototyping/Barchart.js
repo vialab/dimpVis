@@ -9,7 +9,8 @@
    this.widget = null; //Reference to svg container
    //Display variables
    this.displayData = null;
-   this.barWidth = 30;  
+   this.barWidth = 50;
+   this.strokeWidth = 5;   
    this.hintColour = "#aec7e8";
    this.fadeColour = "#c7c7c7";
    this.barColour = "steelblue";
@@ -21,9 +22,9 @@
    this.totalHeights = -1; //Last index in the heights sorted array
    //View information variables
    this.labels = l;
-   this.numBars = -1; //Total number of bars (points along x-axis) in the dataset
+   this.numBars = 10; //Total number of bars (points along x-axis) in the dataset, hard code for debugging but change later!!!
    this.draggedBar = -1;  
-   this.yPos = height;   
+   this.yPos = height-5;   
    //Event functions, all declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
@@ -46,7 +47,8 @@
  Barchart.prototype.render = function(data){
       var ref = this;
 	  this.displayData = data;
-	  this.numBars = data.length; 
+	   //this.numBars = data.length; 
+	  
     //Create the scales 	  
 	// var xScale = d3.scale.linear().domain([0,10]).range([0,ref.width]);   
      //var yScale =  d3.scale.linear().domain([10, 80]).range([ref.height,0]);	
@@ -91,32 +93,32 @@ this.widget.selectAll("rect")
 			 //Dataset goes from 1955 to 2005 (11 increments)
 			 //Try population:
 			 var heights = [];		
-             var data = [];			 
-			 /**heights[0] = yScale(d.Pop1955);
-			 heights[1] = yScale(d.Pop1960);
-			 heights[2] = yScale(d.Pop1965);
-			 heights[3] = yScale(d.Pop1970);
-			 heights[4] = yScale(d.Pop1975);
-			 heights[5] = yScale(d.Pop1980);
-			 heights[6] = yScale(d.Pop1985);
-			 heights[7] = yScale(d.Pop1990);
-			 heights[8] = yScale(d.Pop1995);
-			 heights[9] = yScale(d.Pop2000);
-			 heights[10] = yScale(d.Pop2005);*/	
+             var data = [];			
 			 //TODO: Change this later because 'x' is being repeated
             //Reason for doing this is for the hint path of heights		
             //Array format is: data[viewIndex] = [x of top of bar, y of top of bar, height of bar]	          		 
-             data[0] = [i*ref.barWidth, ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
-			 data[1] = [i*ref.barWidth,ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
-			 data[2] = [i*ref.barWidth,ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
-			 data[3] = [i*ref.barWidth, ref.yPos - d.Pop1970/100000, d.Pop1970/100000];
-			 data[4] = [i*ref.barWidth, ref.yPos - d.Pop1975/100000, d.Pop1975/100000];
-			 data[5] = [i*ref.barWidth, ref.yPos - d.Pop1980/100000, d.Pop1980/100000];
-			 data[6] = [i*ref.barWidth, ref.yPos - d.Pop1985/100000, d.Pop1985/100000];
-			 data[7] = [i*ref.barWidth, ref.yPos - d.Pop1990/100000, d.Pop1990/100000];
-			 data[8] = [i*ref.barWidth, ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
-			 data[9] = [i*ref.barWidth, ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
-			 data[10] = [i*ref.barWidth, ref.yPos - d.Pop2005/100000, d.Pop2005/100000];
+             data[0] = [xScale(i), ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
+			 data[1] = [xScale(i),ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
+			 data[2] = [xScale(i),ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
+			 data[3] = [xScale(i), ref.yPos - d.Pop1970/100000, d.Pop1970/100000];
+			 data[4] = [xScale(i), ref.yPos - d.Pop1975/100000, d.Pop1975/100000];
+			 data[5] = [xScale(i), ref.yPos - d.Pop1980/100000, d.Pop1980/100000];
+			 data[6] = [xScale(i), ref.yPos - d.Pop1985/100000, d.Pop1985/100000];
+			 data[7] = [xScale(i), ref.yPos - d.Pop1990/100000, d.Pop1990/100000];
+			 data[8] = [xScale(i), ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
+			 data[9] = [xScale(i), ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
+			 data[10] = [xScale(i), ref.yPos - d.Pop2005/100000, d.Pop2005/100000];
+			 /**data[0] = [xScale(i), ref.yPos - yScale(d.Pop1955), yScale(d.Pop1955)];
+			 data[1] = [xScale(i),ref.yPos - yScale(d.Pop1960), yScale(d.Pop1960)];
+			 data[2] = [xScale(i),ref.yPos - yScale(d.Pop1965), yScale(d.Pop1965)];
+			 data[3] = [xScale(i), ref.yPos - yScale(d.Pop1970), yScale(d.Pop1970)];
+			 data[4] = [xScale(i), ref.yPos - yScale(d.Pop1975), yScale(d.Pop1975)];
+			 data[5] = [xScale(i), ref.yPos - yScale(d.Pop1980), yScale(d.Pop1980)];
+			 data[6] = [xScale(i), ref.yPos - yScale(d.Pop1985), yScale(d.Pop1985)];
+			 data[7] = [xScale(i), ref.yPos - yScale(d.Pop1990), yScale(d.Pop1990)];
+			 data[8] = [xScale(i), ref.yPos - yScale(d.Pop1995), yScale(d.Pop1995)];
+			 data[9] = [xScale(i), ref.yPos - yScale(d.Pop2000), yScale(d.Pop2000)];
+			 data[10] = [xScale(i), ref.yPos - yScale(d.Pop2005), yScale(d.Pop2005)];*/
             //Populate an array of only heights, so that they can be sorted in ascending order
 			for (j=0;j<data.length;j++){
 			    heights[j] = [];
@@ -136,14 +138,14 @@ this.widget.selectAll("rect")
 	//Render the bars 
 this.widget.selectAll(".gDisplayBars")
      .append("rect")
-     .attr("x", function(d){return d.nodes[ref.currentView][0];})
+     .attr("x", function(d){return d.nodes[ref.currentView][0]+ref.padding+ref.strokeWidth;})
      .attr("y", function(d){ return d.nodes[ref.currentView][1];})
      .attr("width", ref.barWidth)
      .attr("height", function(d) { return d.nodes[ref.currentView][2]; })
 	 .attr("fill", this.barColour)
 	 .style("fill-opacity",1)
 	 .attr("stroke", "#FFF")
-	 .attr("stroke-width",5)
+	 .attr("stroke-width",ref.strokeWidth)
 	 .attr("class", "displayBars")
 	 .attr("id", function (d){return "displayBars"+d.id;})
      .style("cursor", "ns-resize")	 
@@ -374,7 +376,7 @@ Barchart.prototype.showHintPath = function (id,d){
 	//Render the hint bars							   
 	 this.widget.select("#gInner"+id).selectAll("rect").data(d).enter()
 											 .append("svg:rect")
-											 .attr("x", function (d) {return d[0];})
+											 .attr("x", function (d) {return d[0]+ref.padding+ref.strokeWidth;})
 											 .attr("y", function (d) {return d[1];})
 											 .attr("width", ref.barWidth)
 											.attr("height", function(d) { return 3; })											                                       												
@@ -384,7 +386,7 @@ Barchart.prototype.showHintPath = function (id,d){
    this.widget.select("#gInner"+id).selectAll("text").data(d).enter()	                                     						  
 								            .append("svg:text")
                                             .text(function(d,i) { return ref.labels[i]; })
-												.attr("x", function (d,i){return (d[0]+(ref.barWidth*1.5));})
+												.attr("x", function (d,i){return (d[0]+ref.padding+ref.strokeWidth+(ref.barWidth*1.5));})
 												.attr("y", function (d) {return d[1]+5;})												
 											   .attr("fill", ref.hintColour)
 											   .on("click",this.clickHintLabelFunction)
