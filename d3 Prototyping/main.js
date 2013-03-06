@@ -3,19 +3,7 @@ var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","200
 var scatterplot   = new Scatterplot(50, 100, 550, 550, "#scatter",30);
 scatterplot.init();
 //Declare some interaction functions for the scatterplot 
-scatterplot.mouseoverFunction = function (d){
-									if (scatterplot.draggedPoint == -1){
-									    //scatterplot.clearHintPath(scatterplot.draggedPoint);
-										scatterplot.hoveredPoint = d.id;
-										//scatterplot.showHintPath(scatterplot.hoveredPoint);
-									}									
-	                           };
-scatterplot.mouseoutFunction = function (d){
-									if (scatterplot.draggedPoint ==-1){
-										//scatterplot.clearHintPath(scatterplot.hoveredPoint);
-										scatterplot.hoveredPoint = -1;
-									}									
-	                           };
+
 scatterplot.clickHintLabelFunction = function (d, i){
 										//scatterplot.animateAlongPath(i);
 										scatterplot.changeView(i);
@@ -45,6 +33,7 @@ scatterplot.render( dataset, 0,years);
 					   .on("dragstart", function(d){                          
 							       scatterplot.clearHintPath(scatterplot.draggedPoint);
 								   scatterplot.draggedPoint = d.id; 
+								   //console.log(d.nodes[7][0]+" "+d.nodes[7][1]+" "+d.nodes[8][0]+" "+d.nodes[8][1]);
                                    barchart.clearHintPath(barchart.draggedBar);								   
                                    scatterplot.showHintPath(d.id);                          								   
 							                                           						   
@@ -126,14 +115,12 @@ barchart.render(dataset);
                        .origin(function(d){ //Set the starting point of the drag interaction
 							return {x:d.x,y:d.nodes[barchart.currentView][1]};
 	                   })
-					   .on("dragstart", function(d){    
-                           //if (barchart.draggedBar != d.id){
+					   .on("dragstart", function(d){                         
 							       barchart.clearHintPath(barchart.draggedBar);
 								   scatterplot.clearHintPath(scatterplot.draggedPoint);
 								   barchart.draggedBar = d.id;   
                                    barchart.showHintPath(d.id,d.nodes); 
-                                   barchart.resolveViews(d.id,d.heights);						   
-							//}                                                 						   
+                                   barchart.resolveViews(d.id,d.heights);						                                              						   
 					  })
                       .on("drag", function(d){    
                            var view = barchart.currentView;					  

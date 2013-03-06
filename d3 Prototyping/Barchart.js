@@ -220,6 +220,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 				});	
 }
 //Animates the rest of the bars while one is being dragged
+//TODO: Refactor this function, lots of repetition, consider using "each"
 Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
     var ref = this;   
     //Determine the percentage dragged vertically between current and next

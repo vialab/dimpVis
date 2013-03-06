@@ -103,9 +103,11 @@ Slider.prototype.render = function() {
 	        ;
   //Draw the draggable slider tick
   this.widget.append("rect")
-      .attr("x", ref.sliderPos)
+      .attr("x", (ref.sliderPos-5))
      .attr("y", 0)
-	  .attr("width", 5)	
+	 .attr("rx",4)
+	 .attr("ry",4)
+	  .attr("width", 10)	
      .attr("height", 20)	  
 	  .attr("stroke", "white")
       .attr("fill", ref.displayColour)
@@ -178,8 +180,8 @@ Slider.prototype.snapToTick = function(mouseX) {
 					 if (currentDist > nextDist){
 					    ref.currentTick = ref.nextTick;
 						ref.nextTick++;
-						return next;
+						return (next-5);
 					}
-					return current;					 
+					return (current-5);					 
 	             });  
 }
