@@ -56,8 +56,7 @@ Scatterplot.prototype.init = function() {
    // Initialize the main container
    this.widget = d3.select(this.id).append("svg")      
       .attr("width", this.width+(this.padding*2))
-      .attr("height", this.height+(this.padding*2))
-  
+      .attr("height", this.height+(this.padding*2))  
      .append("g")
      .attr("transform", "translate(" + this.padding + "," + this.padding + ")")
    ; 

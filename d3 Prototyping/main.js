@@ -99,7 +99,7 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new bar chart
 ////////////////////////////////////////////////////////////////////////////////   
-var barchart   = new Barchart(700, 950, 800, 250 , "#bargraph",years);
+var barchart   = new Barchart(500, 600, 800, 0 , "#bargraph",years,30);
 barchart.init();
 barchart.clickHintLabelFunction = function (d, i){
 										//barchart.animateAlongPath(i);
@@ -148,7 +148,7 @@ piedata = [{"label":"one", "values":[0.2,0.5,0.1]},
             {"label":"three", "values":[0.3,0.2,0.8]}]; 
 
 var pieLabels = ["1995","2000","2005"];	
-var piechart   = new Piechart(700, 700, 800, 500 , "#piegraph",pieLabels);
+var piechart   = new Piechart(700, 700, 800, 600 , "#piegraph",pieLabels);
 piechart.init();
 piechart.render(piedata);
 

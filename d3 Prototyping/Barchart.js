@@ -1,10 +1,11 @@
- function Barchart(width,height,x,y,id,l){
+ function Barchart(width,height,left,top,id,l,p){
    //Widget initializaton variables
    this.width = width;
    this.height = height;
-   this.xPos = x;
-   this.yPos = y;
+   this.leftMargin = left;
+   this.topMargin = top;
    this.id = id;
+   this.padding = p; //Padding mainly for the axes
    this.widget = null; //Reference to svg container
    //Display variables
    this.displayData = null;
@@ -21,7 +22,8 @@
    //View information variables
    this.labels = l;
    this.numBars = -1; //Total number of bars (points along x-axis) in the dataset
-   this.draggedBar = -1;   
+   this.draggedBar = -1;  
+   this.yPos = height;   
    //Event functions, all declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
@@ -32,22 +34,57 @@
  Barchart.prototype.init = function(){
     // Initialize the main container
    this.widget = d3.select(this.id).append("svg")      
-      .attr("width", this.width)
-      .attr("height", this.height)
+       .attr("width", this.width+(this.padding*2))
+      .attr("height", this.height+(this.padding*2))  
       .style("position", "absolute")
-      .style("left", this.xPos + "px")
-      .style("top", this.yPos + "px")  
+      .style("left", this.leftMargin + "px")
+      .style("top", this.topMargin + "px")  
      .append("g")
-     //.attr("transform", "translate(" + this.xPos + "," + this.yPos + ")")
-   ;     
+	  .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+      
  }
  Barchart.prototype.render = function(data){
       var ref = this;
 	  this.displayData = data;
 	  this.numBars = data.length; 
-       //Create the scales 
-     //var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
-     //var yScale =  d3.scale.linear().domain([0, 100000]).range([ref.height,0]);
+    //Create the scales 	  
+	// var xScale = d3.scale.linear().domain([0,10]).range([0,ref.width]);   
+     //var yScale =  d3.scale.linear().domain([10, 80]).range([ref.height,0]);	
+	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
+     var yScale =  d3.scale.linear().domain([0, 100000]).range([ref.height,0]);
+	//Define the axes
+	var xAxis = d3.svg.axis()
+                     .scale(xScale)
+					 .orient("bottom");
+	var yAxis = d3.svg.axis()
+                     .scale(yScale)
+					 .orient("left");
+	 // Add the x-axis
+    this.widget.append("g")
+		.attr("class", "axis")
+		.attr("transform", "translate("+ref.padding+"," + ref.height + ")")
+		.call(xAxis);
+
+     // Add the y-axis
+     this.widget.append("g")
+			.attr("class", "axis")
+			.attr("transform", "translate("+ ref.padding+ ",0)")
+			.call(yAxis); 
+	 
+	 // Add an x-axis label
+     this.widget.append("text")
+		.attr("class", "axisLabel")			
+		.attr("x", ref.width)
+		.attr("y", ref.height+ref.padding)
+		.text("country");
+
+     // Add a y-axis label
+	this.widget.append("text")
+		.attr("class", "axisLabel")		       	
+		.attr("x", 6)		
+		.attr("transform", "rotate(-90)")
+		.text("population");
+ 
 this.widget.selectAll("rect")
     .data(this.displayData.map(function (d,i) {
              //Create a list of heights (y) for each country
@@ -116,28 +153,8 @@ this.widget.selectAll(".gDisplayBars")
 	
 	this.widget.selectAll(".gDisplayBars").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
-                                  .attr("class","gInner");
+                                  .attr("class","gInner");  
     
-
-	
-/**var x = d3.scale.linear()
-      .domain([0, 1])
-      .range([0, ref.width]);
-  
-      var y = d3.scale.linear()
-      .domain([0, 300])
-     .rangeRound([0, ref.height]);*/
-/**chart.append("line")
-    .attr("x1", 0)
-     .attr("x2", ref.width * data.length)
-     .attr("y1", ref.height - .5)
-     .attr("y2", ref.height - .5)
-     .style("stroke", "#000");
-	 
-chart.append("text")
-    .attr("x", ref.xPos)
-     .attr("y", ref.yPos+ref.height+10)
-    .text(id);*/     
  }
 
  //Update height of dragged bar
