@@ -196,7 +196,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 						}
 						//Otherwise, mouse is in bounds
 						 ref.animateBars(mouseY,current,next,currentHeight,id);
-						return mouseY;
+						 return mouseY;
 					}else { //At a bar somewhere in  the middle
 					   if (mouseY >= current){ //Passed current
 					        ref.animateBars(mouseY,current,next,currentHeight,id);	
@@ -226,7 +226,7 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
 	  var distanceTravelled = Math.abs(mouseY-current);
 	  var totalDistance = Math.abs(next - current);
 	  var distanceRatio = distanceTravelled/totalDistance;      
-	 this.widget.selectAll(".displayBars")		         
+	 this.widget.selectAll(".displayBars")	         
 		          .attr("height", function (d){	
                           if (d.id != id){
 						      var current =  ref.yPos - d.heights[ref.currentViewIndex][0];

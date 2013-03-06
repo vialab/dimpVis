@@ -94,9 +94,8 @@
 					  //Assign values to start and end angles corresponding to the current view
 					   var sAngle = ref.angleSum;
 					   var eAngle = sAngle + allValues[ref.currentView];
-					   ref.angleSum += allValues[ref.currentView];		   
-                   	   console.log(allValues);
-	                  return {nodes:allValues,cluster:d.label,id:i,startAngle:sAngle,endAngle:eAngle,outerRadius:ref.radius,angles:aSorted,colour:ref.colourScale(i)};
+					   ref.angleSum += allValues[ref.currentView];                      					   
+	                  return {nodes:allValues,cluster:d.label,id:i,startAngle:sAngle,endAngle:eAngle,prevStart:sAngle,prevEnd:eAngle,outerRadius:ref.radius,angles:aSorted,colour:ref.colourScale(i)};
 	              }))
 				 .enter()
                  .append("g")				
@@ -172,7 +171,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 						  ref.currentView = d.angles[ref.currentViewIndex][1];						 
 						}
 						//Otherwise, dragged angle is in bounds
-						ref.animateSegments(d.id,d.endAngle,d.nodes[ref.currentView],current,next);
+						//ref.animateSegments(d.id,d.endAngle,d.nodes[ref.currentView],current,next);
 						return ref.arcGenerator(d);
                      }	else { //At an angle somewhere in between the largest and smallest
 					      if (d.endAngle <= current){ //Passed current
@@ -185,7 +184,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 							 ref.currentView = d.angles[ref.currentViewIndex][1];							
 						  }
 						  //Otherwise, within bounds
-						  ref.animateSegments(d.id,d.endAngle,d.nodes[ref.currentView],current,next);
+						  //ref.animateSegments(d.id,d.endAngle,d.nodes[ref.currentView],current,next);
 						  return ref.arcGenerator(d);
                      } 	
                   	 
@@ -222,19 +221,17 @@ Piechart.prototype.animateSegments = function (id,mouseAngle,angle,current,next)
 				});	*/
 	var travelled = Math.abs(current - mouseAngle);
 	var total = Math.abs(next - current);
-	//var ratio = travelled/total;
-	//console.log(ratio);
-	var amount = total - travelled;
-	console.log(amount);
+    var ratio = 1 - (travelled/total);
+	console.log(ratio);
 	var angleSumStart = ref.dragStartAngle;
-	var angleSumEnd = mouseAngle;
+	var angleSumEnd = current;
 	var displayView = 2;
 	this.widget.selectAll(".DisplayArcs")
-	             .transition().duration(400)
-	            .attrTween("d", function (d) {                    
-                   var prevStart = d.startAngle; //Save the old angles before they are updated
-				   var prevEnd = d.endAngle;                 				   
-                    /**if (d.id != id){					 
+	             //.transition().duration(400)
+	            .attr("d", function (d) {                    
+                   //var prevStart = d.startAngle; //Save the old angles before they are updated
+				   //var prevEnd = d.endAngle;                 				   
+                    if (d.id != id){					 
 					   if (d.id < id){ //segments rendered before the dragged segment
 					      d.endAngle = angleSumStart;
 						  d.startAngle = d.endAngle - d.nodes[displayView];
@@ -244,28 +241,32 @@ Piechart.prototype.animateSegments = function (id,mouseAngle,angle,current,next)
 						  d.endAngle = d.startAngle + d.nodes[displayView];
 						  angleSumEnd += d.nodes[displayView];												  
 					   }
-					    var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
-					    //console.log("id: "+d.id+"start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));			
-					    return function (t) {return ref.arcGenerator(interp(t))};
-                    }*/
-                      if (d.id ==1){
+					    var interpolator = d3.interpolate({startAngle:d.prevStart,endAngle:d.prevEnd},{startAngle:d.startAngle,endAngle:d.endAngle});
+					    var newAngle = interpolator(ratio);
+						d.endAngle = newAngle.endAngle;
+						d.startAngle = newAngle.startAngle;
+                    }
+                      /**if (d.id ==1){
 					       d.startAngle = angleSumEnd;
 						   d.endAngle = (d.startAngle + d.nodes[displayView])+amount/2;
 						   angleSumEnd += d.nodes[displayView];
-						   var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
+						   return ref.arcGenerator(d);
+						   //var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
 					    //console.log("id: "+d.id+"start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));			
-					    return function (t) {return ref.arcGenerator(interp(t))};
+					    //return function (t) {return ref.arcGenerator(interp(t))};
                       }	else if (d.id ==2){
 					        d.startAngle = angleSumEnd;
 						   d.endAngle = (d.startAngle + d.nodes[displayView])+amount/2;
 						   angleSumEnd += d.nodes[displayView];
-						   var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
+						   return ref.arcGenerator(d);
+						   //var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
 					    //console.log("id: "+d.id+"start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));			
-					    return function (t) {return ref.arcGenerator(interp(t))};
+					    //return function (t) {return ref.arcGenerator(interp(t))};
                        }					  
-                       var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);					
+                       //var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);					
 					  // console.log("start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));
-					   return function (t) {return ref.arcGenerator(interp(t))};			
+					   //return function (t) {return ref.arcGenerator(interp(t))};	*/
+                        return ref.arcGenerator(d);					   
 				});
 }
 //Snaps to the nearest view (in terms of mouse location and the segment being dragged)
@@ -310,8 +311,8 @@ Piechart.prototype.snapToView = function (id,mouseAngle,allAngles){
 				});						   
     
     this.widget.selectAll(".DisplayArcs")
-	             .transition().duration(400)
-	            .attrTween("d", function (d) {                    
+	             //.transition().duration(400)
+	            .attr("d", function (d) {                    
                    var prevStart = d.startAngle; //Save the old angles before they are updated
 				   var prevEnd = d.endAngle;                 				   
                     if (d.id != id){					 
@@ -324,13 +325,14 @@ Piechart.prototype.snapToView = function (id,mouseAngle,allAngles){
 						  d.endAngle = d.startAngle + d.nodes[displayView];
 						  angleSumEnd += d.nodes[displayView];												  
 					   }
-					    var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
+					    //var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);
 					    //console.log("id: "+d.id+"start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));			
-					    return function (t) {return ref.arcGenerator(interp(t))};
+					    //return function (t) {return ref.arcGenerator(interp(t))};						
                     }	
-                       var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);					
+                       //var interp = d3.interpolate({startAngle:prevStart,endAngle:prevEnd},d);					
 					  // console.log("start angle: "+(d.startAngle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI)+" angle: "+(d.nodes[displayView]*180/Math.PI));
-					   return function (t) {return ref.arcGenerator(interp(t))};			
+					   //return function (t) {return ref.arcGenerator(interp(t))};	
+                       return ref.arcGenerator(d);					   
 				});
 }
 
