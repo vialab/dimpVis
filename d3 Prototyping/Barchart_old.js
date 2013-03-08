@@ -9,8 +9,8 @@
    this.widget = null; //Reference to svg container
    //Display variables
    this.displayData = null;
-   this.barWidth = 50; 
-   this.strokeWidth=5;   
+   this.barWidth = 50;
+   this.strokeWidth = 5;   
    this.hintColour = "#aec7e8";
    this.fadeColour = "#c7c7c7";
    this.barColour = "steelblue";
@@ -31,10 +31,6 @@
    this.mouseoutFunction  = this.placeholder; 
    this.clickHintLabelFunction = this.placeholder;   
    this.dragEvent = null;   
-   this.lineGenerator = d3.svg.line()
-					.x(function(d,i) { return d[0]+this.barWidth/2+(i*20); })
-					.y(function(d) { return d[1]; })
-					.interpolate("linear");
  }
  Barchart.prototype.init = function(){
     // Initialize the main container
@@ -52,13 +48,7 @@
       var ref = this;
 	  this.displayData = data;
 	   //this.numBars = data.length; 
-	
-	//Add the blur filter to the SVG so other elements can call it
-	this.widget.append("svg:defs")
-				.append("svg:filter")
-			    .attr("id", "blur")
-				.append("svg:feGaussianBlur")
-				.attr("stdDeviation", 5); 
+	  
     //Create the scales 	  
 	// var xScale = d3.scale.linear().domain([0,10]).range([0,ref.width]);   
      //var yScale =  d3.scale.linear().domain([10, 80]).range([ref.height,0]);	
@@ -107,17 +97,17 @@ this.widget.selectAll("rect")
 			 //TODO: Change this later because 'x' is being repeated
             //Reason for doing this is for the hint path of heights		
             //Array format is: data[viewIndex] = [x of top of bar, y of top of bar, height of bar]	          		 
-             data[0] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
-			 data[1] = [xScale(i)+ref.padding+ref.strokeWidth,ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
-			 data[2] = [xScale(i)+ref.padding+ref.strokeWidth,ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
-			 data[3] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1970/100000, d.Pop1970/100000];
-			 data[4] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1975/100000, d.Pop1975/100000];
-			 data[5] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1980/100000, d.Pop1980/100000];
-			 data[6] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1985/100000, d.Pop1985/100000];
-			 data[7] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1990/100000, d.Pop1990/100000];
-			 data[8] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
-			 data[9] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
-			 data[10] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop2005/100000, d.Pop2005/100000];
+             data[0] = [xScale(i), ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
+			 data[1] = [xScale(i),ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
+			 data[2] = [xScale(i),ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
+			 data[3] = [xScale(i), ref.yPos - d.Pop1970/100000, d.Pop1970/100000];
+			 data[4] = [xScale(i), ref.yPos - d.Pop1975/100000, d.Pop1975/100000];
+			 data[5] = [xScale(i), ref.yPos - d.Pop1980/100000, d.Pop1980/100000];
+			 data[6] = [xScale(i), ref.yPos - d.Pop1985/100000, d.Pop1985/100000];
+			 data[7] = [xScale(i), ref.yPos - d.Pop1990/100000, d.Pop1990/100000];
+			 data[8] = [xScale(i), ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
+			 data[9] = [xScale(i), ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
+			 data[10] = [xScale(i), ref.yPos - d.Pop2005/100000, d.Pop2005/100000];
 			 /**data[0] = [xScale(i), ref.yPos - yScale(d.Pop1955), yScale(d.Pop1955)];
 			 data[1] = [xScale(i),ref.yPos - yScale(d.Pop1960), yScale(d.Pop1960)];
 			 data[2] = [xScale(i),ref.yPos - yScale(d.Pop1965), yScale(d.Pop1965)];
@@ -148,12 +138,14 @@ this.widget.selectAll("rect")
 	//Render the bars 
 this.widget.selectAll(".gDisplayBars")
      .append("rect")
-     .attr("x", function(d){return d.nodes[ref.currentView][0];})
+     .attr("x", function(d){return d.nodes[ref.currentView][0]+ref.padding+ref.strokeWidth;})
      .attr("y", function(d){ return d.nodes[ref.currentView][1];})
      .attr("width", ref.barWidth)
      .attr("height", function(d) { return d.nodes[ref.currentView][2]; })
 	 .attr("fill", this.barColour)
-	 .style("fill-opacity",1)	
+	 .style("fill-opacity",1)
+	 .attr("stroke", "#FFF")
+	 .attr("stroke-width",ref.strokeWidth)
 	 .attr("class", "displayBars")
 	 .attr("id", function (d){return "displayBars"+d.id;})
      .style("cursor", "ns-resize")	 
@@ -163,8 +155,8 @@ this.widget.selectAll(".gDisplayBars")
 	
 	this.widget.selectAll(".gDisplayBars").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
-                                  .attr("class","gInner"); 
-     
+                                  .attr("class","gInner");  
+    
  }
 
  //Update height of dragged bar
@@ -329,35 +321,6 @@ Barchart.prototype.animateAlongPath = function (newView){
 	 }
 	 
 }
-//Moves the hint path according to height changes on the dragged bar
-// view = view snapping to
-Barchart.prototype.animateHintPath = function (id,mouseY,height,view){
-    var ref = this;   
-    //Determine the percentage dragged vertically between current and next
-	  var distanceTravelled = Math.abs(mouseY-current);
-	  var totalDistance = Math.abs(next - current);
-	  var distanceRatio = distanceTravelled/totalDistance;      
-	 this.widget.selectAll(".displayBars")	         
-		          .attr("height", function (d){	
-                          if (d.id != id){
-						      var current =  ref.yPos - d.heights[ref.currentViewIndex][0];
-					          var next = ref.yPos - d.heights[ref.nextViewIndex][0];
-							  var addedHeight = Math.abs(next - current)*distanceRatio;
-						      return d.nodes[ref.currentView][2] + addedHeight;
-						  }	
-                          return height;						  
-		           })
-				  .attr("y", function (d){				         
-				         if (d.id != id){
-						   var current =  ref.yPos - d.heights[ref.currentViewIndex][0];
-					       var next = ref.yPos - d.heights[ref.nextViewIndex][0];
-						   var addedHeight = Math.abs(next - current)*distanceRatio;						     
-						   return d.nodes[ref.currentView][1] - addedHeight;
-						 }	  
-                         return mouseY;						 
-				   });	
-	 
-}
 //Snaps to the nearest view (in terms of mouse location distance and the bar being dragged)
 Barchart.prototype.snapToView = function (id, mouseY,h){
        var ref = this;    
@@ -409,37 +372,38 @@ Barchart.prototype.showHintPath = function (id,d){
 		                                   .style("fill-opacity", function (d){
 		                                           if (id != d.id)
 												      return 0.4;
-	                                        });
+		                                    });		
+	//Render the hint bars							   
+	 this.widget.select("#gInner"+id).selectAll("rect").data(d).enter()
+											 .append("svg:rect")
+											 .attr("x", function (d) {return d[0]+ref.padding+ref.strokeWidth;})
+											 .attr("y", function (d) {return d[1];})
+											 .attr("width", ref.barWidth)
+											.attr("height", function(d) { return 3; })											                                       												
+											.style("fill",ref.hintColour);
 											
-    	
-	//Render the hint path line									    
-    this.widget.select("#gInner"+id).append("svg:path")
-                                  .attr("d", function(d,i){ 
-								         return ref.lineGenerator(d.nodes); 
-								  })
-								  .attr("id",function (d){return "p"+d.id;})
-								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
-								  .style("fill","none")								
-								    .attr("filter", "url(#blur)");		
-												
 	//Render the hint labels
    this.widget.select("#gInner"+id).selectAll("text").data(d).enter()	                                     						  
 								            .append("svg:text")
                                             .text(function(d,i) { return ref.labels[i]; })
-												.attr("x", function (d,i){return  d[0]+ref.barWidth/2+(i*20);})
-												.attr("y", function (d) {return d[1];})												
-											   .attr("fill", "#666")
+												.attr("x", function (d,i){return (d[0]+ref.padding+ref.strokeWidth+(ref.barWidth*1.5));})
+												.attr("y", function (d) {return d[1]+5;})												
+											   .attr("fill", ref.hintColour)
 											   .on("click",this.clickHintLabelFunction)
 											   .style("cursor", "pointer"); 
 											   
 }
-
 //Clears hint info
  Barchart.prototype.clearHintPath = function (id){
         var ref = this;
         this.widget.select("#gInner"+id).selectAll("text").remove();  
-        this.widget.select("#p"+id).remove();    		
-		this.widget.selectAll(".displayBars").style("fill-opacity", 1);	       								  
+        this.widget.select("#gInner"+id).selectAll("rect").remove();    		
+		this.widget.selectAll(".displayBars").style("fill-opacity", 1);							  
+		/**this.widget.selectAll(".displayBars")
+		                                   .transition().duration(400)
+		                                   .style("fill", function (d){
+		                                           return ref.barColour;
+		                                    });*/
+        								  
  }
 

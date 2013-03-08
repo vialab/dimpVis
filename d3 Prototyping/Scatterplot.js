@@ -438,7 +438,8 @@ Scatterplot.prototype.animateAlongPath = function( previousView, nextView) {
 						  };			 
 	             })
 				 .each("end",ref.transition(1,2));*/
-	ref.transition(0,1);
+	
+	//ref.transition(0,1);
 	/**for (var j=1;j<ref.currentView;j++){
 	    this.widget.selectAll(".displayPoints")
 	          .transition().duration(1200)
@@ -461,9 +462,9 @@ Scatterplot.prototype.animateAlongPath = function( previousView, nextView) {
 }
 Scatterplot.prototype.transition = function(previous, next) {  
    var ref = this;
-   if (next == ref.totalViews){ //Stop the recursion
+  /** if (next == ref.totalViews){ //Stop the recursion
        return;
-   }   
+   }  */ 
    this.widget.selectAll(".displayPoints")
 	          .transition().duration(1200)
 			 // .ease("linear")			 
@@ -478,8 +479,8 @@ Scatterplot.prototype.transition = function(previous, next) {
 						  return function (t){
 						   return interp(t);
 						  };			 
-	             })	
-                 .each("end", ref.transition((previous+1),(next+1)));				 
+	             })	;
+                // .each("end", ref.transition((previous+1),(next+1)));				 
 				 
 }
 ////////////////////////////////////////////////////////////////////////////////
