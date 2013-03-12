@@ -1,8 +1,8 @@
 var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels              
 
-var heatmap   = new Heatmap(50, 100, 550, 550, "#vis");
+var heatmap = new Heatmap(0, 0, 800, 800, "#vis");
 heatmap.init();
-
+heatmap.render(years);
 /**scatterplot.render( dataset, 0,years);
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the scatterplot
