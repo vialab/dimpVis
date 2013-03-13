@@ -119,8 +119,7 @@ barchart.render(dataset);
 							       barchart.clearHintPath(barchart.draggedBar);
 								   scatterplot.clearHintPath(scatterplot.draggedPoint);
 								   barchart.draggedBar = d.id;   
-                                   barchart.showHintPath(d.id,d.nodes); 
-                                   barchart.resolveViews(d.id,d.heights);						                                              						   
+                                   barchart.showHintPath(d.id,d.nodes);                                 					                                              						   
 					  })
                       .on("drag", function(d){    
                            var view = barchart.currentView;					  
@@ -132,7 +131,7 @@ barchart.render(dataset);
                            					   								  
 					  })
 					  .on("dragend",function (d){					    
-					         barchart.snapToView(d.id,d3.event.y,d.heights);							 
+					         barchart.snapToView(d.id,d3.event.y,d.nodes);							 
 							 slider.updateSlider(barchart.currentView); 
                              scatterplot.changeView(barchart.currentView);									 
 					  });	
