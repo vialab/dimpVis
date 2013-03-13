@@ -15,12 +15,15 @@ function Heatmap(x, y, w, h, id) {
    // Reference to the main widget
    this.widget = null;  
    //Variables to track dragged point location within path ("view switches")
-   this.currentView = 0; //Start at the first view
+   this.currentView = -1;
    this.nextView = -1;
    this.totalViews = -1; //Last index of the points (nodes) array
-   //Variables used for displaying the dataset
-   this.allData = [];
-   this.displayData=[];   
+   //The number of different instances across dimension (e.g., 4 different views for each year)
+   this.numViews = 10;
+   
+   this.direction = 1; //Forward along the data dimension (e.g., time)
+   // Data used for display
+   this.displayData = [];   
    this.labels = [];
    //Declare some functions
    this.mouseDownFunction = {};
@@ -50,11 +53,13 @@ Heatmap.prototype.init = function() {
 ////////////////////////////////////////////////////////////////////////////////
 // Render
 ////////////////////////////////////////////////////////////////////////////////
-Heatmap.prototype.render = function(data,rows,columns) {
-  var ref = this;
- //Store all data and specify the data subset to display  
- ref.allData = data;
- ref.displayData = data[ref.currentView];
+Heatmap.prototype.render = function(data) {
+  var ref = this; 
+  var day = d3.time.format("%w"),
+    week = d3.time.format("%U"),
+    percent = d3.format(".1%"),
+    format = d3.time.format("%Y-%m-%d");
+ var startYear = 2000;	
  var color = d3.scale.quantize()
     .domain([-.05, .05])
     .range(d3.range(11).map(function(d) { return "q" + d + "-11"; }));
@@ -64,44 +69,64 @@ Heatmap.prototype.render = function(data,rows,columns) {
     .style("text-anchor", "middle")
     .text("1999");*/
 //Draw the cells for each day	
-this.widget.selectAll(".cell")
-    .data(ref.displayData.map(function (d,i) {        	
-	     return {id:i,values:d};
-	}))
+this.widget.selectAll(".day")
+    .data(function(d) { return d3.time.days(new Date(startYear, 0, 1), new Date(startYear+1, 0, 1)); })
   .enter().append("rect")
-    .attr("class", "cell")
+    .attr("class", "day")
     .attr("width", this.cellSize)
     .attr("height", this.cellSize)	
-	.attr("id", function (d) {return "cell"+d.id;})
-    .attr("x", function(d) { 	 
-	      return d.values.row*ref.cellSize; })
-    .attr("y", function(d) {    
-	    return d.values.column*ref.cellSize; })
+	.attr("id", function (d,i) {return "day"+i;})
+    .attr("x", function(d) { return week(d) * ref.cellSize; })
+    .attr("y", function(d) { return day(d) * ref.cellSize; })
 	.on("mousedown",ref.mouseDownFunction)
 	.on("mousemove",ref.mouseMoveFunction)
-	.on("mouseup",ref.mouseUpFunction)    
+	.on("mouseup",ref.mouseUpFunction)
+    .datum(format)
 	.append("title")
-    .text(function(d) { return d.id; });
+    .text(function(d) { return d; });
 	
-
+//Draw the paths to surround each month
+this.widget.selectAll(".month")
+    .data(function(d) { return d3.time.months(new Date(startYear, 0, 1), new Date(startYear+1, 0, 1)); })
+  .enter().append("path")
+    .attr("class", "month")
+    .attr("d", function (d) {return ref.monthPath(d);});
 //TODO Later: assign data values to the days and colour them accordingly, using the colour scale
 /** this.widget.selectAll(".day").filter(function(d) { return d in dates; })
         .attr("class", function(d) { return "day q" + Math.round(color(dates[d])) + "-9"; })
         .select('title')
         .text(function(d) { return fullFormat(d) + ": " + dates[d].toFixed(1); });*/
 //Debugging: Find real daily data to populate calendar		
-this.widget.selectAll(".cell")
-        .attr("class", function(d) { return color(d.values.colourValue); });
+this.widget.selectAll(".day")
+        .attr("class", function(d) { return color(0.01); });
+		       
+//Still need to figure out what this does..
+d3.select(self.frameElement).style("height", "2910px");
+
 //Draw the g element to contain the hint path for the dragged tile
-this.widget.append("g").attr("id","hintPath");     
+this.widget.append("g").attr("id","hintPath");
+           
 
 }
-
+//Draws the outline for each month in black
+//t0: the node representing a month, for each month this function is called
+Heatmap.prototype.monthPath = function(t0){
+   var ref = this;  
+   var day = d3.time.format("%w"), week = d3.time.format("%U");
+  var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+      d0 = +day(t0), w0 = +week(t0),
+      d1 = +day(t1), w1 = +week(t1);  
+  return "M" + (w0 + 1) * ref.cellSize + "," + d0 * ref.cellSize
+      + "H" + w0 * ref.cellSize + "V" + 7 * ref.cellSize
+      + "H" + w1 * ref.cellSize + "V" + (d1 + 1) * ref.cellSize
+      + "H" + (w1 + 1) * ref.cellSize + "V" + 0
+      + "H" + (w0 + 1) * ref.cellSize + "Z";
+}
 //Draws a hint path for the selected day tile
 //id: The ID of the dragged tile
 Heatmap.prototype.showHintPath = function(id){
    var ref = this;   
-   this.widget.select("#cell"+id);
+   this.widget.select("#day"+id);
 }
 
 

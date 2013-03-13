@@ -203,8 +203,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 						    ref.currentViewIndex = ref.nextViewIndex;
 							ref.nextViewIndex++;
 						    ref.currentView = d.heights[ref.currentViewIndex][1];
-							return mouseY;
-                           // ref.redrawView(-1);							
+							return mouseY;                          						
 						}
 						//Otherwise, mouse is within bounds						
 						ref.animateBars(mouseY,current,next,currentHeight,id);
@@ -218,8 +217,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 						   ref.nextViewIndex = ref.currentViewIndex;
 						   ref.currentViewIndex--;
 						   ref.currentView = d.heights[ref.currentViewIndex][1];
-						   return mouseY;
-                           //ref.redrawView(-1);						   
+						   return mouseY;                          				   
 						}
 						//Otherwise, mouse is in bounds
 						 ref.animateBars(mouseY,current,next,currentHeight,id);
@@ -230,15 +228,13 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 					        ref.nextViewIndex = ref.currentViewIndex;
 							ref.currentViewIndex--;	
                             ref.currentView = d.heights[ref.currentViewIndex][1];	
-							return mouseY;
-							//ref.redrawView(-1);
+							return mouseY;						
 					   }else if (mouseY <=next){ //Passed next
 					       ref.animateBars(mouseY,current,next,currentHeight,id);					   
 					       ref.currentViewIndex = ref.nextViewIndex;
 						   ref.nextViewIndex++;	
                            ref.currentView = d.heights[ref.currentViewIndex][1];
-                           return mouseY;						   
-						   //ref.redrawView(-1);
+                           return mouseY;				   
 					   }						
 					   //Within bounds
 					   ref.animateBars(mouseY,current,next,currentHeight,id);
@@ -294,7 +290,7 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
  }
  //Redraws the barchart view 
  //This function does not update any tracker variables
-Barchart.prototype.redrawView = function (view){      
+Barchart.prototype.redrawView = function (view,id){      
        var displayView = this.currentView;
        if (view!=-1){
 	     displayView = view;
@@ -307,12 +303,32 @@ Barchart.prototype.redrawView = function (view){
 				   .attr("y", function (d){
 				         return d.nodes[displayView][1];
 				   });	
+	//Update the hint path							    
+    this.widget.select("#gInner"+id).append("svg:path")
+                                  .attr("d", function(d,i){ 
+								         return ref.lineGenerator(d.nodes); 
+								  })
+								  .attr("id",function (d){return "p"+d.id;})
+								  .style("stroke-width", 2)
+								  .style("stroke", "steelblue")
+								  .style("fill","none")								
+								    .attr("filter", "url(#blur)");		
+												
+	//Render the hint labels
+   this.widget.select("#gInner"+id).selectAll("text").data(d).enter()	                                     						  
+								            .append("svg:text")
+                                            .text(function(d,i) { return ref.labels[i]; })
+												.attr("x", function (d,i){return  d[0]+ref.barWidth/2+(i*20);})
+												.attr("y", function (d) {return d[1];})												
+											   .attr("fill", "#666")
+											   .on("click",this.clickHintLabelFunction)
+											   .style("cursor", "pointer"); 
 }
 //Updates the tracker variables according to the new view
 //Then calls the redraw function to update the display
 Barchart.prototype.changeView = function (newView){    
      this.currentView = newView;  
-     this.redrawView(-1); 
+     this.redrawView(-1,-1); 
 }
 //Animates the barchart sequentially by year based on a clicked year
 Barchart.prototype.animateAlongPath = function (newView){    
@@ -372,9 +388,9 @@ Barchart.prototype.snapToView = function (id, mouseY,h){
             ref.currentView = h[ref.currentViewIndex][1];   					                    				
 		}
       if (ref.nextViewIndex == ref.totalHeights){
-	      ref.redrawView(ref.currentView+1);		
+	      ref.redrawView((ref.currentView+1),id);		
        }else{
-	      ref.redrawView(-1);		
+	      ref.redrawView(-1,id);		
        }	   
       		
 }
