@@ -3,13 +3,8 @@ body {
   shape-rendering: crispEdges;
 }
 
-.day {
-  fill: #fff;
+.cell{ 
   stroke: #ccc;
 }
 
-.month {
-  fill: none;
-  stroke: #000;
-  stroke-width: 2px;
-}
+

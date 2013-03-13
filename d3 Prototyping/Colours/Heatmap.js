@@ -106,9 +106,8 @@ this.widget.append("g").attr("id","hintPath");
 //Updates the colour of the dragged cell by interpolation
 Heatmap.prototype.updateDraggedCell = function(id, mouseY){
   var ref = this;
-  this.widget.select("#cell"+id)
-  .attr("fill", function (d){
-      //Get the y coordinate of the cell and calculate the middle of it	  
+  this.widget.select("#cell"+id).each(function (d){
+       //Get the y coordinate of the cell and calculate the middle of it	  
 	  var middleY = d.y+ref.cellSize/2;
 	  var oldColour = d.colours[ref.currentView]; //Save the previous colour	
       var newColour;	   
@@ -116,27 +115,33 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
          if (ref.currentView !=0){ //Make sure not at first view		    
 		     ref.currentView--;
 			 newColour = d.colours[ref.currentView];
-			 ref.updateAllCells(id);
-			 return newColour;
+			 ref.updateView(id);
+			 
          }	        		 
 	  }else {	
          if (ref.currentView != (ref.allData.length-1)){ //Make sure not at last view
 		     ref.currentView++;
 			 newColour = d.colours[ref.currentView];
-			 ref.updateAllCells(id);
-			 return newColour;
+			 ref.updateView(id);
+			 
          }		 
 	  } 
-      return oldColour;	  
-  });
+     
+}); 
 }
 //Updates the colour of the rest of the cells based on the dragged cell
-Heatmap.prototype.updateAllCells = function(id){
+//Updates the hint path of the dragged cell
+Heatmap.prototype.updateView = function(id){
   var ref = this;
+  //Re-colour all other cells
   this.widget.selectAll(".cell")
+  .transition().duration(400)
   .attr("fill", function (d){
       return d.colours[ref.currentView];  
   });
+  //Re-position the hint path indicator to show current view
+  this.widget.select("#hintIndicator")
+             .attr("y",(ref.currentView*ref.cellSize/2));
 }
 //Draws a hint path for the selected day tile
 //id: The ID of the dragged tile
@@ -151,12 +156,23 @@ Heatmap.prototype.showHintPath = function(id,colours){
 		   .attr("width",ref.cellSize)
 		   .attr("height",ref.cellSize/2)
 		   .attr("fill", function (d){ return d;});
+   
   this.widget.select("#hintPath").selectAll("text")
             .data(colours).enter()	   
 		   .append("text")
 		   .attr("x",(200+ref.cellSize))		  
 		   .attr("y",function (d,i){return (i*ref.cellSize/2+ref.cellSize/3);})
 		   .text(function (d,i){ return ref.labels[i];}); 
+ //Position and render the indicator to show which view is currently selected
+ this.widget.select("#hintPath").append("rect")
+	        .attr("id","hintIndicator")
+		    .attr("x",200)
+		   .attr("y",(ref.currentView*ref.cellSize/2))
+		   .attr("stroke","#000")
+		   .attr("fill","none")
+			.attr("stroke-width",2)
+			.attr("width",ref.cellSize)
+		   .attr("height",ref.cellSize/2);
 		   
 }
 //Clears a hint path for the selected day tile

@@ -9,7 +9,7 @@ heatmap.mouseDownFunction = function (d){
 	   heatmap.showHintPath(d.id,d.colours);   
 }
 heatmap.mouseUpFunction = function (d){
-heatmap.clearHintPath(heatmap.selected);
+//heatmap.clearHintPath(heatmap.selected);
    heatmap.selected = -1;  
 }
 heatmap.mouseMoveFunction = function (d){
