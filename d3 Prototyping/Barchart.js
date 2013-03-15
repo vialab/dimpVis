@@ -294,11 +294,11 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
 								  });											
 	//Update the hint labels
    this.widget.select("#gInner"+id).selectAll("text")
-									.attr("x", function (d,i){
+									.attr("transform",function (d,i) {
 									    var currentX = ref.findHintX(d[0],i,ref.currentView);
 										var nextX = ref.findHintX(d[0],i,ref.nextView);
-										var addedDistance = Math.abs(nextX - currentX)*distanceRatio;		
-										return (currentX - addedDistance);
+										var addedDistance = Math.abs(nextX - currentX)*distanceRatio;												       
+										return "translate("+(currentX - addedDistance-10)+","+d[1]+")";								    
 									});				   
 	 
 }
@@ -320,13 +320,20 @@ Barchart.prototype.redrawView = function (view,id){
 				         return d.nodes[displayView][1];
 				   });	
 	//Update the hint path							    
-    this.widget.select("#p"+id).transition().duration(500).ease("linear").attr("d", function(d,i){ 
+    this.widget.select("#p"+id)/**.transition().duration(500).ease("linear")*/.attr("d", function(d,i){ 
 								         return ref.lineGenerator(d.nodes); 
 								  });											
 	//Update the hint labels
    this.widget.select("#gInner"+id).selectAll("text")
-                                    .transition().duration(500).ease("linear")
-									.attr("x", function (d,i){return ref.findHintX(d[0],i,displayView);})
+                                   /** .transition().duration(500).ease("linear")*/
+								   .attr("transform",function (d,i) {
+												       if (i==ref.currentView){ //Don't want to rotate the label resting on top of the bar
+													       return "translate("+ref.findHintX(d[0],i,displayView)+","+d[1]+")";
+													   }else{
+															return "translate("+(ref.findHintX(d[0],i,displayView)-10)+","+d[1]+")";
+													   }
+												});
+									
 																						
 											 
 }
@@ -349,21 +356,6 @@ Barchart.prototype.animateAlongPath = function (newView){
 							 return d.nodes[j][1];
 					   });  
 	 }
-	 
-}
-//Moves the hint path according to height changes on the dragged bar
-Barchart.prototype.animateHintPath = function (id,interpValue){
-    var ref = this;   
-   	//Update the hint path							    
-    this.widget.select("#p"+id).attr("d", function(d,i){ 
-								         return ref.lineGenerator(d.nodes); 
-								  });											
-	//Update the hint labels
-   this.widget.select("#gInner"+id).selectAll("text")
-									.attr("x", function (d,i){
-									    var newX = ref.findHintX(d[0],i);
-										return (newX + newX*interpValue);
-									});
 	 
 }
 //Calculates the x-values for the moving hint path x-coordinates
@@ -413,9 +405,14 @@ Barchart.prototype.showHintPath = function (id,d){
 	//Render the hint labels
    this.widget.select("#gInner"+id).selectAll("text").data(d).enter()	                                     						  
 								            .append("svg:text")
-                                            .text(function(d,i) { return ref.labels[i]; })
-												.attr("x", function (d,i){return  ref.findHintX(d[0],i,ref.currentView);})
-												.attr("y", function (d) {return d[1];})												
+                                            .text(function(d,i) { return ref.labels[i]; })											 
+												.attr("transform",function (d,i) {
+												       if (i==ref.currentView){ //Don't want to rotate the label resting on top of the bar
+													       return "translate("+ref.findHintX(d[0],i,ref.currentView)+","+d[1]+")";
+													   }else{
+															return "translate("+(ref.findHintX(d[0],i,ref.currentView)-10)+","+d[1]+")";
+													   }
+												})												
 											   .attr("fill", "#666")
 											   .on("click",this.clickHintLabelFunction)
 											   .style("cursor", "pointer"); 

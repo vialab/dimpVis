@@ -13,6 +13,7 @@ function Slider(x, y, w, h, id,num,labels,description) {
    this.title = description;
    this.currentTick = 0; //Start the slider always at the first tick
    this.nextTick = 1;  //The next tick after the current one
+   this.interpValue=0; //Amount of distance travelled between ticks, used to interpolate other visualizations
    // Reference to the main widget
    this.widget = null;  
    this.sliderPos = x; //The horizontal position of the slider tick, changes while its dragged

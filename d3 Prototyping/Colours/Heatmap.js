@@ -29,6 +29,7 @@ function Heatmap(x, y, w, h, id,l) {
    this.mouseDownFunction = {};
    this.mouseUpFunction = {};
    this.mouseMoveFunction = {};
+   this.touchMoveFunction = {};
    //Function for assigning colours to each cell
    this.generateColour = d3.scale.quantize()
     .domain([-.05, .05])
@@ -88,6 +89,7 @@ this.widget.selectAll(".cell")
 	    return d.y; })
 	.style("cursor", "pointer")	 
 	.on("mousedown",ref.mouseDownFunction)
+	.on("touchmove",ref.touchMoveFunction)
 	.on("mousemove",ref.mouseMoveFunction)
 	.on("mouseup",ref.mouseUpFunction)    
 	.append("title")
@@ -160,17 +162,21 @@ Heatmap.prototype.updateView = function(){
              .attr("y",(ref.currentView*ref.cellSize/2));
 }
 //Updates the colour of the rest of the cells interpolating between views
-//nextView: -1 if the view is transitioning backwards
+//view: -1 if the view is transitioning backwards
 //           1 if the view is transitioning forwards
-Heatmap.prototype.interpolateColours = function(nextView){
-  var ref = this;    
+Heatmap.prototype.interpolateColours = function(view){
+  var ref = this; 
+  var nextView = view + ref.currentView;
   //Re-colour all other cells
   this.widget.selectAll(".cell")
   //.transition().duration(400)
   .attr("fill", function (d){    
-      var interpolator = d3.interpolate(d.colours[ref.currentView],d.colours[ref.currentView+nextView]);  
+      var interpolator = d3.interpolate(d.colours[ref.currentView],d.colours[nextView]);  
       return interpolator(ref.interpValue);  
-  });  
+  }); 
+   //Re-position the hint path indicator to show transition to next view
+   this.widget.select("#hintIndicator")
+             .attr("y",(ref.interpValue*nextView*ref.cellSize/2));  
 }
 //Snaps to a view based on the direction of the mouse and the interpolation value (which colour is closer)
 Heatmap.prototype.snapToView = function(){
@@ -188,7 +194,10 @@ Heatmap.prototype.snapToView = function(){
 }
 //Draws a hint path for the selected day tile
 //id: The ID of the dragged tile
-Heatmap.prototype.showHintPath = function(id,colours){
+// colours: All colour states of the dragged cell
+// x: the current x position of the cell
+// y: the current y position of the cell
+Heatmap.prototype.showHintPath = function(id,colours,x,y){
    var ref = this;   
    
   //Draw the "hint cells" and hint labels
@@ -213,9 +222,18 @@ Heatmap.prototype.showHintPath = function(id,colours){
 		   .attr("y",(ref.currentView*ref.cellSize/2))
 		   .attr("stroke","#000")
 		   .attr("fill","none")
-			.attr("stroke-width",2)
+			.attr("stroke-width",1)
 			.attr("width",ref.cellSize)
 		   .attr("height",ref.cellSize/2);
+//Append a clear cell with a black border to show which cell is selected and dragged
+this.widget.select("#hintPath").append("rect")
+                               .attr("x",x)
+							   .attr("y",y)
+							   .attr("width",ref.cellSize)
+							   .attr("height",ref.cellSize)
+							   .attr("stroke-width",2)
+							   .attr("fill","none")
+							   .attr("stroke","#000");
 		   
 }
 //Clears a hint path for the selected day tile
