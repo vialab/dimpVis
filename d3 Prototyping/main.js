@@ -82,6 +82,7 @@ slider.render();
 							slider.updateDraggedSlider(d3.event.x);
                             if (previous != slider.currentTick){						
                                 scatterplot.changeView(slider.currentTick);	
+								scatterplot.redrawView("null",-1); 
                                 barchart.changeView(slider.currentTick);									
                            }	
 						    slider.updateDraggedSlider(d3.event.x);                          						
@@ -126,14 +127,16 @@ barchart.render(dataset);
                            barchart.updateDraggedBar(d.id,d3.event.y);	
 						   if (barchart.currentView != view){
                                   slider.updateSlider(barchart.currentView);
-                                  scatterplot.changeView(barchart.currentView);									  
+                                  scatterplot.changeView(barchart.currentView);	
+                                  scatterplot.redrawView("null",-1); 								  
 							}						
                            					   								  
 					  })
 					  .on("dragend",function (d){					    
 					         barchart.snapToView(d.id,d3.event.y,d.nodes);							 
 							 slider.updateSlider(barchart.currentView); 
-                             scatterplot.changeView(barchart.currentView);									 
+                             scatterplot.changeView(barchart.currentView);
+                             scatterplot.redrawView("null",-1); 							 
 					  });	
 
 barchart.widget.selectAll(".displayBars")				                 			  

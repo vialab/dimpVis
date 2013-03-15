@@ -120,7 +120,7 @@ Slider.prototype.render = function() {
 ////////////////////////////////////////////////////////////////////////////////
 Slider.prototype.updateDraggedSlider = function( mouseX ) {
      var ref = this;
-    this.widget.select("#slidingTick")
+     this.widget.select("#slidingTick")
 	           .attr("x",function (){                   			   
 				   var current = ref.tickPositions[ref.currentTick];
 				   var next = ref.tickPositions[ref.nextTick];				   
@@ -132,6 +132,7 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 					       ref.currentTick = ref.nextTick;
 						   ref.nextTick = ref.currentTick+1;					   
 						}
+						  ref.setInterpolation(mouseX,current,next);
 						  return mouseX;			       
 				   }else if (ref.nextTick == (ref.numTicks-1)){ //Last tick
 				       //Out of bounds: Passed last tick
@@ -141,6 +142,7 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 					        ref.nextick = ref.currentTick;
 							ref.currentTick--;						
 					   }
+					   ref.setInterpolation(mouseX,current,next);
 					   return mouseX;
 				   }else{
 				        if (mouseX <= current){
@@ -149,11 +151,25 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 						}else if (mouseX>=next){
 						    ref.currentTick = ref.nextTick;
 							ref.nextTick++;
-						}						
+						}	
+                        ref.setInterpolation(mouseX,current,next);						
 						return mouseX;
 				   }				 		   			       
 	});
   
+}
+////////////////////////////////////////////////////////////////////////////////
+// Determines how far the slider has travelled between two ticks (current and next) and sets
+// the interpolation value accordingly (as percentage travelled)
+////////////////////////////////////////////////////////////////////////////////
+Slider.prototype.setInterpolation = function( mouseX,current,next) {
+     var totalDistance = Math.abs(next-current);
+	 var distanceTravelled = Math.abs(mouseX - current);
+	 if (totalDistance !=0){
+	    this.interpValue = distanceTravelled/totalDistance;
+	 }else {
+	    this.interpValue = 1;
+	 }
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Update the location of the slider tick according to dragged data point/object
@@ -184,5 +200,20 @@ Slider.prototype.snapToTick = function(mouseX) {
 						return (next-5);
 					}
 					return (current-5);					 
+	             });  
+}
+////////////////////////////////////////////////////////////////////////////////
+// This function is meant to interface with other visualization, the tick is
+// moved according to the interpolation value of a dragged data object
+// between the current and next view
+////////////////////////////////////////////////////////////////////////////////
+Slider.prototype.animateTick = function(interpValue, currentView, nextView) {
+    var ref = this;     
+    this.widget.select("#slidingTick")
+	           .attr("x",function (){	
+			         var current = ref.tickPositions[currentView];
+				     var next = ref.tickPositions[nextView];	
+					 var interpolator = d3.interpolate(current,next);						 
+					 return interpolator(interpValue);
 	             });  
 }

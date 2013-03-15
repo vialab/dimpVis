@@ -5,8 +5,7 @@ scatterplot.init();
 //Declare some interaction functions for the scatterplot 
 
 scatterplot.clickHintLabelFunction = function (d, i){
-										scatterplot.animateAlongPath(scatterplot.currentView, i);
-										//scatterplot.changeView(i);
+										scatterplot.animateAlongPath(scatterplot.currentView, i);										
 										slider.updateSlider(i); 
 									};
 
@@ -30,8 +29,9 @@ scatterplot.render( dataset, 0,years);
                            scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
 						   if (scatterplot.currentView != view){
                                   slider.updateSlider(scatterplot.currentView);									  
-							}	 
-                            //scatterplot.showHintPath(d.id);  								
+							}	
+                             slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);					
+                             								
 					  })
 					  .on("dragend",function (d){					    
 					         scatterplot.snapToView(d.id,d3.event.x,d3.event.y,d.nodes);						 	
@@ -66,12 +66,15 @@ slider.render();
 							slider.updateDraggedSlider(d3.event.x);
                             if (previous != slider.currentTick){						
                                 scatterplot.changeView(slider.currentTick);	                               									
-                           }	
-						    slider.updateDraggedSlider(d3.event.x);                          						
+                           }
+						    scatterplot.updatePoints(slider.interpValue,slider.currentTick,slider.nextTick);													   
+						    slider.updateDraggedSlider(d3.event.x);
+                           						
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);
-                          scatterplot.changeView(slider.currentTick);                          				      
+                          scatterplot.changeView(slider.currentTick); 
+                          scatterplot.redrawView("null",-1); 						  
 					  });	
 
 slider.widget.select("#slidingTick")				                 			  

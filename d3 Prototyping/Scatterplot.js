@@ -23,7 +23,7 @@ function Scatterplot(x, y, w, h, id,p) {
    this.totalViews = -1; //Last index of the points (nodes) array
    //The number of different instances across dimension (e.g., 4 different views for each year)
    this.numViews = 10;
-   
+   this.interpValue = 0; //Stores the current interpolation value when a point is dragged between two views
    this.direction = 1; //Forward along the data dimension (e.g., time)
    // Data used for display
    this.displayData = [];   
@@ -307,7 +307,7 @@ Scatterplot.prototype.animatePoints = function(mouseX,interpY, pt1_x, pt1_y,pt2_
   var distanceTravelled = ref.calculateDistance(mouseX,interpY,pt1_x,pt1_y);
   var totalDistance = ref.calculateDistance(pt1_x,pt1_y,pt2_x,pt2_y);
   var distanceRatio = distanceTravelled/totalDistance;
-  
+  ref.interpValue = distanceRatio;
    this.widget.selectAll(".displayPoints")				 
 				   .attr("cx",function (d){	
                           if (d.id != id){				   
@@ -333,6 +333,31 @@ Scatterplot.prototype.animatePoints = function(mouseX,interpY, pt1_x, pt1_y,pt2_
 															
 						}		
                         return interpY;						
+					 });			
+ 
+}
+//A function meant only to interface with other visualizations or the slider
+//Given an interpolation value, move all points accordingly between the view 'current' and 'next'
+Scatterplot.prototype.updatePoints = function(interpValue,current,next){  
+   this.widget.selectAll(".displayPoints")				 
+				   .attr("cx",function (d){	                         				   
+							     var pt1 = d.nodes[current][0];
+								 var pt2 = d.nodes[next][0];	
+								 var pt1_y = d.nodes[current][1];
+								 var pt2_y = d.nodes[next][1];
+								 var interpolator = d3.interpolate({x:pt1,y:pt1_y},{x:pt2,y:pt2_y});
+								 var newPoint = interpolator(interpValue);
+								 return newPoint.x;						  
+						})
+					 .attr("cy",function (d){		    
+								 var pt1 = d.nodes[current][0];
+								 var pt2 = d.nodes[next][0];	
+								 var pt1_y = d.nodes[current][1];
+								 var pt2_y = d.nodes[next][1];
+                                 var interpolator = d3.interpolate({x:pt1,y:pt1_y},{x:pt2,y:pt2_y});
+                                 var newPoint = interpolator(interpValue);
+								 return newPoint.y;													
+											
 					 });			
  
 }
@@ -371,7 +396,7 @@ Scatterplot.prototype.changeView = function( newView) {
         ref.currentView = newView;	
 		ref.nextView = newView + 1;
 	}
-    ref.redrawView("null",-1); //redraw the points for the currently selected view
+    //ref.redrawView("null",-1); //redraw the points for the currently selected view
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Animates points along a path when fast forwarding is used
