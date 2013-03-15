@@ -5,7 +5,8 @@ scatterplot.init();
 //Declare some interaction functions for the scatterplot 
 
 scatterplot.clickHintLabelFunction = function (d, i){
-										scatterplot.animateAlongPath(scatterplot.currentView, i);										
+										scatterplot.changeView(i);		
+                                        scatterplot.redrawView("null",-1);										
 										slider.updateSlider(i); 
 									};
 

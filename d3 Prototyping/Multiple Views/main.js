@@ -4,9 +4,9 @@ var scatterplot   = new Scatterplot(50, 100, 550, 550, "#scatter",30);
 scatterplot.init();
 //Declare some interaction functions for the scatterplot 
 
-scatterplot.clickHintLabelFunction = function (d, i){
-										scatterplot.animateAlongPath(scatterplot.currentView, i);
-										//scatterplot.changeView(i);
+scatterplot.clickHintLabelFunction = function (d, i){										
+										scatterplot.changeView(i);
+										scatterplot.redrawView("null",-1);
 										slider.updateSlider(i); 
 									};
 /**scatterplot.clickFunction = function (d){
@@ -35,7 +35,7 @@ scatterplot.render( dataset, 0,years);
 								   scatterplot.draggedPoint = d.id; 
 								   //console.log(d.nodes[7][0]+" "+d.nodes[7][1]+" "+d.nodes[8][0]+" "+d.nodes[8][1]);
                                    barchart.clearHintPath(barchart.draggedBar);								   
-                                   scatterplot.showHintPath(d.id);                          								   
+                                   scatterplot.showHintPath(d.id,d.repeatedPoints);                          								   
 							                                           						   
 					  })
                       .on("drag", function(d){  

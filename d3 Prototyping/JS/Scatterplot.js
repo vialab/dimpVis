@@ -20,6 +20,7 @@ function Scatterplot(x, y, w, h, id,p) {
    //Variables to track dragged point location within path ("view switches")
    this.currentView = -1;
    this.nextView = -1;
+   //TODO: Only need totalViews or numViews, not both
    this.totalViews = -1; //Last index of the points (nodes) array
    //The number of different instances across dimension (e.g., 4 different views for each year)
    this.numViews = 10;
@@ -33,7 +34,7 @@ function Scatterplot(x, y, w, h, id,p) {
    this.draggedPoint = -1;
    this.dragging = 0;
    this.dragEvent = null;
-   
+  
    //Event functions, declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
@@ -84,12 +85,18 @@ Scatterplot.prototype.render = function( vdata, start, l) {
    //Remove everything in the svg - only need this if calling render more than once after page is loaded
 	//this.widget.selectAll("g").remove(); 
 	
-	//Add the blur filter to the SVG so other elements can call it
+	//Add the blur filters to the SVG so other elements can call it
 	this.widget.append("svg:defs")
 				.append("svg:filter")
 			    .attr("id", "blur")
 				.append("svg:feGaussianBlur")
 				.attr("stdDeviation", 5);
+	this.widget.append("svg:defs")
+				.append("svg:filter")
+			    .attr("id", "blur2")
+				.append("svg:feGaussianBlur")
+				.attr("stdDeviation", 1); //Smaller width for the hint points
+				
 	//Create the scales 	  
 	 var xScale = d3.scale.linear().domain([0,10]).range([0,myRef.width]);   
      var yScale =  d3.scale.linear().domain([10, 80]).range([myRef.height,0]);
@@ -132,7 +139,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
              //Create a list of nodes (x,y) point pairs for each country
 			 //Dataset goes from 1955 to 2005 (11 increments)
 			 //Try fertility vs population:
-			 var points = [];		
+			 var points = [];           	 
 			 points[0] = [xScale(d.F1955), yScale(d.L1955)];
 			 points[1] = [xScale(d.F1960), yScale(d.L1960)];
 			 points[2] = [xScale(d.F1965), yScale(d.L1965)];
@@ -144,8 +151,23 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 			 points[8] = [xScale(d.F1995), yScale(d.L1995)];
 			 points[9] = [xScale(d.F2000), yScale(d.L2000)];
 			 points[10] = [xScale(d.F2005), yScale(d.L2005)];	
-			myRef.totalViews = points.length-1;			 
-	        return {nodes:points,id:i,country:d.Country,group:d.Group,cluster:d.Cluster};
+			myRef.totalViews = points.length-1;	
+			//Search for the points in the points array which are the same as other points (indicating stationary positions)
+			//Flag these points as being repeated in the repeats array
+           var repeats = [];					
+            for (var j=0;j<points.length;j++){
+			       repeats[j] = 0;
+             }	
+            var currentPoint;	 
+			 for (j=0;j<points.length;j++){
+			   currentPoint = points[j];                  
+			    for (var k=0;k<points.length;k++){
+				    if (j!=k && points[k][0] == currentPoint[0] && points[k][1] == currentPoint[1]){
+					    repeats[j] = 1;                       					
+					}
+				}
+			 }			
+	        return {nodes:points,id:i,country:d.Country,group:d.Group,cluster:d.Cluster,repeatedPoints:repeats};
 	  }))	
       .enter()
       .append("g")	  
@@ -159,19 +181,8 @@ Scatterplot.prototype.render = function( vdata, start, l) {
    
     this.widget.selectAll(".gDisplayPoints").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
-                                   .attr("class","gInner");									  
-	 //Render the hint points							   
-	this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
-                                             .data(function(d) {return d.nodes;})
-											 .enter().append("svg:circle")
-											 .attr("cx", function(d) { return d[0]; })
-											.attr("cy", function(d) { return d[1]; })
-											.attr("r",myRef.pointRadius)
-											.attr("class","hintPoints")
-											.style("fill","none")
-											.style("cursor","pointer")
-											.attr("filter", "url(#blur)");
-											//.on("click", this.clickHintPointFunction);
+                                   .attr("class","gInner");	 
+	
 	//Render the hint path labels
     this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("text")
 	                                        .data(function(d) {return d.nodes;}).enter()								  
@@ -192,7 +203,21 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 								  .style("stroke-width", 2)
 								  .style("stroke", "none")
 								   .style("fill", "none")
-								    .attr("filter", "url(#blur)");
+								    .attr("filter", "url(#blur)");	
+	 //Render hint points, only to show points existing in the same location							   
+	this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
+                                             .data(function(d) {										       
+											        return d.nodes;})
+											 .enter().append("svg:circle")										
+											 .attr("cx", function(d) { return d[0]; })
+											.attr("cy", function(d) { return d[1]; })
+											.attr("r",myRef.pointRadius)
+											.attr("class","hintPoints")
+											.style("fill","none")	
+                                           									
+											.attr("filter", "url(#blur2)")
+											;
+										
      
 	 //Render the actual data points last, so that they are displayed on top of the hint path
      this.widget.selectAll(".gDisplayPoints").append("svg:circle")
@@ -209,6 +234,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 							  .attr("fill",myRef.grey)
 							  .style("fill-opacity",1)
 							   .attr("id", function (d){return "displayPoints"+d.id;})
+							   .attr("title",function (d){return d.country;})
 							  .style("cursor", "pointer")  
 							   .on("mouseover", myRef.mouseoverFunction)
 							   .on("mouseout", myRef.mouseoutFunction)	
@@ -485,11 +511,11 @@ Scatterplot.prototype.animateAlongPath = function( previousView, nextView) {
 	
     //ref.redrawView("null",-1); //redraw the points for the currently selected view
 }
-Scatterplot.prototype.transition = function(previous, next) {  
+/**Scatterplot.prototype.transition = function(previous, next) {  
    var ref = this;
   /** if (next == ref.totalViews){ //Stop the recursion
        return;
-   }  */ 
+   }  
    this.widget.selectAll(".displayPoints")
 	          .transition().duration(1200)
 			 // .ease("linear")			 
@@ -507,7 +533,7 @@ Scatterplot.prototype.transition = function(previous, next) {
 	             })	;
                 // .each("end", ref.transition((previous+1),(next+1)));				 
 				 
-}
+}*/ //DEBUGGING: For the animate function
 ////////////////////////////////////////////////////////////////////////////////
 // Redraws the points on the scatterplot
 // Note: 'id' is optional, only if a point should be highlighted (during drag)
@@ -566,16 +592,25 @@ Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){
 	}
 	return "ok";	
 }
-Scatterplot.prototype.showHintPath = function (id){
-     /**this.widget.select("#displayPoints"+id)                                  
-					.style("stroke", this.hintColour);
-	    this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
-								  .style("fill", this.hintColour);*/
-     
+Scatterplot.prototype.showHintPath = function (id,repeats){ 
+       var ref = this;   
 	   this.widget.select("#p"+id)                                  
 					.style("stroke", this.hintColour);     	
        this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
-								  .style("fill", this.grey); 
+								  .style("fill", this.grey)
+								  .attr("x", function (d,i){ //TODO:Move this to initialization because each time hint path is drawn you have to reposition all labels which is inefficient
+								      if (repeats[i]!=0){
+									     return d[0] + ref.pointRadius*2*i*2.5;
+									  }
+									  return d[0] + ref.pointRadius*2;
+								  }); 
+	   this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
+								  .style("fill", function (d,i){
+								      if (repeats[i]!=0){
+									     return ref.hintColour;
+									  }
+									  return "none";
+								  });								 
         this.widget.selectAll(".displayPoints")
 	           .transition().duration(400)
 	           .style("fill-opacity", function (d){
@@ -584,27 +619,16 @@ Scatterplot.prototype.showHintPath = function (id){
 				   }
 			   }); 	      							  
 }
-Scatterplot.prototype.clearHintPath = function (id) {
-     /**this.widget.select("#displayPoints"+id)                                  
-					.style("stroke", "none");
-	     this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
-					.style("fill", "none");*/
+Scatterplot.prototype.clearHintPath = function (id) {   
       this.widget.select("#p"+id)                                  
 				.style("stroke", "none");	 
      this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
 				.style("fill", "none");	
+	this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
+								  .style("fill", "none");
      this.widget.selectAll(".displayPoints")	           
 	           .style("fill-opacity", 1);				
 }
-/**Scatterplot.prototype.showHintPoint = function (id){
-     this.widget.select("#displayPoints"+id)                                  
-					.style("stroke", this.hintColour);
-	      								  
-}
 
-Scatterplot.prototype.clearHintPoint = function (id) {    
-	     this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
-					.style("fill", "none");     								  
-}*/
 
 

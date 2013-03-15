@@ -26,10 +26,7 @@ function Heatmap(x, y, w, h, id,l) {
    this.displayData=[];   
    this.labels = l;
    //Declare some functions
-   this.mouseDownFunction = {};
-   this.mouseUpFunction = {};
-   this.mouseMoveFunction = {};
-   this.touchMoveFunction = {};
+   this.dragEvent = null;
    //Function for assigning colours to each cell
    this.generateColour = d3.scale.quantize()
     .domain([-.05, .05])
@@ -87,11 +84,7 @@ this.widget.selectAll(".cell")
 	      return d.x; })
     .attr("y", function(d) {    
 	    return d.y; })
-	.style("cursor", "pointer")	 
-	.on("mousedown",ref.mouseDownFunction)
-	.on("touchmove",ref.touchMoveFunction)
-	.on("mousemove",ref.mouseMoveFunction)
-	.on("mouseup",ref.mouseUpFunction)    
+	.style("cursor", "pointer")
 	.append("title")
     .text(function(d) { return d.id; });
 	
