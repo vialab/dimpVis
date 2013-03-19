@@ -24,7 +24,7 @@
    this.numBars = 10; //Total number of bars (points along x-axis) in the dataset, hard code for debugging but change later!!!
    this.draggedBar = -1;  
    this.yPos = height-5;   
-   this.hintPathSpacing = 30;
+   this.hintPathSpacing = 35;
    //Event functions, all declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
@@ -164,10 +164,10 @@ this.widget.selectAll(".gDisplayBars")
  //Update height of dragged bar
  //Base of bar is ref.yPos, top of bar is ref.yPos - barHeight, as defined during data initialization
  //TODO: Get rid of this repeated code
-Barchart.prototype.updateDraggedBar = function (id,mouseY){
+Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
      var ref = this;
 	 var currentHeight = -1;
-	 console.log(ref.currentView+" "+ref.nextView);
+	 console.log(mouseX);
      this.widget.select("#displayBars"+id)
 	            .attr("height", function (d){
                     var current =  d.nodes[ref.currentView][1];
@@ -200,8 +200,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
 					var next = d.nodes[ref.nextView][1];
                     var bounds = ref.checkBounds(current,next,mouseY);					
                     if (ref.currentView ==0){ //At lowest bar
-					    if (bounds == current){ //Passed lowest bar, out of bounds
-						   console.log("out of bounds");
+					    if (bounds == current){ //Passed lowest bar, out of bounds						   
 						    return current;
 						}else if (bounds == next){ //Passed the next bar height, update tracker variables
 						    //ref.animateBars(mouseY,current,next,currentHeight,id);
@@ -255,7 +254,7 @@ Barchart.prototype.checkBounds = function(pt1,pt2,mouse){
 	  start = pt1;
 	  end = pt2;
 	}
-	console.log("my "+mouse+"start "+start+" end "+end);
+	//console.log("my "+mouse+"start "+start+" end "+end);
 	//Check if mouse is between path defined by (start,end)
 	if (mouse <= start){
 	   return start;

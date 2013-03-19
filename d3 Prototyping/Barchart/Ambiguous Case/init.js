@@ -15,10 +15,13 @@ slider.render();
 						.on("dragstart", function(){                           
                             barchart.clearHintPath(barchart.draggedBar);							
 					     }) 
-                      .on("drag", function(){                               				  
-							slider.updateDraggedSlider(d3.event.x);                            	
-						    barchart.updateBars(slider.interpValue,slider.currentTick,slider.nextTick);
-						                             						
+                      .on("drag", function(){   
+                            var previous = slider.currentTick;					  
+							slider.updateDraggedSlider(d3.event.x);
+                            if (previous != slider.currentTick){	                              
+                                barchart.changeView(slider.currentTick);									
+                           }	
+						    slider.updateDraggedSlider(d3.event.x);                          						
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);                          
@@ -53,9 +56,12 @@ barchart.render(dataset);
 								   barchart.draggedBar = d.id;   
                                    barchart.showHintPath(d.id,d.nodes);                                 					                                              						   
 					  })
-                      .on("drag", function(d){                              				  
-                           barchart.updateDraggedBar(d.id,d3.event.y);					   
-                          slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);								
+                      .on("drag", function(d){    
+                           var view = barchart.currentView;	                          					   
+                           barchart.updateDraggedBar(d.id,d3.event.x,d3.event.y);	
+						   if (barchart.currentView != view){
+                                  slider.updateSlider(barchart.currentView);                                 							  
+							}						
                            					   								  
 					  })
 					  .on("dragend",function (d){					    

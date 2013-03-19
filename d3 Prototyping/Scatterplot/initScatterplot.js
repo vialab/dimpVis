@@ -2,8 +2,7 @@ var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","200
 
 var scatterplot   = new Scatterplot(50, 100, 550, 550, "#scatter",30);
 scatterplot.init();
-//Declare some interaction functions for the scatterplot 
-
+//Declare some interaction functions for the scatterplot
 scatterplot.clickHintLabelFunction = function (d, i){
 										scatterplot.animateAlongPath(scatterplot.currentView, i);										
 										slider.updateSlider(i); 
@@ -24,13 +23,9 @@ scatterplot.render( dataset, 0,years);
                                    scatterplot.showHintPath(d.id,d.repeatedPoints);                          								   
 							                                           						   
 					  })
-                      .on("drag", function(d){  
-                           var view = scatterplot.currentView;					  
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
-						   if (scatterplot.currentView != view){
-                                  slider.updateSlider(scatterplot.currentView);									  
-							}	
-                             slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);					
+                      .on("drag", function(d){                          					  
+                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);						   	
+                           slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);					
                              								
 					  })
 					  .on("dragend",function (d){					    
@@ -40,12 +35,6 @@ scatterplot.render( dataset, 0,years);
 
 scatterplot.widget.selectAll(".displayPoints")				                 			  
                    .call(scatterplot.dragEvent);
-
-/**scatterplot.widget.on("mousemove", function (d){		  
-		  if (scatterplot.clickedPoint != -1){
-			scatterplot.updateDraggedPoint(scatterplot.clickedPoint,d3.svg.mouse(this)[0],d3.svg.mouse(this)[1]);
-			}
-	   });*/
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
@@ -61,12 +50,8 @@ slider.render();
 						.on("dragstart", function(){                               
                             scatterplot.clearHintPath(scatterplot.draggedPoint);                            							
 					     }) 
-                      .on("drag", function(){   
-                            var previous = slider.currentTick;					  
-							slider.updateDraggedSlider(d3.event.x);
-                            if (previous != slider.currentTick){						
-                                scatterplot.changeView(slider.currentTick);	                               									
-                           }
+                      .on("drag", function(){                               					  
+							slider.updateDraggedSlider(d3.event.x);                       
 						    scatterplot.updatePoints(slider.interpValue,slider.currentTick,slider.nextTick);													   
 						    slider.updateDraggedSlider(d3.event.x);
                            						
