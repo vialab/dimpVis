@@ -10,13 +10,17 @@ function Scatterplot(x, y, w, h, id,p) {
    this.height = h;
    this.id = id; 
    this.padding = p
-   this.pointRadius = 5;
+   this.pointRadius = 5;  
+    this.hintPointRadius = this.pointRadius*1.5;  
    //Colours
    this.hintColour = "steelblue";
    this.grey = "#7f7f7f";
    this.lightGrey = "#c7c7c7";
+   this.hintPointColour = "#aec7e8";
+   this.hintPointStationary = "red";
+   this.hintPointRevisited = "steelblue";
    // Reference to the main widget
-   this.widget = null;  
+   this.widget = null;    
    //Variables to track dragged point location within path ("view switches")
    this.currentView = -1;
    this.nextView = -1;
@@ -43,6 +47,11 @@ function Scatterplot(x, y, w, h, id,p) {
    this.clickHintPointFunction = this.placeholder;
    this.clickHintLabelFunction = this.placeholder;
    this.hoverHintLabelFunction = this.placeholder;
+   //Drawing the hint path line
+   this.lineGenerator =  d3.svg.line()
+    .x(function(d) { return d[0]; })
+    .y(function(d) { return d[1]; })
+    .interpolate("linear"); //Interpolate curve should pass through all points, however curved interpolations falsify the data
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,60 +180,18 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 						}						
 					}
 				}
-			 }
-             console.log(repeats);			 
+			 }           		 
 	        return {nodes:points,id:i,country:d.Country,group:d.Group,cluster:d.Cluster,repeatedPoints:repeats};
 	  }))	
       .enter()
       .append("g")	  
-	  .attr("class","gDisplayPoints"); 
-   
- //Drawing paths between points
- var line = d3.svg.line()
-    .x(function(d) { return d[0]; })
-    .y(function(d) { return d[1]; })
-    .interpolate("linear"); //Interpolate curve should pass through all points, however curved interpolations falsify the data
-   
+	  .attr("class","gDisplayPoints");    
     this.widget.selectAll(".gDisplayPoints").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
                                    .attr("class","gInner");	 
 	
-	//Render the hint path labels
-    this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("text")
-	                                        .data(function(d) {return d.nodes;}).enter()								  
-								            .append("svg:text")
-                                            .text(function(d,i) { return myRef.labels[i]; })
-												.attr("x", function(d) {return d[0] + myRef.pointRadius*2})
-												.attr("y", function (d) {  return d[1] + myRef.pointRadius*2; })												
-											   .attr("fill", "none")	
-												.attr("id", function(d,i) { return "hintLabels"+i; })											   
-											   .attr("class","hintLabels")
-											   .style("cursor","pointer")											  
-											   .on("click", this.clickHintLabelFunction);
-	//Render the hint path line									    
-    this.widget.selectAll("g").selectAll(".gInner").append("svg:path")
-                                  .attr("d", function(d){ 
-								         return line(d.nodes); 
-								  })
-								  .attr("id",function (d){return "p"+d.id;})
-								  .style("stroke-width", 2)
-								  .style("stroke", "none")
-								   .style("fill", "none")
-								    .attr("filter", "url(#blur)");	
-	 //Render hint points, only to show points existing in the same location							   
-	this.widget.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
-                                             .data(function(d) {										       
-											        return d.nodes;})
-											 .enter().append("svg:circle")										
-											 .attr("cx", function(d) { return d[0]; })
-											.attr("cy", function(d) { return d[1]; })
-											.attr("r",myRef.pointRadius*1.5)
-											.attr("class","hintPoints")
-											.style("fill","none")	
-                                           	.attr("id", function(d,i) { return "hintPoints"+i; })								
-											.attr("filter", "url(#blur2)")
-											;
-										
+	
+							
      
 	 //Render the actual data points last, so that they are displayed on top of the hint path
      this.widget.selectAll(".gDisplayPoints").append("svg:circle")
@@ -276,10 +243,11 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                		   
 		})
         .attr("cy", function(d){	
-		    if (d.repeatedPoints[ref.currentView]>0 && d.repeatedPoints[ref.nextView]>0){			     
+		    if (d.repeatedPoints[ref.currentView]>0 && d.repeatedPoints[ref.nextView]>0){ //Stationary point	     
 				ref.handleRepeat(id,ref.currentView);
 				return d.nodes[ref.currentView][1];
 			}
+			console.log(ref.currentView+" "+ref.nextView+" "+d.repeatedPoints[ref.currentView]);
              //Get the two points which compose the current sub-path dragged along		
 		        var pt1 = d.nodes[ref.currentView][0];
                 var pt2 = d.nodes[ref.nextView][0];	
@@ -322,16 +290,21 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 				     if (bounds == pt1){ //Passed current                         					 
 					    ref.nextView = ref.currentView;
 						ref.currentView = ref.currentView-1;
-						ref.redrawView(id,-1);
+						ref.redrawView(id,-1);						
 					    return pt1_y;
 					 }else if (bounds == pt2){ //Passed next
 					    ref.currentView = ref.nextView;
 					    ref.nextView = ref.nextView +1;						
 						ref.redrawView(id,-1);
+						if (d.repeatedPoints[ref.currentView] >0){ //Revisiting point
+						   ref.handleRevisit(id,ref.currentView);
+						}
+						console.log("passed next");
 					    return pt2_y;
 					 }else{ //Within current sub-path
 					    interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y,mouseY);
 					    ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+						ref.resetHintPoints(id);
 					    return interpY;
 					 }
 				 }
@@ -606,37 +579,66 @@ Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){
 	}
 	return "ok";	
 }
-Scatterplot.prototype.showHintPath = function (id,repeats){ 
+Scatterplot.prototype.showHintPath = function (id,repeats,nodes){ 
        var ref = this;   
-	   this.widget.select("#p"+id)                                  
-					.style("stroke", this.hintColour);   
-     //DOESN't WORK					
-      this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
-								  .style("fill", this.grey)
-								  .text(function(d,i) { 
-								       if (repeats[i]!=0){
-									      if (repeats[i]==1){
-										     return ref.labels[i];
-										  }else{
-										     return ","+ref.labels[i];
-										  }								     
-									  }
-								      return ref.labels[i]; 
-								  })
-								  .attr("x", function (d,i){ //TODO:Move this to initialization because each time hint path is drawn you have to reposition all labels which is inefficient
-								      if (repeats[i]!=0){									      
-										     return d[0] + ref.pointRadius*2*repeats[i]*2.5;										  							     
-									  }
-									  return d[0] + ref.pointRadius*2;
-								  }); 
-		//TODO: only render hint points for repeated points to reduce number of circles drawn
-	   this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
-								  .style("fill", function (d,i){
-								      if (repeats[i]!=0){
-									     return "#aec7e8";
-									  }
-									  return "none";
-								  });								 
+	   //Render the hint path labels
+    this.widget.select("#gInner"+id).selectAll("text")
+	                                        .data(nodes).enter()								  
+								            .append("svg:text")
+                                            .text(function(d,i) { 
+											   if (repeats[i]!=0){
+												  if (repeats[i]==1){
+													 return ref.labels[i];
+												  }else{
+													 return ","+ref.labels[i];
+												  }								     
+											  }
+								                return ref.labels[i]; 
+											})											
+											.attr("x", function(d,i) {
+													 if (repeats[i]!=0){									      
+														  return d[0] + ref.pointRadius*2*repeats[i]*2.5;										  							     
+													 }
+														   return d[0] + ref.pointRadius*2;
+												})
+												.attr("y", function (d) {  return d[1] + ref.pointRadius*2; })												
+											   .attr("fill", this.grey)	
+												.attr("id", function(d,i) { return "hintLabels"+i; })											   
+											   .attr("class","hintLabels")
+											   .style("cursor","pointer")											  
+											   .on("click", this.clickHintLabelFunction);
+	//Render the hint path line									    
+    this.widget.select("#gInner"+id).append("svg:path")
+                                  .attr("d", function(d){ 
+								         return ref.lineGenerator(nodes); 
+								  })								 
+								  .style("stroke-width", 2)
+								  .style("stroke", this.hintColour)	
+                                  .style("fill","none")								  
+								    .attr("filter", "url(#blur)");
+    //Render the hint points
+	this.widget.select("#gInner"+id).selectAll("circle")
+                                             .data(nodes)
+											 .enter().append("svg:circle")
+											 .attr("cx", function(d) { return d[0]; })
+											.attr("cy", function(d) { return d[1]; })
+											.attr("r",ref.hintPointRadius)									
+											.style("fill", function (d,i){
+												  if (repeats[i]!=0){
+													 return ref.hintPointColour;
+												  }
+												  return "none";
+											  })
+											  .attr("class",function (d,i) {
+												 if (repeats[i]!=0){
+													return "hintPointsRepeats";
+												 }
+												 return "hintPoints";
+											  })
+											  .attr("id", function(d,i) { return "hintPoints"+i; })
+											.attr("filter", "url(#blur2)");									
+	
+    	//Fade out effect for the non-dragged points						 
         this.widget.selectAll(".displayPoints")
 	           .transition().duration(400)
 	           .style("fill-opacity", function (d){
@@ -645,13 +647,13 @@ Scatterplot.prototype.showHintPath = function (id,repeats){
 				   }
 			   }); 	      							  
 }
+//Cleaning
 Scatterplot.prototype.clearHintPath = function (id) {   
-      this.widget.select("#p"+id)                                  
-				.style("stroke", "none");	 
-     this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
-				.style("fill", "none");	
-	this.widget.select("#gInner"+id).selectAll(".hintPoints")                                  
-								  .style("fill", "none");
+      
+     this.widget.select("#gInner"+id).selectAll("text").remove();                                 
+	 this.widget.select("#gInner"+id).selectAll("path").remove();
+     this.widget.select("#gInner"+id).selectAll("circle").remove();	
+	
      this.widget.selectAll(".displayPoints")	           
 	           .style("fill-opacity", 1);				
 }
@@ -661,7 +663,7 @@ Scatterplot.prototype.clearHintPath = function (id) {
 Scatterplot.prototype.handleRepeat = function (id,view) {   
      var ref = this;
      this.widget.select("#gInner"+id).select("#hintPoints"+view)                                
-								  .style("fill", "red");	
+								  .style("fill", ref.hintPointStationary);	
      //TODO: this section of code is repeated quite a bit, might consider making it into it's own function
      //Update the view tracker variables
 	 /**if (view ==0){//First point on path
@@ -674,6 +676,25 @@ Scatterplot.prototype.handleRepeat = function (id,view) {
         ref.currentView = view;	
 		ref.nextView = view + 1;
 	}*/
+}
+//Temporary function to handle revisited points
+//Darkens the colour of the hint point, should only do this in cases where the point is revisting a location
+Scatterplot.prototype.handleRevisit = function (id,view) {   
+     var ref = this;
+     this.widget.select("#gInner"+id).select("#hintPoints"+view)                                
+								  .style("fill", ref.hintPointRevisited);	
+	 this.widget.select("#gInner"+id).select("#hintLabels"+view)                                  
+								  .style("fill", ref.hintColour);
+    
+}
+//Temporary function to reset all coloured hint points and labels to original hint colour
+Scatterplot.prototype.resetHintPoints = function (id,view) {   
+     var ref = this;
+     this.widget.select("#gInner"+id).selectAll(".hintPointsRepeats")                                
+								  .style("fill", ref.hintPointColour);
+      this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
+								  .style("fill", ref.grey);								  
+
 }
 
 

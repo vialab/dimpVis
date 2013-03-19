@@ -8,7 +8,7 @@
    this.cy = y/3;
    this.id = id;
    this.radius = 120;
-   this.labelOffset = 140;
+   this.labelOffset = 160;
    this.widget = null; //Reference to svg container
    //Display variables
    this.displayData = null;    
@@ -50,6 +50,12 @@
 					   .endAngle(function (d) { 				        													
 							return d.endAngle; 
 					   });	
+  //Drawing the hint path line
+  /** this.lineGenerator =  d3.svg.line()
+    .x(function(d) { return d[0]; })
+    .y(function(d) { return d[1]; })
+    .interpolate("basis"); //Interpolate curve should pass through all points, however curved interpolations falsify the data*/
+
  }
  // Initialize the main svg container
  Piechart.prototype.init = function(){    
@@ -350,7 +356,7 @@ Piechart.prototype.showHintPath = function (id){
 		               });
 		
         //Render the hint pie segments						   
-        this.widget.select("#gInner"+id).selectAll("path").data(function (d) {
+       /** this.widget.select("#gInner"+id).selectAll("path").data(function (d) {
 		                                              ref.dragStartAngle = d.startAngle;
 													  ref.dragColour = d.colour;													   
 		                                               return d.nodes;
@@ -363,25 +369,48 @@ Piechart.prototype.showHintPath = function (id){
 											.style("stroke-width",3)
 											.attr("class","hintArcs")
 											 .attr("transform", "translate(" + this.cx + "," + this.cy + ")")	 
-											;
-											
+											;*/
+		var pathData = [];
+		//Points marking the start of the dragged segment (segment line which doesn't move during dragging)
+        var startX = ref.cx + (ref.labelOffset+20)*Math.cos(ref.dragStartAngle - ref.halfPi);
+        var startY = ref.cy+ (ref.labelOffset+20)*Math.sin(ref.dragStartAngle  - ref.halfPi);	
+       		
 	//Render the hint labels
 	  this.widget.select("#gInner"+id).selectAll("text").data(function (d){return d.nodes;}).enter()	                                     						  
 								            .append("svg:text")
-                                            .text(function(d,i) { return ref.labels[i]; })									  
-                                              .attr("transform", function (d){											        
+                                            .text(function(d,i) { return ref.labels[i]; })	                                            										        
+                                              .attr("transform", function (d,i){											        
 													//Resolve the angle w.r.t to the top of the chart, x and y = 0													
 													var newAngle = ref.dragStartAngle + d;																									
 													if (newAngle > ref.twoPi){ //Special case when angle wraps around
 													    newAngle = newAngle - ref.twoPi;
-													}																								    
-													var x = ref.cx + (ref.labelOffset+20)*Math.cos(newAngle - ref.halfPi);
-													var y = ref.cy+ (ref.labelOffset+20)*Math.sin(newAngle - ref.halfPi);
+													}	
+                                                    var r = ref.labelOffset+20*i;													
+													var x = ref.cx + r*Math.cos(newAngle - ref.halfPi);
+													var y = ref.cy+ r*Math.sin(newAngle - ref.halfPi);
+													//Save the coordinates and radius values for drawing the hint path													
+													    pathData[i] = [];
+														pathData[i][0] = x;
+														pathData[i][1] = y;
+														pathData[i][2] = r;
+														
 													return "translate("+x+","+y+")";
 													
 												})                                          												
 											   .attr("fill", ref.dragColour)
-											   .attr("class","hintLabels");		
+										       .attr("class","hintLabels");		
+	//Render the hint path					   
+      this.widget.select("#gInner"+id).append("path")
+                                             .attr("d", function (d,i) {                                                     											 
+											       return "M "+startX+" "+startY+" A "+pathData[i][2]+" "+pathData[i][2]+" 0 0 0 "+pathData[i][0]+" "+pathData[i][1];
+											 })											 										                                       												
+											.style("fill","none")
+											.style("stroke","steelblue")
+											.style("stroke-width",3)
+											.attr("class","hintArcs")
+											//.attr("transform", "translate(" + this.cx + "," + this.cy + ")")	 
+											;
+	console.log(pathData);
     //Clear all other pie segments (for debugging) 
 	this.widget.selectAll(".DisplayArcs").transition().duration(400).style("fill-opacity", function (d) {
 		    if (d.id != id)

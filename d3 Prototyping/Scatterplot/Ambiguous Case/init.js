@@ -22,7 +22,7 @@ scatterplot.render( dataset, 0,years);
 					   .on("dragstart", function(d){                          
 							       scatterplot.clearHintPath(scatterplot.draggedPoint);
 								   scatterplot.draggedPoint = d.id; 								   							   
-                                   scatterplot.showHintPath(d.id,d.repeatedPoints);                          								   
+                                   scatterplot.showHintPath(d.id,d.repeatedPoints,d.nodes);                          								   
 							                                           						   
 					  })
                       .on("drag", function(d){  

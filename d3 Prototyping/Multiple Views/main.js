@@ -174,7 +174,7 @@ piechart.dragEvent = d3.behavior.drag()
                            piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);                          					   								  
 					  })
 					  .on("dragend",function (d){                             				  
-					         piechart.clearHintPath(d.id);
+					        // piechart.clearHintPath(d.id);
 							 piechart.snapToView(d.id,d.endAngle,d.angles);
                              //piechart.redrawView();	
                              //piechart.redrawSegments(d.id,d.startAngle,d.endAngle);							 
