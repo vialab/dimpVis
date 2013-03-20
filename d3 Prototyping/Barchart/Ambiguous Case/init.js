@@ -54,11 +54,12 @@ barchart.render(dataset);
 					   .on("dragstart", function(d){                         
 							       barchart.clearHintPath(barchart.draggedBar);								  
 								   barchart.draggedBar = d.id;   
-                                   barchart.showHintPath(d.id,d.nodes);                                 					                                              						   
+                                   barchart.showHintPath(d.id,d.nodes); 
+                                   barchart.previousMouseX = d3.mouse(this)[0];								   
 					  })
                       .on("drag", function(d){    
-                           var view = barchart.currentView;	                          					   
-                           barchart.updateDraggedBar(d.id,d3.event.x,d3.event.y);	
+                           var view = barchart.currentView;                         						   
+                           barchart.updateDraggedBar(d.id,d3.mouse(this)[0],d3.mouse(this)[1]);	
 						   if (barchart.currentView != view){
                                   slider.updateSlider(barchart.currentView);                                 							  
 							}						

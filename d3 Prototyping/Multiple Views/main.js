@@ -123,7 +123,7 @@ barchart.render(dataset);
                                    barchart.showHintPath(d.id,d.nodes);                                 					                                              						   
 					  })
                       .on("drag", function(d){    
-                           var view = barchart.currentView;					  
+                           var view = barchart.currentView;						   
                            barchart.updateDraggedBar(d.id,d3.event.y);	
 						   if (barchart.currentView != view){
                                   slider.updateSlider(barchart.currentView);
@@ -167,8 +167,7 @@ piechart.dragEvent = d3.behavior.drag()
 							return {x:d3.event.x,y:d3.event.y};
 	                   })*/
 					   .on("dragstart", function(d){    
-                          piechart.showHintPath(d.id);   
-                          piechart.resolveViews(d.id, d.angles);						  
+                          piechart.showHintPath(d.id);                         						  
 					  })
                       .on("drag", function(d){                           		  
                            piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);                          					   								  

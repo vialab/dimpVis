@@ -25,7 +25,10 @@
    this.draggedBar = -1;  
    this.yPos = height-5;   
    this.hintPathSpacing = 35;
-   //Event functions, all declared in main.js  
+   this.previousMouseX = 0; //For the ambiguous case, tracks the amount dragged in the x direction 
+   this.xTolerance = 100; //For the ambiguous cases, defines a pixel tolerance for horizontal dragging 
+   this.interpValue = 0;//For the ambiguous cases, tracks the interpolation when switching views via horizontal dragging
+ //Event functions, all declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
    this.mouseoutFunction  = this.placeholder; 
@@ -166,10 +169,12 @@ this.widget.selectAll(".gDisplayBars")
  //TODO: Get rid of this repeated code
 Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
      var ref = this;
-	 var currentHeight = -1;
-	 console.log(mouseX);
+	 var currentHeight = -1; 
      this.widget.select("#displayBars"+id)
 	            .attr("height", function (d){
+				   if (d.nodes[ref.currentView][2] == d.nodes[ref.nextView][2]){ //Stationary bar
+				        return d.nodes[ref.currentView][2];
+				   }
                     var current =  d.nodes[ref.currentView][1];
 					var next = d.nodes[ref.nextView][1];
                     var bounds = ref.checkBounds(current,next,mouseY);					
@@ -198,6 +203,22 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 				.attr("y", function(d){ 
 				    var current =  d.nodes[ref.currentView][1];
 					var next = d.nodes[ref.nextView][1];
+				    if (d.nodes[ref.currentView][2] == d.nodes[ref.nextView][2]){ //Stationary bar
+				        //Use the mouse x drag to switch between views and translate the hint path accordingly
+						var xDiff = Math.abs(mouseX - ref.previousMouseX);
+						if (xDiff <=ref.xTolerance && xDiff >0 && ref.interpValue < 1){
+						     ref.interpValue += 0.1;	
+                             ref.animateBars(mouseY,current,next,d.nodes[ref.currentView][2],id,ref.interpValue);							 
+						}else{ //Interpolation is over, time to switch views
+						     ref.interpValue = 1;							 
+							 ref.currentView = ref.nextView;
+						     ref.nextView++;
+						}
+						//Save the mouse x				    
+						ref.previousMouseX = mouseX;	
+                        return current;						
+				   }
+				   			   
                     var bounds = ref.checkBounds(current,next,mouseY);					
                     if (ref.currentView ==0){ //At lowest bar
 					    if (bounds == current){ //Passed lowest bar, out of bounds						   
@@ -209,7 +230,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 							return next;                          						
 						}
 						//Otherwise, mouse is within bounds						
-						ref.animateBars(mouseY,current,next,currentHeight,id);
+						ref.animateBars(mouseY,current,next,currentHeight,id,-1);
 						return mouseY;
 						
                     } else if (ref.nextView == ref.numViews){ //At the highest bar
@@ -222,7 +243,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 						   return current;                          				   
 						}
 						//Otherwise, mouse is in bounds
-						 ref.animateBars(mouseY,current,next,currentHeight,id);
+						 ref.animateBars(mouseY,current,next,currentHeight,id,-1);
 						 return mouseY;
 					}else { //At a bar somewhere in  the middle
 					   if (bounds == current){ //Passed current
@@ -237,7 +258,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
                            return next;				   
 					   }						
 					   //Within bounds
-					   ref.animateBars(mouseY,current,next,currentHeight,id);
+					   ref.animateBars(mouseY,current,next,currentHeight,id,-1);
 					   return mouseY;
                    }	                    
 				});	
@@ -265,13 +286,17 @@ Barchart.prototype.checkBounds = function(pt1,pt2,mouse){
 }
 //Animates the rest of the bars while one is being dragged
 //TODO: Refactor this function, lots of repetition, consider using "each"
-Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
-    var ref = this;   
+Barchart.prototype.animateBars = function (mouseY,current,next,height,id,interp){
+    var ref = this; 
+   var distanceRatio;	
+	if (interp == -1){
     //Determine the percentage dragged vertically between current and next
 	  var distanceTravelled = Math.abs(mouseY-current);
 	  var totalDistance = Math.abs(next - current);
-	  var distanceRatio = distanceTravelled/totalDistance;      
-	  ref.interpValue = distanceRatio;
+	  distanceRatio = distanceTravelled/totalDistance;
+   } else {
+       distanceRatio = interp;
+    }   	 
 	 this.widget.selectAll(".displayBars")	         
 		          .attr("height", function (d){	
                           if (d.id != id){
