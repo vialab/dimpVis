@@ -27,7 +27,7 @@
    this.hintPathSpacing = 35;
    this.previousMouseX = 0; //For the ambiguous case, tracks the amount dragged in the x direction 
    this.xTolerance = 100; //For the ambiguous cases, defines a pixel tolerance for horizontal dragging 
-   this.interpValue = 0;//For the ambiguous cases, tracks the interpolation when switching views via horizontal dragging
+   this.interpX = 0;//For the ambiguous cases, tracks the interpolation when switching views via horizontal dragging
  //Event functions, all declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
@@ -205,14 +205,20 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 					var next = d.nodes[ref.nextView][1];
 				    if (d.nodes[ref.currentView][2] == d.nodes[ref.nextView][2]){ //Stationary bar
 				        //Use the mouse x drag to switch between views and translate the hint path accordingly
-						var xDiff = Math.abs(mouseX - ref.previousMouseX);
-						if (xDiff <=ref.xTolerance && xDiff >0 && ref.interpValue < 1){
-						     ref.interpValue += 0.1;	
-                             ref.animateBars(mouseY,current,next,d.nodes[ref.currentView][2],id,ref.interpValue);							 
+						var xDiff = Math.abs(mouseX - ref.previousMouseX);													
+						if (xDiff <=ref.xTolerance && ref.interpX < 0.9){
+						     ref.interpX += 0.1;								 
+                             ref.animateBars(current,current,next,d.nodes[ref.currentView][2],id,ref.interpX);							 
 						}else{ //Interpolation is over, time to switch views
-						     ref.interpValue = 1;							 
-							 ref.currentView = ref.nextView;
-						     ref.nextView++;
+						     ref.interpX = 0;
+							var direction;
+							if (mouseX < ref.previousMouseX){
+							   direction = -1;
+							}else {
+								direction=1;
+							}						 
+							 ref.currentView = ref.nextView + direction;
+						     ref.nextView = ref.nextView + direction;							 
 						}
 						//Save the mouse x				    
 						ref.previousMouseX = mouseX;	
@@ -296,7 +302,8 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id,interp)
 	  distanceRatio = distanceTravelled/totalDistance;
    } else {
        distanceRatio = interp;
-    }   	 
+    }   
+console.log(distanceRatio);	
 	 this.widget.selectAll(".displayBars")	         
 		          .attr("height", function (d){	
                           if (d.id != id){

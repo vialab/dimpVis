@@ -105,7 +105,7 @@ this.widget.append("g").attr("id","hintPath");
 Heatmap.prototype.updateDraggedCell = function(id, mouseY){
   var ref = this;
   var yDiff = Math.abs(mouseY - ref.previousMouseY); 
-  if (yDiff<=ref.pixelTolerance && yDiff>0 && ref.interpValue < 1){
+  if (yDiff<=ref.pixelTolerance && yDiff>0 && ref.interpValue <= 0.9){
      ref.interpValue += 0.1;	 
   }else{
      ref.interpValue = 1;

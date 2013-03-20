@@ -66,15 +66,12 @@
 	//Define the axes
 	var xAxis = d3.svg.axis()
                      .scale(xScale)
-					 .orient("bottom");
+					 .orient("bottom")
+					 ;
 	var yAxis = d3.svg.axis()
                      .scale(yScale)
 					 .orient("left");
-	 // Add the x-axis
-    this.widget.append("g")
-		.attr("class", "axis")
-		.attr("transform", "translate("+ref.padding+"," + ref.height + ")")
-		.call(xAxis);
+	
 
      // Add the y-axis
      this.widget.append("g")
@@ -95,6 +92,7 @@
 		.attr("x", 6)		
 		.attr("transform", "rotate(-90)")
 		.text("population");
+ var labelsXAxis = []; //Collect the labels for the x-axis
  
 this.widget.selectAll("rect")
     .data(this.displayData.map(function (d,i) {
@@ -129,14 +127,29 @@ this.widget.selectAll("rect")
 			 data[8] = [xScale(i), ref.yPos - yScale(d.Pop1995), yScale(d.Pop1995)];
 			 data[9] = [xScale(i), ref.yPos - yScale(d.Pop2000), yScale(d.Pop2000)];
 			 data[10] = [xScale(i), ref.yPos - yScale(d.Pop2005), yScale(d.Pop2005)];*/
-          	
+          	labelsXAxis[i] = d.Country;
 	        return {nodes:data,id:i,country:d.Country};
 	  }))
      .enter()
 	 .append("g")
 	 .attr("class","gDisplayBars")
 	  .attr("id", function (d){return "gDisplayBars"+d.id;});
-
+	  
+ // Add the x-axis
+    this.widget.append("g")
+		.attr("class", "axis")
+		.attr("transform", "translate("+ref.padding+"," + ref.height + ")")
+		.call(xAxis)
+        //.append("text")
+        //.text("hi")		
+		.selectAll("text")
+             .text(function (d) {return labelsXAxis[d];})		
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
 	
 	//Render the bars 
 this.widget.selectAll(".gDisplayBars")
@@ -306,13 +319,13 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
 								         return animateLineGenerator(d.nodes);
 								  });											
 	//Update the hint labels
-   this.widget.select("#gInner"+id).selectAll("text")
+   this.widget.selectAll(".hintLabels")
 									.attr("transform",function (d,i) {
 									    var currentX = ref.findHintX(d[0],i,ref.currentView);
 										var nextX = ref.findHintX(d[0],i,ref.nextView);
 										var addedDistance = Math.abs(nextX - currentX)*distanceRatio;												       
 										return "translate("+(currentX - addedDistance-10)+","+d[1]+")";								    
-									});				   
+									});			   
 	 
 }
 //A function meant only to interface with other visualizations or the slider
@@ -448,7 +461,8 @@ Barchart.prototype.showHintPath = function (id,d){
 												})												
 											   .attr("fill", "#666")
 											   .on("click",this.clickHintLabelFunction)
-											   .style("cursor", "pointer"); 
+											   .style("cursor", "pointer")
+											   .attr("class","hintLabels"); 
 											   
 }
 
