@@ -4,24 +4,20 @@ var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","200
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years");
+var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years","#666");
 slider.init();
-slider.render();
+//slider.render();
 				  
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the slider
 ////////////////////////////////////////////////////////////////////////////////
- slider.dragEvent = d3.behavior.drag()  
+ /**slider.dragEvent = d3.behavior.drag()  
 						.on("dragstart", function(){                           
                             barchart.clearHintPath(barchart.draggedBar);							
 					     }) 
-                      .on("drag", function(){   
-                            var previous = slider.currentTick;					  
-							slider.updateDraggedSlider(d3.event.x);
-                            if (previous != slider.currentTick){	                              
-                                barchart.changeView(slider.currentTick);									
-                           }	
-						    slider.updateDraggedSlider(d3.event.x);                          						
+                      .on("drag", function(){   					                          	
+						    slider.updateDraggedSlider(d3.event.x);
+                            barchart.updateBars(slider.interpValue,slider.currentTick,slider.nextTick);  							
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);                          
@@ -29,13 +25,13 @@ slider.render();
 					  });	
 
 slider.widget.select("#slidingTick")				                 			  
-                   .call(slider.dragEvent);	   
+                   .call(slider.dragEvent);	 */  
 				   
 				   
 ////////////////////////////////////////////////////////////////////////////////
 // Create new bar chart
 ////////////////////////////////////////////////////////////////////////////////   
-var barchart   = new Barchart(600, 600, 30, 0 , "#bargraph",years,30);
+var barchart   = new Barchart(600, 600, 30, 0 , "#bargraph",years,80);
 barchart.init();
 barchart.clickHintLabelFunction = function (d, i){
 										//barchart.animateAlongPath(i);
@@ -57,12 +53,9 @@ barchart.render(dataset);
                                    barchart.showHintPath(d.id,d.nodes); 
                                    barchart.previousMouseX = d3.mouse(this)[0];								   
 					  })
-                      .on("drag", function(d){    
-                           var view = barchart.currentView;                         						   
+                      .on("drag", function(d){                                                  						   
                            barchart.updateDraggedBar(d.id,d3.mouse(this)[0],d3.mouse(this)[1]);	
-						   if (barchart.currentView != view){
-                                  slider.updateSlider(barchart.currentView);                                 							  
-							}						
+						   	slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);					
                            					   								  
 					  })
 					  .on("dragend",function (d){					    

@@ -17,7 +17,7 @@ function Heatmap(x, y, w, h, id,l) {
    this.widget = null;  
    //Variables to track dragged point location within path ("view switches")
    this.currentView = 0; //Start at the first view
-   this.direction = 1; //The y-direction the mouse is travelling in
+   this.viewChange = 1; //Decrement or increment the currentview
    this.previousMouseY=null; //To track the old mouse positions
    this.interpValue = 0; //Value to track the progress of colour interpolation when switching between views
    this.pixelTolerance = 2; //Number of pixels to move before an interpolation in colour occurs (slow down the colour switching)
@@ -110,14 +110,13 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
   }else{
      ref.interpValue = 1;
   }
-  
+  var direction = ref.previousMouseY - mouseY;
+
   this.widget.select("#cell"+id).each(function (d){
        //Get the y coordinate of the cell and calculate the middle of it      	   
-	  var middleY = d.y+ref.cellSize/2;
-	  var oldColour = d.colours[ref.currentView]; //Save the previous colour	
-      var nextColour;	   
-	  if (mouseY<middleY && ref.currentView !=0){ //Make sure not at first view 
-	         ref.direction = -1;
+	  var middleY = d.y+ref.cellSize/2;	 	   
+	  if (direction>0 && ref.currentView !=0){ //Make sure not at first view 
+	         ref.viewChange = -1;			
              if (ref.interpValue < 1){ //Not yet reached the next view
 			      ref.interpolateColours(-1);
              }else{			 
@@ -126,8 +125,8 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
 				 ref.updateView();	
              }			 
          	        		 
-	  }else if (ref.currentView != (ref.allData.length-1)){	 //Make sure not at last view 
-             ref.direction = 1;	  
+	  }else if (ref.currentView < ref.allData.length){	 //Make sure not at last view 
+             ref.viewChange = 1;	  
 		     if (ref.interpValue < 1){
 			     ref.interpolateColours(1);
 			 }else{
@@ -138,7 +137,7 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
 	  }    
 	}); 
    ref.previousMouseY = mouseY;
-   //console.log(ref.interpValue);
+   console.log(ref.currentView);
 }
 //Updates the colour of the rest of the cells based on the dragged cell
 //Updates the hint path of the dragged cell
@@ -167,19 +166,17 @@ Heatmap.prototype.interpolateColours = function(view){
       var interpolator = d3.interpolate(d.colours[ref.currentView],d.colours[nextView]);  
       return interpolator(ref.interpValue);  
   }); 
+    var travelAmount = Math.abs(nextView*ref.cellSize/2 - ref.currentView*ref.cellSize/2)*ref.interpValue;
    //Re-position the hint path indicator to show transition to next view
    this.widget.select("#hintIndicator")
-             .attr("y",(ref.interpValue*nextView*ref.cellSize/2));  
+             .attr("y",ref.currentView*ref.cellSize/2+travelAmount);
+			 
 }
 //Snaps to a view based on the direction of the mouse and the interpolation value (which colour is closer)
 Heatmap.prototype.snapToView = function(){
   var ref = this;
   if (ref.interpValue > 0.5){ //Only update the view if the interpolation is over 50% to the next colour
-       if (ref.direction == -1){
-         ref.currentView--;
-	  } else {
-	     ref.currentView++;
-	  }
+      ref.currentView = ref.currentView+ref.viewChange;
   }
   //Update the view
   ref.interpValue = 0;

@@ -1,14 +1,14 @@
- function Piechart(width,height,x,y,id,l){
+ function Piechart(width,height,x,y, radius,id,l){
    //Widget initializaton variables
    this.width = width;
    this.height = height;
    this.xPos = x;
    this.yPos = y;
-   this.cx = x/3; //Center of the piechart
-   this.cy = y/3;
+   this.cx = width/3; //Center of the piechart
+   this.cy = height/3;
    this.id = id;
-   this.radius = 120;
-   this.labelOffset = 130;
+   this.radius = radius;
+   this.labelOffset = radius+10;
    this.widget = null; //Reference to svg container
    //Display variables
    this.displayData = null;    
@@ -79,7 +79,7 @@
 				.append("svg:filter")
 			    .attr("id", "blur")
 				.append("svg:feGaussianBlur")
-				.attr("stdDeviation", 5);
+				.attr("stdDeviation", 3);
 	 //Here, each "d" node represents a view
 	this.widget.selectAll("path")
                  .data(this.displayData.map(function (d,i) {                     					  
@@ -123,7 +123,14 @@ this.widget.selectAll(".gDisplayArcs").append("path")
 				 .attr("id", function (d) {return "displayArcs"+d.id;})	                			 
 				 .attr("class","DisplayArcs")
 				 .attr("d", function (d) {return ref.arcGenerator(d);})
-				 .attr("title", function (d){ return d.cluster;});
+				/** .append("text")
+				 .attr("transform", function (d,i){											        
+						return "translate(" + arc.centroid(d) + ")"; 													
+				})                                          												
+				 .attr("fill", ref.hintLabelColour)				 
+				 .text("Test")*/
+				  ;
+				 //.text(function(d){return d.label;});
 //Add a g element to contain the hint info		
 this.widget.selectAll(".gDisplayArcs").append("g")                                  
 								  .attr("id",function (d){return "gInner"+d.id;})
@@ -263,10 +270,10 @@ Piechart.prototype.updateLayout = function (id,startSum,endSum,view) {
 Piechart.prototype.animateSegments = function (id,mouseAngle,current,next,view){
     var ref = this;		
 	//Determine how much distance was travelled by the dragged segment and the total distance its endAngle can move
-	var travelled = Math.abs(next - mouseAngle);
+	var travelled = Math.abs(mouseAngle - current);
 	var total = Math.abs(next - current);
 	//Determine whether the dragged segment moving towards current or next endAngles    
-    var ratio = travelled/total; 
+    var ratio = travelled/total; 	
 	var angleSumStart = ref.dragStartAngle;
 	var angleSumEnd = current;
 	this.widget.selectAll(".DisplayArcs")	            
@@ -294,7 +301,7 @@ Piechart.prototype.animateSegments = function (id,mouseAngle,current,next,view){
                             var current = ref.findHintRadius(i,ref.currentView);
 							var next = ref.findHintRadius(i,ref.nextView);
 							var addedRadius = Math.abs(next-current)*ratio;
-							//console.log(current+" "+next+" "+addedRadius);						
+							console.log(current+" "+next+" "+addedRadius);						
 							return current-addedRadius;
 					   })
 					   .innerRadius(function (d,i) {
@@ -482,6 +489,7 @@ Piechart.prototype.showHintPath = function (id){
  }
  //Calculates the amount to translate the hint path (what the radius of the hint path should be)
  Piechart.prototype.findHintRadius = function (index,view){
-    return this.labelOffset+20*(index-view);
+ //console.log(index+" "+view+" "+(this.labelOffset+20*(index+view)));
+    return this.labelOffset+20*(index+view);
 }
 

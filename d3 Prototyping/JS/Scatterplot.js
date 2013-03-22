@@ -13,7 +13,7 @@ function Scatterplot(x, y, w, h, id,p) {
    this.pointRadius = 5;
    //Colours
    this.hintColour = "steelblue";
-   this.grey = "#7f7f7f";
+   this.pointColour = "#666";   
    this.lightGrey = "#c7c7c7";
    // Reference to the main widget
    this.widget = null;  
@@ -116,7 +116,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
      this.widget.append("text")
 		.attr("class", "axisLabel")			
 		.attr("x", myRef.width)
-		.attr("y", myRef.height+myRef.padding)
+		.attr("y", myRef.height+myRef.padding-10)
 		.text("fertility rate");
 
      // Add a y-axis label
@@ -206,7 +206,7 @@ Scatterplot.prototype.render = function( vdata, start, l) {
 							  .attr("stroke", "none")
 							  .attr("stroke-width", "2")
 							  .attr("class", "displayPoints")
-							  .attr("fill",myRef.grey)
+							  .attr("fill",myRef.pointColour)
 							  .style("fill-opacity",1)
 							   .attr("id", function (d){return "displayPoints"+d.id;})
 							  .style("cursor", "pointer")  
@@ -571,7 +571,7 @@ Scatterplot.prototype.showHintPath = function (id){
 	   this.widget.select("#p"+id)                                  
 					.style("stroke", this.hintColour);     	
        this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
-								  .style("fill", this.grey); 
+								  .style("fill", this.pointColour); 
         this.widget.selectAll(".displayPoints")
 	           .transition().duration(400)
 	           .style("fill-opacity", function (d){

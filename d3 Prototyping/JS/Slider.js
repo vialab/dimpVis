@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
-function Slider(x, y, w, h, id,num,labels,description) {
+function Slider(x, y, w, h, id,num,labels,description,colour) {
 
    // Position and size attributes
    this.xpos = x;
@@ -16,15 +16,16 @@ function Slider(x, y, w, h, id,num,labels,description) {
    this.interpValue=0; //Amount of distance travelled between ticks, used to interpolate other visualizations
    // Reference to the main widget
    this.widget = null;  
-   this.sliderPos = x; //The horizontal position of the slider tick, changes while its dragged
+   this.sliderOffset = x+80;
+   this.sliderPos = this.sliderOffset; //The horizontal position of the slider tick, changes while its dragged
    this.tickSpacing = 50; //Distance between ticks
    this.tickPositions = []; //All x locations of the ticks on the slider
    this.tickLabels = labels;
-   this.displayColour = "#ff7f0e";
+   this.displayColour = colour;
    //Generate a list of all x locations for each tick
    for (var i=0; i < this.numTicks; i++){
        if (i==0){
-	        this.tickPositions[i] = this.xpos;
+	        this.tickPositions[i] = this.sliderOffset;
 	   }else {
 	         this.tickPositions[i] =  this.tickPositions[i-1] + this.tickSpacing;
 	   }      
@@ -60,7 +61,8 @@ Slider.prototype.render = function() {
 	
    // Remove 
    this.widget.selectAll("g").remove(); 
-	
+   this.widget.append("text").text(this.title).attr("x",this.xpos).attr("y",20).attr("fill",this.displayColour)
+                                              .style("font-family", "sans-serif").style("font-size","20px");
    // Render the slider ticks
    this.widget.selectAll("rect")
      .data(this.tickPositions.map(function (d,i) {
@@ -94,10 +96,10 @@ Slider.prototype.render = function() {
 	   .attr("text-anchor","middle");
    //Draw a long line through all ticks
    this.widget.append("rect").attr("class","sliderAxis")
-               .attr("x",ref.xpos)
+               .attr("x",ref.sliderOffset)
 			   .attr("y",10)
 			   .attr("width", function(){
-			       return (ref.tickPositions[ref.numTicks-1] - ref.xpos);
+			       return (ref.tickPositions[ref.numTicks-1] - ref.sliderOffset);
 			   })	
                .attr("height", 2)	  
                .attr("fill", ref.displayColour)

@@ -51,7 +51,7 @@ scatterplot.widget.selectAll(".displayPoints")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years");
+var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years","#666");
 slider.init();
 slider.render();
 				  

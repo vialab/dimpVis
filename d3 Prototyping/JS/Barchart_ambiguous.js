@@ -73,12 +73,6 @@
 	var yAxis = d3.svg.axis()
                      .scale(yScale)
 					 .orient("left");
-	 // Add the x-axis
-    this.widget.append("g")
-		.attr("class", "axis")
-		.attr("transform", "translate("+ref.padding+"," + ref.height + ")")
-		.call(xAxis);
-
      // Add the y-axis
      this.widget.append("g")
 			.attr("class", "axis")
@@ -88,8 +82,8 @@
 	 // Add an x-axis label
      this.widget.append("text")
 		.attr("class", "axisLabel")			
-		.attr("x", ref.width)
-		.attr("y", ref.height+ref.padding)
+		.attr("x", ref.width+ref.padding)
+		.attr("y", ref.height+ref.padding-10)
 		.text("country");
 
      // Add a y-axis label
@@ -98,6 +92,8 @@
 		.attr("x", 6)		
 		.attr("transform", "rotate(-90)")
 		.text("population");
+
+var labelsXAxis = []; //Collect the labels for the x-axis
  
 this.widget.selectAll("rect")
     .data(this.displayData.map(function (d,i) {
@@ -132,7 +128,7 @@ this.widget.selectAll("rect")
 			 data[8] = [xScale(i), ref.yPos - yScale(d.Pop1995), yScale(d.Pop1995)];
 			 data[9] = [xScale(i), ref.yPos - yScale(d.Pop2000), yScale(d.Pop2000)];
 			 data[10] = [xScale(i), ref.yPos - yScale(d.Pop2005), yScale(d.Pop2005)];*/
-          	
+          	labelsXAxis[i] = d.Country;
 	        return {nodes:data,id:i,country:d.Country};
 	  }))
      .enter()
@@ -140,7 +136,17 @@ this.widget.selectAll("rect")
 	 .attr("class","gDisplayBars")
 	  .attr("id", function (d){return "gDisplayBars"+d.id;});
 
-	
+ // Add the x-axis
+    this.widget.append("g")
+		.attr("class", "axis")
+		.attr("transform", "translate("+ref.padding+"," + ref.height + ")")
+		.call(xAxis)       		
+		.selectAll("text")
+             .text(function (d) {return labelsXAxis[d];})		
+            .style("text-anchor", "end")           
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+             });	
 	//Render the bars 
 this.widget.selectAll(".gDisplayBars")
      .append("rect")
@@ -152,7 +158,7 @@ this.widget.selectAll(".gDisplayBars")
 	 .style("fill-opacity",1)	
 	 .attr("class", "displayBars")
 	 .attr("id", function (d){return "displayBars"+d.id;})
-     .style("cursor", "ns-resize")
+     .style("cursor", "pointer")
      .attr("title", function (d){ return d.country;})	 
 	.on("mouseover", ref.mouseoverFunction)
     .on("mouseout", ref.mouseoutFunction);
@@ -175,6 +181,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 				   if (d.nodes[ref.currentView][2] == d.nodes[ref.nextView][2]){ //Stationary bar
 				        return d.nodes[ref.currentView][2];
 				   }
+				   
                     var current =  d.nodes[ref.currentView][1];
 					var next = d.nodes[ref.nextView][1];
                     var bounds = ref.checkBounds(current,next,mouseY);					
@@ -203,6 +210,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 				.attr("y", function(d){ 
 				    var current =  d.nodes[ref.currentView][1];
 					var next = d.nodes[ref.nextView][1];
+					console.log(ref.currentView+" "+ref.nextView);
 				    if (d.nodes[ref.currentView][2] == d.nodes[ref.nextView][2]){ //Stationary bar
 				        //Use the mouse x drag to switch between views and translate the hint path accordingly
 						var xDiff = Math.abs(mouseX - ref.previousMouseX);													
@@ -210,20 +218,50 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 						     ref.interpX += 0.1;								 
                              ref.animateBars(current,current,next,d.nodes[ref.currentView][2],id,ref.interpX);							 
 						}else{ //Interpolation is over, time to switch views
-						     ref.interpX = 0;
-							var direction;
-							if (mouseX < ref.previousMouseX){
-							   direction = -1;
-							}else {
-								direction=1;
-							}						 
-							 ref.currentView = ref.nextView + direction;
-						     ref.nextView = ref.nextView + direction;							 
+						     ref.interpX = 0;							
+							if (mouseX < ref.previousMouseX){ //Moving left (beyond current)
+							   ref.nextView = ref.currentView;
+							   ref.currentView--;
+							}else { //Moving right (current to next)
+								 ref.currentView = ref.nextView;
+						         ref.nextView++;	
+							}					 
+													 
 						}
 						//Save the mouse x				    
-						ref.previousMouseX = mouseX;	
+						ref.previousMouseX = mouseX;   
+                        //At the end of a stationary bar sequence, apparantely don't need this..
+                        /**if (ref.nextView != ref.numViews && d.nodes[ref.nextView][2]!=d.nodes[ref.nextView+1][2]){
+						    console.log("at end");
+                        }*/						
                         return current;						
-				   }
+				   } 
+				   //TODO: Doesn' work, want to invoke diagonal drag
+				   //Might be easier to just search for a flag these cases from the start...in init(), similar to what I did for the scatterplot ambiguous case
+				   /**if (ref.currentView !=0 && ref.nextView != ref.numViews && d.nodes[ref.currentView-1][2] == d.nodes[ref.nextView][2]){ //Second ambiguous case (one height surround by two of the same heights
+				       //Use the mouse x drag to switch between views and translate the hint path accordingly
+					   //Either move from current to current-1 (drag left) or current to next (drag right)
+						var xDiff = Math.abs(mouseX - ref.previousMouseX);													
+						if (xDiff <=ref.xTolerance && ref.interpX < 0.9){
+						     ref.interpX += 0.1;								 
+                             //ref.animateBars(current,current,next,d.nodes[ref.currentView][2],id,ref.interpX);							 
+						}else{ //Interpolation is over, time to switch views
+						     ref.interpX = 0;
+							if (mouseX < ref.previousMouseX){ //Moving left (beyond current)
+							   ref.nextView = ref.currentView;
+							   ref.currentView--;
+							   //return current;
+							}else { //Moving right (current to next)
+								 ref.currentView = ref.nextView;
+						         ref.nextView++;
+                                //return next;									 
+							}	
+                            return mouseY;							
+						}
+						//Save the mouse x				    
+						ref.previousMouseX = mouseX;                     					
+                        return current;	
+				  }*/
 				   			   
                     var bounds = ref.checkBounds(current,next,mouseY);					
                     if (ref.currentView ==0){ //At lowest bar
@@ -302,8 +340,9 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id,interp)
 	  distanceRatio = distanceTravelled/totalDistance;
    } else {
        distanceRatio = interp;
-    }   
-console.log(distanceRatio);	
+    } 
+    ref.interpValue = distanceRatio;	
+//console.log(distanceRatio);	
 	 this.widget.selectAll(".displayBars")	         
 		          .attr("height", function (d){	
                           if (d.id != id){

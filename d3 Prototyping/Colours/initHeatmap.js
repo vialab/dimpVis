@@ -30,9 +30,9 @@ heatmap.dragEvent = d3.behavior.drag()
                        .origin(function(d){ //Set the starting point of the drag interaction
 							return {x:d.x,y:d.y};
 	                   })
-					   .on("dragstart", function(d){                          
-						   heatmap.selected = d.id;
-						   console.log("drag down");
+					   .on("dragstart", function(d){ 
+                           heatmap.clearHintPath(heatmap.selected);					   
+						   heatmap.selected = d.id;						  
 						   heatmap.showHintPath(d.id,d.colours,d.x,d.y);
 						   heatmap.previousMouseY = d3.event.y;	                           								   
 							                                           						   
@@ -44,8 +44,7 @@ heatmap.dragEvent = d3.behavior.drag()
 							} 						
 					  })					  
 					  .on("dragend",function (d){				    
-					       heatmap.snapToView();
-						   heatmap.clearHintPath(heatmap.selected);
+					       heatmap.snapToView();						   
 						   heatmap.selected = -1;  
 						   heatmap.previousMouseY = null;  				 
 					  });	

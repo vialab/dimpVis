@@ -71,7 +71,6 @@
 	var yAxis = d3.svg.axis()
                      .scale(yScale)
 					 .orient("left");
-	
 
      // Add the y-axis
      this.widget.append("g")
@@ -82,8 +81,8 @@
 	 // Add an x-axis label
      this.widget.append("text")
 		.attr("class", "axisLabel")			
-		.attr("x", ref.width)
-		.attr("y", ref.height+ref.padding)
+		.attr("x", ref.width+ref.padding)
+		.attr("y", ref.height+ref.padding-10)
 		.text("country");
 
      // Add a y-axis label
@@ -139,17 +138,13 @@ this.widget.selectAll("rect")
     this.widget.append("g")
 		.attr("class", "axis")
 		.attr("transform", "translate("+ref.padding+"," + ref.height + ")")
-		.call(xAxis)
-        //.append("text")
-        //.text("hi")		
+		.call(xAxis)       		
 		.selectAll("text")
              .text(function (d) {return labelsXAxis[d];})		
-            .style("text-anchor", "end")
-            .attr("dx", "-.8em")
-            .attr("dy", ".15em")
+            .style("text-anchor", "end")           
             .attr("transform", function(d) {
                 return "rotate(-65)" 
-                });
+             });
 	
 	//Render the bars 
 this.widget.selectAll(".gDisplayBars")
@@ -162,7 +157,7 @@ this.widget.selectAll(".gDisplayBars")
 	 .style("fill-opacity",1)	
 	 .attr("class", "displayBars")
 	 .attr("id", function (d){return "displayBars"+d.id;})
-     .style("cursor", "ns-resize")
+     .style("cursor", "pointer")
      .attr("title", function (d){ return d.country;})	 
 	.on("mouseover", ref.mouseoverFunction)
     .on("mouseout", ref.mouseoutFunction);

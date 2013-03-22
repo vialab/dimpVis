@@ -4,7 +4,7 @@ var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","200
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years");
+var slider   = new Slider(110, 770, 700, 100, "#time",11,years, "Years","#666");
 slider.init();
 slider.render();
 				  
@@ -32,7 +32,7 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new bar chart
 ////////////////////////////////////////////////////////////////////////////////   
-var barchart   = new Barchart(600, 600, 30, 0 , "#bargraph",years,30);
+var barchart   = new Barchart(600, 600, 30, 0 , "#bargraph",years,80);
 barchart.init();
 barchart.clickHintLabelFunction = function (d, i){
 										//barchart.animateAlongPath(i);

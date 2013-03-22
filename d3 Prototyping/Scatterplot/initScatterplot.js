@@ -1,10 +1,12 @@
 var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels              
 
-var scatterplot   = new Scatterplot(50, 100, 550, 550, "#scatter",30);
+var scatterplot   = new Scatterplot(50, 100, 550, 550, "#scatter",50);
 scatterplot.init();
 //Declare some interaction functions for the scatterplot
 scatterplot.clickHintLabelFunction = function (d, i){
-										scatterplot.animateAlongPath(scatterplot.currentView, i);										
+										//scatterplot.animateAlongPath(scatterplot.currentView, i);	
+										scatterplot.changeView(i);
+										scatterplot.redrawView("null",-1);										
 										slider.updateSlider(i); 
 									};
 
@@ -39,7 +41,7 @@ scatterplot.widget.selectAll(".displayPoints")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years");
+var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years","#666");
 slider.init();
 slider.render();
 				  

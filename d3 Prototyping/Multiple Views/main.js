@@ -65,7 +65,7 @@ scatterplot.widget.selectAll(".displayPoints")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years");
+var slider   = new Slider(15, 700, 700, 100, "#time",11,years, "Years","#666");
 slider.init();
 slider.render();
 				  
@@ -150,7 +150,7 @@ piedata = [{"label":"one", "values":[0.2,0.5,0.1]},
             {"label":"three", "values":[0.3,0.2,0.8]}]; 
 
 var pieLabels = ["1995","2000","2005"];	
-var piechart   = new Piechart(700, 700, 800, 600 , "#piegraph",pieLabels);
+var piechart   = new Piechart(700, 700, 800, 600 ,120, "#piegraph",pieLabels);
 piechart.init();
 piechart.render(piedata);
 
