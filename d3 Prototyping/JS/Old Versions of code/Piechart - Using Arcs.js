@@ -473,68 +473,38 @@ Piechart.prototype.showHintPath = function (id){
 					       	start = end;			   
 							return end;			
 		               });
-
+		
         //Render the hint pie segments						   
-        this.widget.select("#gInner"+id)/**.selectAll("path").data(function (d,i) {													  
+        this.widget.select("#gInner"+id).selectAll("path").data(function (d,i) {		                                             
+													  for (var j=0;j<d.hArcs.length;j++){
+                                                         d.hArcs[j]													  
+													  }
 													  changeDirections = d.hDirections;
 		                                              ref.dragStartAngle = d.startAngle; //TODO:Don't be setting an important variable in an ambiguous location, which is hard to find!												  												   
 		                                               return d.hArcs;
-											}).enter()*/
-											.append("path")
-                                             .attr("d", function (d,i) { 
-											        //console.log(d.hDirections+" -----"+d.hArcs);
-                                                   //Format: M startX startY A rX rY 0 0 0 endX endY
-												   var dString = "";
-												   var pathInfo = [];
-												   var r,x,y,newAngle;
-												  for (var j=0;j<d.hArcs.length;j++){
-												    newAngle = ref.dragStartAngle + d.hArcs[j][0];                                                   											   
-													if (newAngle > ref.twoPi){ //Special case when angle wraps around
-													    newAngle = newAngle - ref.twoPi;
-													}                                                    													
-                                                   	r = ref.findHintRadius(d.hArcs[j][1],ref.currentView);	                                                 									
-													x = ref.cx + r*Math.cos(newAngle - ref.halfPi);
-													y = ref.cy+ r*Math.sin(newAngle - ref.halfPi);
-													pathInfo[j] = [x,y,r,newAngle];				    
-												   }
-												   
-												   for (j=0;j<pathInfo.length;j++){
-												      if (j>0){
-													    if (d.hDirections[j]==1){ //Want to change directions														     	
-                                                             x = ref.cx + pathInfo[j][2]*Math.cos(pathInfo[j-1][3] - ref.halfPi);
-															 y = ref.cy+ pathInfo[j][2]*Math.sin(pathInfo[j-1][3] - ref.halfPi);
-                                                             dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y;															 
-														     dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
-														     +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
-														 }else{
-														    dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
-														          +pathInfo[j][2]+" 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1];
-														}
-													    
-                                                      } 
-												   }
-												   console.log(dString);												   
-											       return dString;
+											}).enter().append("path")
+                                             .attr("d", function (d,i) {                                                    											 
+											       return hintArcs(d,i);
 											 })											 										                                       												
 											.style("fill","none")
 											.style("stroke",ref.hintColour)
 											.style("stroke-width",1)
 											.attr("class","hintArcs")
-											// .attr("transform", "translate(" + this.cx + "," + this.cy + ")")	
+											 .attr("transform", "translate(" + this.cx + "," + this.cy + ")")	
                                               .attr("filter", "url(#blur)")											 
 											;
 		       		
 	//Render the hint labels
-	this.widget.select("#gInner"+id).selectAll("text").data(function (d){return d.hArcs;}).enter()	                                     						  
+	/**  this.widget.select("#gInner"+id).selectAll("text").data(function (d){return d.nodes;}).enter()	                                     						  
 								            .append("svg:text")
                                             .text(function(d,i) { return ref.labels[i]; })	                                            										        
                                               .attr("transform", function (d,i){											        
 													//Resolve the angle w.r.t to the top of the chart, x and y = 0													
-													var newAngle = ref.dragStartAngle + d[0];																									
+													var newAngle = ref.dragStartAngle + d;																									
 													if (newAngle > ref.twoPi){ //Special case when angle wraps around
 													    newAngle = newAngle - ref.twoPi;
 													}	
-                                                   	var r = ref.findHintRadius(d[1],ref.currentView);	                                                 									
+                                                   	var r = ref.findHintRadius(i,ref.currentView);	                                                 									
 													var x = ref.cx + r*Math.cos(newAngle - ref.halfPi);
 													var y = ref.cy+ r*Math.sin(newAngle - ref.halfPi);													
 													return "translate("+x+","+y+")";
@@ -542,7 +512,7 @@ Piechart.prototype.showHintPath = function (id){
 												})                                          												
 											   .attr("fill", ref.hintLabelColour)
 											   .style("font-size","10px")
-										       .attr("class","hintLabels");		
+										       .attr("class","hintLabels");		*/
 	
     //Clear all other pie segments (for debugging) 
 	this.widget.selectAll(".DisplayArcs").transition().duration(400).style("fill-opacity", function (d) {

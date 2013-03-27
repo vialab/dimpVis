@@ -39,7 +39,7 @@ function Scatterplot(x, y, w, h, id,p) {
    this.dragging = 0;
    this.dragEvent = null;
   this.previousMouseX = 0; //For the ambiguous case, tracks the amount dragged in the x direction 
-  this.xTolerance = 2;
+  this.xTolerance = 1;
   this.interpX = 0; //For ambiguous cases
    //Event functions, declared in main.js  
    this.placeholder = function() {}; 
@@ -703,7 +703,7 @@ Scatterplot.prototype.handleRepeat = function (id,view) {
      this.widget.select("#gInner"+id).select("#hintPoints"+view)                                
 								  .style("fill", ref.hintPointStationary);	
 	this.widget.select("#gInner"+id).select("#hintLabels"+view)                                  
-								  .style("fill", ref.hintColour);     
+								  .style("fill", ref.hintPointStationary);     
 }
 //Moves the label colour as the mouse is dragged horizontally during ambiguous cases
 Scatterplot.prototype.colourLabel = function (id,view) {   

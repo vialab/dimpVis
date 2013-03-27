@@ -1,6 +1,10 @@
 var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels              
+//Fake data for debugging
+piedata = [{"label":"one", "values":[0.2,0.5,0.1]}, 
+            {"label":"two", "values":[0.5,0.3,0.1]}, 
+            {"label":"three", "values":[0.3,0.2,0.8]}]; 
 
-
+var pieLabels = ["1995","2000","2005"];	
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
@@ -16,17 +20,14 @@ slider.render();
 						.on("dragstart", function(){                               
                            						
 					     }) 
-                      .on("drag", function(){   
-                            var previous = slider.currentTick;					  
-							slider.updateDraggedSlider(d3.event.x);
-                            if (previous != slider.currentTick){						
-                                									
-                           }	
-						    slider.updateDraggedSlider(d3.event.x);                          						
+                      .on("drag", function(){                             	
+						    slider.updateDraggedSlider(d3.event.x);  
+                            //piechart.updateSegments(slider.interpValue,slider.currentTick,slider.nextTick);							
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);
-                          			      
+                          piechart.changeView(slider.currentTick);	
+                          piechart.redrawView(-1,-1);						  
 					  });	
 
 slider.widget.select("#slidingTick")				                 			  
@@ -37,11 +38,7 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new pie chart
 ////////////////////////////////////////////////////////////////////////////////  
-piedata = [{"label":"one", "values":[0.2,0.5,0.1]}, 
-            {"label":"two", "values":[0.5,0.3,0.1]}, 
-            {"label":"three", "values":[0.3,0.2,0.8]}]; 
 
-var pieLabels = ["1995","2000","2005"];	
 var piechart   = new Piechart(900, 900, 50, 50 , 180,"#piegraph",pieLabels);
 piechart.init();
 piechart.render(piedata);
@@ -64,11 +61,13 @@ piechart.dragEvent = d3.behavior.drag()
 						  
 					  })
                       .on("drag", function(d){                           		  
-                           piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);                          					   								  
+                           piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);
+                          slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);									   
 					  })
 					  .on("dragend",function (d){                             				  
 					         //piechart.clearHintPath(d.id);
-							 piechart.snapToView(d.id,d.endAngle,d.angles);
+							 piechart.snapToView(d.id,d.endAngle,d.nodes);
+							  slider.updateSlider(piechart.currentView);
                              //piechart.redrawView();	
                              //piechart.redrawSegments(d.id,d.startAngle,d.endAngle);							 
 					  });	
