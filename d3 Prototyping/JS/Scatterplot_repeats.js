@@ -38,7 +38,9 @@ function Scatterplot(x, y, w, h, id,p) {
    this.draggedPoint = -1;
    this.dragging = 0;
    this.dragEvent = null;
-  
+  this.previousMouseX = 0; //For the ambiguous case, tracks the amount dragged in the x direction 
+  this.xTolerance = 2;
+  this.interpX = 0; //For ambiguous cases
    //Event functions, declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
@@ -243,11 +245,42 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                		   
 		})
         .attr("cy", function(d){	
-		    if (d.repeatedPoints[ref.currentView]>0 && d.repeatedPoints[ref.nextView]>0){ //Stationary point	     
-				ref.handleRepeat(id,ref.currentView);
+		    if (d.repeatedPoints[ref.currentView]>0 && d.repeatedPoints[ref.nextView]>0){ //Stationary point     
+							  
+			    //Use the mouse x drag to switch between views and translate the hint path accordingly
+						var xDiff = Math.abs(mouseX - ref.previousMouseX);
+						
+						if (xDiff >=ref.xTolerance && ref.interpX < 0.9){
+						     ref.interpX += 0.1;					
+                             ref.handleRepeat(id,ref.currentView);                            							 
+                             ref.animatePoints(d.nodes[ref.currentView][0],d.nodes[ref.currentView][1], 0, 0,0,0,id,ref.interpX);							 
+						}else if (ref.interpX>=0.9){ //Interpolation is over, time to switch views
+						     ref.interpX = 0;							
+							if (mouseX < ref.previousMouseX){ //Moving left (beyond current)
+							   ref.nextView = ref.currentView;
+							   ref.currentView--;
+							   ref.colourLabel(id,ref.currentView);
+							   //console.log("moving left");
+							}else { //Moving right (current to next)
+								  ref.currentView = ref.nextView;
+						         ref.nextView++;	
+								 //console.log("moving right");
+								 
+								 ref.colourLabel(id,ref.currentView);
+							}                           							
+             console.log(ref.currentView+" "+ref.nextView);							
+													 
+						}
+						//Save the mouse x				    
+						ref.previousMouseX = mouseX;   
+                        //At the end of a stationary bar sequence, apparantely don't need this..
+                        /**if (ref.nextView != ref.numViews && d.nodes[ref.nextView][2]!=d.nodes[ref.nextView+1][2]){
+						    console.log("at end");
+                        }*/	                      						
+				   
 				return d.nodes[ref.currentView][1];
 			}
-			console.log(ref.currentView+" "+ref.nextView+" "+d.repeatedPoints[ref.currentView]);
+			//console.log(ref.currentView+" "+ref.nextView+" "+d.repeatedPoints[ref.currentView]);
              //Get the two points which compose the current sub-path dragged along		
 		        var pt1 = d.nodes[ref.currentView][0];
                 var pt2 = d.nodes[ref.nextView][0];	
@@ -268,7 +301,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					  return pt2_y;
 					}else{ //Within current sub-path
 					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id,-1);
 					   return interpY;
 					}					
 				  }else if (ref.nextView == ref.totalViews){  //Last point of path					
@@ -283,7 +316,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					  return pt2_y;
 					}else{ //Within current sub-path
 					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id,-1);
 					   return interpY;
 					}
 				  }	else { //A point somewhere in the middle				 
@@ -299,11 +332,11 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 						if (d.repeatedPoints[ref.currentView] >0){ //Revisiting point
 						   ref.handleRevisit(id,ref.currentView);
 						}
-						console.log("passed next");
+						//console.log("passed next");
 					    return pt2_y;
 					 }else{ //Within current sub-path
 					    interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y,mouseY);
-					    ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+					    ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id,-1);
 						ref.resetHintPoints(id);
 					    return interpY;
 					 }
@@ -314,12 +347,17 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 }
 //"Animates" the rest of points while a point is dragged
 //TODO: refactor this function, lots of repeated code
-Scatterplot.prototype.animatePoints = function(mouseX,interpY, pt1_x, pt1_y,pt2_x,pt2_y,id){
+Scatterplot.prototype.animatePoints = function(mouseX,interpY, pt1_x, pt1_y,pt2_x,pt2_y,id,interp){
     var ref = this;
-  //Determine the percentage travelled along the path between current and next
-  var distanceTravelled = ref.calculateDistance(mouseX,interpY,pt1_x,pt1_y);
-  var totalDistance = ref.calculateDistance(pt1_x,pt1_y,pt2_x,pt2_y);
-  var distanceRatio = distanceTravelled/totalDistance;
+	var distanceRatio;
+  if (interp == -1){
+	  //Determine the percentage travelled along the path between current and next
+	  var distanceTravelled = ref.calculateDistance(mouseX,interpY,pt1_x,pt1_y);
+	  var totalDistance = ref.calculateDistance(pt1_x,pt1_y,pt2_x,pt2_y);
+	  distanceRatio = distanceTravelled/totalDistance;
+  }else {
+     distanceRatio = interp;
+  }
   ref.interpValue = distanceRatio;
    this.widget.selectAll(".displayPoints")				 
 				   .attr("cx",function (d){	
@@ -590,7 +628,7 @@ Scatterplot.prototype.showHintPath = function (id,repeats,nodes){
 												  if (repeats[i]==1){
 													 return ref.labels[i];
 												  }else{
-													 return ","+ref.labels[i];
+													 return " , "+ref.labels[i];
 												  }								     
 											  }
 								                return ref.labels[i]; 
@@ -664,18 +702,21 @@ Scatterplot.prototype.handleRepeat = function (id,view) {
      var ref = this;
      this.widget.select("#gInner"+id).select("#hintPoints"+view)                                
 								  .style("fill", ref.hintPointStationary);	
-     //TODO: this section of code is repeated quite a bit, might consider making it into it's own function
-     //Update the view tracker variables
-	 /**if (view ==0){//First point on path
-            ref.currentView = view	 
-			ref.nextView = view+1;
-	}else if (view == ref.numViews){  //Last point of path				
-		   ref.nextView = view;
-		   ref.currentView = view -1;
-	}else { //A point somewhere in the middle
-        ref.currentView = view;	
-		ref.nextView = view + 1;
-	}*/
+	this.widget.select("#gInner"+id).select("#hintLabels"+view)                                  
+								  .style("fill", ref.hintColour);     
+}
+//Moves the label colour as the mouse is dragged horizontally during ambiguous cases
+Scatterplot.prototype.colourLabel = function (id,view) {   
+     var ref = this;    
+	 //console.log(view);
+	this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
+								  .style("fill", function (d,i){
+								      if (view != i){
+									     return ref.grey;
+									  }else{
+									     return ref.hintColour
+									  }
+								  });     
 }
 //Temporary function to handle revisited points
 //Darkens the colour of the hint point, should only do this in cases where the point is revisting a location
