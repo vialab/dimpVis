@@ -448,9 +448,10 @@ Piechart.prototype.showHintPath = function (id){
         var ref = this; 		
 		var changeDirections = []; //At which hint arc do we change the direction of drawing
 		var start;	
-        var end;		
+        var end;
+        //NOT USED ANYMORE		
 		//Special arc generator for the hint arcs
-		var hintArcs = d3.svg.arc()
+		/**var hintArcs = d3.svg.arc()
 	                   .outerRadius(function (d,i) {
 							return ref.findHintRadius(d[1],ref.currentView);
 						})
@@ -472,7 +473,7 @@ Piechart.prototype.showHintPath = function (id){
                             }						
 					       	start = end;			   
 							return end;			
-		               });
+		               });*/
 
         //Render the hint pie segments						   
         this.widget.select("#gInner"+id)/**.selectAll("path").data(function (d,i) {													  
@@ -481,8 +482,7 @@ Piechart.prototype.showHintPath = function (id){
 		                                               return d.hArcs;
 											}).enter()*/
 											.append("path")
-                                             .attr("d", function (d,i) { 
-											        //console.log(d.hDirections+" -----"+d.hArcs);
+                                             .attr("d", function (d,i) { 											       
                                                    //Format: M startX startY A rX rY 0 0 0 endX endY
 												   var dString = "";
 												   var pathInfo = [];
@@ -498,22 +498,40 @@ Piechart.prototype.showHintPath = function (id){
 													pathInfo[j] = [x,y,r,newAngle];				    
 												   }
 												   
-												   for (j=0;j<pathInfo.length;j++){
-												      if (j>0){
+												   for (j=0;j<pathInfo.length;j++){											
+												 
+													  //Either increasing or decreasing
+													  if (j>0){
+													     var x1,y1,x2,y2; //x2,y2 represents the bigger angle
+													    if (pathInfo[j][3] > pathInfo[j-1][3]){ //compare the angles to see which one is bigger
+														   x1 = pathInfo[j-1][0];
+														   y1 = pathInfo[j-1][1];
+														   x2 = pathInfo[j][0];
+														   y2 = pathInfo[j][1];
+														}else{
+														   x1 = pathInfo[j][0];
+														   y1 = pathInfo[j][1];
+														   x2 = pathInfo[j-1][0];
+														   y2 = pathInfo[j-1][1];
+														}
 													    if (d.hDirections[j]==1){ //Want to change directions														     	
                                                              x = ref.cx + pathInfo[j][2]*Math.cos(pathInfo[j-1][3] - ref.halfPi);
 															 y = ref.cy+ pathInfo[j][2]*Math.sin(pathInfo[j-1][3] - ref.halfPi);
-                                                             dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y;															 
-														     dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
+                                                             dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two different radii	
+                                                            if (pathInfo[j][3] > pathInfo[j-1][3]){ 
+															  dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
+														     +pathInfo[j][2]+" 0 0 0 "+x+" "+y;
+															}else{
+															  dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
 														     +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
-														 }else{
-														    dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
-														          +pathInfo[j][2]+" 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1];
-														}
-													    
+															}														     
+														 } else {
+														    //Always written as bigger to smaller angle to get the correct drawing direction of arc
+														    dString +="M "+x2+" "+y2+" A "+pathInfo[j][2]+" "
+														          +pathInfo[j][2]+" 0 0 0 "+x1+" "+y1;														  
+														}													    
                                                       } 
-												   }
-												   console.log(dString);												   
+												   }												  											   
 											       return dString;
 											 })											 										                                       												
 											.style("fill","none")

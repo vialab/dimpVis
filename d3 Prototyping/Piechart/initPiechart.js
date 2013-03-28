@@ -1,10 +1,10 @@
 var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels              
 //Fake data for debugging
-piedata = [{"label":"one", "values":[0.2,0.5,0.1]}, 
-            {"label":"two", "values":[0.5,0.3,0.1]}, 
-            {"label":"three", "values":[0.3,0.2,0.8]}]; 
+piedata = [{"label":"one", "values":[0.2,0.5,0.1,0.4]}, 
+            {"label":"two", "values":[0.5,0.3,0.1,0.2]}, 
+            {"label":"three", "values":[0.3,0.2,0.8,0.4]}]; 
 
-var pieLabels = ["1995","2000","2005"];	
+var pieLabels = ["1990","1995","2000","2005"];	
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization

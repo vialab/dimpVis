@@ -71,7 +71,7 @@
 	      this.startAngle[j] = 0;
 		  this.endAngle[j] = 0;
 		  this.nextAngles[j] = [];
-		  this.currentAngles[j] = [];
+		  this.currentAngles[j] = [];		  
 	  }
 	//Add the blur filter to the SVG so other elements can call it
 	this.widget.append("svg:defs")
@@ -87,15 +87,41 @@
 					  //Format: allAngles[] = {angle-value of actual angle} angles in rads
                       var allValues = [];
                       var aSorted = [];  
+					  var hintArcValues = [];
+                    var hintArcDirections = []; //Indicators of when to start changing the drawing direction of the hint path			  
+					  var flag = 1;	//Tracks increasing or decreasing segments
+                      var currentSegment = 0; //index to indicate which years are drawn on the same hint arc					  
 					  for (var j=0;j< ref.numViews;j++){				   
 						  ref.endAngle[j] += d.values[j] * ref.twoPi;					
-						  allValues[j] =  ref.endAngle[j] - ref.startAngle[j];  //End-Start					 
-						  ref.startAngle[j] += d.values[j] * ref.twoPi;
-                          aSorted[j] = [];
-                          aSorted[j][0] = allValues[j];
-						  aSorted[j][1] = j;
+						  allValues[j] =  ref.endAngle[j] - ref.startAngle[j];  //End-Start	                                  						  
+						  ref.startAngle[j] += d.values[j] * ref.twoPi;                          
+						 if (j>0){
+						     if ((allValues[j] - allValues[j-1])>0){ //increasing
+							    if (flag ==0){ //Was previously decreasing, direction changed
+								   currentSegment++;
+								   flag = 1;	
+                                  hintArcDirections[j] = 1;						   
+								}else{
+								   hintArcDirections[j] = 0;
+								}
+								hintArcValues[j] = [allValues[j],currentSegment];				    
+							 }else{ //decreasing
+							    if (flag==1){	//Was previously increasing, direction changed							
+								  flag=0;
+								  currentSegment++;
+								  hintArcDirections[j] = 1;
+								}else{
+								   hintArcDirections[j] = 0;
+								}
+                                hintArcValues[j] = [allValues[j],currentSegment];				    
+							 }
+						  }else{ //Add the first angle (special case)						      
+							  hintArcValues[j] = [allValues[j],currentSegment];
+							  hintArcDirections[j] = 0;
+						  }
 						  
-					  }	   
+					  } 
+				  
                       //TODO:Don't need sorted array anymore, remove this 					  
                        //Sort the array of angles, ascending order, separate array for this because it's easier to look up by index					  
 					  //ref.sortAngles(aSorted);
@@ -109,7 +135,8 @@
                        ref.nextAngles[i][0] = nextAngleSum;
 					   ref.nextAngles[i][1] = nextAngleSum + allValues[ref.nextView];
 					   nextAngleSum += allValues[ref.nextView]; 
-	                  return {nodes:allValues,cluster:d.label,id:i,startAngle:sAngle,endAngle:eAngle,outerRadius:ref.radius,colour:ref.colourScale(i)};
+	                  return {nodes:allValues,cluster:d.label,id:i,startAngle:sAngle,endAngle:eAngle,outerRadius:ref.radius,
+					  colour:ref.colourScale(i),hArcs:hintArcValues,hDirections:hintArcDirections};
 	              }))
 				 .enter()
                  .append("g")				
@@ -150,7 +177,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 	 //console.log(ref.currentView+" "+ref.nextView);
      this.widget.select("#displayArcs"+id)
 	            .attr("d", function (d) {
-                     console.log(ref.currentAngles+" "+ref.nextAngles);					
+                    // console.log(ref.currentAngles+" "+ref.nextAngles);					
                     d.startAngle = ref.dragStartAngle;                  	                 		
 					var adj = mouseX - ref.cx;
 					var opp = ref.cy - mouseY;	                
@@ -284,7 +311,8 @@ Piechart.prototype.animateSegments = function (id,mouseAngle,current,next){
 	
 var savedRadii = []; //TODO: Shouldn't need to save by array
 //Update the hint path
-//TODO: Lots of repeated code here! outer and inner radius	 
+//TODO: Lots of repeated code here! outer and inner radius
+//***Should only have to update inner and outer radius, since angles will stay the same	 
    var animateHintArcs = d3.svg.arc()
 	                   .outerRadius(function (d,i) {
                             var current = ref.findHintRadius(i,ref.currentView);
@@ -417,45 +445,95 @@ Piechart.prototype.changeView = function (newView){
 
 //Displays hint info
 Piechart.prototype.showHintPath = function (id){    
-        var ref = this; 
+        var ref = this; 		
+		var changeDirections = []; //At which hint arc do we change the direction of drawing
+		var start;	
+        var end;
+        //NOT USED ANYMORE		
 		//Special arc generator for the hint arcs
-		var hintArcs = d3.svg.arc()
-	                   .outerRadius(function (d,i) {return ref.findHintRadius(i,ref.currentView);})
-					   .innerRadius(function (d,i) {return ref.findHintRadius(i,ref.currentView);}) 
-					   .startAngle(function (d) {                            						
-							return ref.dragStartAngle;
+		/**var hintArcs = d3.svg.arc()
+	                   .outerRadius(function (d,i) {
+							return ref.findHintRadius(d[1],ref.currentView);
+						})
+					   .innerRadius(function (d,i) {					        
+							return ref.findHintRadius(d[1],ref.currentView);
+					   }) 
+					   .startAngle(function (d,i) {  
+					        if (i==0){ //First hint arc, special case
+							   start = ref.dragStartAngle + d[0];
+							   return start;
+							 }
+                             end = d[0];							 
+							return start;
 					   })
-					   .endAngle(function (d) { 					       											
-							return d + ref.dragStartAngle;			
-		               });
-		
+					   .endAngle(function (d,i) { 	
+                            if (i==0){ //First hint arc, special case
+							    end = ref.dragStartAngle+d[0];
+							   return end;
+                            }						
+					       	start = end;			   
+							return end;			
+		               });*/
+
         //Render the hint pie segments						   
-        this.widget.select("#gInner"+id).selectAll("path").data(function (d) {
-		                                              ref.dragStartAngle = d.startAngle;													  												   
-		                                               return d.nodes;
-											}).enter().append("path")
-                                             .attr("d", function (d,i) {                                                     											 
-											       return hintArcs(d,i);
+        this.widget.select("#gInner"+id)/**.selectAll("path").data(function (d,i) {													  
+													  changeDirections = d.hDirections;
+		                                              ref.dragStartAngle = d.startAngle; //TODO:Don't be setting an important variable in an ambiguous location, which is hard to find!												  												   
+		                                               return d.hArcs;
+											}).enter()*/
+											.append("path")
+                                             .attr("d", function (d,i) { 											       
+                                                   //Format: M startX startY A rX rY 0 0 0 endX endY
+												   var dString = "";
+												   var pathInfo = [];
+												   var r,x,y,newAngle;
+												  for (var j=0;j<d.hArcs.length;j++){
+												    newAngle = ref.dragStartAngle + d.hArcs[j][0];                                                   											   
+													if (newAngle > ref.twoPi){ //Special case when angle wraps around
+													    newAngle = newAngle - ref.twoPi;
+													}                                                    													
+                                                   	r = ref.findHintRadius(d.hArcs[j][1],ref.currentView);	                                                 									
+													x = ref.cx + r*Math.cos(newAngle - ref.halfPi);
+													y = ref.cy+ r*Math.sin(newAngle - ref.halfPi);
+													pathInfo[j] = [x,y,r,newAngle];				    
+												   }
+												   
+												   for (j=0;j<pathInfo.length;j++){
+												      if (j>0){
+													    if (d.hDirections[j]==1){ //Want to change directions														     	
+                                                             x = ref.cx + pathInfo[j][2]*Math.cos(pathInfo[j-1][3] - ref.halfPi);
+															 y = ref.cy+ pathInfo[j][2]*Math.sin(pathInfo[j-1][3] - ref.halfPi);
+                                                             dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two different radii															 
+														     dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
+														     +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
+														 }else{
+														    dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
+														          +pathInfo[j][2]+" 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1];
+														}
+													    
+                                                      } 
+												   }												  											   
+											       return dString;
 											 })											 										                                       												
 											.style("fill","none")
 											.style("stroke",ref.hintColour)
 											.style("stroke-width",1)
 											.attr("class","hintArcs")
-											 .attr("transform", "translate(" + this.cx + "," + this.cy + ")")	
+											// .attr("transform", "translate(" + this.cx + "," + this.cy + ")")	
                                               .attr("filter", "url(#blur)")											 
 											;
 		       		
 	//Render the hint labels
-	  this.widget.select("#gInner"+id).selectAll("text").data(function (d){return d.nodes;}).enter()	                                     						  
+	this.widget.select("#gInner"+id).selectAll("text").data(function (d){return d.hArcs;}).enter()	                                     						  
 								            .append("svg:text")
                                             .text(function(d,i) { return ref.labels[i]; })	                                            										        
                                               .attr("transform", function (d,i){											        
 													//Resolve the angle w.r.t to the top of the chart, x and y = 0													
-													var newAngle = ref.dragStartAngle + d;																									
+													var newAngle = ref.dragStartAngle + d[0];																									
 													if (newAngle > ref.twoPi){ //Special case when angle wraps around
 													    newAngle = newAngle - ref.twoPi;
 													}	
-                                                   	var r = ref.findHintRadius(i,ref.currentView);	                                                 									
+                                                   	var r = ref.findHintRadius(d[1],ref.currentView);	                                                 									
 													var x = ref.cx + r*Math.cos(newAngle - ref.halfPi);
 													var y = ref.cy+ r*Math.sin(newAngle - ref.halfPi);													
 													return "translate("+x+","+y+")";
