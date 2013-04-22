@@ -239,98 +239,63 @@ Scatterplot.prototype.drawAxes = function (xScale,yScale){
         .attr("transform", "rotate(-90)")
         .text(this.yLabel);
 }
- //Updates the dragged point - for drag mouse event
-//TODO: refactor this function, lots of repeated code
+/** Re-draws the dragged point by projecting it onto the the line segment according to
+ *  the minimum distance.  As the point is dragged, the views are update and the rest
+ *  of the points are animated
+ *  id: The id of the dragged point, for selecting by id
+ *  mousex, mouseY: The coordinates of the mouse, from the drag event
+ * */
 Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {	 
-       var ref = this;
-	   this.svg.select("#displayPoints"+id).each( function (d) {
-           var newPoint = []; //The new point to draw on the line
+   var ref = this;
+   this.svg.select("#displayPoints"+id).each( function (d) {
            //Get the two points of the line segment currently dragged along
-           var pt1 = d.nodes[ref.currentView][0];
-           var pt2 = d.nodes[ref.nextView][0];
+           var pt1_x = d.nodes[ref.currentView][0];
+           var pt2_x = d.nodes[ref.nextView][0];
            var pt1_y = d.nodes[ref.currentView][1];
            var pt2_y = d.nodes[ref.nextView][1];
-       });
-	  /**this.svg.select("#displayPoints"+id)
-        .attr("cx", function(d){		
-                 //Get the two points which compose the current sub-path dragged along	               			 
-		        var pt1 = d.nodes[ref.currentView][0];				
-                var pt2 = d.nodes[ref.nextView][0];		
-                var bounds = ref.checkBounds(pt1,pt2,mouseX);				
-                if (ref.currentView ==0 && bounds == pt1){//First point on path, out of bounds	 				
-					   return pt1;									
-				  }else if (ref.nextView == ref.lastView && bounds == pt2){  //Last point of path, out of bounds
-					  return pt2;				
-				  }	else { //A point somewhere in the middle
-				     if (bounds == pt1){ //Passed current					    
-					    return pt1;
-					 }else if (bounds == pt2){ //Passed next			    
-					    return pt2;
-					 }
-				 }
-
-                  return mouseX;             		
-		})
-        .attr("cy", function(d){	
-             //Get the two points which compose the current sub-path dragged along		
-		        var pt1 = d.nodes[ref.currentView][0];
-                var pt2 = d.nodes[ref.nextView][0];	
-                var pt1_y = d.nodes[ref.currentView][1];
-                var pt2_y = d.nodes[ref.nextView][1];					
-                var bounds = ref.checkBounds(pt1,pt2,mouseX);
-              console.log(ref.minDistancePoint(mouseX,mouseY,pt1,pt1_y,pt2,pt2_y));
-                var interpY;				
-		     //Check to make sure mouse is in bounds
-                if (ref.currentView ==0){//First point on path	 				
-					if (bounds == pt1){  //Out of Bounds
-					   return pt1_y;
-					}else if (bounds == pt2){  //Beyond nextView
-					//  interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					 // ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
-					  ref.currentView = ref.nextView;
-					  ref.nextView = ref.currentView +1;
-                      ref.redrawView(id,-1);					  
-					  return pt2_y;
-					}else{ //Within current sub-path
-					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
-					   return interpY;
-					}					
-				  }else if (ref.nextView == ref.lastView){  //Last point of path
-					if (bounds == pt1){  //Beyond 
-                         //interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					    // ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);					
-					    ref.nextView = ref.currentView;
-						ref.currentView = ref.currentView - 1;	
-                        ref.redrawView(id,-1);						
-					    return pt1_y;
-					}else if (bounds == pt2){  //Out of Bounds					  
-					  return pt2_y;
-					}else{ //Within current sub-path
-					   interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y);
-					   ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
-					   return interpY;
-					}
-				  }	else { //A point somewhere in the middle				 
-				     if (bounds == pt1){ //Passed current                         					 
-					    ref.nextView = ref.currentView;
-						ref.currentView = ref.currentView-1;
-						ref.redrawView(id,-1);
-					    return pt1_y;
-					 }else if (bounds == pt2){ //Passed next
-					    ref.currentView = ref.nextView;
-					    ref.nextView = ref.nextView +1;						
-						ref.redrawView(id,-1);
-					    return pt2_y;
-					 }else{ //Within current sub-path
-					    interpY = ref.findInterpY(mouseX,pt1,pt1_y,pt2,pt2_y,mouseY);
-					    ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
-					    return interpY;
-					 }
-				 }
-               
-		});*/
-  
+           var minDist = ref.minDistancePoint(mouseX,mouseY,pt1_x,pt1_y,pt2_x,pt2_y);
+           var newPoint = []; //The new point to draw on the line
+           var t = minDist[2]; //To test whether or not the dragged point will pass pt1 or pt2
+           if (ref.currentView ==0){//First point of hint path
+               if (t<0){  //Passed current view, mouse is going off the path
+                   newPoint = [pt1_x,pt1_y];
+               }else if (t>1){  //Passed the next view, mouse is still on path
+                  //Update the view tracking variables
+                   ref.currentView = ref.nextView;
+                   ref.nextView = ref.currentView +1;
+                   newPoint = [pt2_x,pt2_y]; //TODO: This won't work for fast motions, need to find the interpolated point in the next line segment to be more accurate
+               }else{ //Somewhere in between pt1 and pt2
+                   //ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+                   newPoint = [minDist[0],minDist[1]];
+               }
+           }else if (ref.nextView == ref.lastView){  //Last point of hint path
+            if (t<0){  //Passed current view, mouse is still on path
+                //Update the view tracking variables
+                ref.nextView = ref.currentView;
+                ref.currentView = ref.currentView - 1;
+                newPoint= [pt1_x,pt1_y];
+            }else if (t>1){  //Passed next view, mouse is going off the path
+                newPoint= [pt2_x,pt2_y];
+            }else{ //Somewhere between pt1 and pt2
+                //ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+                newPoint= [minDist[0],minDist[1]];
+            }
+        }else{ //At any middle point along the hint path
+               if (t<0){ //Passed current view
+                   ref.nextView = ref.currentView;
+                   ref.currentView = ref.currentView-1;
+                  newPoint = [pt1_x,pt1_y];
+               }else if (t>1){ //Passed next
+                   ref.currentView = ref.nextView;
+                   ref.nextView = ref.nextView +1;
+                   newPoint= [pt2_x,pt2_y];
+               }else{ //Somewhere between pt1 and pt2
+                   //ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+                   newPoint= [minDist[0],minDist[1]];
+               }
+           }
+        ref.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
+  });
 }
 //"Animates" the rest of points while a point is dragged
 //TODO: refactor this function, lots of repeated code
@@ -629,19 +594,20 @@ Scatterplot.prototype.calculateDistance = function(x1,y1,x2,y2){
  * Code based on: http://stackoverflow.com/questions/849211/shortest
  * -distance-between-a-point-and-a-line-segment
  * Formulas can be found at: http://paulbourke.net/geometry/pointlineplane/
- * @return the point on the line at the minimum distance, as an array: [x,y]
+ * @return the point on the line at the minimum distance and the t parameter, as an array: [x,y,t]
  * */
 Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
+
    var distance = this.calculateDistance(pt1_x,pt1_y,pt2_x,pt2_y);
    //Two points of the line segment are the same
-   if (distance == 0) return [pt1_x,pt1_y];
+   if (distance == 0) return [pt1_x,pt1_y,0];
 
    var t = ((x - pt1_x) * (pt2_x - pt1_x) + (y - pt1_y) * (pt2_y - pt1_y)) / distance;
-   if (t < 0) return [pt1_x,pt1_y]; //Point projection goes beyond the first point of the line
-   if (t > 1) return [pt2_x,pt2_y]; //Point projection goes beyond the second point of the line
+   if (t < 0) return [pt1_x,pt1_y,t]; //Point projection goes beyond pt1
+   if (t > 1) return [pt2_x,pt2_y,t]; //Point projection goes beyond pt2
 
    //Otherwise, point projection lies on the line somewhere
     var minX = pt1_x + t*(pt2_x-pt1_x);
     var minY = pt1_y + t*(pt2_y-pt1_y);
-    return [minX,minY];
+    return [minX,minY,t];
 }
