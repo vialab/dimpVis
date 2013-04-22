@@ -26,7 +26,7 @@ scatterplot.render( dataset, 0,years);
 							                                           						   
 					  })
                       .on("drag", function(d){                          					  
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);						   	
+                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
                            slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);					
                              								
 					  })

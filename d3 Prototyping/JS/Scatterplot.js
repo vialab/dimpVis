@@ -243,8 +243,15 @@ Scatterplot.prototype.drawAxes = function (xScale,yScale){
 //TODO: refactor this function, lots of repeated code
 Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {	 
        var ref = this;
-	   
-	  this.svg.select("#displayPoints"+id)
+	   this.svg.select("#displayPoints"+id).each( function (d) {
+           var newPoint = []; //The new point to draw on the line
+           //Get the two points of the line segment currently dragged along
+           var pt1 = d.nodes[ref.currentView][0];
+           var pt2 = d.nodes[ref.nextView][0];
+           var pt1_y = d.nodes[ref.currentView][1];
+           var pt2_y = d.nodes[ref.nextView][1];
+       });
+	  /**this.svg.select("#displayPoints"+id)
         .attr("cx", function(d){		
                  //Get the two points which compose the current sub-path dragged along	               			 
 		        var pt1 = d.nodes[ref.currentView][0];				
@@ -261,6 +268,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					    return pt2;
 					 }
 				 }
+
                   return mouseX;             		
 		})
         .attr("cy", function(d){	
@@ -270,6 +278,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                 var pt1_y = d.nodes[ref.currentView][1];
                 var pt2_y = d.nodes[ref.nextView][1];					
                 var bounds = ref.checkBounds(pt1,pt2,mouseX);
+              console.log(ref.minDistancePoint(mouseX,mouseY,pt1,pt1_y,pt2,pt2_y));
                 var interpY;				
 		     //Check to make sure mouse is in bounds
                 if (ref.currentView ==0){//First point on path	 				
@@ -320,7 +329,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 					 }
 				 }
                
-		});				
+		});*/
   
 }
 //"Animates" the rest of points while a point is dragged
@@ -605,26 +614,34 @@ Scatterplot.prototype.clearHintPath = function (id) {
 	           .style("fill-opacity", 1);				
 }
 
-/** Calculates the Euclidean distance between two points
- * (x1,y1) The first point
- * (x2,y2) The second point
+/** Calculates the distance between two points
+ * (x1,y1) is the first point
+ * (x2,y2) is the second point
+ * @return the distance, avoiding the square root
  * */
 Scatterplot.prototype.calculateDistance = function(x1,y1,x2,y2){
     var term1 = x1 - x2;
     var term2 = y1 - y2;
-    var distance = Math.sqrt((term1*term1)+(term2*term2));
-    return distance;
+    return (term1*term1)+(term2*term2);
 }
-/**
-function sqr(x) { return x * x }
-function dist2(v, w) { return sqr(v.x - w.x) + sqr(v.y - w.y) }
-function distToSegmentSquared(p, v, w) {
-    var l2 = dist2(v, w);
-    if (l2 == 0) return dist2(p, v);
-    var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-    if (t < 0) return dist2(p, v);
-    if (t > 1) return dist2(p, w);
-    return dist2(p, { x: v.x + t * (w.x - v.x),
-        y: v.y + t * (w.y - v.y) });
+/** Finds the minimum distance between a point at (x,y), with respect
+ * to a line segment defined by points (pt1_x,pt1_y) and (pt2_x,pt2_y)
+ * Code based on: http://stackoverflow.com/questions/849211/shortest
+ * -distance-between-a-point-and-a-line-segment
+ * Formulas can be found at: http://paulbourke.net/geometry/pointlineplane/
+ * @return the point on the line at the minimum distance, as an array: [x,y]
+ * */
+Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
+   var distance = this.calculateDistance(pt1_x,pt1_y,pt2_x,pt2_y);
+   //Two points of the line segment are the same
+   if (distance == 0) return [pt1_x,pt1_y];
+
+   var t = ((x - pt1_x) * (pt2_x - pt1_x) + (y - pt1_y) * (pt2_y - pt1_y)) / distance;
+   if (t < 0) return [pt1_x,pt1_y]; //Point projection goes beyond the first point of the line
+   if (t > 1) return [pt2_x,pt2_y]; //Point projection goes beyond the second point of the line
+
+   //Otherwise, point projection lies on the line somewhere
+    var minX = pt1_x + t*(pt2_x-pt1_x);
+    var minY = pt1_y + t*(pt2_y-pt1_y);
+    return [minX,minY];
 }
-function distToSegment(p, v, w) { return Math.sqrt(distToSegmentSquared(p, v, w)); }*/
