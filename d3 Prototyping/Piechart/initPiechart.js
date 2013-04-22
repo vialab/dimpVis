@@ -11,7 +11,7 @@ var pieLabels = ["1990","1995","2000","2005"];
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(15, 700, 700, 200, "#time",20,yearsElect_short, "Years","#666",50);
+var slider   = new Slider(15, 700, 700, 200, "#time",20,yearsElect_short, "Years","#666");
 slider.init();
 slider.render();
 				  

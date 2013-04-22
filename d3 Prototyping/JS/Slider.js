@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
-function Slider(x, y, w, h, id,num,labels,description,colour,spacing) {
+function Slider(x, y, w, h, id,num,labels,description,colour) {
 
    // Position and size attributes
    this.xpos = x;
@@ -18,7 +18,7 @@ function Slider(x, y, w, h, id,num,labels,description,colour,spacing) {
    this.widget = null;  
    this.sliderOffset = x+80;
    this.sliderPos = this.sliderOffset; //The horizontal position of the slider tick, changes while its dragged
-   this.tickSpacing = spacing; //Distance between ticks
+   this.tickSpacing = 50; //Distance between ticks
    this.tickPositions = []; //All x locations of the ticks on the slider
    this.tickLabels = labels;
    this.displayColour = colour;
@@ -78,7 +78,7 @@ Slider.prototype.render = function() {
 	  })
      .attr("y", 10)
 	  .attr("width", 1)	
-     .attr("height", 12)	  
+     .attr("height", 20)	  
       .attr("fill", ref.displayColour)
 	  .attr("class","ticks")
 	  ;  
@@ -88,20 +88,11 @@ Slider.prototype.render = function() {
       .text(function(d) { return d.label; })
 	  .attr("x", function(d) {return d.value})
 	 .attr("y", function (d) {
-	       return 37;
+	       return 45;
 	  })
 	  .attr("font-family", "sans-serif")
 	   .attr("font-size", "12px")
-	   .attr("fill", function (d,i){
-	       if (ref.tickLabels.length >25){ //only display every 5 labels
-		      if (i%5 ==0){
-			     return ref.displayColour;				 
-			  }else{
-			    return "none";
-			  }
-		   }
-		   return ref.displayColour
-	   })
+	   .attr("fill", ref.displayColour)
 	   .attr("text-anchor","middle");
    //Draw a long line through all ticks
    this.widget.append("rect").attr("class","sliderAxis")

@@ -422,7 +422,7 @@ Barchart.prototype.redrawView = function (view,id){
 				         return d.nodes[displayView][1];
 				   });	
 	//Update the hint path							    
-    this.widget.selectAll("#p"+id)/**.transition().duration(500).ease("linear")*/.attr("d", function(d,i){ 
+    this.widget.select("#p"+id)/**.transition().duration(500).ease("linear")*/.attr("d", function(d,i){ 
 								         return ref.lineGenerator(d.nodes); 
 								  });											
 	//Update the hint labels
@@ -504,27 +504,7 @@ Barchart.prototype.showHintPath = function (id,d){
 								  .style("stroke", "steelblue")
 								  .style("fill","none")								
 								    .attr("filter", "url(#blur)");		
-  //TODO:Remove this hack, draw the interaction path for Algeria for views 2-4
-  /** if (id==2){
-    var lineGeneratorAmbig = d3.svg.line()
-					.x(function(d,i) { return ref.findHintX(d[0],i,ref.currentView); })
-					.y(function(d) { return d[1]; })
-					.interpolate("cardinal");
-      this.widget.select("#gInner"+id).append("svg:path")
-                                  .attr("d", function(d){  
-								         var x = ref.hintPathSpacing/2;
-                                         var sinePoints = [[x,10],[x,-10],[x,10],[x,-10],[x,10]];				  
-								         return lineGeneratorAmbig(sinePoints); 
-								  })
-								  .attr("transform",function (d,i){
-								     return "translate ("+0+","+d.nodes[2][1]+")";
-								  })
-								  .attr("id",function (d){return "pAmbig"+d.id;})
-								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
-								  .style("fill","none")								
-								   ;		
-    }   */
+												
 	//Render the hint labels
    this.widget.select("#gInner"+id).selectAll("text").data(d).enter()	                                     						  
 								            .append("svg:text")
