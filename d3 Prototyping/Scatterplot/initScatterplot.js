@@ -1,6 +1,6 @@
 var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels              
 
-var scatterplot   = new Scatterplot(50, 100, 550, 550, "#scatter",50);
+var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate","life expectancy");
 scatterplot.init();
 //Declare some interaction functions for the scatterplot
 scatterplot.clickHintLabelFunction = function (d, i){
@@ -35,7 +35,7 @@ scatterplot.render( dataset, 0,years);
 							 slider.updateSlider(scatterplot.currentView);                              							 
 					  });	
 
-scatterplot.widget.selectAll(".displayPoints")				                 			  
+scatterplot.svg.selectAll(".displayPoints")
                    .call(scatterplot.dragEvent);
 
 ////////////////////////////////////////////////////////////////////////////////

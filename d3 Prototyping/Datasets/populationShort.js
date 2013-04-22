@@ -1,4 +1,4 @@
-var dataset = [
+var data = [
 
 {"Country":"Albania","Pop1955":1392164,"Pop1960":1623114,"Pop1965":1883652,"Pop1970":2156612,"Pop1975":2401108,"Pop1980":2671412,"Pop1985":2956697,"Pop1990":3250778,"Pop1995":3400516,"Pop2000":3473835,"Pop2005":3563112,"Group":"Europe & Central Asia","Cluster":1,"F1950":5.597,"F1955":5.978,"F1960":5.763,"F1965":5.113,"F1970":4.658,"F1975":4.202,"F1980":3.403,"F1985":3.076,"F1990":2.78,"F1995":2.483,"F2000":2.245,"F2005":2.064,"L1950":55.23,"L1955":59.28,"L1960":64.82,"L1965":66.22,"L1970":67.69,"L1975":68.93,"L1980":70.42,"L1985":72,"L1990":71.581,"L1995":72.95,"L2000":75.651,"L2005":76.423},
 {"Country":"Algeria","Pop1955":9841851,"Pop1960":10909294,"Pop1965":11963091,"Pop1970":13931846,"Pop1975":16140252,"Pop1980":18806061,"Pop1985":22008450,"Pop1990":25093154,"Pop1995":28082573,"Pop2000":30409300,"Pop2005":32531853,"Group":"Middle East & North Africa","Cluster":5,"F1950":7.278,"F1955":7.278,"F1960":7.38,"F1965":7.38,"F1970":7.38,"F1975":7.175,"F1980":6.49,"F1985":5.29,"F1990":4.131,"F1995":2.885,"F2000":2.526,"F2005":2.383,"L1950":43.077,"L1955":45.685,"L1960":48.303,"L1965":51.407,"L1970":54.518,"L1975":58.014,"L1980":61.368,"L1985":65.799,"L1990":67.744,"L1995":69.152,"L2000":70.994,"L2005":72.301},
@@ -19,13 +19,32 @@ var dataset = [
 {"Country":"Zambia","Pop1955":2869000,"Pop1960":3254000,"Pop1965":3694000,"Pop1970":4251612,"Pop1975":4923730,"Pop1980":5699777,"Pop1985":6779477,"Pop1990":7941694,"Pop1995":9001866,"Pop2000":10116606,"Pop2005":11261795,"Group":"Sub-Saharan Africa","Cluster":2,"F1950":6.75,"F1955":6.9,"F1960":7.15,"F1965":7.4,"F1970":7.425,"F1975":7.375,"F1980":6.95,"F1985":6.658,"F1990":6.28,"F1995":5.999,"F2000":5.648,"F2005":5.176,"L1950":42.038,"L1955":44.077,"L1960":46.023,"L1965":47.768,"L1970":50.107,"L1975":51.386,"L1980":51.821,"L1985":50.821,"L1990":46.1,"L1995":40.238,"L2000":39.193,"L2005":42.384},
 {"Country":"Zimbabwe","Pop1955":3409017,"Pop1960":4010933,"Pop1965":4685272,"Pop1970":5514536,"Pop1975":6341797,"Pop1980":7169968,"Pop1985":8560378,"Pop1990":10152933,"Pop1995":11111992,"Pop2000":11751323,"Pop2005":12160782,"Group":"Sub-Saharan Africa","Cluster":2,"F1950":6.8,"F1955":7,"F1960":7.3,"F1965":7.4,"F1970":7.4,"F1975":7.3,"F1980":6.74,"F1985":5.656,"F1990":4.773,"F1995":4.054,"F2000":3.563,"F2005":3.186,"L1950":48.451,"L1955":50.469,"L1960":52.358,"L1965":53.995,"L1970":55.635,"L1975":57.674,"L1980":60.363,"L1985":62.351,"L1990":60.377,"L1995":46.809,"L2000":39.989,"L2005":43.487}];
 
-
+var dataset = [];
+//Format the dataset to match the requirements of Scatterplot.js
+for (var j = 0;j<data.length;j++){
+    dataset[j] = [];
+    dataset[j] = {"points":[],"label":data[j].Country};
+    var pts = [];
+    pts[0] = [data[j].F1955,data[j].L1955];
+    pts[1] = [data[j].F1960, data[j].L1960];
+    pts[2] = [data[j].F1965,data[j].L1965];
+    pts[3] = [data[j].F1970, data[j].L1970];
+    pts[4] = [data[j].F1975,data[j].L1975];
+    pts[5] = [data[j].F1980, data[j].L1980];
+    pts[6] = [data[j].F1985, data[j].L1985];
+    pts[7] = [data[j].F1990, data[j].L1990];
+    pts[8] = [data[j].F1995, data[j].L1995];
+    pts[9] = [data[j].F2000, data[j].L2000];
+    pts[10] = [data[j].F2005, data[j].L2005];
+    dataset[j].points = pts;
+}
+//TODO: Move this into a separate file
 //Generate data for the piechart
 //Format of array: 
 // pieDataset = ["clusterLabel":name, "values":[list of all values, one per view]
-var pieDataset = [];
+//var pieDataset = [];
 //Initiliaze general information for all clusters
-pieDataset[0] = [];
+/**pieDataset[0] = [];
 pieDataset[0] = {"clusterLabel":"South Asia","values":[0,0,0,0,0,0,0,0,0,0,0]};
 pieDataset[1] = [];
 pieDataset[1] = {"clusterLabel":"Europe & Central Asia","values":[0,0,0,0,0,0,0,0,0,0,0]};
@@ -39,7 +58,7 @@ pieDataset[5] = [];
 pieDataset[5] = {"clusterLabel":"Middle East & North Africa","values":[0,0,0,0,0,0,0,0,0,0,0]};
 var totals = [0,0,0,0,0,0,0,0,0,0,0];
 //Populate the values array for each cluster, with population totals
- for (var j = 0;j<dataset.length;j++){    
+ for (j = 0;j<dataset.length;j++){
      // if (dataset[j].Cluster == 0 || dataset[j].Cluster==1 || dataset[j].Cluster==2 || dataset[j].Cluster==3){
       var clusterNumber = dataset[j].Cluster;   
       pieDataset[clusterNumber].values[0] += dataset[j].Pop1955; 
@@ -66,5 +85,5 @@ for (j=0;j<pieDataset.length;j++){
    for (k=0;k<totals.length;k++){
        pieDataset[j].values[k] = pieDataset[j].values[k]/totals[k];
    }
-}
+}*/
 
