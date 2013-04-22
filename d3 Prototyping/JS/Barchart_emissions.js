@@ -13,7 +13,7 @@
    this.strokeWidth=5;   
    this.hintColour = "#aec7e8";
    this.fadeColour = "#c7c7c7";
-   this.barColour = "steelblue";
+   this.barColour = "#666";
    //View index tracker variables
    this.currentView = 0; //Starting view of the bars (first year)  
    this.nextView = 1; //Next view of the barchart
@@ -24,11 +24,8 @@
    this.numBars = 10; //Total number of bars (points along x-axis) in the dataset, hard code for debugging but change later!!!
    this.draggedBar = -1;  
    this.yPos = height-5;   
-   this.hintPathSpacing = 35;
-   this.previousMouseX = 0; //For the ambiguous case, tracks the amount dragged in the x direction 
-   this.xTolerance = 100; //For the ambiguous cases, defines a pixel tolerance for horizontal dragging 
-   this.interpX = 0;//For the ambiguous cases, tracks the interpolation when switching views via horizontal dragging
- //Event functions, all declared in main.js  
+   this.hintPathSpacing = 30;
+   //Event functions, all declared in main.js  
    this.placeholder = function() {}; 
    this.mouseoverFunction = this.placeholder;
    this.mouseoutFunction  = this.placeholder; 
@@ -64,15 +61,19 @@
     //Create the scales 	  
 	// var xScale = d3.scale.linear().domain([0,10]).range([0,ref.width]);   
      //var yScale =  d3.scale.linear().domain([10, 80]).range([ref.height,0]);	
+	 //TODO:Learn how to use the max() function
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
-     var yScale =  d3.scale.linear().domain([0, 100000]).range([ref.height,0]);
+    var yScale =  d3.scale.linear().domain([0, 25]).range([ref.height,0]); //For CO2 pp
+	//var yScale =  d3.scale.linear().domain([0.1, 3]).range([ref.height,0]);
 	//Define the axes
 	var xAxis = d3.svg.axis()
                      .scale(xScale)
-					 .orient("bottom");
+					 .orient("bottom")
+					 ;
 	var yAxis = d3.svg.axis()
                      .scale(yScale)
 					 .orient("left");
+
      // Add the y-axis
      this.widget.append("g")
 			.attr("class", "axis")
@@ -84,16 +85,15 @@
 		.attr("class", "axisLabel")			
 		.attr("x", ref.width+ref.padding)
 		.attr("y", ref.height+ref.padding-10)
-		.text("country");
+		.text("g8+5 country");
 
      // Add a y-axis label
 	this.widget.append("text")
 		.attr("class", "axisLabel")		       	
 		.attr("x", 6)		
 		.attr("transform", "rotate(-90)")
-		.text("population");
-
-var labelsXAxis = []; //Collect the labels for the x-axis
+		.text("CO2 emissions (tonnes per person)");
+ var labelsXAxis = []; //Collect the labels for the x-axis
  
 this.widget.selectAll("rect")
     .data(this.displayData.map(function (d,i) {
@@ -101,41 +101,25 @@ this.widget.selectAll("rect")
 			 //Dataset goes from 1955 to 2005 (11 increments)
 			 //Try population:
 			 var heights = [];		
-             var data = [];			
+             var data = [];	
+			 for (var j=1;j<d.length;j++){	
+                    if (d[j] == ""){
+					   data[j-1] = [xScale(i)+ref.padding+ref.strokeWidth,0,0];	
+                     } else{
+					  data[j-1] = [xScale(i)+ref.padding+ref.strokeWidth,ref.yPos-yScale(d[j]),yScale(d[j])];	
+                     }		                   				
+			 }            	
 			 //TODO: Change this later because 'x' is being repeated
 			 //TODO: Why not pre-process the data array in the js file with the json data in it?, won't necessarily be faster but easier to use in multiple htmls
-            //Reason for doing this is for the hint path of heights		
-            //Array format is: data[viewIndex] = [x of top of bar, y of top of bar, height of bar]	          		 
-             data[0] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
-			 data[1] = [xScale(i)+ref.padding+ref.strokeWidth,ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
-			 data[2] = [xScale(i)+ref.padding+ref.strokeWidth,ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
-			 data[3] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1970/100000, d.Pop1970/100000];
-			 data[4] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1975/100000, d.Pop1975/100000];
-			 data[5] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1980/100000, d.Pop1980/100000];
-			 data[6] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1985/100000, d.Pop1985/100000];
-			 data[7] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1990/100000, d.Pop1990/100000];
-			 data[8] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
-			 data[9] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
-			 data[10] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop2005/100000, d.Pop2005/100000];
-			 /**data[0] = [xScale(i), ref.yPos - yScale(d.Pop1955), yScale(d.Pop1955)];
-			 data[1] = [xScale(i),ref.yPos - yScale(d.Pop1960), yScale(d.Pop1960)];
-			 data[2] = [xScale(i),ref.yPos - yScale(d.Pop1965), yScale(d.Pop1965)];
-			 data[3] = [xScale(i), ref.yPos - yScale(d.Pop1970), yScale(d.Pop1970)];
-			 data[4] = [xScale(i), ref.yPos - yScale(d.Pop1975), yScale(d.Pop1975)];
-			 data[5] = [xScale(i), ref.yPos - yScale(d.Pop1980), yScale(d.Pop1980)];
-			 data[6] = [xScale(i), ref.yPos - yScale(d.Pop1985), yScale(d.Pop1985)];
-			 data[7] = [xScale(i), ref.yPos - yScale(d.Pop1990), yScale(d.Pop1990)];
-			 data[8] = [xScale(i), ref.yPos - yScale(d.Pop1995), yScale(d.Pop1995)];
-			 data[9] = [xScale(i), ref.yPos - yScale(d.Pop2000), yScale(d.Pop2000)];
-			 data[10] = [xScale(i), ref.yPos - yScale(d.Pop2005), yScale(d.Pop2005)];*/
-          	labelsXAxis[i] = d.Country;
+			
+          	labelsXAxis[i] = d[0];
 	        return {nodes:data,id:i,country:d.Country};
 	  }))
      .enter()
 	 .append("g")
 	 .attr("class","gDisplayBars")
 	  .attr("id", function (d){return "gDisplayBars"+d.id;});
-
+	  
  // Add the x-axis
     this.widget.append("g")
 		.attr("class", "axis")
@@ -146,11 +130,15 @@ this.widget.selectAll("rect")
             .style("text-anchor", "end")           
             .attr("transform", function(d) {
                 return "rotate(-65)" 
-             });	
+             });
+	
 	//Render the bars 
 this.widget.selectAll(".gDisplayBars")
      .append("rect")
-     .attr("x", function(d){return d.nodes[ref.currentView][0];})
+     .attr("x", function(d){
+	 //console.log(d.nodes);
+	 return d.nodes[ref.currentView][0];
+	 })
      .attr("y", function(d){ return d.nodes[ref.currentView][1];})
      .attr("width", ref.barWidth)
      .attr("height", function(d) { return d.nodes[ref.currentView][2]; })
@@ -173,15 +161,12 @@ this.widget.selectAll(".gDisplayBars")
  //Update height of dragged bar
  //Base of bar is ref.yPos, top of bar is ref.yPos - barHeight, as defined during data initialization
  //TODO: Get rid of this repeated code
-Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
+Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
-	 var currentHeight = -1; 
+	 var currentHeight = -1;
+	 //console.log(ref.currentView+" "+ref.nextView);
      this.widget.select("#displayBars"+id)
 	            .attr("height", function (d){
-				   if (d.nodes[ref.currentView][2] == d.nodes[ref.nextView][2]){ //Stationary bar
-				        return d.nodes[ref.currentView][2];
-				   }
-				   
                     var current =  d.nodes[ref.currentView][1];
 					var next = d.nodes[ref.nextView][1];
                     var bounds = ref.checkBounds(current,next,mouseY);					
@@ -210,62 +195,10 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 				.attr("y", function(d){ 
 				    var current =  d.nodes[ref.currentView][1];
 					var next = d.nodes[ref.nextView][1];
-					console.log(ref.currentView+" "+ref.nextView);
-				    if (d.nodes[ref.currentView][2] == d.nodes[ref.nextView][2]){ //Stationary bar
-				        //Use the mouse x drag to switch between views and translate the hint path accordingly
-						var xDiff = Math.abs(mouseX - ref.previousMouseX);													
-						if (xDiff <=ref.xTolerance && ref.interpX < 0.9){
-						     ref.interpX += 0.1;								 
-                             ref.animateBars(current,current,next,d.nodes[ref.currentView][2],id,ref.interpX);							 
-						}else{ //Interpolation is over, time to switch views
-						     ref.interpX = 0;							
-							if (mouseX < ref.previousMouseX){ //Moving left (beyond current)
-							   ref.nextView = ref.currentView;
-							   ref.currentView--;
-							}else { //Moving right (current to next)
-								 ref.currentView = ref.nextView;
-						         ref.nextView++;	
-							}					 
-													 
-						}
-						//Save the mouse x				    
-						ref.previousMouseX = mouseX;   
-                        //At the end of a stationary bar sequence, apparantely don't need this..
-                        /**if (ref.nextView != ref.numViews && d.nodes[ref.nextView][2]!=d.nodes[ref.nextView+1][2]){
-						    console.log("at end");
-                        }*/						
-                        return current;						
-				   } 
-				   //TODO: Doesn' work, want to invoke diagonal drag
-				   //Might be easier to just search for a flag these cases from the start...in init(), similar to what I did for the scatterplot ambiguous case
-				   /**if (ref.currentView !=0 && ref.nextView != ref.numViews && d.nodes[ref.currentView-1][2] == d.nodes[ref.nextView][2]){ //Second ambiguous case (one height surround by two of the same heights
-				       //Use the mouse x drag to switch between views and translate the hint path accordingly
-					   //Either move from current to current-1 (drag left) or current to next (drag right)
-						var xDiff = Math.abs(mouseX - ref.previousMouseX);													
-						if (xDiff <=ref.xTolerance && ref.interpX < 0.9){
-						     ref.interpX += 0.1;								 
-                             //ref.animateBars(current,current,next,d.nodes[ref.currentView][2],id,ref.interpX);							 
-						}else{ //Interpolation is over, time to switch views
-						     ref.interpX = 0;
-							if (mouseX < ref.previousMouseX){ //Moving left (beyond current)
-							   ref.nextView = ref.currentView;
-							   ref.currentView--;
-							   //return current;
-							}else { //Moving right (current to next)
-								 ref.currentView = ref.nextView;
-						         ref.nextView++;
-                                //return next;									 
-							}	
-                            return mouseY;							
-						}
-						//Save the mouse x				    
-						ref.previousMouseX = mouseX;                     					
-                        return current;	
-				  }*/
-				   			   
                     var bounds = ref.checkBounds(current,next,mouseY);					
                     if (ref.currentView ==0){ //At lowest bar
-					    if (bounds == current){ //Passed lowest bar, out of bounds						   
+					    if (bounds == current){ //Passed lowest bar, out of bounds
+						   console.log("out of bounds");
 						    return current;
 						}else if (bounds == next){ //Passed the next bar height, update tracker variables
 						    //ref.animateBars(mouseY,current,next,currentHeight,id);
@@ -274,7 +207,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 							return next;                          						
 						}
 						//Otherwise, mouse is within bounds						
-						ref.animateBars(mouseY,current,next,currentHeight,id,-1);
+						ref.animateBars(mouseY,current,next,currentHeight,id);
 						return mouseY;
 						
                     } else if (ref.nextView == ref.numViews){ //At the highest bar
@@ -287,7 +220,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
 						   return current;                          				   
 						}
 						//Otherwise, mouse is in bounds
-						 ref.animateBars(mouseY,current,next,currentHeight,id,-1);
+						 ref.animateBars(mouseY,current,next,currentHeight,id);
 						 return mouseY;
 					}else { //At a bar somewhere in  the middle
 					   if (bounds == current){ //Passed current
@@ -302,7 +235,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
                            return next;				   
 					   }						
 					   //Within bounds
-					   ref.animateBars(mouseY,current,next,currentHeight,id,-1);
+					   ref.animateBars(mouseY,current,next,currentHeight,id);
 					   return mouseY;
                    }	                    
 				});	
@@ -330,19 +263,13 @@ Barchart.prototype.checkBounds = function(pt1,pt2,mouse){
 }
 //Animates the rest of the bars while one is being dragged
 //TODO: Refactor this function, lots of repetition, consider using "each"
-Barchart.prototype.animateBars = function (mouseY,current,next,height,id,interp){
-    var ref = this; 
-   var distanceRatio;	
-	if (interp == -1){
+Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
+    var ref = this;   
     //Determine the percentage dragged vertically between current and next
 	  var distanceTravelled = Math.abs(mouseY-current);
 	  var totalDistance = Math.abs(next - current);
-	  distanceRatio = distanceTravelled/totalDistance;
-   } else {
-       distanceRatio = interp;
-    } 
-    ref.interpValue = distanceRatio;	
-//console.log(distanceRatio);	
+	  var distanceRatio = distanceTravelled/totalDistance;      
+	  ref.interpValue = distanceRatio;
 	 this.widget.selectAll(".displayBars")	         
 		          .attr("height", function (d){	
                           if (d.id != id){
@@ -376,13 +303,13 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id,interp)
 								         return animateLineGenerator(d.nodes);
 								  });											
 	//Update the hint labels
-   this.widget.select("#gInner"+id).selectAll("text")
+   this.widget.selectAll(".hintLabels")
 									.attr("transform",function (d,i) {
 									    var currentX = ref.findHintX(d[0],i,ref.currentView);
 										var nextX = ref.findHintX(d[0],i,ref.nextView);
 										var addedDistance = Math.abs(nextX - currentX)*distanceRatio;												       
 										return "translate("+(currentX - addedDistance-10)+","+d[1]+")";								    
-									});				   
+									});			   
 	 
 }
 //A function meant only to interface with other visualizations or the slider
@@ -422,7 +349,7 @@ Barchart.prototype.redrawView = function (view,id){
 				         return d.nodes[displayView][1];
 				   });	
 	//Update the hint path							    
-    this.widget.selectAll("#p"+id)/**.transition().duration(500).ease("linear")*/.attr("d", function(d,i){ 
+    this.widget.select("#p"+id)/**.transition().duration(500).ease("linear")*/.attr("d", function(d,i){ 
 								         return ref.lineGenerator(d.nodes); 
 								  });											
 	//Update the hint labels
@@ -504,27 +431,7 @@ Barchart.prototype.showHintPath = function (id,d){
 								  .style("stroke", "steelblue")
 								  .style("fill","none")								
 								    .attr("filter", "url(#blur)");		
-  //TODO:Remove this hack, draw the interaction path for Algeria for views 2-4
-  /** if (id==2){
-    var lineGeneratorAmbig = d3.svg.line()
-					.x(function(d,i) { return ref.findHintX(d[0],i,ref.currentView); })
-					.y(function(d) { return d[1]; })
-					.interpolate("cardinal");
-      this.widget.select("#gInner"+id).append("svg:path")
-                                  .attr("d", function(d){  
-								         var x = ref.hintPathSpacing/2;
-                                         var sinePoints = [[x,10],[x,-10],[x,10],[x,-10],[x,10]];				  
-								         return lineGeneratorAmbig(sinePoints); 
-								  })
-								  .attr("transform",function (d,i){
-								     return "translate ("+0+","+d.nodes[2][1]+")";
-								  })
-								  .attr("id",function (d){return "pAmbig"+d.id;})
-								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
-								  .style("fill","none")								
-								   ;		
-    }   */
+												
 	//Render the hint labels
    this.widget.select("#gInner"+id).selectAll("text").data(d).enter()	                                     						  
 								            .append("svg:text")
@@ -538,7 +445,8 @@ Barchart.prototype.showHintPath = function (id,d){
 												})												
 											   .attr("fill", "#666")
 											   .on("click",this.clickHintLabelFunction)
-											   .style("cursor", "pointer"); 
+											   .style("cursor", "pointer")
+											   .attr("class","hintLabels"); 
 											   
 }
 

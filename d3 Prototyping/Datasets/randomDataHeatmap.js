@@ -16,8 +16,10 @@ var min = -0.05;
 //Format: 
 var row = 4;
 var col = 6;
+var matrixColours = [];
 for (var view=0;view<6;view++){
      data[view] = [];
+	 matrixColours[view] = [];
 	 var currentRow = 0;
 	 var currentColumn = 0;
      for (var i=0;i<(row*col);i++){	   
@@ -26,7 +28,9 @@ for (var view=0;view<6;view++){
 		      currentColumn = 0;
 		  }
 		  //console.log(currentRow+" "+currentColumn);
-	      data[view][i] = {"row":currentRow,"column":currentColumn,"colourValue":(Math.random() * (max - min) + min)};	
+		  var randomValue = Math.random() * (max - min) + min;
+	      data[view][i] = {"row":currentRow,"column":currentColumn,"colourValue":randomValue};	
+		  matrixColours[view] = randomValue;
           currentColumn++;		  
 	 }     
 }

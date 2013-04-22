@@ -30,6 +30,7 @@ function Scatterplot(x, y, w, h, id,p) {
    this.numViews = 10;
    this.interpValue = 0; //Stores the current interpolation value when a point is dragged between two views
    this.direction = 1; //Forward along the data dimension (e.g., time)
+   this.repeatedPoints = []; //Temporary array to keep track of any repeated points for the currently dragged point
    // Data used for display
    this.displayData = [];   
    this.labels = [];
@@ -252,7 +253,8 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 						
 						if (xDiff >=ref.xTolerance && ref.interpX < 0.9){
 						     ref.interpX += 0.1;					
-                             ref.handleRepeat(id,ref.currentView);                            							 
+                             ref.handleRepeat(id,ref.currentView);  
+                             ref.colourLabel(id,ref.currentView);							 
                              ref.animatePoints(d.nodes[ref.currentView][0],d.nodes[ref.currentView][1], 0, 0,0,0,id,ref.interpX);							 
 						}else if (ref.interpX>=0.9){ //Interpolation is over, time to switch views
 						     ref.interpX = 0;							
@@ -331,6 +333,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
 						ref.redrawView(id,-1);
 						if (d.repeatedPoints[ref.currentView] >0){ //Revisiting point
 						   ref.handleRevisit(id,ref.currentView);
+                           ref.colourLabel(id,ref.currentView);						   
 						}
 						//console.log("passed next");
 					    return pt2_y;
@@ -619,16 +622,18 @@ Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){
 }
 Scatterplot.prototype.showHintPath = function (id,repeats,nodes){ 
        var ref = this;   
+	   ref.repeatedPoints = repeats;
 	   //Render the hint path labels
     this.widget.select("#gInner"+id).selectAll("text")
 	                                        .data(nodes).enter()								  
 								            .append("svg:text")
                                             .text(function(d,i) { 
-											   if (repeats[i]!=0){
+											   if (repeats[i]!=0){ 
+											      //TODO: Only works for two labels!!
 												  if (repeats[i]==1){
-													 return ref.labels[i];
+													 return ref.labels[i]+",";
 												  }else{
-													 return " , "+ref.labels[i];
+													 return " "+ref.labels[i];
 												  }								     
 											  }
 								                return ref.labels[i]; 
@@ -642,7 +647,7 @@ Scatterplot.prototype.showHintPath = function (id,repeats,nodes){
 												.attr("y", function (d) {  return d[1] + ref.pointRadius*2; })												
 											   .attr("fill", this.grey)	
 												.attr("id", function(d,i) { return "hintLabels"+i; })											   
-											   .attr("class","hintLabels")
+											   .attr("class", "hintLabels")
 											   .style("cursor","pointer")											  
 											   .on("click", this.clickHintLabelFunction);
 	//Render the hint path line									    
@@ -708,14 +713,18 @@ Scatterplot.prototype.handleRepeat = function (id,view) {
 //Moves the label colour as the mouse is dragged horizontally during ambiguous cases
 Scatterplot.prototype.colourLabel = function (id,view) {   
      var ref = this;    
-	 //console.log(view);
+	 
 	this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
 								  .style("fill", function (d,i){
-								      if (view != i){
-									     return ref.grey;
-									  }else{
-									     return ref.hintColour
-									  }
+								     if (ref.repeatedPoints[i]!=0){
+									    if (view != i){
+									     return ref.lightGrey;
+										  }else{
+											 return ref.grey;
+										  }
+									 }
+									 return ref.grey;
+								      
 								  });     
 }
 //Temporary function to handle revisited points
@@ -724,8 +733,8 @@ Scatterplot.prototype.handleRevisit = function (id,view) {
      var ref = this;
      this.widget.select("#gInner"+id).select("#hintPoints"+view)                                
 								  .style("fill", ref.hintPointRevisited);	
-	 this.widget.select("#gInner"+id).select("#hintLabels"+view)                                  
-								  .style("fill", ref.hintColour);
+	 /**this.widget.select("#gInner"+id).select("#hintLabels"+view)                                  
+								  .style("fill",  ref.lightGrey);*/
     
 }
 //Temporary function to reset all coloured hint points and labels to original hint colour
@@ -733,7 +742,7 @@ Scatterplot.prototype.resetHintPoints = function (id,view) {
      var ref = this;
      this.widget.select("#gInner"+id).selectAll(".hintPointsRepeats")                                
 								  .style("fill", ref.hintPointColour);
-      this.widget.select("#gInner"+id).selectAll(".hintLabels")                                  
+      this.widget.select("#gInner"+id).selectAll(".repeatLabels")                                  
 								  .style("fill", ref.grey);								  
 
 }

@@ -1,4 +1,6 @@
-var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels              
+var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels      
+var yearsElect = ["1867","1872","1874","1878","1882","1887","1891","1896","1900","1904","1908","1911","1917","1921","1925","1926","1930","1935","1940","1945","1949","1953","1957","1958","1962","1963","1965","1968","1972","1974","1979","1980","1984","1988","1993","1997","2000","2004","2006","2008","2011"];        
+var yearsElect_short = [1949,1953,1957,1958,1962,1963,1965,1968,1972,1974,1979,1980,1984,1988,1993,1997,2000,2004,2006,2008,2011];
 //Fake data for debugging
 piedata = [{"label":"one", "values":[0.2,0.5,0.1,0.4]}, 
             {"label":"two", "values":[0.5,0.3,0.1,0.2]}, 
@@ -9,7 +11,7 @@ var pieLabels = ["1990","1995","2000","2005"];
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(15, 700, 700, 200, "#time",11,years, "Years","#666");
+var slider   = new Slider(15, 700, 700, 200, "#time",20,yearsElect_short, "Years","#666",50);
 slider.init();
 slider.render();
 				  
@@ -39,9 +41,9 @@ slider.widget.select("#slidingTick")
 // Create new pie chart
 ////////////////////////////////////////////////////////////////////////////////  
 
-var piechart   = new Piechart(900, 900, 50, 50 , 180,"#piegraph",pieLabels);
+var piechart   = new Piechart(900, 900, 50, 50 , 180,"#piegraph",yearsElect_short);
 piechart.init();
-piechart.render(piedata);
+piechart.render(pieDatasetElect);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the piechart
