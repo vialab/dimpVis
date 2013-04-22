@@ -14,7 +14,7 @@ heatmap.dragEvent = d3.behavior.drag()
 					   .on("dragstart", function(d){ 
                            heatmap.clearHintPath(heatmap.selected);					   
 						   heatmap.selected = d.id;						  
-						   heatmap.showHintPath(d.id,d.colours,d.x,d.y);
+						   heatmap.showHintPath(d.id,d.pathData,d.x,d.y);
 						   heatmap.previousMouseY = d3.event.y;	                           								   
 							                                           						   
 					  })  
@@ -22,7 +22,8 @@ heatmap.dragEvent = d3.behavior.drag()
                           if (heatmap.selected != -1){
 								heatmap.updateDraggedCell(heatmap.selected,d3.event.y);	   
 							   //console.log("move mouse");
-							} 						
+							} 
+                            slider.animateTick(heatmap.interpValue,heatmap.currentView,heatmap.nextView);								
 					  })					  
 					  .on("dragend",function (d){				    
 					       heatmap.snapToView();						   
@@ -33,6 +34,32 @@ heatmap.dragEvent = d3.behavior.drag()
 
 heatmap.widget.selectAll(".cell").call(heatmap.dragEvent);
 
+////////////////////////////////////////////////////////////////////////////////
+// Create new slider facilitating changing to different views of the visualization
+////////////////////////////////////////////////////////////////////////////////   
+var slider   = new Slider(110, 770, 700, 100, "#time",20,years_nhtsa, "Years","#666");
+slider.init();
+slider.render();
+				  
+////////////////////////////////////////////////////////////////////////////////
+// Define some interaction functions for the slider
+////////////////////////////////////////////////////////////////////////////////
+ /**slider.dragEvent = d3.behavior.drag()  
+						.on("dragstart", function(){                           
+                            barchart.clearHintPath(barchart.draggedBar);							
+					     }) 
+                      .on("drag", function(){                               				  
+							slider.updateDraggedSlider(d3.event.x);                            	
+						    barchart.updateBars(slider.interpValue,slider.currentTick,slider.nextTick);
+						                             						
+					  })
+					  .on("dragend",function (){
+					      slider.snapToTick(d3.event.x);                          
+                          barchart.changeView(slider.currentTick);					      
+					  });	
+
+slider.widget.select("#slidingTick")				                 			  
+                   .call(slider.dragEvent);	*/   
 
 	
 
