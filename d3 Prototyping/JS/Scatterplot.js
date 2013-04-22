@@ -13,10 +13,10 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel) {
    // Position and size attributes for drawing the svg
    this.xpos = x;
    this.ypos = y;
+   this.id = id; 
+   this.padding = p;
    this.width = w;
    this.height = h;
-   this.id = id; 
-   this.padding = p
    this.pointRadius = r;
    this.xLabel = xLabel;
    this.yLabel = yLabel;
@@ -67,7 +67,7 @@ Scatterplot.prototype.setColours = function(pointCol, hintCol, axisCol){
 Scatterplot.prototype.init = function() {
    this.svg = d3.select(this.id).append("svg")
       .attr("width", this.width+(this.padding*2))
-      .attr("height", this.height+(this.padding*2))  
+      .attr("height", this.height+(this.padding*2))
      .append("g")
      .attr("transform", "translate(" + (this.padding+this.xpos) + "," + (this.padding+this.ypos) + ")");
 
@@ -135,9 +135,13 @@ Scatterplot.prototype.render = function( data, start, labels) {
       .append("g")	  
 	  .attr("class","gDisplayPoints");
 
+   //Append an empty g element to contain the hint path
+   this.svg.selectAll(".gDisplayPoints").append("g")
+        .attr("id",function (d){return "gInner"+d.id;})
+        .attr("class","gInner");
 //TODO: Draw the hint path only when point is dragged to avoid over populating the DOM
  //Drawing paths between points
- var line = d3.svg.line()
+ /**var line = d3.svg.line()
     .x(function(d) { return d[0]; })
     .y(function(d) { return d[1]; })
     .interpolate("linear");
@@ -194,10 +198,10 @@ Scatterplot.prototype.render = function( data, start, labels) {
 							  .attr("fill",ref.pointColour)
 							  .style("fill-opacity",1)
 							   .attr("id", function (d){return "displayPoints"+d.id;})
-							  .style("cursor", "pointer")  
-							   .on("mouseover", ref.mouseoverFunction)
+							  .style("cursor", "pointer")  ;
+							   /**.on("mouseover", ref.mouseoverFunction)
 							   .on("mouseout", ref.mouseoutFunction)
-							   .on("click", ref.clickFunction);
+							   .on("click", ref.clickFunction);*///Currently not being used*/
 }
 /** Draws the axes on the SVG
  *  xScale: a function defining the scale of the x-axis
@@ -265,7 +269,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                    ref.nextView = ref.currentView +1;
                    newPoint = [pt2_x,pt2_y]; //TODO: This won't work for fast motions, need to find the interpolated point in the next line segment to be more accurate
                }else{ //Somewhere in between pt1 and pt2
-                   //ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+                   ref.animatePoints(id,t);
                    newPoint = [minDist[0],minDist[1]];
                }
            }else if (ref.nextView == ref.lastView){  //Last point of hint path
@@ -277,7 +281,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
             }else if (t>1){  //Passed next view, mouse is going off the path
                 newPoint= [pt2_x,pt2_y];
             }else{ //Somewhere between pt1 and pt2
-                //ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+                ref.animatePoints(id,t);
                 newPoint= [minDist[0],minDist[1]];
             }
         }else{ //At any middle point along the hint path
@@ -290,47 +294,42 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                    ref.nextView = ref.nextView +1;
                    newPoint= [pt2_x,pt2_y];
                }else{ //Somewhere between pt1 and pt2
-                   //ref.animatePoints(mouseX,interpY, pt1, pt1_y,pt2,pt2_y,id);
+                   ref.animatePoints(id,t);
                    newPoint= [minDist[0],minDist[1]];
                }
            }
         ref.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
   });
 }
-//"Animates" the rest of points while a point is dragged
+/**"Animates" the rest of the points while one is being dragged
+ * Uses the 't' parameter, which represents approximately how far along a line segment
+ * the dragged point has travelled.  The positions of the rest of the points are interpolated
+ * based on this t parameter and re-drawn at this interpolated position
+ * id: The id of the dragged point
+ * interpAmount: The t parameter, or amount to interpolate by
+ * */
 //TODO: refactor this function, lots of repeated code
-Scatterplot.prototype.animatePoints = function(mouseX,interpY, pt1_x, pt1_y,pt2_x,pt2_y,id){
+Scatterplot.prototype.animatePoints = function(id,interpAmount){
     var ref = this;
-  //Determine the percentage travelled along the path between current and next
-  var distanceTravelled = ref.calculateDistance(mouseX,interpY,pt1_x,pt1_y);
-  var totalDistance = ref.calculateDistance(pt1_x,pt1_y,pt2_x,pt2_y);
-  var distanceRatio = distanceTravelled/totalDistance;
-  ref.interpValue = distanceRatio;
-   this.svg.selectAll(".displayPoints")
-				   .attr("cx",function (d){	
-                          if (d.id != id){				   
-							     var pt1 = d.nodes[ref.currentView][0];
-								 var pt2 = d.nodes[ref.nextView][0];	
+   ref.interpValue = interpAmount; //Save the interpolation value, for animating other visualizations
+   this.svg.selectAll(".displayPoints").filter(function (d){return d.id!=id;})
+				   .attr("cx",function (d){
+							     var pt1_x = d.nodes[ref.currentView][0];
+								 var pt2_x = d.nodes[ref.nextView][0];
 								 var pt1_y = d.nodes[ref.currentView][1];
 								 var pt2_y = d.nodes[ref.nextView][1];
-								 var interpolator = d3.interpolate({x:pt1,y:pt1_y},{x:pt2,y:pt2_y});
-								 var newPoint = interpolator(distanceRatio);
+								 var interpolator = d3.interpolate({x:pt1_x,y:pt1_y},{x:pt2_x,y:pt2_y});
+								 var newPoint = interpolator(interpAmount);
 								 return newPoint.x;
-						   }
-						   return mouseX;
 						})
-					 .attr("cy",function (d){	
-					     if (d.id != id){
-								 var pt1 = d.nodes[ref.currentView][0];
-								 var pt2 = d.nodes[ref.nextView][0];	
-								 var pt1_y = d.nodes[ref.currentView][1];
+					 .attr("cy",function (d){
+                               var pt1_x = d.nodes[ref.currentView][0];
+                               var pt2_x = d.nodes[ref.nextView][0];
+                               var pt1_y = d.nodes[ref.currentView][1];
 								 var pt2_y = d.nodes[ref.nextView][1];
-                                 var interpolator = d3.interpolate({x:pt1,y:pt1_y},{x:pt2,y:pt2_y});
-                                 var newPoint = interpolator(distanceRatio);
-								 return newPoint.y;								 
-															
-						}		
-                        return interpY;						
+                                 var interpolator = d3.interpolate({x:pt1_x,y:pt1_y},{x:pt2_x,y:pt2_y});
+                                 var newPoint = interpolator(interpAmount);
+								 return newPoint.y;
 					 });			
  
 }
@@ -555,8 +554,47 @@ Scatterplot.prototype.checkBounds = function(pt1,pt2,mouse){
 	}
 	return "ok";	
 }
-Scatterplot.prototype.showHintPath = function (id){      
-	
+Scatterplot.prototype.showHintPath = function (id){
+    //Drawing paths between points
+    var line = d3.svg.line()
+        .x(function(d) { return d[0]; })
+        .y(function(d) { return d[1]; })
+        .interpolate("linear");
+
+
+    //Render the hint points
+    this.svg.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
+        .data(function(d) {return d.nodes;})
+        .enter().append("svg:circle")
+        .attr("cx", function(d) { return d[0]; })
+        .attr("cy", function(d) { return d[1]; })
+        .attr("r",ref.pointRadius)
+        .attr("class","hintPoints")
+        .style("fill","none")
+        .style("cursor","pointer")
+        .attr("filter", "url(#blur)");
+
+    //Render the hint path labels
+    this.svg.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("text")
+        .data(function(d) {return d.nodes;}).enter()
+        .append("svg:text")
+        .text(function(d,i) { return ref.labels[i]; })
+        .attr("x", function(d) {return d[0] + ref.pointRadius*2})
+        .attr("y", function (d) {  return d[1] + ref.pointRadius*2; })
+        .attr("fill", "none")
+        .attr("class","hintLabels")
+        .style("cursor","pointer")
+        .on("click", this.clickHintLabelFunction);
+    //Render the hint path line
+    this.svg.selectAll("g").selectAll(".gInner").append("svg:path")
+        .attr("d", function(d){
+            return line(d.nodes);
+        })
+        .attr("id",function (d){return "p"+d.id;})
+        .style("stroke-width", 2)
+        .style("stroke", "none")
+        .style("fill", "none")
+        .attr("filter", "url(#blur)");
 	   this.svg.select("#p"+id)
 					.style("stroke", this.hintColour);     	
        this.svg.select("#gInner"+id).selectAll(".hintLabels")
