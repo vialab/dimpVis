@@ -13,7 +13,7 @@
    this.strokeWidth=5;   
    this.hintColour = "#aec7e8";
    this.fadeColour = "#c7c7c7";
-   this.barColour = "#74c476";
+   this.barColour = "#666";
    //View index tracker variables
    this.currentView = 0; //Starting view of the bars (first year)  
    this.nextView = 1; //Next view of the barchart
@@ -61,8 +61,10 @@
     //Create the scales 	  
 	// var xScale = d3.scale.linear().domain([0,10]).range([0,ref.width]);   
      //var yScale =  d3.scale.linear().domain([10, 80]).range([ref.height,0]);	
+	 //TODO:Learn how to use the max() function
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
-     var yScale =  d3.scale.linear().domain([0, 100000]).range([ref.height,0]);
+    var yScale =  d3.scale.linear().domain([0, 25]).range([ref.height,0]); //For CO2 pp
+	//var yScale =  d3.scale.linear().domain([0.1, 3]).range([ref.height,0]);
 	//Define the axes
 	var xAxis = d3.svg.axis()
                      .scale(xScale)
@@ -83,14 +85,14 @@
 		.attr("class", "axisLabel")			
 		.attr("x", ref.width+ref.padding)
 		.attr("y", ref.height+ref.padding-10)
-		.text("country");
+		.text("g8+5 country");
 
      // Add a y-axis label
 	this.widget.append("text")
 		.attr("class", "axisLabel")		       	
 		.attr("x", 6)		
 		.attr("transform", "rotate(-90)")
-		.text("population");
+		.text("CO2 emissions (tonnes per person)");
  var labelsXAxis = []; //Collect the labels for the x-axis
  
 this.widget.selectAll("rect")
@@ -99,34 +101,18 @@ this.widget.selectAll("rect")
 			 //Dataset goes from 1955 to 2005 (11 increments)
 			 //Try population:
 			 var heights = [];		
-             var data = [];			
+             var data = [];	
+			 for (var j=1;j<d.length;j++){	
+                    if (d[j] == ""){
+					   data[j-1] = [xScale(i)+ref.padding+ref.strokeWidth,0,0];	
+                     } else{
+					  data[j-1] = [xScale(i)+ref.padding+ref.strokeWidth,ref.yPos-yScale(d[j]),yScale(d[j])];	
+                     }		                   				
+			 }            	
 			 //TODO: Change this later because 'x' is being repeated
 			 //TODO: Why not pre-process the data array in the js file with the json data in it?, won't necessarily be faster but easier to use in multiple htmls
-            //Reason for doing this is for the hint path of heights		
-            //Array format is: data[viewIndex] = [x of top of bar, y of top of bar, height of bar]	          		 
-             data[0] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1955/100000, d.Pop1955/100000];
-			 data[1] = [xScale(i)+ref.padding+ref.strokeWidth,ref.yPos - d.Pop1960/100000, d.Pop1960/100000];
-			 data[2] = [xScale(i)+ref.padding+ref.strokeWidth,ref.yPos - d.Pop1965/100000, d.Pop1965/100000];
-			 data[3] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1970/100000, d.Pop1970/100000];
-			 data[4] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1975/100000, d.Pop1975/100000];
-			 data[5] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1980/100000, d.Pop1980/100000];
-			 data[6] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1985/100000, d.Pop1985/100000];
-			 data[7] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1990/100000, d.Pop1990/100000];
-			 data[8] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop1995/100000, d.Pop1995/100000];
-			 data[9] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop2000/100000, d.Pop2000/100000];
-			 data[10] = [xScale(i)+ref.padding+ref.strokeWidth, ref.yPos - d.Pop2005/100000, d.Pop2005/100000];
-			 /**data[0] = [xScale(i), ref.yPos - yScale(d.Pop1955), yScale(d.Pop1955)];
-			 data[1] = [xScale(i),ref.yPos - yScale(d.Pop1960), yScale(d.Pop1960)];
-			 data[2] = [xScale(i),ref.yPos - yScale(d.Pop1965), yScale(d.Pop1965)];
-			 data[3] = [xScale(i), ref.yPos - yScale(d.Pop1970), yScale(d.Pop1970)];
-			 data[4] = [xScale(i), ref.yPos - yScale(d.Pop1975), yScale(d.Pop1975)];
-			 data[5] = [xScale(i), ref.yPos - yScale(d.Pop1980), yScale(d.Pop1980)];
-			 data[6] = [xScale(i), ref.yPos - yScale(d.Pop1985), yScale(d.Pop1985)];
-			 data[7] = [xScale(i), ref.yPos - yScale(d.Pop1990), yScale(d.Pop1990)];
-			 data[8] = [xScale(i), ref.yPos - yScale(d.Pop1995), yScale(d.Pop1995)];
-			 data[9] = [xScale(i), ref.yPos - yScale(d.Pop2000), yScale(d.Pop2000)];
-			 data[10] = [xScale(i), ref.yPos - yScale(d.Pop2005), yScale(d.Pop2005)];*/
-          	labelsXAxis[i] = d.Country;
+			
+          	labelsXAxis[i] = d[0];
 	        return {nodes:data,id:i,country:d.Country};
 	  }))
      .enter()
@@ -149,7 +135,10 @@ this.widget.selectAll("rect")
 	//Render the bars 
 this.widget.selectAll(".gDisplayBars")
      .append("rect")
-     .attr("x", function(d){return d.nodes[ref.currentView][0];})
+     .attr("x", function(d){
+	 //console.log(d.nodes);
+	 return d.nodes[ref.currentView][0];
+	 })
      .attr("y", function(d){ return d.nodes[ref.currentView][1];})
      .attr("width", ref.barWidth)
      .attr("height", function(d) { return d.nodes[ref.currentView][2]; })
@@ -175,7 +164,7 @@ this.widget.selectAll(".gDisplayBars")
 Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
 	 var currentHeight = -1;
-	 console.log(ref.currentView+" "+ref.nextView);
+	 //console.log(ref.currentView+" "+ref.nextView);
      this.widget.select("#displayBars"+id)
 	            .attr("height", function (d){
                     var current =  d.nodes[ref.currentView][1];
@@ -263,7 +252,7 @@ Barchart.prototype.checkBounds = function(pt1,pt2,mouse){
 	  start = pt1;
 	  end = pt2;
 	}
-	console.log("my "+mouse+"start "+start+" end "+end);
+	//console.log("my "+mouse+"start "+start+" end "+end);
 	//Check if mouse is between path defined by (start,end)
 	if (mouse <= start){
 	   return start;

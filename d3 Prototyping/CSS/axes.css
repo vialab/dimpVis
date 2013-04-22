@@ -6,13 +6,13 @@
 .axis text{
   font-family: sans-serif;
   font-size:11px;
-  fill:#c7c7c7;
+  fill:#AEAEAE;
 }
 .axisLabel {
   font-family: sans-serif;
   font-size:14px;
   text-anchor: end;
-  fill:#c7c7c7;
+  fill:#AEAEAE;
 }
 .gInner text {
   font-family: sans-serif;

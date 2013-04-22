@@ -53,7 +53,7 @@ var count = 0;
 var countColours = 0;
 for (var view=0;view<20;view++){
      dataMatrix[view] = []; 
-     matrixColours[view] = [];	 
+    matrixColours[view] = [];	 
 	 count =0;
 	 countColours = 0;
      for (var col=0;col<6;col++){  		    
@@ -68,17 +68,19 @@ for (var view=0;view<20;view++){
 			}
 			if (foundScore !=-1){
 			   dataMatrix[view][count] = {"row":row,"column":col,"colourValue":foundScore}; 
-			    matrixColours[view][countColours] = foundScore;
-				countColours++;
+			   matrixColours[view][count] = foundScore;
+			   //matrixColours[countColours] = foundScore;
+				
 			}else{
 			  dataMatrix[view][count] = {"row":row,"column":col,"colourValue":0};
-			  //matrixColours[view][count] = 0;
-            }			
+			  matrixColours[view][count] = 0;
+			 // matrixColours[countColours] = 0;
+            }
+           //countColours++;			
            count++;			
 		  }
 	}	 
 }
 
-//console.log(dataMatrix);
 	    //  data[view][i] = {"row":currentRow,"column":currentColumn,"colourValue":(Math.random() * (max - min) + min)};	
 

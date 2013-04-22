@@ -37,17 +37,13 @@ function Heatmap(x, y, w, h, id,l,al,p) {
    this.dragEvent = null;
    //Function for assigning colours to each cell
    this.generateColour = d3.scale.quantize()
-    //.domain([1, 8155])
+    .domain([-0.05, 0.05])
     //.range(["rgb(165,0,38)","rgb(215,48,39)","rgb(244,109,67)","rgb(253,174,97)", "rgb(254,224,139)"]); //red
 	//.range(["rgb(255, 255, 217)","rgb(237, 248, 177)","rgb(199, 233, 180)","rgb(127, 205, 187)","rgb(65, 182, 196)","rgb(29, 145, 192)","rgb(34, 94, 168)","rgb(12, 44, 132)"]); //blue long
 	.range(["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"]);
-	/**this.generateColour = d3.scale.log()  
-	.range(["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"]);*/
   this.generateHintY = d3.scale.quantize()
-    //.domain([1, 8155])
-  // .range([1,2,3,4, 5,6,7,8]);
-  .range([1,2,3,4, 5]);
-  // .range([5,4,3,2, 1]);
+    .domain([-0.05, 0.05])
+    .range([1,2,3,4, 5]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,27 +92,20 @@ this.widget.selectAll(".cell")
         var yValue = 0;		
        var totalDistance = 570; //start index at zero..	  
           for (var j=0;j<ref.allData.length;j++){ 		        
-                ref.generateColour.domain(colours[j]);
-                ref.generateHintY.domain(colours[j]);
-	           if (j==1){ //TODO:Remove this hack, problem was that when you only had one whole number in the domain and the rest zeros, the quantize function returns undefined for all zeros
-				    var colValue = ref.allData[j][i].colourValue;
-					if (colValue ==0){
-					   allColours[j] = "rgb(254,224,139)";					                  			
-					   yValue = 1;
-					}else{
-					    allColours[j] = "rgb(165,0,38)";					                  			
-					    yValue = 5;
-                     }					
-				}else{	           	
-					allColours[j] = ref.generateColour(ref.allData[j][i].colourValue);					                  			
-					yValue = ref.generateHintY(ref.allData[j][i].colourValue);
-                }					
-          
-			
+                //ref.generateColour.domain(colours[j]);
+                //ref.generateHintY.domain(colours[j]);				
+               // if (ref.allData[j][i].colourValue >0){		
+					allColours[j] = ref.generateColour(ref.allData[j][i].colourValue);	
+					yValue = ref.generateHintY(ref.allData[j][i].colourValue);	
+               /** }else{
+				   allColours[j] = "rgb(255,255,255)";					  
+                   yValue = 0;				   
+                }*/
+				
                 hintPathData[j] = [allColours[j],(j*ref.xSpacing),(yValue*ref.ySpacing),(j*ref.xSpacing)/totalDistance];				
          }	
 		  
-        //console.log(allColours);
+        //console.log(hintPathData);
 	     return {id:i,values:d,x:d.row*ref.cellSize+ref.padding,y:d.column*ref.cellSize+ref.padding,colours:allColours,pathData:hintPathData};
 	}))
   .enter().append("rect")
@@ -146,10 +135,9 @@ this.widget.selectAll(".axisVertical text").data(this.axisLabels)
 							  return ref.cellSize*i+ref.padding+ref.cellSize/2;
 							})
                             .attr("fill",this.axisColour)							
-                            .attr("font-size","14px")
-							.attr("class","axisVertical");
-//TODO: Figure out how to apply transform rotate to each individual text element							
-/**this.widget.selectAll(".axisHorizontal text").data(this.axisLabels)
+                            .attr("font-size","12px")
+							.attr("class","axisVertical");		
+this.widget.selectAll(".axisHorizontal text").data(this.axisLabels)
                              .enter()	                                     						  
 						    .append("svg:text")
 							.text(function(d,i) { return d; })
@@ -160,7 +148,7 @@ this.widget.selectAll(".axisVertical text").data(this.axisLabels)
                             .attr("fill",this.axisColour)							
                             .attr("font-size","12px")
 							.attr("class","axisHorizontal")
-							 .style("text-anchor", "end");*/
+							 .style("text-anchor", "end");
 							
 
 }
@@ -248,7 +236,7 @@ Heatmap.prototype.interpolateColours = function(view){
    //Re-position the hint path indicator to show transition to next view
   /** this.widget.select("#hintIndicator")
              .attr("y",ref.currentView*ref.cellSize/2+travelAmount);*/
-/**this.widget.select("#hintPath").selectAll("text").attr("x",function (d,i) {
+	/**this.widget.select("#hintPath").selectAll("text").attr("x",function (d,i) {
 	         var currentX = ref.findHintX(i,ref.currentView);
 			 var nextX = ref.findHintX(i,nextView);
 			 var addedDistance = Math.abs(nextX - currentX)*travelAmount;
@@ -350,7 +338,7 @@ this.widget.select("#hintPath").append("rect")
 //id: The ID of the dragged tile
 Heatmap.prototype.clearHintPath = function(id){  
    this.widget.select("#hintPath").selectAll("rect").remove();
-   this.widget.select("#hintPath").selectAll("path").remove();
+    this.widget.select("#hintPath").selectAll("path").remove();
     this.widget.select("#line-gradient").remove();
 	this.widget.select("#hintPath").selectAll("text").remove();	   
 }
