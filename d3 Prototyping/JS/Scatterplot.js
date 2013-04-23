@@ -92,7 +92,6 @@ Scatterplot.prototype.init = function() {
  * */
 Scatterplot.prototype.render = function( data, start, labels) {
    var ref = this; //Reference variable
-
 	//Save the function parameters
    this.labels = labels;
    this.displayData = data;
@@ -100,12 +99,12 @@ Scatterplot.prototype.render = function( data, start, labels) {
    this.lastView = labels.length -1;
 
    //Resolve the index value for the next view (e.g., if currentView is 0, then nextView should be set to 1)
-   if (this.currentView ==0){//First point on path			        
+   if (this.currentView ==0){
 			this.nextView = this.currentView+1;
-	}else if (this.currentView == this.lastView){  //Last point of path
+	}else if (this.currentView == this.lastView){
 		   this.nextView = this.currentView;
 		   this.currentView = this.currentView -1;
-	}else { //A point somewhere in the middle				     
+	}else {
 		this.nextView = this.currentView + 1;
 	}
      //Find the max and min values of the points, used to scale the axes and the dataset
@@ -113,7 +112,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
      var min_x = d3.min(data.map(function (d){return d3.min(d.points.map(function (a){return a[0];}) ); }));
      var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
      var min_y = d3.min(data.map(function (d){return d3.min(d.points.map(function (a){return a[1];}) ); }));
-
+  //TODO: graph is offset by the padding, which causes points to go off the graph
     //Create the scales by mapping the x,y to the svg size
     var xScale = d3.scale.linear().domain([min_x,max_x]).range([0,ref.width]);
     var yScale =  d3.scale.linear().domain([min_y, max_y]).range([ref.height,0]);
@@ -164,7 +163,8 @@ Scatterplot.prototype.render = function( data, start, labels) {
  *  xScale: a function defining the scale of the x-axis
  *  yScale: a function defining the scale of the y-axis
  * */
-Scatterplot.prototype.drawAxes = function (xScale,yScale){
+ //TODO:Ticks went missing :(
+ Scatterplot.prototype.drawAxes = function (xScale,yScale){
 
     //Define functions to create the axes
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -175,14 +175,16 @@ Scatterplot.prototype.drawAxes = function (xScale,yScale){
         .attr("class", "axis")
         .attr("transform", "translate("+this.padding+"," + this.height + ")")
         .style("fill",this.axisColour)
-        .call(xAxis);
+        .call(xAxis)
+        .select("path").style("stroke",this.axisColour);
 
     // Add the y-axis
     this.svg.append("g")
         .attr("class", "axis")
         .attr("transform", "translate("+ this.padding+ ",0)")
         .style("fill",this.axisColour)
-        .call(yAxis);
+        .call(yAxis)
+        .select("path").style("stroke",this.axisColour);
 
     // Add an x-axis label
     this.svg.append("text")
@@ -226,7 +228,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                    ref.nextView = ref.currentView +1;
                    newPoint = [pt2_x,pt2_y]; //TODO: This won't work for fast motions, need to find the interpolated point in the next line segment to be more accurate
                }else{ //Somewhere in between pt1 and pt2
-                   ref.animatePoints(id,t);
+                   ref.interpolatePoints(id,t,ref.currentView,ref.nextView);
                    newPoint = [minDist[0],minDist[1]];
                }
            }else if (ref.nextView == ref.lastView){  //Last point of hint path
@@ -238,7 +240,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
             }else if (t>1){  //Passed next view, mouse is going off the path
                 newPoint= [pt2_x,pt2_y];
             }else{ //Somewhere between pt1 and pt2
-                ref.animatePoints(id,t);
+                ref.interpolatePoints(id,t,ref.currentView,ref.nextView);
                 newPoint= [minDist[0],minDist[1]];
             }
         }else{ //At any middle point along the hint path
@@ -251,7 +253,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                    ref.nextView = ref.nextView +1;
                    newPoint= [pt2_x,pt2_y];
                }else{ //Somewhere between pt1 and pt2
-                   ref.animatePoints(id,t);
+                   ref.interpolatePoints(id,t,ref.currentView,ref.nextView);
                    newPoint= [minDist[0],minDist[1]];
                }
            }
@@ -264,48 +266,26 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
  * based on this t parameter and re-drawn at this interpolated position
  * id: The id of the dragged point
  * interpAmount: The t parameter, or amount to interpolate by
+ * startView,endView: Define the range to interpolate across
  * */
-Scatterplot.prototype.animatePoints = function(id,interpAmount){
+Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,endView){
   var ref = this;
   ref.interpValue = interpAmount; //Save the interpolation value, for animating other visualizations
   //Redraw all points, excluding the dragging one, to their new position according to the interpolation amount
   this.svg.selectAll(".displayPoints").filter(function (d){return d.id!=id;})
       .each(function (d){
-          var interpolator = d3.interpolate({x:d.nodes[ref.currentView][0],y:d.nodes[ref.currentView][1]},
-              {x:d.nodes[ref.nextView][0],y:d.nodes[ref.nextView][1]}); //Function to linearly interpolate between points at current and next view
+          var interpolator = d3.interpolate({x:d.nodes[startView][0],y:d.nodes[startView][1]},
+              {x:d.nodes[endView][0],y:d.nodes[endView][1]}); //Function to linearly interpolate between points at current and next view
           var newPoint = interpolator(interpAmount);
           //Update the position of the point according to the interpolated point position
           d3.select(this).attr("cx",newPoint.x)
                          .attr("cy",newPoint.y);
       })
 }
-//TODO:Might not need this, refactor this code
-Scatterplot.prototype.updatePoints = function(interpValue,current,next){  
-   this.svg.selectAll(".displayPoints")
-				   .attr("cx",function (d){	                         				   
-							     var pt1 = d.nodes[current][0];
-								 var pt2 = d.nodes[next][0];	
-								 var pt1_y = d.nodes[current][1];
-								 var pt2_y = d.nodes[next][1];
-								 var interpolator = d3.interpolate({x:pt1,y:pt1_y},{x:pt2,y:pt2_y});
-								 var newPoint = interpolator(interpValue);
-								 return newPoint.x;						  
-						})
-					 .attr("cy",function (d){		    
-								 var pt1 = d.nodes[current][0];
-								 var pt2 = d.nodes[next][0];	
-								 var pt1_y = d.nodes[current][1];
-								 var pt2_y = d.nodes[next][1];
-                                 var interpolator = d3.interpolate({x:pt1,y:pt1_y},{x:pt2,y:pt2_y});
-                                 var newPoint = interpolator(interpValue);
-								 return newPoint.y;													
-											
-					 });			
- 
-}
 /** Snaps to the nearest view once a dragged point is released
  *  Nearest view is the closest position (either current or next) to the
- *  most recent position of the dragged point
+ *  most recent position of the dragged point. View tracking variables are
+ *  updated according to which view is "snapped" to.
  *  id: The id of the dragged point
  *  mouseX, mouseY: Coordinates of the mouse, defining the most recent position of the dragged point
  *  points: An array of all point positions of the dragged point (e.g., d.nodes)
@@ -320,10 +300,11 @@ Scatterplot.prototype.snapToView = function( id, mouseX, mouseY,points) {
 		ref.currentView = ref.nextView;
 		ref.nextView = ref.nextView +1;	                        				
      }
-    if (ref.nextView == ref.lastView){ //If the nextView is the last view index, need to re draw the plot on that index (not currentView, which is nextView-1)
-        ref.redrawView(id,ref.nextView);
+    //Special case: If the nextView is the last view index, need to re draw the plot on that index (not currentView, which is nextView-1)
+    if (ref.nextView == ref.lastView){
+        ref.redrawView(ref.nextView);
 	}else{
-	   ref.redrawView(id,-1);
+	   ref.redrawView(ref.currentView);
     }
 }
 /** Updates the view tracking variables when the view is being changed by an external
@@ -343,65 +324,65 @@ Scatterplot.prototype.changeView = function( newView) {
 		ref.nextView = newView + 1;
 	}
 }
-////////////////////////////////////////////////////////////////////////////////
-// Animates points along a path when fast forwarding is used
-////////////////////////////////////////////////////////////////////////////////
-//TODO: fix this
-Scatterplot.prototype.animateAlongPath = function( startView, endView) {
+/** Animates all points in the scatterplot along their hint paths from
+ *  startView to endView, this function is called when "fast-forwarding"
+ *  is invoked (by clicking a year label on the hint path)
+ *  startView: View index to start the animation at
+ *  endView: View to end the animation at (need to update view variables
+ *  according to this value)
+ *  Resources: http://bl.ocks.org/mbostock/1125997
+ *            http://bost.ocks.org/mike/transition/
+ *  NOTE: This function does not update the view tracking variables
+ * */
+//TODO:Add tweening to make the transition smoother
+//TODO: Out of bounds for end points, still pretty buggy might have to do with the view tracking
+ Scatterplot.prototype.animatePoints = function( startView, endView) {
 	 var ref = this;
-	 //Update the view tracker variables
-	 if (endView ==0){//First point on path
-            ref.currentView = endView
-			ref.nextView = endView+1;
-	}else if (endView == ref.lastView){  //Last point of path
-		   ref.nextView = endView;
-		   ref.currentView = endView -1;
-	}else { //A point somewhere in the middle
-        ref.currentView = endView;
-		ref.nextView = endView + 1;
-	}
-    var totalViews = ref.lastView+1;
-    var end = startView + (endView-startView)*totalViews;
-    var viewCounter = startView;
-    var animateView = startView;
+     //Determine the travel direction (e.g., forward or backward in time)
+     var direction = 1;
+     if (startView>endView) direction=-1;
 
+    //Define some counter variables to keep track of the views passed during the transition
+    var totalViews = ref.lastView+1;
+    var viewCounter = 0; //Identifies when a new view is reached
+    var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
+
+    //Apply multiple transitions to each display point by chaining them
     this.svg.selectAll(".displayPoints").each(animate());
 
+    //Recursively invoke this function to chain transitions, a new transition is added once
+    //the current one is finished
     function animate() {
-        viewCounter++;
-        if (viewCounter%totalViews==0){
-            animateView++;
+        viewCounter = viewCounter + direction;
+        if (viewCounter%totalViews==0) {
+            animateView = animateView + direction;
+            viewCounter = 0;
         }
-        if (viewCounter>=end){
-            return;
-        }
+       if (direction == 1 && animateView>=endView) return;
+       if (direction ==-1 && animateView<=endView) return;
         return function(d) {
-                d3.select(this).transition(400)
-                    .attr("cx",d.nodes[animateView][0])
-                    .attr("cy",d.nodes[animateView][1])
+                console.log(animateView);
+                d3.select(this).transition(400).ease("linear")
+                .attr("cx",d.nodes[animateView][0])
+                .attr("cy",d.nodes[animateView][1])
                 .each("end", animate());
         };
     }
 }
-////////////////////////////////////////////////////////////////////////////////
-// Redraws the points on the scatterplot
-// Note: 'id' is optional, only if a point should be highlighted (during drag)
-////////////////////////////////////////////////////////////////////////////////
-Scatterplot.prototype.redrawView = function(id,view) {     
-     var displayView = this.currentView;
-     if (view!=-1){
-	    displayView = view;
-	 } 
-	 
+/** Redraws the scatterplot at a specified view
+ *  view: the view to draw
+ *  NOTE: view tracking variables are not updated by this function
+ * */
+//TODO: Might want to add interpolation or use the interpolate function
+Scatterplot.prototype.redrawView = function(view) {
     this.svg.selectAll(".displayPoints")
 	          .transition().duration(400)
 	           .attr("cx",function (d){	
-			           return d.nodes[displayView][0];
+			           return d.nodes[view][0];
 			        })
 				 .attr("cy",function (d){	
-			        return d.nodes[displayView][1];					 
-	             })
-				 ; 
+			           return d.nodes[view][1];
+	             });
 }
 
 /** Displays the hint path by appending text labels and a path to the svg
@@ -433,7 +414,7 @@ Scatterplot.prototype.showHintPath = function (id,points){
         .data(points).enter()
         .append("svg:text")
         .text(function(d,i) { return ref.labels[i]; })
-        .attr("x", function(d,i) {return points[i][0] + ref.pointRadius*2})//TODO: Better way for label placement to minimize overlap
+        .attr("x", function(d,i) {return points[i][0] + ref.pointRadius*2})//TODO: Better way for label placement to minimize overlap, http://stackoverflow.com/questions/15748318/d3-line-chart-labels-overlap
         .attr("y", function (d,i) {  return points[i][1] + ref.pointRadius*2; })
         .attr("fill", this.pointColour)
         .attr("class","hintLabels")
