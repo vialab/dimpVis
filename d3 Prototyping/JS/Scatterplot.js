@@ -408,7 +408,7 @@ Scatterplot.prototype.showHintPath = function (id,points){
         .style("fill","none")
         .style("cursor","pointer")
         .attr("filter", "url(#blur)");*/
-
+    ref.checkAmbiguous(points);
     //Draw the hint path labels
     this.svg.select("#gInner"+id).selectAll("text")
         .data(points).enter()
@@ -482,3 +482,17 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
     return [minX,minY,t];
 }
 //TODO: Somehow detect and handle ambiguous cases
+/**Checks for ambiguous cases*/
+//Test strings:
+//
+// +382.892561983471204.56596732550827+382.892561983471204.56596732550827+311.40495867768595121.75153500683433+273.801652892562104.21014948688469+
+Scatterplot.prototype.checkAmbiguous = function (points){
+    //Create a string of all points
+    var pointStr = " ";
+    for (var j=0;j<points.length;j++){
+        pointStr= pointStr + points[j][0]+points[j][1]+" ";
+    }
+   // var pattern = "/+[0-9]+/.?[0-9]+/.?[0-9]+/+";
+    console.log(pointStr);
+    //console.log(pointStr.match(pattern));
+}
