@@ -4,9 +4,9 @@ var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility r
 scatterplot.init();
 //Declare some interaction functions for the scatterplot
 scatterplot.clickHintLabelFunction = function (d, i){
-										//scatterplot.animateAlongPath(scatterplot.currentView, i);	
-										scatterplot.changeView(i);
-										scatterplot.redrawView("null",-1);										
+										scatterplot.animateAlongPath(scatterplot.currentView, i);
+										scatterplot.changeView(i); //TODO: Shouldn't have to call this from here, place in class
+										//scatterplot.redrawView("null",-1);
 										slider.updateSlider(i); 
 									};
 
@@ -22,7 +22,7 @@ scatterplot.render( dataset, 0,years);
 					   .on("dragstart", function(d){                          
 							       scatterplot.clearHintPath(scatterplot.draggedPoint);
 								   scatterplot.draggedPoint = d.id; 								   							   
-                                   scatterplot.showHintPath(d.id,d.repeatedPoints);                          								   
+                                   scatterplot.showHintPath(d.id,d.nodes);
 							                                           						   
 					  })
                       .on("drag", function(d){                          					  
