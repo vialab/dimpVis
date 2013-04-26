@@ -22,9 +22,9 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel) {
    this.yLabel = yLabel;
 
    //Set some default colours (which can be changed by calling the setColours() function)
-   this.hintColour = "steelblue";
-   this.pointColour = "#666";
-   this.axisColour = "#c7c7c7";
+   this.hintColour = "#1f77b4"; //Blue
+   this.pointColour = "#666"; //Dark grey
+   this.axisColour = "#c7c7c7"; //Light grey
 
    // Create a variable to reference the main svg
    this.svg = null;
@@ -36,6 +36,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel) {
    this.interpValue = 0; //Stores the current interpolation value (percentage travelled) when a point is dragged between two views
    this.displayData = [];// Stores the dataset to be visualized
    this.labels = []; //Stores the labels of the hint path
+   this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
 
    //Variables to track interaction events, not needed in all cases
    this.clicked = -1;
@@ -389,13 +390,41 @@ Scatterplot.prototype.redrawView = function(view) {
  * id: The id of the dragged point, to determine which hint path to draw
  * points: An array of all points of the dragged point (e.g., d.nodes)
  * */
-Scatterplot.prototype.showHintPath = function (id,points){
+//TODO: Better way for label placement to minimize overlap, http://stackoverflow.com/questions/15748318/d3-line-chart-labels-overlap
+ Scatterplot.prototype.showHintPath = function (id,points){
     var ref = this;
     //Function for drawing a linearly interpolated path between set of points
     var line = d3.svg.line()
         .x(function(d) { return d[0]; })
         .y(function(d) { return d[1]; })
         .interpolate("linear");
+     //Function for drawing a loop around a stationary point, as an interaction path
+     var line = d3.svg.line()
+         .x(function(d) { return d[0]; })
+         .y(function(d) { return d[1]; })
+         .interpolate("cardinal");
+
+    //First check for ambiguous cases of the dragged point
+     // var testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2],[5,5]];
+     ref.checkAmbiguous(points);
+
+     var loops = []; //Data for the loops to draw
+     var currentLoopPoints = []; //Set of points for the current loop (consecutive group of stationary points)
+     var stationaryIndex = ref.ambiguousPoints.indexOf(1);
+     if (stationaryIndex!=-1){ //There exists stationary points in the dataset
+         for (var j=stationaryIndex; j< points.length;j++){
+             if (ref.ambiguousPoints[j]==1){
+                if (j!=stationaryIndex && ref.ambiguousPoints[j-1]!=1){ //Starting a new loop
+
+                }else{ //Otherwise, keep adding to same list of loop data points
+
+                }
+              }
+             console.log(j);
+         }
+     }
+
+
 
     //Render the hint points - Currently not needed
    /** this.svg.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
@@ -408,15 +437,13 @@ Scatterplot.prototype.showHintPath = function (id,points){
         .style("fill","none")
         .style("cursor","pointer")
         .attr("filter", "url(#blur)");*/
-   var testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2],[5,5]];
-    ref.checkAmbiguous(testArray);
-    //ref.checkAmbiguous(points);
+
     //Draw the hint path labels
     this.svg.select("#gInner"+id).selectAll("text")
         .data(points).enter()
         .append("svg:text")
         .text(function(d,i) { return ref.labels[i]; })
-        .attr("x", function(d,i) {return points[i][0] + ref.pointRadius*2})//TODO: Better way for label placement to minimize overlap, http://stackoverflow.com/questions/15748318/d3-line-chart-labels-overlap
+        .attr("x", function(d,i) {return points[i][0] + ref.pointRadius*2})
         .attr("y", function (d,i) {  return points[i][1] + ref.pointRadius*2; })
         .attr("fill", this.pointColour)
         .attr("class","hintLabels")
@@ -438,6 +465,8 @@ Scatterplot.prototype.showHintPath = function (id,points){
     this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
 	           .transition().duration(400)
 	           .style("fill-opacity", 0.3);
+
+
 }
 /**Clears the hint path by removing it, also re-sets the transparency of the faded out points
  * id: The id of the dragged point, to indicate which hint path to remove
@@ -483,21 +512,26 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
     var minY = pt1_y + t*(pt2_y-pt1_y);
     return [minX,minY,t];
 }
-//TODO: detect ambiguous cases in the dataset
-//TODO: Could detect really close points to optimize label display
-/**Checks for ambiguous cases*/
-//Test strings:
-//testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2]];
-// +382.892561983471204.56596732550827+382.892561983471204.56596732550827+311.40495867768595121.75153500683433+273.801652892562104.21014948688469+
-
+//TODO: Could use this function to detect really close points to optimize label display
+/** Search for ambiguous cases in a list of points.  Ambiguous cases are tagged by type, using a number.
+ *  The scheme is as follows:
+ *  0: not ambiguous
+ *  1: stationary point (point which doesn't move for at least 2 consecutive years)
+ *  2: revisiting point (point which returns to the same position multiple times in the dataset)
+ *  NOTE: by nature, stationary points are also revisiting, therefore stationary is given more
+ *  prominence in the tagging, but there may be some overlap in the revisiting and stationary arrays.
+ *
+ *  points: an array of points to search within
+ * */
 Scatterplot.prototype.checkAmbiguous = function (points){
     var j, currentPoint;
-    var ambiguousPoints = [];
     var stationaryPoints = [];
     var revisitingPoints = [];
+
+    this.ambiguousPoints = [];
     //Re-set the ambiguousPoints array
     for (j=0;j<points.length;j++){
-        ambiguousPoints[j] = 0;
+        this.ambiguousPoints[j] = 0;
     }
     //Populate the stationary and revisiting points array
     //Search for points that match in the x and y values (called "repeated points")
@@ -510,24 +544,24 @@ Scatterplot.prototype.checkAmbiguous = function (points){
                     //If the point's index does not exist in the array of all stationary points, add it
                     if (stationaryPoints.indexOf(j)==-1){
                         stationaryPoints.push(j);
-                        ambiguousPoints[j] = 1;
+                        this.ambiguousPoints[j] = 1;
                     }if (stationaryPoints.indexOf(k)==-1){
                         stationaryPoints.push(k);
-                        ambiguousPoints[k] = 1;
+                        this.ambiguousPoints[k] = 1;
                     }
                 }else{ //Revisiting point
                     //If the point's index does not exist in the array of all revisiting points, add it
                     if (revisitingPoints.indexOf(j)==-1){
                         revisitingPoints.push(j);
-                        if(ambiguousPoints[j]!=1){ //Set the flag to show this is a revisiting point (Need to make sure it wasn't set as a stationary, because stationary takes higher priority)
-                            ambiguousPoints[j] = 2;
+                        if(this.ambiguousPoints[j]!=1){ //Set the flag to show this is a revisiting point (Need to make sure it wasn't set as a stationary, because stationary takes higher priority)
+                            this.ambiguousPoints[j] = 2;
                         }
                     }
                     //Check for both j and k
                     if (revisitingPoints.indexOf(k)==-1){
                         revisitingPoints.push(k);
-                        if(ambiguousPoints[k]!=1){ //Set the flag to show this is a revisiting point
-                            ambiguousPoints[k] = 2;
+                        if(this.ambiguousPoints[k]!=1){ //Set the flag to show this is a revisiting point
+                            this.ambiguousPoints[k] = 2;
                         }
                     }
                 }
@@ -538,8 +572,7 @@ Scatterplot.prototype.checkAmbiguous = function (points){
         }
 
     }
-    console.log(stationaryPoints);
+    /**console.log(stationaryPoints);
     console.log(revisitingPoints);
-    console.log(ambiguousPoints);
-
+    console.log(this.ambiguousPoints);*/
 }
