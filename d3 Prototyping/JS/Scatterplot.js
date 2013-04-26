@@ -408,7 +408,9 @@ Scatterplot.prototype.showHintPath = function (id,points){
         .style("fill","none")
         .style("cursor","pointer")
         .attr("filter", "url(#blur)");*/
-    ref.checkAmbiguous(points);
+   var testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2],[5,5]];
+    ref.checkAmbiguous(testArray);
+    //ref.checkAmbiguous(points);
     //Draw the hint path labels
     this.svg.select("#gInner"+id).selectAll("text")
         .data(points).enter()
@@ -481,18 +483,63 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
     var minY = pt1_y + t*(pt2_y-pt1_y);
     return [minX,minY,t];
 }
-//TODO: Somehow detect and handle ambiguous cases
+//TODO: detect ambiguous cases in the dataset
+//TODO: Could detect really close points to optimize label display
 /**Checks for ambiguous cases*/
 //Test strings:
-//
+//testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2]];
 // +382.892561983471204.56596732550827+382.892561983471204.56596732550827+311.40495867768595121.75153500683433+273.801652892562104.21014948688469+
+
 Scatterplot.prototype.checkAmbiguous = function (points){
-    //Create a string of all points
-    var pointStr = " ";
-    for (var j=0;j<points.length;j++){
-        pointStr= pointStr + points[j][0]+points[j][1]+" ";
+    var j, currentPoint;
+    var ambiguousPoints = [];
+    var stationaryPoints = [];
+    var revisitingPoints = [];
+    //Re-set the ambiguousPoints array
+    for (j=0;j<points.length;j++){
+        ambiguousPoints[j] = 0;
     }
-   // var pattern = "/+[0-9]+/.?[0-9]+/.?[0-9]+/+";
-    console.log(pointStr);
-    //console.log(pointStr.match(pattern));
+    //Populate the stationary and revisiting points array
+    //Search for points that match in the x and y values (called "repeated points")
+    for (j=0;j<points.length;j++){
+        currentPoint = points[j];
+        for (var k=j;k<points.length;k++){
+            if (j!=k && points[k][0] == currentPoint[0] && points[k][1] == currentPoint[1]){ //A repeated point is found
+                // console.log("found"+j+" "+k+" ");
+                if (Math.abs(k-j)==1){ //Stationary point
+                    //If the point's index does not exist in the array of all stationary points, add it
+                    if (stationaryPoints.indexOf(j)==-1){
+                        stationaryPoints.push(j);
+                        ambiguousPoints[j] = 1;
+                    }if (stationaryPoints.indexOf(k)==-1){
+                        stationaryPoints.push(k);
+                        ambiguousPoints[k] = 1;
+                    }
+                }else{ //Revisiting point
+                    //If the point's index does not exist in the array of all revisiting points, add it
+                    if (revisitingPoints.indexOf(j)==-1){
+                        revisitingPoints.push(j);
+                        if(ambiguousPoints[j]!=1){ //Set the flag to show this is a revisiting point (Need to make sure it wasn't set as a stationary, because stationary takes higher priority)
+                            ambiguousPoints[j] = 2;
+                        }
+                    }
+                    //Check for both j and k
+                    if (revisitingPoints.indexOf(k)==-1){
+                        revisitingPoints.push(k);
+                        if(ambiguousPoints[k]!=1){ //Set the flag to show this is a revisiting point
+                            ambiguousPoints[k] = 2;
+                        }
+                    }
+                }
+                //Both revisiting and stationary?
+                /**if (Math.abs(k-j)==2){ //
+                }*/ //TODO: Use this for barchart ambiguous
+            }
+        }
+
+    }
+    console.log(stationaryPoints);
+    console.log(revisitingPoints);
+    console.log(ambiguousPoints);
+
 }
