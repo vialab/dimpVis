@@ -45,6 +45,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.clicked = -1;
    this.hovered = -1;
    this.dragged = -1;
+   this.isAmbiguous = 0;  //Whether or not the point being dragged has at least one ambiguous case, set to 0 if none, and 1 otherwise
 
    //Event functions, declared later in this file or in the init file (if visualization is
    // interacting with another visualization) after the object has been instantiated
@@ -426,13 +427,49 @@ Scatterplot.prototype.redrawView = function(view) {
         .style("cursor","pointer")
         .attr("filter", "url(#blur)");*/
 
+    //Draw the interaction loop(s) (if any)
+     if (this.loops.length >0){
+         //Create a function for drawing a loop around a stationary point, as an interaction path
+         var loopGenerator = d3.svg.line()
+             .x(function(d) { return d[0]; })
+             .y(function(d) { return d[1]; })
+             .interpolate("basis-closed"); //Closed B-spline, a loop
+
+         //Draw all loops at their respective stationary points
+         this.svg.select("#gInner"+id).selectAll(".loop"+id)
+             .data(ref.loops.map(function (d,i){
+             return {points:d,id:i};
+         })).enter().append("path")
+             .attr("d",function (d){
+                 return loopGenerator(d.points);
+             })
+             .attr("stroke-dasharray","3,3")//Makes the path dashed
+             .attr("class","loop"+id)
+             .style("fill","none")
+             .style("stroke", this.hintColour);
+     }
+    //Adjust the points array to include ambiguous points (if any), otherwise, just keep the original array
+    var adjustedPoints = points;
+    if (ref.isAmbiguous==1){
+        var counter = -1;
+        //Re-map the points array to contain positions which correspond to ambiguous cases (e.g., revisiting point labels translated in the x-direction
+        //and stationary labels are around the interaction loop)
+        adjustedPoints = points.map(function (d,i){
+           if (ref.ambiguousPoints[i]==2){ //Revisiting point
+               return [d[0]+25*counter++,d[1]]; //TODO:Revisiting in multiple locations won't work, similar problem to finding stationary point sequences
+           }else if (ref.ambiguousPoints[i]==1){ //Stationary point
+
+           }
+           return d;
+       });
+    }
     //Draw the hint path labels
     this.svg.select("#gInner"+id).selectAll("text")
-        .data(points).enter()
+        .data(adjustedPoints).enter()
         .append("svg:text")
         .text(function(d,i) { return ref.labels[i]; })
-        .attr("x", function(d,i) {return points[i][0] + ref.pointRadius*2})
-        .attr("y", function (d,i) {  return points[i][1] + ref.pointRadius*2; })
+        .attr("x", function(d) {return d[0] + ref.pointRadius*2})
+        .attr("y", function (d) {  return d[1] + ref.pointRadius*2; })
         .attr("fill", this.pointColour)
         .attr("class","hintLabels")
         .style("cursor","pointer")
@@ -449,29 +486,6 @@ Scatterplot.prototype.redrawView = function(view) {
         .style("fill", "none")
         .attr("filter", "url(#blur)");
 
-   //Render the interaction loop(s) (if any)
-     if (this.loops.length >0){
-         //Create a function for drawing a loop around a stationary point, as an interaction path
-         var loopGenerator = d3.svg.line()
-             .x(function(d) { return d[0]; })
-             .y(function(d) { return d[1]; })
-             .interpolate("basis-closed"); //Closed B-spline, a loop
-
-         //Draw all loops at their respective stationary points
-         this.svg.select("#gInner"+id).selectAll(".loop"+id)
-             .data(ref.loops.map(function (d,i){
-                    return {points:d,id:i};
-             })).enter().append("path")
-             .attr("d",function (d){
-                 return loopGenerator(d.points);
-             })
-             .attr("stroke-dasharray","3,3")//Makes the path dashed
-             .attr("class","loop"+id)
-             .style("fill","none")
-             .style("stroke", this.hintColour);
-
-     }
-
     //Fade out the other points using a transition
     this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
 	           .transition().duration(400)
@@ -479,10 +493,11 @@ Scatterplot.prototype.redrawView = function(view) {
 
 
 }
-/**Clears the hint path by removing it, also re-sets the transparency of the faded out points
+/**Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag
  * id: The id of the dragged point, to indicate which hint path to remove
  * */
 Scatterplot.prototype.clearHintPath = function (id) {
+    this.isAmbiguous = 0;
      //Remove the hint path svg elements
      this.svg.select("#gInner"+id).selectAll("text").remove();
     this.svg.select("#gInner"+id).selectAll("path").remove();
@@ -533,10 +548,10 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
    var loopPoints = [];
     var numPoints = indices.length;
    //Scale the loop radius by an amount proportional to the number of points (might need to tweak this magic number)
-    var radius = numPoints*10;
+    var radius = numPoints*30;
     var pi = Math.PI/2;
     var interval = pi/numPoints;
-    //The first point of the path should be the original point, as a reference for drawing the spline
+    //The first point of the path should be the original point, as a reference for drawing the loop
     loopPoints[0] = [];
     loopPoints[0][0] = x;
     loopPoints[0][1] = y;
@@ -548,6 +563,11 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
         loopPoints[j][1] = y+ radius*Math.sin(interval*j);
         loopPoints[j][2] = indices[j];
     }
+    //The last point of the path should be the original point, as a reference for drawing the loop
+    loopPoints[numPoints+1] = [];
+    loopPoints[numPoints+1][0] = x;
+    loopPoints[numPoints+1][1] = y;
+    loopPoints[numPoints+1][2] = -1;
 
    return loopPoints;
 }
@@ -608,6 +628,7 @@ Scatterplot.prototype.checkAmbiguous = function (points){
         currentPoint = points[j];
         for (var k=j;k<points.length;k++){
             if (j!=k && points[k][0] == currentPoint[0] && points[k][1] == currentPoint[1]){ //A repeated point is found
+                this.isAmbiguous = 1;
                 // console.log("found"+j+" "+k+" ");
                 if (Math.abs(k-j)==1){ //Stationary point
                     //If the point's index does not exist in the array of all stationary points, add it
