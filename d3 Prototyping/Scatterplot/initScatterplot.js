@@ -2,7 +2,7 @@
  * */
 
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate","life expectancy");
+var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate","life expectancy","Fertility Rate vs. Life Expectancy Over the Years");
 scatterplot.init();
 
 //Define the click interaction of the hint labels to invoke fast switching among views

@@ -16,6 +16,11 @@
   font-size:14px;
   text-anchor: end;
 }
+/** The title of the graph */
+#graphTitle{
+    font-family: sans-serif;
+    font-size:18px;
+}
 /**The labels of the ticks */
 .gInner text {
   font-family: sans-serif;

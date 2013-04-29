@@ -8,8 +8,9 @@
  * r: the radius of the scatterplot points
  * xLabel: label for the x-axis
  * yLabel: label for the y-axis
+ * title: of the graph
 */
-function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel) {
+function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    // Position and size attributes for drawing the svg
    this.xpos = x;
    this.ypos = y;
@@ -20,6 +21,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel) {
    this.pointRadius = r;
    this.xLabel = xLabel;
    this.yLabel = yLabel;
+   this.graphTitle = title;
 
    //Set some default colours (which can be changed by calling the setColours() function)
    this.hintColour = "#1f77b4"; //Blue
@@ -68,7 +70,7 @@ Scatterplot.prototype.setColours = function(pointCol, hintCol, axisCol){
 Scatterplot.prototype.init = function() {
    this.svg = d3.select(this.id).append("svg")
       .attr("width", this.width+(this.padding*2))
-      .attr("height", this.height+(this.padding*2))
+      .attr("height", this.height+(this.padding*2.5))
      .append("g")
      .attr("transform", "translate(" + (this.padding+this.xpos) + "," + (this.padding+this.ypos) + ")");
 
@@ -155,12 +157,13 @@ Scatterplot.prototype.render = function( data, start, labels) {
 							  .attr("fill",ref.pointColour)
 							  .style("fill-opacity",1)
 							   .attr("id", function (d){return "displayPoints"+d.id;})
-							  .style("cursor", "pointer")  ;
+							  .style("cursor", "pointer")
+                              .attr("title", function (d) {return d.label;});
 							   /**.on("mouseover", ref.mouseoverFunction)
 							   .on("mouseout", ref.mouseoutFunction)
 							   .on("click", ref.clickFunction);*///Currently not being used
 }
-/** Draws the axes on the SVG
+/** Draws the axes  and the graph title on the SVG
  *  xScale: a function defining the scale of the x-axis
  *  yScale: a function defining the scale of the y-axis
  * */
@@ -170,6 +173,13 @@ Scatterplot.prototype.render = function( data, start, labels) {
     //Define functions to create the axes
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
     var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+    // Add the title of the graph
+     this.svg.append("text")
+         .attr("id", "graphTitle")
+         .style("fill", this.axisColour)
+         .text(this.graphTitle)
+         .attr("x",1);
 
     // Add the x-axis
     this.svg.append("g")
@@ -405,26 +415,8 @@ Scatterplot.prototype.redrawView = function(view) {
          .interpolate("cardinal");
 
     //First check for ambiguous cases of the dragged point
-     // var testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2],[5,5]];
+     //var testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2],[5,5]];
      ref.checkAmbiguous(points);
-
-     var loops = []; //Data for the loops to draw
-     var currentLoopPoints = []; //Set of points for the current loop (consecutive group of stationary points)
-     var stationaryIndex = ref.ambiguousPoints.indexOf(1);
-     if (stationaryIndex!=-1){ //There exists stationary points in the dataset
-         for (var j=stationaryIndex; j< points.length;j++){
-             if (ref.ambiguousPoints[j]==1){
-                if (j!=stationaryIndex && ref.ambiguousPoints[j-1]!=1){ //Starting a new loop
-
-                }else{ //Otherwise, keep adding to same list of loop data points
-
-                }
-              }
-             console.log(j);
-         }
-     }
-
-
 
     //Render the hint points - Currently not needed
    /** this.svg.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
@@ -512,9 +504,61 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
     var minY = pt1_y + t*(pt2_y-pt1_y);
     return [minX,minY,t];
 }
+/** Computes the points to lie along an interaction loop
+ * Note: this function is only called in findLoops()
+ * x,y: Define the center point of the loop (sort of) *
+ * indices: the corresponding year indices, this array's length is the number of points to draw along the loop
+ * @return an array of all loop points and the year index in the format: [[x,y,index], etc.]
+ * */
+Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
+   var loopPoints = [];
+    var numPoints = indices.length;
+   //Scale the loop radius by an amount proportional to the number of points (might need to tweak this magic number)
+    var radius = numPoints*10;
+    var pi = Math.PI/2;
+    var interval = pi/numPoints;
+    for (var j=0;j<numPoints;j++){
+        loopPoints[j] = [];
+        //Calculate the points to go along the loop in polar coordinates
+        loopPoints[j][0] = x + radius*Math.cos(interval*j);
+        loopPoints[j][1] = y+ radius*Math.sin(interval*j);
+        loopPoints[j][2] = indices[j];
+    }
+   return loopPoints;
+}
+/** Finds areas in the data set which require interaction loops, such areas are sequences of
+ * stationary points.  This function will populate an array containing all data points for
+ * the loops in the following format:
+ * loops[] = [originalPointX,originalPointY, [[loopPointX,loopPointY,yearIndex]... for all points on loop]]
+ * Note: this function is only called in checkAmbiguous(), because it uses the resulting
+ * ambiguousPoints array
+ * startIndex: the index of the first stationary point in the ambiguousPoints array
+ * */
+Scatterplot.prototype.findLoops = function (startIndex,points){
+    var loops = []; //Data for the loops to draw
+    var pointInfo = []; //Set of points for the current loop (consecutive group of stationary points)
+        pointInfo[0] = points[startIndex];
+        pointInfo[1] = [];
+     for (var j=startIndex; j< points.length;j++){
+            if (this.ambiguousPoints[j]==1){
+                if (j!=startIndex && this.ambiguousPoints[j-1]!=1){ //Starting a new loop
+                    //Need to calculate points to draw the loop, based on the original point value
+                    loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
+                    pointInfo = [];
+                    pointInfo[0] = points[j];
+                    pointInfo[1] = [];
+                }
+                pointInfo[1].push(j);
+            }
+        }
+
+    loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
+   //console.log(loops);
+   // console.log(this.ambiguousPoints);
+}
 //TODO: Could use this function to detect really close points to optimize label display
 /** Search for ambiguous cases in a list of points.  Ambiguous cases are tagged by type, using a number.
- *  The scheme is as follows:
+ *  The scheme is:
  *  0: not ambiguous
  *  1: stationary point (point which doesn't move for at least 2 consecutive years)
  *  2: revisiting point (point which returns to the same position multiple times in the dataset)
@@ -572,7 +616,14 @@ Scatterplot.prototype.checkAmbiguous = function (points){
         }
 
     }
+    //First check if there exists any stationary points in the dataset
+    var stationaryIndex = this.ambiguousPoints.indexOf(1);
+    //Generate points for drawing an interaction loop
+    if (stationaryIndex!=-1){
+       this.findLoops(stationaryIndex,points);
+    }
     /**console.log(stationaryPoints);
     console.log(revisitingPoints);
     console.log(this.ambiguousPoints);*/
 }
+//TODO: non-existent data points, "hole" in hint path?
