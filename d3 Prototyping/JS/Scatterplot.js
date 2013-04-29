@@ -39,6 +39,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.displayData = [];// Stores the dataset to be visualized
    this.labels = []; //Stores the labels of the hint path
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
+   this.loops = []; //Stores points to draw for interaction loops (if any)
 
    //Variables to track interaction events, not needed in all cases
    this.clicked = -1;
@@ -408,11 +409,6 @@ Scatterplot.prototype.redrawView = function(view) {
         .x(function(d) { return d[0]; })
         .y(function(d) { return d[1]; })
         .interpolate("linear");
-     //Function for drawing a loop around a stationary point, as an interaction path
-     var line = d3.svg.line()
-         .x(function(d) { return d[0]; })
-         .y(function(d) { return d[1]; })
-         .interpolate("cardinal");
 
     //First check for ambiguous cases of the dragged point
      //var testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2],[5,5]];
@@ -453,6 +449,29 @@ Scatterplot.prototype.redrawView = function(view) {
         .style("fill", "none")
         .attr("filter", "url(#blur)");
 
+   //Render the interaction loop(s) (if any)
+     if (this.loops.length >0){
+         //Create a function for drawing a loop around a stationary point, as an interaction path
+         var loopGenerator = d3.svg.line()
+             .x(function(d) { return d[0]; })
+             .y(function(d) { return d[1]; })
+             .interpolate("basis-closed"); //Closed B-spline, a loop
+
+         //Draw all loops at their respective stationary points
+         this.svg.select("#gInner"+id).selectAll(".loop"+id)
+             .data(ref.loops.map(function (d,i){
+                    return {points:d,id:i};
+             })).enter().append("path")
+             .attr("d",function (d){
+                 return loopGenerator(d.points);
+             })
+             .attr("stroke-dasharray","3,3")//Makes the path dashed
+             .attr("class","loop"+id)
+             .style("fill","none")
+             .style("stroke", this.hintColour);
+
+     }
+
     //Fade out the other points using a transition
     this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
 	           .transition().duration(400)
@@ -465,8 +484,8 @@ Scatterplot.prototype.redrawView = function(view) {
  * */
 Scatterplot.prototype.clearHintPath = function (id) {
      //Remove the hint path svg elements
-     this.svg.select("#p"+id).remove();
      this.svg.select("#gInner"+id).selectAll("text").remove();
+    this.svg.select("#gInner"+id).selectAll("path").remove();
 	//Re-set the transparency of faded out points
      this.svg.selectAll(".displayPoints")
 	           .style("fill-opacity", 1);				
@@ -506,7 +525,7 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
 }
 /** Computes the points to lie along an interaction loop
  * Note: this function is only called in findLoops()
- * x,y: Define the center point of the loop (sort of) *
+ * x,y: Define the center point of the loop (sort of)
  * indices: the corresponding year indices, this array's length is the number of points to draw along the loop
  * @return an array of all loop points and the year index in the format: [[x,y,index], etc.]
  * */
@@ -517,13 +536,19 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
     var radius = numPoints*10;
     var pi = Math.PI/2;
     var interval = pi/numPoints;
-    for (var j=0;j<numPoints;j++){
+    //The first point of the path should be the original point, as a reference for drawing the spline
+    loopPoints[0] = [];
+    loopPoints[0][0] = x;
+    loopPoints[0][1] = y;
+    loopPoints[0][2] = -1;
+    for (var j=1;j<=numPoints;j++){
         loopPoints[j] = [];
         //Calculate the points to go along the loop in polar coordinates
         loopPoints[j][0] = x + radius*Math.cos(interval*j);
         loopPoints[j][1] = y+ radius*Math.sin(interval*j);
         loopPoints[j][2] = indices[j];
     }
+
    return loopPoints;
 }
 /** Finds areas in the data set which require interaction loops, such areas are sequences of
@@ -535,7 +560,7 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
  * startIndex: the index of the first stationary point in the ambiguousPoints array
  * */
 Scatterplot.prototype.findLoops = function (startIndex,points){
-    var loops = []; //Data for the loops to draw
+    this.loops = []; //Re-set the array
     var pointInfo = []; //Set of points for the current loop (consecutive group of stationary points)
         pointInfo[0] = points[startIndex];
         pointInfo[1] = [];
@@ -543,7 +568,7 @@ Scatterplot.prototype.findLoops = function (startIndex,points){
             if (this.ambiguousPoints[j]==1){
                 if (j!=startIndex && this.ambiguousPoints[j-1]!=1){ //Starting a new loop
                     //Need to calculate points to draw the loop, based on the original point value
-                    loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
+                    this.loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
                     pointInfo = [];
                     pointInfo[0] = points[j];
                     pointInfo[1] = [];
@@ -552,8 +577,8 @@ Scatterplot.prototype.findLoops = function (startIndex,points){
             }
         }
 
-    loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
-   //console.log(loops);
+    this.loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
+   //console.log(this.loops);
    // console.log(this.ambiguousPoints);
 }
 //TODO: Could use this function to detect really close points to optimize label display
