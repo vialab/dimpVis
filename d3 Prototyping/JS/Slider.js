@@ -45,11 +45,9 @@ function Slider(x, y, id,labels,description,colour,spacing) {
 Slider.prototype.init = function() {
    var ref = this;
    this.widget = d3.select(this.id).append("svg")      
-      .attr("width", this.width)
-      .attr("height", this.height)
+      .attr("width", this.width).attr("height", this.height)
       .style("position", "absolute")
-      .style("left", this.xpos + "px")
-      .style("top", this.ypos + "px")  
+      .style("left", this.xpos + "px").style("top", this.ypos + "px")
       .append("g");
 }
 /** Render the widget onto the svg

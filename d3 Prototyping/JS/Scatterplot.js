@@ -74,7 +74,12 @@ Scatterplot.prototype.setColours = function(pointCol, hintCol, axisCol){
 Scatterplot.prototype.init = function() {
    this.svg = d3.select(this.id).append("svg")
       .attr("width", this.width+(this.padding*2))
-      .attr("height", this.height+(this.padding*2.5))
+      .attr("height", this.height+(this.padding*2))
+      /** .append("rect").attr("x",0).attr("y",0)
+       .attr("width",this.width+(this.padding*2))
+       .attr("height",this.height+(this.padding*2))
+       .attr("id","background")
+       .attr("fill","none")*///TODO: Want to be able to click the background of the graph (not a point) as a way of clearing the hint path
      .append("g")
      .attr("transform", "translate(" + (this.padding+this.xpos) + "," + (this.padding+this.ypos) + ")");
 
@@ -171,7 +176,6 @@ Scatterplot.prototype.render = function( data, start, labels) {
  *  xScale: a function defining the scale of the x-axis
  *  yScale: a function defining the scale of the y-axis
  * */
- //TODO:Ticks went missing :(
  Scatterplot.prototype.drawAxes = function (xScale,yScale){
 
     //Define functions to create the axes
@@ -183,23 +187,24 @@ Scatterplot.prototype.render = function( data, start, labels) {
          .attr("id", "graphTitle")
          .style("fill", this.axisColour)
          .text(this.graphTitle)
-         .attr("x",1);
+         .attr("x",1).attr("y",-15);
 
     // Add the x-axis
     this.svg.append("g")
         .attr("class", "axis")
         .attr("transform", "translate("+this.padding+"," + this.height + ")")
-        .style("fill",this.axisColour)
-        .call(xAxis)
-        .select("path").style("stroke",this.axisColour);
+        .call(xAxis);
 
     // Add the y-axis
     this.svg.append("g")
         .attr("class", "axis")
         .attr("transform", "translate("+ this.padding+ ",0)")
-        .style("fill",this.axisColour)
-        .call(yAxis)
-        .select("path").style("stroke",this.axisColour);
+        .call(yAxis);
+
+   //Colour the axes and labels
+   this.svg.selectAll(".axis path").style("stroke",this.axisColour);
+   this.svg.selectAll(".axis line").style("stroke",this.axisColour);
+   this.svg.selectAll(".axis text").style("fill",this.axisColour);
 
     // Add an x-axis label
     this.svg.append("text")
@@ -212,7 +217,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
     // Add a y-axis label
     this.svg.append("text")
         .attr("class", "axisLabel")
-        .attr("x", 6)
+        .attr("x", -15)
         .style("fill",this.axisColour)
         .attr("transform", "rotate(-90)")
         .text(this.yLabel);
@@ -263,7 +268,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                 newPoint= [minDist[0],minDist[1]];
             }
         }else{ //At any middle point along the hint path
-               if (t<0){ //Passed current view
+               if (t<0){ //Passed current
                    ref.nextView = ref.currentView;
                    ref.currentView = ref.currentView-1;
                   newPoint = [pt1_x,pt1_y];
@@ -490,7 +495,7 @@ Scatterplot.prototype.redrawView = function(view) {
 
     //Fade out the other points using a transition
     this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
-	           .transition().duration(400)
+	           .transition().duration(300)
 	           .style("fill-opacity", 0.3);
 
 
@@ -500,6 +505,7 @@ Scatterplot.prototype.redrawView = function(view) {
  * */
 Scatterplot.prototype.clearHintPath = function (id) {
     this.isAmbiguous = 0;
+    this.loops = []; //Re-set the array
      //Remove the hint path svg elements
      this.svg.select("#gInner"+id).selectAll("text").remove();
     this.svg.select("#gInner"+id).selectAll("path").remove();
@@ -576,7 +582,6 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
  * startIndex: the index of the first stationary point in the ambiguousPoints array
  * */
 Scatterplot.prototype.findLoops = function (startIndex,points){
-    this.loops = []; //Re-set the array
     var pointInfo = []; //Set of points for the current loop (consecutive group of stationary points)
         pointInfo[0] = points[startIndex];
         pointInfo[1] = [];
