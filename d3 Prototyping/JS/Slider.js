@@ -1,29 +1,36 @@
-////////////////////////////////////////////////////////////////////////////////
-// Constructor
-////////////////////////////////////////////////////////////////////////////////
-function Slider(x, y, w, h, id,num,labels,description,colour,spacing) {
-
-   // Position and size attributes
+/** Constructor for a slider widget
+ * x: the left margin
+ * y: the right margin
+ * id: id of the div tag to append the svg container
+ * labels: an array of labels corresponding to a tick along the slider
+ * description: a title for the slider
+ * colour: the colour of the slider
+ * spacing: spacing between ticks (in pixels)
+ */
+//TODO: Get rid of magic numbers and find a way to automatically compute them (e.g., positioning of slider and title relative to width)
+function Slider(x, y, id,labels,description,colour,spacing) {
+   // Save the position, size and display properties
    this.xpos = x;
    this.ypos = y;
    this.mouseX = -1;
-   this.width = w;
-   this.height = h;
    this.id = id; 
-   this.numTicks  = num;
+   this.numTicks  = labels.length;
    this.title = description;
-   this.currentTick = 0; //Start the slider always at the first tick
-   this.nextTick = 1;  //The next tick after the current one
-   this.interpValue=0; //Amount of distance travelled between ticks, used to interpolate other visualizations
-   // Reference to the main widget
-   this.widget = null;  
-   this.sliderOffset = x+80;
-   this.sliderPos = this.sliderOffset; //The horizontal position of the slider tick, changes while its dragged
-   this.tickSpacing = spacing; //Distance between ticks
-   this.tickPositions = []; //All x locations of the ticks on the slider
    this.tickLabels = labels;
    this.displayColour = colour;
-   //Generate a list of all x locations for each tick
+   this.tickSpacing = spacing;
+   this.sliderOffset = x+(description.length*20); //Font size of title is 20px
+   this.width = this.sliderOffset + this.numTicks*this.tickSpacing;
+   this.height = 50;
+
+   this.currentTick = 0; //Start the slider always at the first tick
+   this.nextTick = 1;  //The next tick is after the current one
+   this.interpValue=0; //Amount of distance travelled between ticks, used to interpolate other visualizations
+   this.widget = null;  // Reference to the main widget
+   this.sliderPos = this.sliderOffset; //The starting horizontal position of the slider tick (at the first tick)
+
+   //Generate an array of x locations for each tick
+   this.tickPositions = []; //All x locations of the ticks on the slider
    for (var i=0; i < this.numTicks; i++){
        if (i==0){
 	        this.tickPositions[i] = this.sliderOffset;
@@ -32,114 +39,83 @@ function Slider(x, y, w, h, id,num,labels,description,colour,spacing) {
 	   }      
    }     
 }
-////////////////////////////////////////////////////////////////////////////////
-// Prototype functions
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-// Initializes a container group 
-////////////////////////////////////////////////////////////////////////////////
+/** Append a blank svg and g container to the div tag indicated by "id", this is where the widget
+ *  will be drawn.
+ * */
 Slider.prototype.init = function() {
-   
-   var myRef = this;
-  
-   // Initialize the main container
+   var ref = this;
    this.widget = d3.select(this.id).append("svg")      
       .attr("width", this.width)
       .attr("height", this.height)
       .style("position", "absolute")
       .style("left", this.xpos + "px")
       .style("top", this.ypos + "px")  
-      .append("g")	  
-   ; 
+      .append("g");
 }
-////////////////////////////////////////////////////////////////////////////////
-// Render
-////////////////////////////////////////////////////////////////////////////////
-Slider.prototype.render = function() {   
-   
-   var ref = this;   
-	
-   // Remove 
-   this.widget.selectAll("g").remove(); 
-   this.widget.append("text").text(this.title).attr("x",this.xpos).attr("y",20).attr("fill",this.displayColour)
-                                              .style("font-family", "sans-serif").style("font-size","20px");
-   // Render the slider ticks
+/** Render the widget onto the svg
+ *  Note: no data set is required because it was automatically generated in the constructor
+ * */
+Slider.prototype.render = function() {
+   var ref = this;
+   //Add the title beside the slider
+   this.widget.append("text").text(this.title)
+              .attr("x",0).attr("y",20).attr("fill",this.displayColour)
+              .style("font-family", "sans-serif").style("font-size","20px");
+   //Prepare the data for drawing the slider ticks
    this.widget.selectAll("rect")
-     .data(this.tickPositions.map(function (d,i) {
-	        return {id:i,value:d,label:ref.tickLabels[i]};
-	  }))	 
-      .enter()  
-	  .append("g")
-	  ;
+     .data(this.tickPositions.map(function (d,i) {return {id:i,value:d,label:ref.tickLabels[i]};}))
+      .enter().append("g");
 	 //Draw the ticks
     this.widget.selectAll("g").append("svg:rect")
-      .attr("x", function (d) {
-	       return d.value;
-	  })
+      .attr("x", function (d) {return d.value;})
      .attr("y", 10)
-	  .attr("width", 1)	
-     .attr("height", 12)	  
+	  .attr("width", 1).attr("height", 12)
       .attr("fill", ref.displayColour)
-	  .attr("class","ticks")
-	  ;  
-    //Slider labels for each tick  
+	  .attr("class","ticks");
+    //Draw the labels for each tick
    this.widget.selectAll("g")
       .append("svg:text")
       .text(function(d) { return d.label; })
 	  .attr("x", function(d) {return d.value})
-	 .attr("y", function (d) {
-	       return 37;
-	  })
-	  .attr("font-family", "sans-serif")
-	   .attr("font-size", "12px")
+	 .attr("y", function (d) { return 37; })
+	  .style("font-family", "sans-serif")
+	   .style("font-size", "12px")
 	   .attr("fill", function (d,i){
-	       if (ref.tickLabels.length >25){ //only display every 5 labels
-		      if (i%5 ==0){
-			     return ref.displayColour;				 
-			  }else{
-			    return "none";
-			  }
+	       if (ref.tickLabels.length >25){ //Only display every 5 labels to reduce clutter
+		      if (i%5 ==0) return ref.displayColour;
+			  else return "none";
 		   }
-		   return ref.displayColour
+		   return ref.displayColour;
 	   })
 	   .attr("text-anchor","middle");
    //Draw a long line through all ticks
    this.widget.append("rect").attr("class","sliderAxis")
-               .attr("x",ref.sliderOffset)
-			   .attr("y",10)
-			   .attr("width", function(){
-			       return (ref.tickPositions[ref.numTicks-1] - ref.sliderOffset);
-			   })	
+               .attr("x",ref.sliderOffset).attr("y",10)
+			   .attr("width", function(){ return (ref.tickPositions[ref.numTicks-1] - ref.sliderOffset); })
                .attr("height", 2)	  
-               .attr("fill", ref.displayColour)
-	        ;
+               .attr("fill", ref.displayColour);
   //Draw the draggable slider tick
   this.widget.append("rect")
-      .attr("x", (ref.sliderPos-5))
-     .attr("y", 0)
-	 .attr("rx",4)
-	 .attr("ry",4)
-	  .attr("width", 10)	
-     .attr("height", 20)	  
-	  .attr("stroke", "white")
-      .attr("fill", ref.displayColour)
+      .attr("x", (ref.sliderPos-5)).attr("y", 0)
+	 .attr("rx",4).attr("ry",4) //For curved edges on the rectangle
+	  .attr("width", 10).attr("height", 20)
+	  .attr("stroke", "white").attr("fill", ref.displayColour)
 	  .style("cursor", "pointer") 
       .attr("id","slidingTick"); 
 }
-////////////////////////////////////////////////////////////////////////////////
-// Update the location of the slider tick during drag movement
-////////////////////////////////////////////////////////////////////////////////
+/** Re-draws the dragged tick by translating it according to the x-coordinate of the mouse
+ *  mouseX: The x-coordinate of the mouse, received from the drag event
+ * */
 Slider.prototype.updateDraggedSlider = function( mouseX ) {
      var ref = this;
-    this.mouseX = mouseX;
+    this.mouseX = mouseX; //Save the mouse position
+    //Update the sliding tick's position
      this.widget.select("#slidingTick")
 	           .attr("x",function (){                   			   
 				   var current = ref.tickPositions[ref.currentTick];
 				   var next = ref.tickPositions[ref.nextTick];				   
                    if (ref.currentTick == 0){ //First tick
-				       //Out of bounds: Passed first tick
-					   if (mouseX <= current){
+					   if (mouseX <= current){//Out of bounds: Passed first tick
 					      return current;
 					   }else if (mouseX >= next){
 					       ref.currentTick = ref.nextTick;
@@ -148,8 +124,7 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 						  ref.setInterpolation(mouseX,current,next);
 						  return mouseX;			       
 				   }else if (ref.nextTick == (ref.numTicks-1)){ //Last tick
-				       //Out of bounds: Passed last tick
-					   if (mouseX>= next){
+					   if (mouseX>= next){  //Out of bounds: Passed last tick
 					      return next;
 					   }else if (mouseX <= current){
 					        ref.nextTick = ref.currentTick;
@@ -157,11 +132,11 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 					   }
 					   ref.setInterpolation(mouseX,current,next);
 					   return mouseX;
-				   }else{
-				        if (mouseX <= current){
+				   }else{ //A tick in between the end ticks
+				        if (mouseX <= current){ //Passed current
 						    ref.nextTick = ref.currentTick;
 							ref.currentTick--;
-						}else if (mouseX>=next){
+						}else if (mouseX>=next){ //Passed next
 						    ref.currentTick = ref.nextTick;
 							ref.nextTick++;
 						}	
@@ -169,37 +144,41 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 						return mouseX;
 				   }				 		   			       
 	});
-  
 }
-////////////////////////////////////////////////////////////////////////////////
-// Determines how far the slider has travelled between two ticks (current and next) and sets
-// the interpolation value accordingly (as percentage travelled)
-////////////////////////////////////////////////////////////////////////////////
+/** Determines how far the slider has travelled between two ticks (current and next) and sets
+ * the interpolation value accordingly (as percentage travelled)
+ * current,next: the tick indices
+ * mouseX: x-coordinate of mouse
+ * */
 Slider.prototype.setInterpolation = function( mouseX,current,next) {
      var totalDistance = Math.abs(next-current);
 	 var distanceTravelled = Math.abs(mouseX - current);
 	 if (totalDistance !=0){
 	    this.interpValue = distanceTravelled/totalDistance;
 	 }else {
-	    this.interpValue = 1;
+	    this.interpValue = 1; //TODO: might be causing that flickering problem
 	 }
 }
-////////////////////////////////////////////////////////////////////////////////
-// Update the location of the slider tick according to dragged data point/object
-////////////////////////////////////////////////////////////////////////////////
-Slider.prototype.updateSlider = function( newLocation ) {
+/** Updates the location of the draggable tick to the new view
+ * */
+Slider.prototype.updateSlider = function( newView ) {
      var ref = this;
+    //Update the view tracker variables
+    if (newView == ref.numTicks){  //Last point of path
+        ref.nextTick = newView;
+        ref.currentTick = newView -1;
+    }else { //A point somewhere in the middle
+        ref.currentTick = newView;
+        ref.nextTick = newView + 1;
+    }
+    //Redraw the draggable tick at the new view
     this.widget.select("#slidingTick")
-	           .attr("x",function (){	
-                   return ref.tickPositions[newLocation];
-				   			       
-	});  
+	           .attr("x",function (){return ref.tickPositions[newView];});
 }
-////////////////////////////////////////////////////////////////////////////////
-// Snap the draggable tick to the nearest tick on the slider (mouse released
-// indicating end of drag event)
-////////////////////////////////////////////////////////////////////////////////
-Slider.prototype.snapToTick = function(mouseX) {
+/** Snaps the draggable tick to the nearest tick on the slider after the mouse is
+ *  released
+ * */
+Slider.prototype.snapToTick = function() {
      var ref = this;
     this.widget.select("#slidingTick")
 	           .attr("x",function (){	
@@ -212,14 +191,14 @@ Slider.prototype.snapToTick = function(mouseX) {
 						ref.nextTick++;
 						return (next-5);
 					}
-					return (current-5);					 
+					return (current-5);
 	             });  
 }
-////////////////////////////////////////////////////////////////////////////////
-// This function is meant to interface with other visualization, the tick is
-// moved according to the interpolation value of a dragged data object
-// between the current and next view
-////////////////////////////////////////////////////////////////////////////////
+/** The tick is drawn according the to the provided interpolation amount,
+ *  and interpolation occurs between current and next view
+ *  Note: This function can be used to update the slider as another visualization
+ *  object is dragged (e.g., scatterplot point)
+ * */
 Slider.prototype.animateTick = function(interpValue, currentView, nextView) {
     var ref = this;     
     this.widget.select("#slidingTick")

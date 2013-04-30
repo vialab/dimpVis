@@ -40,7 +40,7 @@ scatterplot.svg.selectAll(".displayPoints")
                    .call(scatterplot.dragEvent);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(15, 700, 700, 100, "#time",labels.length,labels, "Years","#666",50);
+var slider   = new Slider(15, 700, "#time",labels, "Years","#666",50);
 slider.init();
 slider.render();
 				  
