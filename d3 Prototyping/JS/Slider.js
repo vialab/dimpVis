@@ -6,6 +6,7 @@ function Slider(x, y, w, h, id,num,labels,description,colour,spacing) {
    // Position and size attributes
    this.xpos = x;
    this.ypos = y;
+   this.mouseX = -1;
    this.width = w;
    this.height = h;
    this.id = id; 
@@ -131,6 +132,7 @@ Slider.prototype.render = function() {
 ////////////////////////////////////////////////////////////////////////////////
 Slider.prototype.updateDraggedSlider = function( mouseX ) {
      var ref = this;
+    this.mouseX = mouseX;
      this.widget.select("#slidingTick")
 	           .attr("x",function (){                   			   
 				   var current = ref.tickPositions[ref.currentTick];
@@ -150,7 +152,7 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 					   if (mouseX>= next){
 					      return next;
 					   }else if (mouseX <= current){
-					        ref.nextick = ref.currentTick;
+					        ref.nextTick = ref.currentTick;
 							ref.currentTick--;						
 					   }
 					   ref.setInterpolation(mouseX,current,next);
@@ -203,8 +205,8 @@ Slider.prototype.snapToTick = function(mouseX) {
 	           .attr("x",function (){	
 			         var current = ref.tickPositions[ref.currentTick];
 				     var next = ref.tickPositions[ref.nextTick];	
-					 var currentDist = Math.abs(current - mouseX);
-					 var nextDist = Math.abs(next - mouseX);
+					 var currentDist = Math.abs(current - ref.mouseX);
+					 var nextDist = Math.abs(next - ref.mouseX);
 					 if (currentDist > nextDist){
 					    ref.currentTick = ref.nextTick;
 						ref.nextTick++;

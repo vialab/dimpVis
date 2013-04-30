@@ -1,5 +1,6 @@
-/** Some Styles for the axes of the charts */
+/** Some Styles for the Scatterplot visualization */
 
+/** Axes styles */
 /** The main line of the x and y axis*/
 .axis path, .axis line {
   fill: none;
@@ -28,5 +29,6 @@
   font-weight:bold;  
   text-anchor:middle;  
 }
+
 
 

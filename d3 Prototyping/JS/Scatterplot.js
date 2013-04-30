@@ -35,6 +35,8 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.currentView = -1;
    this.nextView = -1;
    this.lastView = -1;  //The index of the last view of the dataset
+   this.mouseX = -1; //Keep track of mouse coordinates for the dragend event
+   this.mouseY = -1;
    this.interpValue = 0; //Stores the current interpolation value (percentage travelled) when a point is dragged between two views
    this.displayData = [];// Stores the dataset to be visualized
    this.labels = []; //Stores the labels of the hint path
@@ -216,13 +218,17 @@ Scatterplot.prototype.render = function( data, start, labels) {
         .text(this.yLabel);
 }
 /** Re-draws the dragged point by projecting it onto the the line segment according to
- *  the minimum distance.  As the point is dragged, the views are update and the rest
+ *  the minimum distance.  As the point is dragged, the views are updated and the rest
  *  of the points are animated
  *  id: The id of the dragged point, for selecting by id
- *  mousex, mouseY: The coordinates of the mouse, from the drag event
+ *  mousex, mouseY: The coordinates of the mouse, received from the drag event
  * */
 Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {	 
    var ref = this;
+    //Save the mouse coordinates
+    this.mouseX = mouseX;
+    this.mouseY = mouseY;
+    //Update the point's location
    this.svg.select("#displayPoints"+id).each( function (d) {
            //Get the two points of the line segment currently dragged along
            var pt1_x = d.nodes[ref.currentView][0];
@@ -300,24 +306,23 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
  *  most recent position of the dragged point. View tracking variables are
  *  updated according to which view is "snapped" to.
  *  id: The id of the dragged point
- *  mouseX, mouseY: Coordinates of the mouse, defining the most recent position of the dragged point
  *  points: An array of all point positions of the dragged point (e.g., d.nodes)
  * */
-Scatterplot.prototype.snapToView = function( id, mouseX, mouseY,points) {
-    var ref = this;
+Scatterplot.prototype.snapToView = function( id, points) {
+
     //Calculate the distances from the dragged point to both current and next
-	var distanceCurrent = ref.calculateDistance(mouseX,mouseY, points[ref.currentView][0], points[ref.currentView][1]);
-	var distanceNext = 	ref.calculateDistance(mouseX,mouseY, points[ref.nextView][0],points[ref.nextView][1]);
+	var distanceCurrent = this.calculateDistance(this.mouseX,this.mouseY, points[this.currentView][0], points[this.currentView][1]);
+	var distanceNext = this.calculateDistance(this.mouseX,this.mouseY, points[this.nextView][0],points[this.nextView][1]);
     //Based on the smaller distance, update the scatterplot to that view
-    if (distanceCurrent > distanceNext && ref.nextView != ref.lastView){ //Snapping to next view
-		ref.currentView = ref.nextView;
-		ref.nextView = ref.nextView +1;	                        				
+    if (distanceCurrent > distanceNext && this.nextView != this.lastView){ //Snapping to next view
+		this.currentView = this.nextView;
+	    this.nextView = this.nextView +1;
      }
     //Special case: If the nextView is the last view index, need to re draw the plot on that index (not currentView, which is nextView-1)
-    if (ref.nextView == ref.lastView){
-        ref.redrawView(ref.nextView);
+    if (this.nextView == this.lastView){
+        this.redrawView(this.nextView);
 	}else{
-	   ref.redrawView(ref.currentView);
+	   this.redrawView(this.currentView);
     }
 }
 /** Updates the view tracking variables when the view is being changed by an external
@@ -357,7 +362,7 @@ Scatterplot.prototype.changeView = function( newView) {
 
     //Define some counter variables to keep track of the views passed during the transition
     var totalViews = ref.lastView+1;
-    var viewCounter = 0; //Identifies when a new view is reached
+    var viewCounter = -1; //Identifies when a new view is reached
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
 
     //Apply multiple transitions to each display point by chaining them
@@ -366,8 +371,9 @@ Scatterplot.prototype.changeView = function( newView) {
     //Recursively invoke this function to chain transitions, a new transition is added once
     //the current one is finished
     function animate() {
-        viewCounter = viewCounter + direction;
-        if (viewCounter%totalViews==0) {
+        console.log(viewCounter);
+        viewCounter++;
+        if (viewCounter==totalViews) {
             animateView = animateView + direction;
             viewCounter = 0;
         }
@@ -401,7 +407,7 @@ Scatterplot.prototype.redrawView = function(view) {
  * id: The id of the dragged point, to determine which hint path to draw
  * points: An array of all points of the dragged point (e.g., d.nodes)
  * */
-//TODO: Better way for label placement to minimize overlap, http://stackoverflow.com/questions/15748318/d3-line-chart-labels-overlap
+//TODO: Better way for label placement to minimize overlap
  Scatterplot.prototype.showHintPath = function (id,points){
     var ref = this;
     //Function for drawing a linearly interpolated path between set of points
@@ -429,19 +435,15 @@ Scatterplot.prototype.redrawView = function(view) {
     //Draw the interaction loop(s) (if any)
      if (this.loops.length >0){
          //Create a function for drawing a loop around a stationary point, as an interaction path
-         var loopGenerator = d3.svg.line()
-             .x(function(d) { return d[0]; })
-             .y(function(d) { return d[1]; })
-            // .interpolate("basis-closed"); //Closed B-spline, a loop
-             .interpolate("cardinal");
+         var loopGenerator = d3.svg.line().x(function(d) { return d[0]; }).y(function(d) { return d[1]; })
+                                         //.tension(0)
+                                        // .interpolate("basis-closed"); //Closed B-spline, a loop
+                                         .interpolate("cardinal");
          //Draw all loops at their respective stationary points
          this.svg.select("#gInner"+id).selectAll(".loop"+id)
-             .data(ref.loops.map(function (d,i){
-             return {points:d,id:i};
-         })).enter().append("path")
-             .attr("d",function (d){
-                 return loopGenerator(d.points);
-             })
+             .data(ref.loops.map(function (d,i){ return {points:d,id:i};}))
+             .enter().append("path")
+             .attr("d",function (d){return loopGenerator(d.points);})
              .attr("stroke-dasharray","3,3")//Makes the path dashed
              .attr("class","loop"+id)
              .style("fill","none")
@@ -456,7 +458,7 @@ Scatterplot.prototype.redrawView = function(view) {
         //and stationary labels are around the interaction loop)
         adjustedPoints = points.map(function (d,i){
            if (ref.ambiguousPoints[i][0]==2){ //Revisiting point
-               return [d[0]+25*counter++,d[1]]; //TODO:Revisiting in multiple locations won't work using this counter thing, similar problem to finding stationary point sequences
+               return [d[0]+25*counter++,d[1]]; //TODO:Revisiting in multiple locations won't work using this counter method, similar problem to finding stationary point sequences
            }else if (ref.ambiguousPoints[i][0]==1){ //Stationary point
               return [ref.ambiguousPoints[i][1],ref.ambiguousPoints[i][2]]; //The x and y of the point along the interaction loop
            }
@@ -471,15 +473,15 @@ Scatterplot.prototype.redrawView = function(view) {
         .attr("x", function(d) {return d[0] + ref.pointRadius*2})
         .attr("y", function (d) {  return d[1] + ref.pointRadius*2; })
         .attr("fill", this.pointColour)
+        .style("font-size","11px")
+        .style("font-family","sans-serif")
         .attr("class","hintLabels")
         .style("cursor","pointer")
         .on("click", this.clickHintLabelFunction);
 
     //Render the hint path line
     this.svg.select("#gInner"+id).append("svg:path")
-        .attr("d", function(d){
-            return line(d.nodes);
-        })
+        .attr("d", function(d){return line(d.nodes);})
         .attr("id",function (d){return "p"+d.id;})
         .style("stroke-width", 2)
         .style("stroke", this.hintColour)
@@ -502,8 +504,7 @@ Scatterplot.prototype.clearHintPath = function (id) {
      this.svg.select("#gInner"+id).selectAll("text").remove();
     this.svg.select("#gInner"+id).selectAll("path").remove();
 	//Re-set the transparency of faded out points
-     this.svg.selectAll(".displayPoints")
-	           .style("fill-opacity", 1);				
+     this.svg.selectAll(".displayPoints").style("fill-opacity", 1);
 }
 
 /** Calculates the distance between two points
@@ -664,7 +665,7 @@ Scatterplot.prototype.checkAmbiguous = function (points){
 
     //First check if there exists any stationary points in the dataset
     if (stationaryPoints.length>0){
-       //Generate points for drawing an interaction loop
+       //Then, generate points for drawing an interaction loop
        this.findLoops(d3.min(stationaryPoints),points);
     }
     /**console.log(stationaryPoints);

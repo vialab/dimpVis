@@ -29,8 +29,9 @@ scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an ar
                            slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);					
                              								
 					  })
-					  .on("dragend",function (d){					    
-					        scatterplot.snapToView(d.id,d3.event.x,d3.event.y,d.nodes);
+					  .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
+                                                  //coordinates of the scatterplot object
+					        scatterplot.snapToView(d.id,d.nodes);
 							slider.updateSlider(scatterplot.currentView);
 					  });	
 
@@ -53,7 +54,7 @@ slider.render();
 						    scatterplot.interpolatePoints(-1,slider.interpValue,slider.currentTick,slider.nextTick);
 					  })
 					  .on("dragend",function (){
-					      slider.snapToTick(d3.event.x);
+					      slider.snapToTick();
                           scatterplot.changeView(slider.currentTick); 
                           scatterplot.redrawView(slider.currentTick);
 					  });	
