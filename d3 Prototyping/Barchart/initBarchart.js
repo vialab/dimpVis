@@ -1,10 +1,7 @@
-var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels              
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
-var slider   = new Slider(90, 670, 700, 100, "#time",11,years, "Years","#666",50);
+var slider   = new Slider(700, 100, "#time",labels, "Years","#666",50);
 slider.init();
 slider.render();
 				  
@@ -32,14 +29,14 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new bar chart
 ////////////////////////////////////////////////////////////////////////////////   
-var barchart   = new Barchart(600, 500, 30, 0 , "#bargraph",years,80);
+var barchart   = new Barchart(600, 500, 30, 0 , "#bargraph",80,"country","population","Barchart");
 barchart.init();
 barchart.clickHintLabelFunction = function (d, i){
 										//barchart.animateAlongPath(i);
 										barchart.changeView(i);
 										slider.updateSlider(i); 
 									};
-barchart.render(dataset);
+barchart.render(dataset,0,labels);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define some interaction functions for the barchart
@@ -65,6 +62,6 @@ barchart.render(dataset);
                              								 
 					  });	
 
-barchart.widget.selectAll(".displayBars")				                 			  
+barchart.svg.selectAll(".displayBars")
                    .call(barchart.dragEvent);
 				   

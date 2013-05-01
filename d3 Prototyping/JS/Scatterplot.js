@@ -132,7 +132,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
     //Call the function which draws the axes
     this.drawAxes(xScale,yScale);
 
-  // Draw the points according to the values in the data set
+  // Set up the data for drawing the points according to the values in the data set
   this.svg.selectAll("circle")
      .data(this.displayData.map(function (d,i) {
             //Re-scale the points such that they are drawn within the svg container
@@ -142,8 +142,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
            });
 	        return {nodes:d.points,id:i,label:d.label};
 	  }))	
-      .enter()
-      .append("g")	  
+      .enter().append("g")
 	  .attr("class","gDisplayPoints");
 
    //Append an empty g element to contain the hint path
@@ -228,7 +227,8 @@ Scatterplot.prototype.render = function( data, start, labels) {
  *  id: The id of the dragged point, for selecting by id
  *  mousex, mouseY: The coordinates of the mouse, received from the drag event
  * */
-Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {	 
+//TODO: toggling between label colours for ambiguous points
+Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
    var ref = this;
     //Save the mouse coordinates
     this.mouseX = mouseX;
@@ -555,7 +555,7 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
    var loopPoints = [];
     var numPoints = indices.length;
    //Scale the loop radius by an amount proportional to the number of points (might need to tweak this magic number)
-    var radius = numPoints*30;
+    var radius = numPoints*15;
     var pi = Math.PI/2;
     var interval = pi/numPoints;
     //The first point of the path should be the original point, as a reference for drawing the loop
