@@ -10,7 +10,8 @@
  * title: of the graph
  */
  function Barchart(width,height,x,y,id,p,xLabel,yLabel,title){
-   // Position and size attributes for drawing the svg
+    //TODO: width and height can be automatically computed if we know the bar width, it should be the bar width which is provided in the constructor
+   //Position and size attributes for drawing the svg
    this.width = width;
    this.height = height;
    this.leftMargin = x;
@@ -32,7 +33,7 @@
    this.base = height-5; //Starting y-position of the bars (the base)
 
    //Default graph colours, can be changed by called the setColours() function
-   this.hintColour = "#aec7e8";
+   this.hintColour = "#1f77b4";
    this.axisColour = "#c7c7c7";
    this.barColour = "#74c476";
 
@@ -171,6 +172,13 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
     var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
+    // Add the title of the graph
+    this.svg.append("text")
+        .attr("id", "graphTitle")
+        .style("fill", this.axisColour)
+        .text(this.graphTitle)
+        .attr("x",1).attr("y",-15);
+
     // Add the x-axis label
     this.svg.append("text")
         .attr("class", "axisLabel")
@@ -222,103 +230,97 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
     //Save the mouse coordinate
     this.mouseY = mouseY;
 
-	 var currentHeight = -1;
-	 console.log(ref.currentView+" "+ref.nextView);
-     this.svg.select("#displayBars"+id)
-	            .attr("height", function (d){
-                    var current =  d.nodes[ref.currentView][1];
-					var next = d.nodes[ref.nextView][1];
-                    var bounds = ref.checkBounds(current,next,mouseY);					
-                   if (ref.currentView ==0 && bounds == current){ //At lowest bar and out of bounds
-					    return d.nodes[ref.currentView][2];
-                    } else if (ref.nextView == ref.numViews && bounds==next){ //At the highest bar and out of bounds
-					    return d.nodes[ref.nextView][2];
-					}else { //Somewhere in the middle
-				     if (bounds == current){ //Passed current					    
-					    return d.nodes[ref.currentView][2];
-					 }else if (bounds == next){ //Passed next			    
-					    return d.nodes[ref.nextView][2];
-					 }
-				 }				
-				    //Somewhere in the middle                       					
-                    var yDiff = Math.abs(mouseY - ref.base);
-					var barHeight = d.nodes[ref.currentView][2];								
-					if (mouseY > current)
-					   yDirection = -1;
-					else 
-					    yDirection = 1; 
-                    
-					currentHeight = (barHeight + yDirection*Math.abs(yDiff - barHeight));						
-				    return currentHeight; 
-				})
-				.attr("y", function(d){ 
-				    var current =  d.nodes[ref.currentView][1];
-					var next = d.nodes[ref.nextView][1];
-                    var bounds = ref.checkBounds(current,next,mouseY);					
-                    if (ref.currentView ==0){ //At lowest bar
-					    if (bounds == current){ //Passed lowest bar, out of bounds
-						   console.log("out of bounds");
-						    return current;
-						}else if (bounds == next){ //Passed the next bar height, update tracker variables
-						    //ref.animateBars(mouseY,current,next,currentHeight,id);
-						    ref.currentView = ref.nextView;
-							ref.nextView++;						   
-							return next;                          						
-						}
-						//Otherwise, mouse is within bounds						
-						ref.animateBars(mouseY,current,next,currentHeight,id);
-						return mouseY;
-						
-                    } else if (ref.nextView == ref.numViews){ //At the highest bar
-					    if (bounds == next){ //Passed highest, out of bounds
-						   return next;
-						}else if (bounds == current){ //Passed current, update tracker variables
-						    //ref.animateBars(mouseY,current,next,currentHeight,id);
-						   ref.nextView = ref.currentView;
-						   ref.currentView--;						   
-						   return current;                          				   
-						}
-						//Otherwise, mouse is in bounds
-						 ref.animateBars(mouseY,current,next,currentHeight,id);
-						 return mouseY;
-					}else { //At a bar somewhere in  the middle
-					   if (bounds == current){ //Passed current
-					        //ref.animateBars(mouseY,current,next,currentHeight,id);	
-					        ref.nextView = ref.currentView;
-							ref.currentView--;                            
-							return current;						
-					   }else if (bounds ==next){ //Passed next
-					       //ref.animateBars(mouseY,current,next,currentHeight,id);					   
-					       ref.currentView = ref.nextView;
-						   ref.nextView++;                          
-                           return next;				   
-					   }						
-					   //Within bounds
-					   ref.animateBars(mouseY,current,next,currentHeight,id);
-					   return mouseY;
-                   }	                    
-				});	
+    this.svg.select("#displayBars"+id).each(function (d) {
+         var newValues = []; //Saves the new height and y-position:[y,h]
+         var currentY =  d.nodes[ref.currentView][0];
+         var nextY = d.nodes[ref.nextView][0];
+         var currentHeight =  d.nodes[ref.currentView][1];
+         var nextHeight = d.nodes[ref.nextView][1];
+         var bounds = ref.checkBounds(currentY,nextY,mouseY);
+         if (ref.currentView ==0){ //At the lowest bar
+             if (bounds == currentY){ //Passed lowest bar, out of bounds
+                 newValues = [currentY,currentHeight];
+             }else if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
+                 ref.currentView = ref.nextView;
+                 ref.nextView++;
+                 newValues = [nextY,nextHeight];
+             }else{
+                 //Otherwise, mouse dragging is in bounds
+                 ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+                 newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+             }
+         } else if (ref.nextView == ref.lastView){ //At the tallest bar
+             if (bounds == nextY){ //Passed highest, out of bounds
+                 newValues=[nextY,nextHeight];
+             }else if (bounds == currentY){ //Passed current, update view tracker variables
+                 ref.nextView = ref.currentView;
+                 ref.currentView--;
+                 newValues = [currentY,currentHeight];
+             }else{
+                 //Otherwise, mouse dragging is in bounds
+                 ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+                 newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+             }
+         }else { //At a bar somewhere in between current and next view
+             if (bounds == currentY){ //Passed current, update the variables
+                 ref.nextView = ref.currentView;
+                 ref.currentView--;
+                 newValues = [currentY,currentHeight];
+             }else if (bounds ==nextY){ //Passed next, update the variables
+                 ref.currentView = ref.nextView;
+                 ref.nextView++;
+                 newValues = [nextY,nextHeight];
+             }else{
+                 //Otherwise, mouse dragging is in bounds
+                 ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+                 newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+             }
+         }
+        ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
+     });
 }
-//Checks if a mouse position is within bounds of a defined path
-//Returns a point if the mouse position is equal to it or has crossed it
-//Returns 'ok' if the mouse is within bounds
-Barchart.prototype.checkBounds = function(pt1,pt2,mouse){ 
+/**Computes the new height of a bar based on a new y-position
+ * oldHeight: the original height of the bar
+ * newYPos: the new y-position of the bar
+ * oldYPos: the old y-position of the bar
+ * @return the new height
+ * */
+Barchart.prototype.findHeight = function (oldHeight,newYPos,oldYPos){
+    var yDiff = Math.abs(newYPos - this.base);
+    var yDirection = 1;
+    if (newYPos > oldYPos) yDirection = -1; //Moving down
+    return (oldHeight + yDirection*Math.abs(yDiff - oldHeight));
+}
+/** Checks if the mouse is in bounds defined by h1 and h2
+ *  h1,h2: the bounds
+ *  mouseY: the mouse position
+ *  @return start,end: boundary values are returned if the given
+ *                     mouse position is equal to or has crossed it
+ *          distanceRatio: indicates the percentage the mouse has travelled
+ *                         starting from h1
+ * */
+//TODO:It is possible that this function will fail, because distanceratio could equal the boundary values..
+Barchart.prototype.checkBounds = function(h1,h2,mouseY){
+   //Resolve the boundaries
     var start,end;
-	if (pt1>pt2){
-	 end = pt1;
-	 start = pt2;
+	if (h1>h2){
+	 end = h1;
+	 start =h2;
 	}else{
-	  start = pt1;
-	  end = pt2;
+	  start = h1;
+	  end = h2;
 	}
-	console.log("my "+mouse+"start "+start+" end "+end);
-	//Check if mouse is between path defined by (start,end)
-	if (mouse <= start){
-	   return start;
-	}else if (mouse >=end){
-	   return end;
-	}
-	return "ok";	
+	//console.log("my "+mouseY+"start "+start+" end "+end);
+	//Check if the mouse is between start and end values
+	if (mouseY <= start) return start;
+	else if (mouseY >=end) return end;
+
+    //Find the amount travelled from current to next view (remember: h1 is current and h2 is next)
+    var distanceTravelled = Math.abs(mouseY-h1);
+    var totalDistance = Math.abs(h2 - h1);
+    var distanceRatio = distanceTravelled/totalDistance;
+    this.interpValue = distanceRatio;
+	return distanceRatio;
 }
 //Animates the rest of the bars while one is being dragged
 //TODO: Refactor this function, lots of repetition, consider using "each"
@@ -354,7 +356,7 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
 									  var currentX = ref.findHintX(d[0],i,ref.currentView);
 									  var nextX = ref.findHintX(d[0],i,ref.nextView);
 									  var addedDistance = Math.abs(nextX - currentX)*distanceRatio;								
-									return currentX - addedDistance;											       
+									  return currentX - addedDistance;
 								  })
 								.y(function(d) { return d[1]; })
 								.interpolate("linear"); 
@@ -368,62 +370,70 @@ Barchart.prototype.animateBars = function (mouseY,current,next,height,id){
 										var nextX = ref.findHintX(d[0],i,ref.nextView);
 										var addedDistance = Math.abs(nextX - currentX)*distanceRatio;												       
 										return "translate("+(currentX - addedDistance-10)+","+d[1]+")";								    
-									});			   
+									});
 	 
 }
-//A function meant only to interface with other visualizations or the slider
-//Given an interpolation value, move all bars accordingly between the view 'current' and 'next'
-Barchart.prototype.updateBars = function(interpValue,currentI,nextI){  
-   this.svg.selectAll(".displayBars")
-		          .attr("height", function (d){	                       
-						      var current =  d.nodes[currentI][1];
-					          var next = d.nodes[nextI][1];
-							  var addedHeight = Math.abs(next - current)*interpValue;
-						      return d.nodes[currentI][2] + addedHeight;					  
-                          						  
-		           })
-				  .attr("y", function (d){			         
-						   var current =  d.nodes[currentI][1];
-					       var next = d.nodes[nextI][1];
-						   var addedHeight = Math.abs(next - current)*interpValue;						     
-						   return current - addedHeight;
-						 					 
-				   });		
+/**"Animates" the rest of the bars while one is being dragged
+ * Uses the interpAmount to determine how far the bar has travelled between the two heights
+ * defined at start and end view. The heights of the other bars are then estimated using the
+ * interpAmount and re-drawn at the new height
+ * id: The id of the dragged point
+ * interpAmount: The t parameter, or amount to interpolate by
+ * startView,endView: Define the range to interpolate across
+ * */
+Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView){
+  this.svg.selectAll(".displayBars").filter(function (d){return d.id!=id;})
+      .attr("height",function (d){
+          var interpolateHeight = d3.interpolate(d.nodes[startView][1], d.nodes[endView][1]);
+          return interpolateHeight(interpAmount);
+      })
+      .attr("y", function(d){
+          var interpolateY = d3.interpolate(d.nodes[startView][0], d.nodes[endView][0]);
+          return interpolateY(interpAmount);
+      })
+        /** .each(function (d){
+          //var heightChange = Math.abs(d.nodes[endView][1] - d.nodes[startView][1])*interpAmount;
+          var interpolator = d3.interpolate(d.nodes[startView][0], d.nodes[endView][0]);
+          var interpolator2 = d3.interpolate(d.nodes[startView][1], d.nodes[endView][1]);
+          //Update the height of the bar according to the height change
+          d3.select(this).attr("height",interpolator2(interpAmount))
+                         .attr("y", interpolator(interpAmount));
+      });*/
+
+    /**.each(function (d){
+        var interpolator = d3.interpolate({x:d.nodes[startView][0],y:d.nodes[startView][1]},
+            {x:d.nodes[endView][0],y:d.nodes[endView][1]}); //Function to linearly interpolate between points at current and next view
+        var newPoint = interpolator(interpAmount);
+        //Update the position of the point according to the interpolated point position
+        d3.select(this).attr("cx",newPoint.x)
+            .attr("cy",newPoint.y);
+    })*/
  
 }
- //Redraws the barchart view 
- //This function does not update any tracker variables
-Barchart.prototype.redrawView = function (view,id){   
-       var ref = this;   
-       var displayView = this.currentView;
-       if (view!=-1){
-	     displayView = view;
-	    }	   
-       this.svg.selectAll(".displayBars")
-		          //.transition().duration(400)
-		          .attr("height", function (d){				          
-		                  return d.nodes[displayView][2];
-		           })
-				   .attr("y", function (d){
-				         return d.nodes[displayView][1];
-				   });	
+/** Redraws the barchart at a specified view
+ *  view: the view to draw
+ *  NOTE: view tracking variables are not updated by this function
+ * */
+Barchart.prototype.redrawView = function (view){
+   var ref = this;
+   this.svg.selectAll(".displayBars")
+              .transition().duration(300)
+              .attr("height", function (d){return d.nodes[view][1];})
+              .attr("y", function (d){return d.nodes[view][0];});
 	//Update the hint path							    
-    this.svg.select("#p"+id)/**.transition().duration(500).ease("linear")*/.attr("d", function(d,i){
-								         return ref.lineGenerator(d.nodes); 
-								  });											
+    //this.svg.select("#p"+id)/**.transition().duration(500).ease("linear")*/.attr("d", function(d,i){
+								     //    return ref.lineGenerator(d.nodes);
+								//  });
 	//Update the hint labels
-   this.svg.select("#gInner"+id).selectAll("text")
+ //  this.svg.select("#gInner"+id).selectAll("text")
                                    /** .transition().duration(500).ease("linear")*/
-								   .attr("transform",function (d,i) {
+								  /** .attr("transform",function (d,i) {
 												       if (i==ref.currentView){ //Don't want to rotate the label resting on top of the bar
 													       return "translate("+ref.findHintX(d[0],i,displayView)+","+d[1]+")";
 													   }else{
 															return "translate("+(ref.findHintX(d[0],i,displayView)-10)+","+d[1]+")";
 													   }
-												});
-									
-																						
-											 
+												});*/
 }
 //Updates the tracker variables according to the new view
 //Then calls the redraw function to update the display
@@ -451,65 +461,69 @@ Barchart.prototype.changeView = function (newView){
 Barchart.prototype.findHintX = function (oldX,index,view){
     return (oldX+this.barWidth/2+(index*this.hintPathSpacing))-view*this.hintPathSpacing;
 }
-//Snaps to the nearest view (in terms of mouse location distance and the bar being dragged)
-Barchart.prototype.snapToView = function (id, mouseY,nodes){
-       var ref = this;    
-	   var current =  nodes[ref.currentView][1];
-	   var next = 	nodes[ref.nextView][1];
-	   var currentDist = Math.abs(current - mouseY);
-	   var nextDist = Math.abs(next - mouseY);
-	   if (currentDist > nextDist && ref.nextView != ref.numViews){ //Passed next, advance the variables forward
-			//Make sure the nextView wasn't the last one to avoid index out of bounds
-			ref.currentView = ref.nextView;
-			ref.nextView++;	          				                    				
-		}
-      if (ref.nextView == ref.numViews){
-	      ref.redrawView((ref.currentView+1),id);		
-       }else{
-	      ref.redrawView(-1,id);		
-       }	   
-      		
+/** Snaps to the nearest view once a dragged bar is released
+ *  Nearest view is the closest height (either current or next) to the
+ *  most recent y-position of the dragged bar. View tracking variables are
+ *  updated according to which view is "snapped" to.
+ *  id: The id of the dragged bar
+ *  points: An array of all heights of the dragged point (e.g., d.nodes)
+ * */
+Barchart.prototype.snapToView = function (id, heights){
+   var current =  heights[this.currentView][0];
+   var next = 	heights[this.nextView][0];
+   var currentDist = Math.abs(current - this.mouseY);
+   var nextDist = Math.abs(next - this.mouseY);
+  //Ensure the nextView wasn't the last one to avoid the index going out of bounds
+   if (currentDist > nextDist && this.nextView != this.lastView){
+        this.currentView = this.nextView;
+        this.nextView++;
+    }
+  if (this.nextView == this.lastView)  this.redrawView(this.currentView+1);
+  else this.redrawView(this.currentView);
 }
-//Displays hint info
-Barchart.prototype.showHintPath = function (id,d){    
-        var ref = this;      
-		this.svg.selectAll(".displayBars")
-		                                   .transition().duration(400)
-		                                   .style("fill-opacity", function (d){
-		                                           if (id != d.id)
-												      return 0.4;
-	                                        });				
-    	
-	//Render the hint path line									    
+/** Displays the hint path by appending its svg components to the main svg
+ *  id: the id of the dragged bar
+ *  heights: the array of heights and y positions of the bar [ypos,height]
+ *  xPos: the x-position of the bar
+ * */
+//TODO: check for ambiguous cases, similar to what is done in the scatterplot
+Barchart.prototype.showHintPath = function (id,heights,xPos){
+    var ref = this;
+    //Create a dataset to draw the hint path in the format: [x,y]
+    var pathData = heights.map(function (d){return [xPos,d[0]];});
+	//Draw the hint path line
     this.svg.select("#gInner"+id).append("svg:path")
-                                  .attr("d", function(d){                                         							  
-								         return ref.lineGenerator(d.nodes); 
-								  })
+                                  .attr("d", ref.lineGenerator(pathData))
 								  .attr("id",function (d){return "p"+d.id;})
 								  .style("stroke-width", 2)
-								  .style("stroke", "steelblue")
+								  .style("stroke", this.hintColour)
 								  .style("fill","none")								
-								    .attr("filter", "url(#blur)");		
+								  .attr("filter", "url(#blur)");
 												
-	//Render the hint labels
-   this.svg.select("#gInner"+id).selectAll("text").data(d).enter()
-								            .append("svg:text")
-                                            .text(function(d,i) { return ref.hintLabels[i]; })
-												.attr("transform",function (d,i) {
-												       if (i==ref.currentView){ //Don't want to rotate the label resting on top of the bar
-													       return "translate("+ref.findHintX(d[0],i,ref.currentView)+","+d[1]+")";
-													   }else{
-															return "translate("+(ref.findHintX(d[0],i,ref.currentView)-10)+","+d[1]+")";
-													   }
-												})												
-											   .attr("fill", "#666")
-											   .on("click",this.clickHintLabelFunction)
-											   .style("cursor", "pointer")
-											   .attr("class","hintLabels"); 
-											   
-}
+	//Draw the hint labels
+   this.svg.select("#gInner"+id).selectAll("text").data(heights).enter()
+                                .append("svg:text")
+                                .text(function(d,i) { return ref.hintLabels[i]; })
+                                .attr("transform",function (d,i) {
+                                       if (i==ref.currentView){ //Don't want to rotate the label resting on top of the bar
+                                           return "translate("+ref.findHintX(xPos,i,ref.currentView)+","+d[0]+")";
+                                       }else{
+                                           return "translate("+(ref.findHintX(xPos,i,ref.currentView)-10)+","+d[0]+")";
+                                       }
+                                 })
+                               .attr("fill", "#666")
+                               .attr("class","hintLabels")
+                               .on("click",this.clickHintLabelFunction)
+                               .style("cursor", "pointer");
 
-//Clears hint info
+    //Fade out the other bars
+    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
+        .transition().duration(300)
+        .style("fill-opacity", 0.4);
+}
+/** Clears the hint path by removing its components from the svg
+ *  id: the id of the dragged bar
+ * */
  Barchart.prototype.clearHintPath = function (id){
         var ref = this;
         this.svg.select("#gInner"+id).selectAll("text").remove();

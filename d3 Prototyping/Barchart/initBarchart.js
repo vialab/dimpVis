@@ -13,8 +13,8 @@ slider.render();
                             barchart.clearHintPath(barchart.draggedBar);							
 					     }) 
                       .on("drag", function(){                               				  
-							slider.updateDraggedSlider(d3.event.x);                            	
-						    barchart.updateBars(slider.interpValue,slider.currentTick,slider.nextTick);
+							slider.updateDraggedSlider(d3.event.x);
+                           barchart.interpolateBars(-1,slider.interpValue,slider.currentTick,slider.nextTick);
 						                             						
 					  })
 					  .on("dragend",function (){
@@ -29,7 +29,7 @@ slider.widget.select("#slidingTick")
 ////////////////////////////////////////////////////////////////////////////////
 // Create new bar chart
 ////////////////////////////////////////////////////////////////////////////////   
-var barchart   = new Barchart(600, 500, 30, 0 , "#bargraph",80,"country","population","Barchart");
+var barchart   = new Barchart(800, 300, 30, 0 , "#bargraph",80,"country","population","Populations of a subset of countries over time");
 barchart.init();
 barchart.clickHintLabelFunction = function (d, i){
 										//barchart.animateAlongPath(i);
@@ -43,12 +43,12 @@ barchart.render(dataset,0,labels);
 ////////////////////////////////////////////////////////////////////////////////
  barchart.dragEvent = d3.behavior.drag()
                        .origin(function(d){ //Set the starting point of the drag interaction
-							return {x:d.x,y:d.nodes[barchart.currentView][1]};
+							return {x:d.xPos,y:d.nodes[barchart.currentView][0]};
 	                   })
 					   .on("dragstart", function(d){                         
 							       barchart.clearHintPath(barchart.draggedBar);								  
 								   barchart.draggedBar = d.id;   
-                                   barchart.showHintPath(d.id,d.nodes);                                 					                                              						   
+                                   barchart.showHintPath(d.id, d.nodes, d.xPos);
 					  })
                       .on("drag", function(d){                              				  
                            barchart.updateDraggedBar(d.id,d3.event.y);					   
@@ -56,9 +56,8 @@ barchart.render(dataset,0,labels);
                            					   								  
 					  })
 					  .on("dragend",function (d){					    
-					        barchart.snapToView(d.id,d3.event.y,d.nodes);
-							
-							 slider.updateSlider(barchart.currentView);
+					        barchart.snapToView(d.id,d.nodes);
+							slider.updateSlider(barchart.currentView);
                              								 
 					  });	
 

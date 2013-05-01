@@ -314,7 +314,6 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
  *  points: An array of all point positions of the dragged point (e.g., d.nodes)
  * */
 Scatterplot.prototype.snapToView = function( id, points) {
-
     //Calculate the distances from the dragged point to both current and next
 	var distanceCurrent = this.calculateDistance(this.mouseX,this.mouseY, points[this.currentView][0], points[this.currentView][1]);
 	var distanceNext = this.calculateDistance(this.mouseX,this.mouseY, points[this.nextView][0],points[this.nextView][1]);
@@ -324,11 +323,8 @@ Scatterplot.prototype.snapToView = function( id, points) {
 	    this.nextView = this.nextView +1;
      }
     //Special case: If the nextView is the last view index, need to re draw the plot on that index (not currentView, which is nextView-1)
-    if (this.nextView == this.lastView){
-        this.redrawView(this.nextView);
-	}else{
-	   this.redrawView(this.currentView);
-    }
+    if (this.nextView == this.lastView) this.redrawView(this.nextView);
+    else this.redrawView(this.currentView);
 }
 /** Updates the view tracking variables when the view is being changed by an external
  * visualization (e.g., slider)
@@ -399,13 +395,9 @@ Scatterplot.prototype.changeView = function( newView) {
 //TODO: Might want to add interpolation or use the interpolate function
 Scatterplot.prototype.redrawView = function(view) {
     this.svg.selectAll(".displayPoints")
-	          .transition().duration(400)
-	           .attr("cx",function (d){	
-			           return d.nodes[view][0];
-			        })
-				 .attr("cy",function (d){	
-			           return d.nodes[view][1];
-	             });
+	          .transition().duration(300)
+	           .attr("cx",function (d){return d.nodes[view][0];})
+			   .attr("cy",function (d){return d.nodes[view][1];});
 }
 
 /** Displays the hint path by appending text labels and a path to the svg
