@@ -19,8 +19,9 @@ slider.render();
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick(d3.event.x);                          
-                          barchart.changeView(slider.currentTick);					      
-					  });	
+                          barchart.changeView(slider.currentTick);
+                          barchart.redrawView(slider.currentTick);
+                     });
 
 slider.widget.select("#slidingTick")				                 			  
                    .call(slider.dragEvent);	   

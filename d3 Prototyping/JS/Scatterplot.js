@@ -329,18 +329,17 @@ Scatterplot.prototype.snapToView = function( id, points) {
 /** Updates the view tracking variables when the view is being changed by an external
  * visualization (e.g., slider)
  * */
-Scatterplot.prototype.changeView = function( newView) {     
-	 var ref = this;
+Scatterplot.prototype.changeView = function( newView) {
 	 //Update the view tracker variables
 	 if (newView ==0){//First point on path
-            ref.currentView = newView	 
-			ref.nextView = newView+1;
-	}else if (newView == ref.lastView){  //Last point of path
-		   ref.nextView = newView;
-		   ref.currentView = newView -1;
+            this.currentView = newView
+			this.nextView = newView+1;
+	}else if (newView == this.lastView){  //Last point of path
+		   this.nextView = newView;
+		   this.currentView = newView -1;
 	}else { //A point somewhere in the middle
-        ref.currentView = newView;	
-		ref.nextView = newView + 1;
+            this.currentView = newView;
+            this.nextView = newView + 1;
 	}
 }
 /** Animates all points in the scatterplot along their hint paths from
