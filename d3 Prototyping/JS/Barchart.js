@@ -46,6 +46,7 @@
    this.interpValue=0;
    this.mouseY = -1;
    this.ambiguousBars = [];
+   this.interactionPaths = [];
 
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
@@ -334,7 +335,7 @@ Barchart.prototype.animatePath = function (id, interpAmount){
                         .y(function(d) { return d[1]; })
                         .interpolate("linear");
     //Re-draw the hint path
-    this.svg.select("#p"+id).attr("d", function(d,i){return lineGenerator(ref.pathData); });
+    this.svg.select("#p"+id).attr("d",  lineGenerator(ref.pathData));
 	//Re-draw the hint path labels
    this.svg.selectAll(".hintLabels")
                     .attr("transform",function (d,i) {
@@ -444,9 +445,6 @@ Barchart.prototype.snapToView = function (id, heights){
  * */
 Barchart.prototype.showHintPath = function (id,heights,xPos){
     var ref = this;
-    //Re-map the heights array to contain only heights, then scan the heights for ambiguous cases
-    var heightsOnly = heights.map(function (d){return d[1];});
-    this.checkAmbiguous(heightsOnly);
 
     //Line function for drawing the hint path
     var lineGenerator = d3.svg.line()
@@ -456,30 +454,50 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 
     //Create a dataset to draw the hint path in the format: [x,y]
     this.pathData = heights.map(function (d){return [xPos,d[0]];});
+    //Re-map the heights array to contain only heights, then scan the heights for ambiguous cases
+    var heightsOnly = heights.map(function (d){return d[1];});
+    this.checkAmbiguous(heightsOnly);
+
+    //Draw the interaction path(s) (if any)
+    if (this.interactionPaths.length >0){
+        //Line function for drawing the interaction path
+        var pathGenerator = d3.svg.line()
+            .x(function(d,i) { return ref.findHintX(d[0],i,ref.currentView); })
+            .y(function(d) { return d[1]; })
+            .interpolate("basis");
+        this.svg.select("#gInner"+id).selectAll(".interactionPath"+id)
+            .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
+            .enter().append("path").attr("d",function (d){return pathGenerator(d.points);})
+            .attr("stroke-dasharray","3,3")//Makes the path dashed
+            .attr("class","interactionPath"+id)
+            .style("fill","none")
+            .style("stroke", this.hintColour);
+    }
+
 	//Draw the hint path line
     this.svg.select("#gInner"+id).append("svg:path")
-                                  .attr("d", lineGenerator(ref.pathData))
-								  .attr("id",function (d){return "p"+d.id;})
-								  .style("stroke-width", 2)
-								  .style("stroke", this.hintColour)
-								  .style("fill","none")								
-								  .attr("filter", "url(#blur)");
+                      .attr("d", lineGenerator(ref.pathData))
+                      .attr("id",function (d){return "p"+d.id;})
+                      .style("stroke-width", 2)
+                      .style("stroke", this.hintColour)
+                      .style("fill","none")
+                      .attr("filter", "url(#blur)");
 												
 	//Draw the hint labels
    this.svg.select("#gInner"+id).selectAll("text").data(heights.map(function(d,i){
-                           return {x:xPos,y:d[0],label:ref.hintLabels[i]};
-                       })).enter()
-                        .append("svg:text")
-                        .text(function(d) { return d.label; })
-                        .attr("transform",function (d,i) {
-                               //Don't rotate the label resting on top of the bar
-                               if (i==ref.currentView) return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
-                               else return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
-                         })
-                       .attr("fill", "#666")
-                       .attr("class","hintLabels")
-                       .on("click",this.clickHintLabelFunction)
-                       .style("cursor", "pointer");
+                   return {x:xPos,y:d[0],label:ref.hintLabels[i]};
+               })).enter()
+                .append("svg:text")
+                .text(function(d) { return d.label; })
+                .attr("transform",function (d,i) {
+                       //Don't rotate the label resting on top of the bar
+                       if (i==ref.currentView) return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
+                       else return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
+                 })
+               .attr("fill", "#666")
+               .attr("class","hintLabels")
+               .on("click",this.clickHintLabelFunction)
+               .style("cursor", "pointer");
 
     //Fade out the other bars
     this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
@@ -491,8 +509,10 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
  * */
  Barchart.prototype.clearHintPath = function (id){
         this.pathData = [];
+        this.interactionPaths = [];
+        this.isAmbiguous = 0;
         this.svg.select("#gInner"+id).selectAll("text").remove();
-        this.svg.select("#p"+id).remove();
+        this.svg.select("#gInner"+id).selectAll("path").remove();
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
 //TODO: can use this to also detect really small changes in height to alleviate the interaction
@@ -504,9 +524,8 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
  *                     only one height in between which introduces directional ambiguity during dragging)
  *
  *  This information is stored in the ambiguousBars array, which gets re-populated each time a
- *  new bar is dragged.  This array is in  the format: [[type, x, y]...number of views]
- *
- *  NOTE:
+ *  new bar is dragged.  This array is in  the format: [[type, h]...number of views], where h
+ *  is the height on the interaction path (provided in the stationary case)
  *
  *  heights: an array of heights to search within
  * */
@@ -518,7 +537,7 @@ Barchart.prototype.checkAmbiguous = function (heights){
     this.ambiguousBars = [];
     //Re-set the ambiguousPoints array
     for (j=0;j<heights.length;j++){
-        this.ambiguousBars[j] = 0;
+        this.ambiguousBars[j] = [0];
     }
     //Populate the stationary and revisiting bars array
     //Search for heights that are equal (called "repeated bars")
@@ -531,10 +550,10 @@ Barchart.prototype.checkAmbiguous = function (heights){
                     //If the bar's index does not exist in the array of all stationary bars, add it
                     if (stationaryBars.indexOf(j)==-1){
                         stationaryBars.push(j);
-                        this.ambiguousBars[j] = 1;
+                        this.ambiguousBars[j] = [1];
                     }if (stationaryBars.indexOf(k)==-1){
                         stationaryBars.push(k);
-                        this.ambiguousBars[k] = 1;
+                        this.ambiguousBars[k] = [1];
                     }
                 }/**else{ //Revisiting bar - special case
                     //If the bar's index does not exist in the array of all revisiting bars, add it
@@ -552,19 +571,74 @@ Barchart.prototype.checkAmbiguous = function (heights){
                         }
                     }
                 }*/
-                //TODO:Both revisiting and stationary? Label placement could get messy
                 /**if (Math.abs(k-j)==2){ //
-                 }*/ //TODO: Use this for barchart ambiguous
+                 }*/ //TODO: Use this for barchart ambiguous (revisiting)
             }
         }
 
     }
-    //First check if there exists any stationary points in the dataset
-   /** if (stationaryPoints.length>0){
-        //Then, generate points for drawing an interaction loop
-        this.findLoops(d3.min(stationaryPoints),points);
+    //First check if there exists any stationary bars in the dataset
+    if (stationaryBars.length>0){
+        //Then, generate points for drawing an interaction path
+        this.findPaths(d3.min(stationaryBars),heights);
     }
-    /**console.log(stationaryPoints);
+    /**console.log(this.ambiguousBars);
+    console.log(stationaryPoints);
      console.log(revisitingPoints);*/
 
+}
+/** Finds areas in the data set which require interaction paths, which are sequences of
+ * stationary points.  This function will populate an array containing all data for
+ * drawing a sine wave which is used to guide the interaction across areas of stationary bars
+ * interactionPaths[] = [[originalHeight,[points for the sine wave]]..number of paths]
+ * Note: this function is only called in checkAmbiguous(), because it uses the resulting
+ * ambiguousBars array
+ * startIndex: the index of the first stationary bar in the ambiguousBars array
+ * heights: an array of the original heights of the hint path
+ * */
+Barchart.prototype.findPaths = function (startIndex,heights){
+    var pathInfo = [];
+    pathInfo[0] = heights[startIndex];
+    pathInfo[1] = [];
+    for (var j=startIndex; j< heights.length;j++){
+        if (this.ambiguousBars[j][0]==1){
+            if (j!=startIndex && this.ambiguousBars[j-1][0]!=1){ //Starting a new path
+                //Need to calculate points to draw the loop, based on the original point value
+                this.interactionPaths.push(this.calculatePathPoints(pathInfo[0],pathInfo[1]));
+                pathInfo = [];
+                pathInfo[0] = heights[j];
+                pathInfo[1] = [];
+            }
+            pathInfo[1].push(j);
+        }
+    }
+    this.interactionPaths.push(this.calculatePathPoints(pathInfo[0],pathInfo[1]));
+}
+/** Computes the peak points to lie along an interaction path
+ * Note: this function is only called in findPaths()
+ * h: the original height which defines the base axis of the sine wave
+ * indices: the corresponding year indices, this array's length is the number of peaks of the path
+ * @return an array of all points for the sine wave peaks and the year index in the format: [[x,y], etc.]
+ * */
+Barchart.prototype.calculatePathPoints = function (h,indices){
+    var pathPoints = [];
+    //Save the x and y coordinates of the stationary bar
+    var xPos = this.pathData[indices[0]][0];
+    var yPos = this.pathData[indices[0]][1];
+    //The first point of the path should be the original point
+    pathPoints.push([xPos,yPos]);
+    var direction = 1; //Up or down direction of the sine wave, toggles among peaks
+    var amplitude = 10; //Height above or below the base (yPos)
+    for (var j=1;j<=indices.length;j++){
+        //Only need to compute the y value, since x will stay the same and is adjusted as needed by findHintX()
+        var newY = direction*amplitude + yPos;
+        direction = direction*-1; //Reverse the direction
+        //Save the y value in the ambiguousBars array, to be used later when determining the interaction direction
+        var originalIndex = indices[j-1];
+        pathPoints.push([xPos,newY]);
+        this.ambiguousBars[originalIndex] = [1,newY];
+    }
+    //The last point of the path should be the original point
+    pathPoints.push([xPos,yPos]);
+    return pathPoints;
 }

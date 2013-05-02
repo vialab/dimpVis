@@ -571,6 +571,7 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
  * Note: this function is only called in checkAmbiguous(), because it uses the resulting
  * ambiguousPoints array
  * startIndex: the index of the first stationary point in the ambiguousPoints array
+ * points: an array of the original points along the hint path
  * */
 Scatterplot.prototype.findLoops = function (startIndex,points){
     var pointInfo = []; //Set of points for the current loop (consecutive group of stationary points)
