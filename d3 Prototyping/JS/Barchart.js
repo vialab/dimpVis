@@ -1,19 +1,17 @@
 /** Constructor for a barchart visualization
  * x: the left margin
  * y: the right margin
- * w: width of the svg container
  * h: height of the svg container
+ * bw: width of the bars
  * id: id of the div tag to append the svg container
  * p: a padding value, to format the axes
  * xLabel: label for the x-axis
  * yLabel: label for the y-axis
  * title: of the graph
+ * hLabels: A list of labels for the hint path, indicating all the different views of the visualization
  */
- function Barchart(width,height,x,y,id,p,xLabel,yLabel,title){
-    //TODO: width and height can be automatically computed if we know the bar width, it should be the bar width which is provided in the constructor
+ function Barchart(h,bw,x,y,id,p,xLabel,yLabel,title,hLabels){
    //Position and size attributes for drawing the svg
-   this.width = width;
-   this.height = height;
    this.leftMargin = x;
    this.topMargin = y;
    this.id = id;
@@ -21,16 +19,19 @@
    this.xLabel = xLabel;
    this.yLabel = yLabel;
    this.graphTitle = title;
-   this.hintLabels = []; //To store the labels for the hint path
    this.xLabels = []; //To store the labels along the x-axis
+   this.hintLabels = hLabels;
 
    //Set up some display properties
    this.svg = null; //Reference to svg container
    this.displayData = null; //To store the data set to be visualized
-   this.barWidth = 50; 
+   this.barWidth = bw;
+   this.numBars = hLabels.length;
    this.strokeWidth=5;
+   this.width = (bw+this.strokeWidth)*this.numBars;
+   this.height = h;
    this.hintPathSpacing = 30; //Amount of horizontal distance between labels on hint path
-   this.base = height-5; //Starting y-position of the bars (the base)
+   this.base = h-5; //Starting y-position of the bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
 
    //Default graph colours, can be changed by called the setColours() function
@@ -41,10 +42,10 @@
    //View index tracker variables
    this.currentView = 0; //Starting view of the bars (first year)  
    this.nextView = 1; //Next view of the barchart
-   this.lastView = -1;
+   this.lastView = hLabels.length-1; //Index of the last view on the hint path
    this.interpValue=0;
    this.mouseY = -1;
-   this.numBars = 0;
+   this.ambiguousBars = [];
 
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
@@ -86,7 +87,6 @@ Barchart.prototype.setColours = function(barCol, hintCol, axisCol){
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
  * start: The starting view of the visualization, as an index into the labels array
- * hLabels: A list of labels for the hint path, indicating all the different views of the visualization
  *
  * Data MUST be provided in the following array format:
  * n is the number of views (or number of labels on the hint path)
@@ -95,14 +95,11 @@ Barchart.prototype.setColours = function(barCol, hintCol, axisCol){
  *       }
  *       ..... number of bars
  * */
- Barchart.prototype.render = function(data,start,hLabels){
+ Barchart.prototype.render = function(data,start){
       var ref = this;
      //Save some values
-	  this.displayData = data; 
-	  this.hintLabels = hLabels;
-      this.numBars = hLabels.length;
+	  this.displayData = data;
       this.currentView = start;
-      this.lastView = hLabels.length-1;
 
      //Resolve the index value for the next view (e.g., if currentView is 0, then nextView should be set to 1)
      if (this.currentView ==0){
@@ -219,7 +216,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  *
  *  Recall: the base of every bar is at this.base, therefore top of the bar is this.base-barHeight
  * */
- //TODO: Get rid of this repeated code
 Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
     //Save the mouse coordinate
@@ -369,14 +365,33 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
 }
 /** Redraws the barchart at a specified view
  *  view: the view to draw
+ *  id: if id is specified (not -1), then the hint path is re-drawn
  *  NOTE: view tracking variables are not updated by this function
  * */
-Barchart.prototype.redrawView = function (view){
+Barchart.prototype.redrawView = function (view,id){
    var ref = this;
+   //Re-draw the  bars at the specified view
    this.svg.selectAll(".displayBars")
               .transition().duration(300)
               .attr("height", function (d){return d.nodes[view][1];})
               .attr("y", function (d){return d.nodes[view][0];});
+    //Re-draw the hint path (if id is specified)
+    if (id!=-1){
+        //Line function for drawing the hint path
+        var lineGenerator = d3.svg.line()
+            .x(function(d,i) { return ref.findHintX(d[0],i,view); })
+            .y(function(d) { return d[1]; })
+            .interpolate("linear");
+        //Re-draw the hint path
+        this.svg.select("#p"+id).attr("d", function(d,i){return lineGenerator(ref.pathData); });
+        //Re-draw the hint path labels
+        this.svg.selectAll(".hintLabels")
+            .attr("transform",function (d,i) {
+                //Don't rotate the label resting on top of the bar
+                if (i==view) return "translate("+ref.findHintX(d.x,i,view)+","+ d.y+")";
+                else return "translate("+(ref.findHintX(d.x,i,view)-10)+","+ d.y+")";
+            });
+    }
 }
 /** Updates the view tracking variables when the view is being changed by an external
  * visualization (e.g., slider)
@@ -419,17 +434,20 @@ Barchart.prototype.snapToView = function (id, heights){
         this.currentView = this.nextView;
         this.nextView++;
     }
-  if (this.nextView == this.lastView)  this.redrawView(this.currentView+1);
-  else this.redrawView(this.currentView);
+  if (this.nextView == this.lastView)  this.redrawView(this.currentView+1,id);
+  else this.redrawView(this.currentView,id);
 }
 /** Displays the hint path by appending its svg components to the main svg
  *  id: the id of the dragged bar
  *  heights: the array of heights and y positions of the bar [ypos,height]
  *  xPos: the x-position of the bar
  * */
-//TODO: check for ambiguous cases, similar to what is done in the scatterplot
 Barchart.prototype.showHintPath = function (id,heights,xPos){
     var ref = this;
+    //Re-map the heights array to contain only heights, then scan the heights for ambiguous cases
+    var heightsOnly = heights.map(function (d){return d[1];});
+    this.checkAmbiguous(heightsOnly);
+
     //Line function for drawing the hint path
     var lineGenerator = d3.svg.line()
         .x(function(d,i) { return ref.findHintX(d[0],i,ref.currentView); })
@@ -454,11 +472,9 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
                         .append("svg:text")
                         .text(function(d) { return d.label; })
                         .attr("transform",function (d,i) {
-                               if (i==ref.currentView){ //Don't want to rotate the label resting on top of the bar
-                                   return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
-                               }else{
-                                   return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
-                               }
+                               //Don't rotate the label resting on top of the bar
+                               if (i==ref.currentView) return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
+                               else return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
                          })
                        .attr("fill", "#666")
                        .attr("class","hintLabels")
@@ -479,4 +495,76 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         this.svg.select("#p"+id).remove();
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
+//TODO: can use this to also detect really small changes in height to alleviate the interaction
+/** Search for ambiguous cases in a list of heights.  Ambiguous cases are tagged by type, using a number.
+ *  The scheme is:
+ *  0: not ambiguous
+ *  1: stationary bar (bar which doesn't move for at least 2 consecutive years)
+ *  2: revisiting bar (this is a special type of re-visitation, where the bar revisits the same height with
+ *                     only one height in between which introduces directional ambiguity during dragging)
+ *
+ *  This information is stored in the ambiguousBars array, which gets re-populated each time a
+ *  new bar is dragged.  This array is in  the format: [[type, x, y]...number of views]
+ *
+ *  NOTE:
+ *
+ *  heights: an array of heights to search within
+ * */
+Barchart.prototype.checkAmbiguous = function (heights){
+    var j, currentBar;
+    var stationaryBars = [];
+    var revisitingBars = [];
+    this.isAmbiguous = 0;
+    this.ambiguousBars = [];
+    //Re-set the ambiguousPoints array
+    for (j=0;j<heights.length;j++){
+        this.ambiguousBars[j] = 0;
+    }
+    //Populate the stationary and revisiting bars array
+    //Search for heights that are equal (called "repeated bars")
+    for (j=0;j<heights.length;j++){
+        currentBar= heights[j];
+        for (var k=j;k<heights.length;k++){
+            if (j!=k && heights[k] == currentBar){ //A repeated bar is found
+                this.isAmbiguous = 1;
+                if (Math.abs(k-j)==1){ //Stationary bar
+                    //If the bar's index does not exist in the array of all stationary bars, add it
+                    if (stationaryBars.indexOf(j)==-1){
+                        stationaryBars.push(j);
+                        this.ambiguousBars[j] = 1;
+                    }if (stationaryBars.indexOf(k)==-1){
+                        stationaryBars.push(k);
+                        this.ambiguousBars[k] = 1;
+                    }
+                }/**else{ //Revisiting bar - special case
+                    //If the bar's index does not exist in the array of all revisiting bars, add it
+                    if (revisitingBars.indexOf(j)==-1){
+                        revisitingBars.push(j);
+                        if(this.ambiguousBars[j][0]!=1){ //Set the flag to show this is a revisiting bar
+                            this.ambiguousBars[j] = [2];
+                        }
+                    }
+                    //Check for both j and k
+                    if (revisitingBars.indexOf(k)==-1){
+                        revisitingBars.push(k);
+                        if(this.ambiguousBars[k][0]!=1){ //Set the flag to show this is a revisiting bar
+                            this.ambiguousBars[k] = [2];
+                        }
+                    }
+                }*/
+                //TODO:Both revisiting and stationary? Label placement could get messy
+                /**if (Math.abs(k-j)==2){ //
+                 }*/ //TODO: Use this for barchart ambiguous
+            }
+        }
 
+    }
+    //First check if there exists any stationary points in the dataset
+   /** if (stationaryPoints.length>0){
+        //Then, generate points for drawing an interaction loop
+        this.findLoops(d3.min(stationaryPoints),points);
+    }
+    /**console.log(stationaryPoints);
+     console.log(revisitingPoints);*/
+
+}

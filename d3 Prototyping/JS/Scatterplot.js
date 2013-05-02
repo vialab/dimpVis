@@ -588,7 +588,6 @@ Scatterplot.prototype.findLoops = function (startIndex,points){
                 pointInfo[1].push(j);
             }
         }
-
     this.loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
    //console.log(this.loops);
    // console.log(this.ambiguousPoints);
