@@ -43,18 +43,13 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
    this.loops = []; //Stores points to draw for interaction loops (if any)
 
-   //Variables to track interaction events, not needed in all cases
-   this.clicked = -1;
-   this.hovered = -1;
+   //Variables to track interaction events
    this.dragged = -1;
    this.isAmbiguous = 0;  //Whether or not the point being dragged has at least one ambiguous case, set to 0 if none, and 1 otherwise
 
    //Event functions, declared later in this file or in the init file (if visualization is
    // interacting with another visualization) after the object has been instantiated
    this.placeholder = function() {};
-   this.mouseoverFunction = this.placeholder;
-   this.mouseoutFunction  = this.placeholder;  
-   this.clickFunction = this.placeholder;
    this.clickHintLabelFunction = this.placeholder;
    this.dragEvent = null;
 }
@@ -75,13 +70,15 @@ Scatterplot.prototype.init = function() {
    this.svg = d3.select(this.id).append("svg")
       .attr("width", this.width+(this.padding*2))
       .attr("height", this.height+(this.padding*2))
+       .attr("x",this.xpos)
+       .attr("y",this.ypos)
       /** .append("rect").attr("x",0).attr("y",0)
        .attr("width",this.width+(this.padding*2))
        .attr("height",this.height+(this.padding*2))
        .attr("id","background")
        .attr("fill","none")*///TODO: Want to be able to click the background of the graph (not a point) as a way of clearing the hint path
      .append("g")
-     .attr("transform", "translate(" + (this.padding+this.xpos) + "," + (this.padding+this.ypos) + ")");
+     .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
     //Add the blur filter used for the hint path to the SVG so other elements can call it
     this.svg.append("svg:defs")
@@ -167,9 +164,6 @@ Scatterplot.prototype.render = function( data, start, labels) {
 							   .attr("id", function (d){return "displayPoints"+d.id;})
 							  .style("cursor", "pointer")
                               .attr("title", function (d) {return d.label;});
-							   /**.on("mouseover", ref.mouseoverFunction)
-							   .on("mouseout", ref.mouseoutFunction)
-							   .on("click", ref.clickFunction);*///Currently not being used
 }
 /** Draws the axes  and the graph title on the SVG
  *  xScale: a function defining the scale of the x-axis
@@ -652,8 +646,6 @@ Scatterplot.prototype.checkAmbiguous = function (points){
                     }
                 }
                 //TODO:Both revisiting and stationary? Label placement could get messy
-                /**if (Math.abs(k-j)==2){ //
-                }*/ //TODO: Use this for barchart ambiguous
             }
         }
 
@@ -669,3 +661,4 @@ Scatterplot.prototype.checkAmbiguous = function (points){
 
 }
 //TODO: non-existent data points, "hole" in hint path?
+//TODO: does the code handle zero values? (point lies right on the axis)

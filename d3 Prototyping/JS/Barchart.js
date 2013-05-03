@@ -232,14 +232,23 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
     //Save the mouse coordinate
     this.mouseY = mouseY;
-
+    //Re-draw the bars according to the dragging amount
     this.svg.select("#displayBars"+id).each(function (d) {
          var newValues = []; //Saves the new height and y-position:[y,h]
          var currentY =  d.nodes[ref.currentView][0];
          var nextY = d.nodes[ref.nextView][0];
+
+        //Check for ambiguous cases
+         if (ref.ambiguousBars[ref.currentView][0]==1){ //Stationary bar
+             currentY = ref.ambiguousBars[ref.currentView][1];
+         }else if (ref.ambiguousBars[ref.nextView][0]==1){//Stationary bar
+             nextY = ref.ambiguousBars[ref.nextView][1];
+         }
+
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
          var bounds = ref.checkBounds(currentY,nextY,mouseY);
+
          if (ref.currentView ==0){ //At the first bar
              if (bounds == currentY){ //Passed lowest bar, out of bounds
                  newValues = [currentY,currentHeight];
@@ -361,14 +370,15 @@ Barchart.prototype.animateHintPath = function (id, interpAmount){
  * */
 Barchart.prototype.animateInteractionPath = function (id, interpAmount){
     var ref = this;
-    //Re-draw the hint path
+    //Re-draw the interaction path
     this.svg.select("#gInner"+id).selectAll(".interactionPath"+id)
         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
             var currentX = ref.findHintX(d[0],d[2],ref.currentView);
             var nextX = ref.findHintX(d[0],d[2],ref.nextView);
             var interpolateX = d3.interpolate(currentX, nextX);
             return {x:interpolateX(interpAmount),y:d[1]};
-        }));});
+             }));
+        });
 }
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
@@ -470,7 +480,6 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
     //Create a dataset to draw the hint path in the format: [x,y]
     this.pathData = heights.map(function (d){return [xPos,d[0]];});
     this.checkAmbiguous();
-
     //Draw the interaction path(s) (if any)
     if (this.interactionPaths.length >0){
         this.svg.select("#gInner"+id).selectAll(".interactionPath"+id)
@@ -528,6 +537,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
 //TODO: can use this to also detect really small changes in height to alleviate the interaction
+//TODO: do we really need to pre-detect the revisiting case, could check on the fly in updateDraggedBar()
 /** Search for ambiguous cases in a list of heights/y-coordinates.  Ambiguous cases are tagged by type, using a number.
  *  The scheme is:
  *  0: not ambiguous
@@ -555,7 +565,8 @@ Barchart.prototype.checkAmbiguous = function (){
     for (j=0;j<this.numBars;j++){
         currentBar= this.pathData[j][1];
         for (var k=j;k<this.numBars;k++){
-            if (j!=k && this.pathData[k][1] == currentBar){ //A repeated bar is found
+            if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
+            //if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<1){ //An almost repeated bar, less than one pixel difference
                 this.isAmbiguous = 1;
                 if (Math.abs(k-j)==1){ //Stationary bar
                     //If the bar's index does not exist in the array of all stationary bars, add it
@@ -566,22 +577,7 @@ Barchart.prototype.checkAmbiguous = function (){
                         stationaryBars.push(k);
                         this.ambiguousBars[k] = [1];
                     }
-                }/**else{ //Revisiting bar - special case
-                    //If the bar's index does not exist in the array of all revisiting bars, add it
-                    if (revisitingBars.indexOf(j)==-1){
-                        revisitingBars.push(j);
-                        if(this.ambiguousBars[j][0]!=1){ //Set the flag to show this is a revisiting bar
-                            this.ambiguousBars[j] = [2];
-                        }
-                    }
-                    //Check for both j and k
-                    if (revisitingBars.indexOf(k)==-1){
-                        revisitingBars.push(k);
-                        if(this.ambiguousBars[k][0]!=1){ //Set the flag to show this is a revisiting bar
-                            this.ambiguousBars[k] = [2];
-                        }
-                    }
-                }*/
+                }
                 /**if (Math.abs(k-j)==2){ //
                  }*/ //TODO: Use this for barchart ambiguous (revisiting)
             }
@@ -652,3 +648,4 @@ Barchart.prototype.calculatePathPoints = function (h,indices){
     pathPoints.push([xPos,yPos,indices[indices.length-1]]);
     return pathPoints;
 }
+//TODO: does the code handle non-existent data values? also, does it handle zero values?
