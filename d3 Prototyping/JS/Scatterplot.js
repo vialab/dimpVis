@@ -51,6 +51,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    // interacting with another visualization) after the object has been instantiated
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
+   this.clickSVG = this.placeholder;
    this.dragEvent = null;
 }
 /**Customize the display colours to the scatterplot, to change the default
@@ -72,13 +73,10 @@ Scatterplot.prototype.init = function() {
       .attr("height", this.height+(this.padding*2))
        .attr("x",this.xpos)
        .attr("y",this.ypos)
-      /** .append("rect").attr("x",0).attr("y",0)
-       .attr("width",this.width+(this.padding*2))
-       .attr("height",this.height+(this.padding*2))
-       .attr("id","background")
-       .attr("fill","none")*///TODO: Want to be able to click the background of the graph (not a point) as a way of clearing the hint path
-     .append("g")
-     .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+       .on("click",this.clickSVG)//TODO: Want to be able to click the background of the graph (not a point) as a way of clearing the hint path, right now events are interfering
+       .append("g")
+       .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+
 
     //Add the blur filter used for the hint path to the SVG so other elements can call it
     this.svg.append("svg:defs")
@@ -399,21 +397,8 @@ Scatterplot.prototype.redrawView = function(view) {
         .y(function(d) { return d[1]; })
         .interpolate("linear");
 
-    //First check for ambiguous cases of the dragged point
-     //var testArray = [[1,1],[1,1],[1,1],[1,2],[1,1],[1,2],[5,5]];
+    //First check for ambiguous cases in the hint path of the dragged point
      ref.checkAmbiguous(points);
-
-    //Render the hint points - Currently not needed
-   /** this.svg.selectAll(".gDisplayPoints").selectAll(".gInner").selectAll("circle")
-        .data(function(d) {return d.nodes;})
-        .enter().append("svg:circle")
-        .attr("cx", function(d) { return d[0]; })
-        .attr("cy", function(d) { return d[1]; })
-        .attr("r",ref.pointRadius)
-        .attr("class","hintPoints")
-        .style("fill","none")
-        .style("cursor","pointer")
-        .attr("filter", "url(#blur)");*/
 
     //Draw the interaction loop(s) (if any)
      if (this.loops.length >0){
@@ -424,7 +409,11 @@ Scatterplot.prototype.redrawView = function(view) {
                                          //.interpolate("cardinal");
          //Draw all loops at their respective stationary points
          this.svg.select("#gInner"+id).selectAll(".loop"+id)
-             .data(ref.loops.map(function (d,i){ return {points:d,id:i};}))
+             .data(ref.loops.map(function (d,i){
+                   var loopPoints = [];
+                   loopPoints = ref.calculateLoopPoints(d[0],d[1],d[2]);
+                   return {points:loopPoints,id:i};
+             }))
              .enter().append("path")
              .attr("d",function (d){return loopGenerator(d.points);})
              .attr("stroke-dasharray","3,3")//Makes the path dashed
@@ -521,73 +510,41 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
 /** Computes the points to lie along an interaction loop
  * Note: this function is only called in findLoops()
  * x,y: Define the center point of the loop (sort of)
- * indices: the corresponding year indices, this array's length is the number of points to draw along the loop
- * @return an array of all loop points and the year index in the format: [[x,y,index], etc.]
+ * numViews: the number of views at the stationary point
+ * @return an array of all loop points and the year index in the format: [[x,y], etc.]
  * */
-Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
+Scatterplot.prototype.calculateLoopPoints = function (x,y,numPoints){
    var loopPoints = [];
-    var numPoints = indices.length;
    //Scale the loop radius by an amount proportional to the number of points (might need to tweak this magic number)
     var radius = numPoints*15;
     var pi = Math.PI/2;
     var interval = pi/numPoints;
     //The first point of the path should be the original point, as a reference for drawing the loop
-    loopPoints[0]=[x,y,-1];
+    loopPoints[0]=[x,y];
     for (var j=1;j<=numPoints;j++){
         //Calculate the points to go along the loop in polar coordinates
         var newX = x + radius*Math.cos(interval*j);
         var newY = y+ radius*Math.sin(interval*j);
-        loopPoints[j]= [newX,newY,indices[j-1]];
+        loopPoints[j]= [newX,newY];
     }
     //The last point of the path should be the original point, as a reference for drawing the loop
-    loopPoints[numPoints+1] = [x,y,-1];
+    loopPoints[numPoints+1] = [x,y];
    return loopPoints;
 }
-/** Finds areas in the data set which require interaction loops, such areas are sequences of
- * stationary points.  This function will populate an array containing all data points for
- * the loops in the following format:
- * loops[] = [[loopPointX,loopPointY,yearIndex]... for all points on loop]]
- * Note: this function is only called in checkAmbiguous(), because it uses the resulting
- * ambiguousPoints array
- * startIndex: the index of the first stationary point in the ambiguousPoints array
- * points: an array of the original points along the hint path
- * @return: returns sub-arrays of all view indices forming each loop
- * */
-Scatterplot.prototype.findLoops = function (startIndex,points){
-    var allLoops = [];
-    var pointInfo = []; //Set of points for the current loop (consecutive group of stationary points)
-        pointInfo[0] = points[startIndex];
-        pointInfo[1] = [];
-     for (var j=startIndex; j< points.length;j++){
-            if (this.ambiguousPoints[j][0]==1){
-                if (j!=startIndex && this.ambiguousPoints[j-1][0]!=1){ //Starting a new loop
-                    //Need to calculate points to draw the loop, based on the original point value
-                    this.loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
-                    allLoops.push([pointInfo[0][0],pointInfo[0][1],pointInfo[1]]);
-                    pointInfo = [];
-                    pointInfo[0] = points[j];
-                    pointInfo[1] = [];
-                }
-                pointInfo[1].push(j);
-            }
-        }
-    this.loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
-    allLoops.push([pointInfo[0][0],pointInfo[0][1],pointInfo[1]]);
-    return allLoops;
-}
 //TODO: Could use this function to detect really close points to optimize label display
-/** Search for ambiguous cases in a list of points.  Ambiguous cases are tagged by type, using a number.
- *  The scheme is:
+/** Search for ambiguous cases in a list of points.  Ambiguous cases are tagged by type, using a number:
  *  0: not ambiguous
  *  1: stationary point (point which doesn't move for at least 2 consecutive years)
  *  2: revisiting point (point which returns to the same position multiple times in the dataset)
  *
- *  In this function, two important arrays are populated:
+ *  In this function, three important arrays are populated:
  *  this.ambiguousPoints: an array to quickly determine the type for each point along the hint path
  *                  Format: [[type,adjustedIndex]..total number of points on hint path], the adjusted index is for
  *                  placing the hint label (an offset, such that the labels at one ambiguous point can be a list)
  *  repeatedPoints: an array which combines revisiting and stationary points
  *                  Format: [ [x,y,[[viewIndex,type]..number of view indices matching this point]] .. number of ambiguous points]
+ *  this.loops: an array of all loops to draw
+ *                 Format: [[x,y,# of points]..number of loops]
  *
  *  points: an array of points to search within
  * */
@@ -633,25 +590,22 @@ Scatterplot.prototype.checkAmbiguous = function (points){
                        }
                     }
                 }
-                //TODO:Both revisiting and stationary? Label placement could get messy, need to merge similar points in this case (only for label display)
             }
         }
     }
     //Now, need to add adjustedIndex to each ambiguous point so the hint labels can be placed at the correct positions
+    //Also, populate the loops array to contain all loops which must be drawn where there are areas of stationary points
+    var foundStationary = 0;
     for (j=0;j<repeatedPoints.length;j++){
         var viewIndices = repeatedPoints[j][2];
         for (k=0;k<viewIndices.length;k++){
-            this.ambiguousPoints[viewIndices[k][0]] = [viewIndices[k][1],k];
+            var type = viewIndices[k][1];
+            this.ambiguousPoints[viewIndices[k][0]] = [type,k];
+            if (type==1) foundStationary = 1;
         }
+        if (foundStationary==1) this.loops.push([repeatedPoints[j][0],repeatedPoints[j][1],viewIndices.length]);
+        foundStationary = 0;
     }
-    /**
-    if (stationaryPoints.length>0){
-       //Then, generate points for drawing an interaction loop
-       var allLoops = this.findLoops(d3.min(stationaryPoints),points);
-    }
-    /**console.log(stationaryPoints);
-    console.log(revisitingPoints);*/
-
 }
 /** Search for x,y in a 2D array with the format: [[x,y,..other elements]..number of points]
  *  x,y: the point to search for

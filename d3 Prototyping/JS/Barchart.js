@@ -408,6 +408,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  *  NOTE: This function does not update the view tracking variables
  * */
 //TODO: the hint path labels are not clickable when a bar is on top of it which makes the fast forwarding hard to use
+//TODO: See https://developer.mozilla.org/en-US/docs/CSS/pointer-events
  Barchart.prototype.animateBars = function( id, startView, endView) {
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)

@@ -3,14 +3,21 @@
 
 //Create a new scatterplot visualization
 var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate","life expectancy","Fertility Rate vs. Life Expectancy Over the Years");
+
+//Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
+scatterplot.clickSVG = function (d){
+    scatterplot.clearHintPath(scatterplot.draggedPoint);
+};
 scatterplot.init();
 
 //Define the click interaction of the hint labels to invoke fast switching among views
 scatterplot.clickHintLabelFunction = function (d, i){
-                                        scatterplot.animatePoints(scatterplot.currentView, i);
-                                        scatterplot.changeView(i);
-										slider.updateSlider(i); 
-									};
+    d3.event.stopPropagation(); //Prevents the event from propagating down to the SVG
+    scatterplot.animatePoints(scatterplot.currentView, i);
+    scatterplot.changeView(i);
+    slider.updateSlider(i);
+};
+
 scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an array created in a separate js file containing the json data,
                                         // and labels is an array representing the different views of the dataset
 
@@ -19,15 +26,15 @@ scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an ar
                        .origin(function(d){ //Set the starting point of the drag interaction
 							return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
 	                   })
-					   .on("dragstart", function(d){                          
+					   .on("dragstart", function(d){
+                            //d3.event.sourceEvent.stopPropagation(); //TODO: this doesn't seem to work..
 						    scatterplot.clearHintPath(scatterplot.draggedPoint);
 						    scatterplot.draggedPoint = d.id;
                             scatterplot.showHintPath(d.id,d.nodes);
 					  })
-                      .on("drag", function(d){                          					  
+                      .on("drag", function(d){
                            scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
-                           slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);					
-                             								
+                           slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
 					  })
 					  .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
                                                   //coordinates of the scatterplot object
