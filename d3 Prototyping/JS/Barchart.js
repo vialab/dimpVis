@@ -236,7 +236,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
          var newValues = []; //Saves the new height and y-position:[y,h]
          var currentY =  d.nodes[ref.currentView][0];
          var nextY = d.nodes[ref.nextView][0];
-
+          //TODO: program the interaction with stationary and revisiting bars
         //Check for ambiguous cases
          if (ref.ambiguousBars[ref.currentView][0]==1){ //Stationary bar
              currentY = ref.ambiguousBars[ref.currentView][1];
@@ -376,7 +376,7 @@ Barchart.prototype.animateInteractionPath = function (id, interpAmount){
             var nextX = ref.findHintX(d[0],d[2],ref.nextView);
             var interpolateX = d3.interpolate(currentX, nextX);
             return {x:interpolateX(interpAmount),y:d[1]};
-             }));
+          }));
         });
 }
 /**"Animates" the rest of the bars while one is being dragged
@@ -407,7 +407,8 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  *  id: the id of the dragged bar (if any), to animate it's hint path which is visible
  *  NOTE: This function does not update the view tracking variables
  * */
-Barchart.prototype.animateBars = function( id, startView, endView) {
+//TODO: the hint path labels are not clickable when a bar is on top of it which makes the fast forwarding hard to use
+ Barchart.prototype.animateBars = function( id, startView, endView) {
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
     var direction = 1;
@@ -450,6 +451,13 @@ Barchart.prototype.animateBars = function( id, startView, endView) {
                         if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
                         else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
                     });
+                //Re-draw interaction paths (if any)
+                if (ref.interactionPaths.length>0){
+                    d3.select("#gInner"+id).selectAll(".interactionPath"+id)
+                        .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
+                            return {x:ref.findHintX(d[0],d[2],animateView),y:d[1]};
+                        }));});
+                }
             }
         };
     }
@@ -479,6 +487,13 @@ Barchart.prototype.redrawView = function (view,id){
                 if (i==view) return "translate("+ref.findHintX(d.x,i,view)+","+ d.y+")";
                 else return "translate("+(ref.findHintX(d.x,i,view)-10)+","+ d.y+")";
           });
+        //Re-draw interaction paths (if any)
+        if (this.interactionPaths.length>0){
+            this.svg.select("#gInner"+id).selectAll(".interactionPath"+id)
+                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
+                    return {x:ref.findHintX(d[0],d[2],view),y:d[1]};
+                }));});
+        }
     }
 }
 /** Updates the view tracking variables when the view is being changed by an external

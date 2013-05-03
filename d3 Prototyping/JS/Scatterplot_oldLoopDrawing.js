@@ -437,14 +437,18 @@ Scatterplot.prototype.redrawView = function(view) {
     var adjustedPoints = points;
     if (ref.isAmbiguous==1){
         var counter = -1;
-        //Re-map the points array to contain positions which correspond to ambiguous cases (at each ambiguous case, labels are
-        // presented as a horizontally oriented list)
+        //Re-map the points array to contain positions which correspond to ambiguous cases (e.g., revisiting point labels translated in the x-direction
+        //and stationary labels are around the interaction loop)
         adjustedPoints = points.map(function (d,i){
-            if (ref.ambiguousPoints[i][0]!=0) return [d[0]+25*ref.ambiguousPoints[i][1],d[1]];
-            return d;
+           if (ref.ambiguousPoints[i][0]==2){ //Revisiting point
+               return [d[0]+25*counter++,d[1]]; //TODO:Revisiting in multiple locations won't work using this counter method, similar problem to finding stationary point sequences
+           }else if (ref.ambiguousPoints[i][0]==1){ //Stationary point
+             // return [ref.ambiguousPoints[i][1],ref.ambiguousPoints[i][2]]; //The x and y of the point along the interaction loop
+               return [d[0]+25*ref.ambiguousPoints[i][3],d[1]]; //Position the labels of stationary points adjacently
+           }
+           return d;
        });
     }
-
     //Draw the hint path labels
     this.svg.select("#gInner"+id).selectAll("text")
         .data(adjustedPoints).enter()
@@ -537,7 +541,10 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
         //Calculate the points to go along the loop in polar coordinates
         var newX = x + radius*Math.cos(interval*j);
         var newY = y+ radius*Math.sin(interval*j);
-        loopPoints[j]= [newX,newY,indices[j-1]];
+        var originalIndex = indices[j-1];
+        loopPoints[j]= [newX,newY,originalIndex];
+        //Save the loop point in the ambiguousPoints array
+       this.ambiguousPoints[originalIndex] = [1,newX, newY,j-1];
     }
     //The last point of the path should be the original point, as a reference for drawing the loop
     loopPoints[numPoints+1] = [x,y,-1];
@@ -546,15 +553,13 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,indices){
 /** Finds areas in the data set which require interaction loops, such areas are sequences of
  * stationary points.  This function will populate an array containing all data points for
  * the loops in the following format:
- * loops[] = [[loopPointX,loopPointY,yearIndex]... for all points on loop]]
+ * loops[] = [originalPointX,originalPointY, [[loopPointX,loopPointY,yearIndex]... for all points on loop]]
  * Note: this function is only called in checkAmbiguous(), because it uses the resulting
  * ambiguousPoints array
  * startIndex: the index of the first stationary point in the ambiguousPoints array
  * points: an array of the original points along the hint path
- * @return: returns sub-arrays of all view indices forming each loop
  * */
 Scatterplot.prototype.findLoops = function (startIndex,points){
-    var allLoops = [];
     var pointInfo = []; //Set of points for the current loop (consecutive group of stationary points)
         pointInfo[0] = points[startIndex];
         pointInfo[1] = [];
@@ -563,7 +568,6 @@ Scatterplot.prototype.findLoops = function (startIndex,points){
                 if (j!=startIndex && this.ambiguousPoints[j-1][0]!=1){ //Starting a new loop
                     //Need to calculate points to draw the loop, based on the original point value
                     this.loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
-                    allLoops.push([pointInfo[0][0],pointInfo[0][1],pointInfo[1]]);
                     pointInfo = [];
                     pointInfo[0] = points[j];
                     pointInfo[1] = [];
@@ -572,8 +576,8 @@ Scatterplot.prototype.findLoops = function (startIndex,points){
             }
         }
     this.loops.push(this.calculateLoopPoints(pointInfo[0][0],pointInfo[0][1],pointInfo[1]));
-    allLoops.push([pointInfo[0][0],pointInfo[0][1],pointInfo[1]]);
-    return allLoops;
+   //console.log(this.loops);
+   // console.log(this.ambiguousPoints);
 }
 //TODO: Could use this function to detect really close points to optimize label display
 /** Search for ambiguous cases in a list of points.  Ambiguous cases are tagged by type, using a number.
@@ -582,12 +586,12 @@ Scatterplot.prototype.findLoops = function (startIndex,points){
  *  1: stationary point (point which doesn't move for at least 2 consecutive years)
  *  2: revisiting point (point which returns to the same position multiple times in the dataset)
  *
- *  In this function, two important arrays are populated:
- *  this.ambiguousPoints: an array to quickly determine the type for each point along the hint path
- *                  Format: [[type,adjustedIndex]..total number of points on hint path], the adjusted index is for
- *                  placing the hint label (an offset, such that the labels at one ambiguous point can be a list)
- *  repeatedPoints: an array which combines revisiting and stationary points
- *                  Format: [ [x,y,[[viewIndex,type]..number of view indices matching this point]] .. number of ambiguous points]
+ *  This information is stored in the ambiguousPoints array, which gets re-populated each time a
+ *  point is dragged.  This array is actually 2D, in  the format: [[type, x, y]...], where x and y
+ *  are the loop points, if the type is tagged as 1 (stationary case)
+ *
+ *  NOTE: by nature, stationary points are also revisiting, therefore stationary is given more
+ *  prominence in the tagging, but there may be some overlap in the revisiting and stationary arrays.
  *
  *  points: an array of points to search within
  * */
@@ -595,8 +599,7 @@ Scatterplot.prototype.checkAmbiguous = function (points){
     var j, currentPoint;
     var stationaryPoints = [];
     var revisitingPoints = [];
-    var repeatedPoints = [];
-    var foundIndex = -1;
+
     this.ambiguousPoints = [];
     //Re-set the ambiguousPoints array
     for (j=0;j<points.length;j++){
@@ -606,7 +609,7 @@ Scatterplot.prototype.checkAmbiguous = function (points){
     //Search for points that match in the x and y values (called "repeated points")
     for (j=0;j<points.length;j++){
         currentPoint = points[j];
-        for (var k=0;k<points.length;k++){
+        for (var k=j;k<points.length;k++){
             if (j!=k && points[k][0] == currentPoint[0] && points[k][1] == currentPoint[1]){ //A repeated point is found
                 this.isAmbiguous = 1;
                 if (Math.abs(k-j)==1){ //Stationary point
@@ -614,60 +617,40 @@ Scatterplot.prototype.checkAmbiguous = function (points){
                     if (stationaryPoints.indexOf(j)==-1){
                         stationaryPoints.push(j);
                         this.ambiguousPoints[j] = [1];
-                        //Add this stationary point to repeatedPoints, according to it's x and y value
-                        foundIndex = this.findInArray(currentPoint[0],currentPoint[1],repeatedPoints);
-                        if (foundIndex!=-1) repeatedPoints[foundIndex][2].push([j,1]);
-                        else repeatedPoints.push([currentPoint[0],currentPoint[1],[[j,1]]]);
+                    }if (stationaryPoints.indexOf(k)==-1){
+                        stationaryPoints.push(k);
+                        this.ambiguousPoints[k] = [1];
                     }
                 }else{ //Revisiting point
                     //If the point's index does not exist in the array of all revisiting points, add it
                     if (revisitingPoints.indexOf(j)==-1){
                         revisitingPoints.push(j);
-                       if(this.ambiguousPoints[j][0]!=1){ //Set the flag to show this is a revisiting point
-                       //Need to make sure it wasn't set as a stationary, because stationary has higher priority
-                           this.ambiguousPoints[j] = [2];
-                          //Add this revisiting point to repeatedPoints, according to it's x and y value
-                           foundIndex = this.findInArray(currentPoint[0],currentPoint[1],repeatedPoints);
-                           if (foundIndex!=-1) repeatedPoints[foundIndex][2].push([j,2]);
-                           else repeatedPoints.push([currentPoint[0],currentPoint[1],[[j,2]]]);
-                       }
+                        if(this.ambiguousPoints[j][0]!=1){ //Set the flag to show this is a revisiting point (Need to make sure it wasn't set as a stationary, because stationary takes higher priority)
+                            this.ambiguousPoints[j] = [2];
+                        }
+                    }
+                    //Check for both j and k
+                    if (revisitingPoints.indexOf(k)==-1){
+                        revisitingPoints.push(k);
+                        if(this.ambiguousPoints[k][0]!=1){ //Set the flag to show this is a revisiting point
+                            this.ambiguousPoints[k] = [2];
+                        }
                     }
                 }
-                //TODO:Both revisiting and stationary? Label placement could get messy, need to merge similar points in this case (only for label display)
+                //TODO:Both revisiting and stationary? Label placement could get messy
             }
         }
+
     }
-    //Now, need to add adjustedIndex to each ambiguous point so the hint labels can be placed at the correct positions
-    for (j=0;j<repeatedPoints.length;j++){
-        var viewIndices = repeatedPoints[j][2];
-        for (k=0;k<viewIndices.length;k++){
-            this.ambiguousPoints[viewIndices[k][0]] = [viewIndices[k][1],k];
-        }
-    }
-    /**
+
+    //First check if there exists any stationary points in the dataset
     if (stationaryPoints.length>0){
        //Then, generate points for drawing an interaction loop
-       var allLoops = this.findLoops(d3.min(stationaryPoints),points);
+       this.findLoops(d3.min(stationaryPoints),points);
     }
     /**console.log(stationaryPoints);
     console.log(revisitingPoints);*/
 
-}
-/** Search for x,y in a 2D array with the format: [[x,y,..other elements]..number of points]
- *  x,y: the point to search for
- *  array: the array to search within
- *  @return -1 if no match is found
- *          the index of the found match
- * */
-Scatterplot.prototype.findInArray = function (x,y,array)
-{
-   if (array.length==0) return -1;
-   for (var j=0;j<array.length;j++){
-      if (array[j][0]==x && array[j][1]==y){
-          return j;
-      }
-   }
-    return -1;
 }
 //TODO: non-existent data points, "hole" in hint path?
 //TODO: does the code handle zero values? (point lies right on the axis)
