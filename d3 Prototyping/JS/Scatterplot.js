@@ -147,21 +147,17 @@ Scatterplot.prototype.render = function( data, start, labels) {
      
 	 //Draw the data points
      this.svg.selectAll(".gDisplayPoints").append("svg:circle")
-							  .attr("cx", function(d) {	     
-								   return d.nodes[ref.currentView][0];
-							   })
-							 .attr("cy", function(d) {        
-								   return d.nodes[ref.currentView][1];
-							  })
-							  .attr("r", ref.pointRadius)
-							  .attr("stroke", "none")
-							  .attr("stroke-width", "2")
-							  .attr("class", "displayPoints")
-							  .attr("fill",ref.pointColour)
-							  .style("fill-opacity",1)
-							   .attr("id", function (d){return "displayPoints"+d.id;})
-							  .style("cursor", "pointer")
-                              .attr("title", function (d) {return d.label;});
+          .attr("cx", function(d) {return d.nodes[ref.currentView][0];})
+         .attr("cy", function(d) {return d.nodes[ref.currentView][1]; })
+          .attr("r", ref.pointRadius)
+          .attr("stroke", "none")
+          .attr("stroke-width", "2")
+          .attr("class", "displayPoints")
+          .attr("fill",ref.pointColour)
+          .style("fill-opacity",1)
+           .attr("id", function (d){return "displayPoints"+d.id;})
+          .style("cursor", "pointer")
+          .attr("title", function (d) {return d.label;});
 }
 /** Draws the axes  and the graph title on the SVG
  *  xScale: a function defining the scale of the x-axis

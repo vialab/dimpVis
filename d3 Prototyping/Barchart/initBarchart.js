@@ -7,7 +7,7 @@ barchart.init();
 
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
-    //barchart.animateAlongPath(i);
+    barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
     barchart.changeView(i);
     slider.updateSlider(i);
 };

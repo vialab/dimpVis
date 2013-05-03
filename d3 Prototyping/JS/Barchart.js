@@ -122,13 +122,12 @@ Barchart.prototype.setColours = function(barCol, hintCol, axisCol){
      }else {
          this.nextView = this.currentView + 1;
      }
-     //Find the max and min values of the heights, used to scale the axes and the dataset
+     //Find the max value of the heights, used to scale the axes and the dataset
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
-     var min_h = d3.min(data.map(function (d){return d3.min(d.heights);}));
 
     //Create the scales
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
-     var yScale =  d3.scale.linear().domain([min_h, max_h]).range([ref.height,0]);
+     var yScale =  d3.scale.linear().domain([0, max_h]).range([ref.height,0]);
 
 //Assign data values to a set of rectangles representing the bars of the chart
 this.svg.selectAll("rect")
@@ -352,7 +351,7 @@ Barchart.prototype.animateHintPath = function (id, interpAmount){
         return {x:interpolateX(interpAmount),y:d[1]};
     })))
 	//Re-draw the hint path labels
-   this.svg.selectAll(".hintLabels")
+   this.svg.select("#gInner"+id).selectAll(".hintLabels")
                     .attr("transform",function (d,i) {
                         var currentX = ref.findHintX(d.x,i,ref.currentView);
                         var nextX = ref.findHintX(d.x,i,ref.nextView);
@@ -398,6 +397,62 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
           var interpolateY = d3.interpolate(d.nodes[startView][0], d.nodes[endView][0]);
           return interpolateY(interpAmount);
       });
+}
+/** Animates all bars in the barchart along their hint paths from
+ *  startView to endView, this function is called when "fast-forwarding"
+ *  is invoked (by clicking a year label on the hint path)
+ *  startView: View index to start the animation at
+ *  endView: View to end the animation at (need to update view variables
+ *  according to this value)
+ *  id: the id of the dragged bar (if any), to animate it's hint path which is visible
+ *  NOTE: This function does not update the view tracking variables
+ * */
+Barchart.prototype.animateBars = function( id, startView, endView) {
+    var ref = this;
+    //Determine the travel direction (e.g., forward or backward in time)
+    var direction = 1;
+    if (startView>endView) direction=-1;
+
+    //Define some counter variables to keep track of the views passed during the transition
+    var totalViews = this.lastView+1;
+    var viewCounter = -1; //Identifies when a new view is reached
+    var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
+
+    //Apply multiple transitions to each display point by chaining them
+    this.svg.selectAll(".displayBars").each(animate());
+
+    //Recursively invoke this function to chain transitions, a new transition is added once
+    //the current one is finished
+    function animate() {
+        viewCounter++;
+        if (viewCounter==totalViews) {
+            animateView = animateView + direction;
+            viewCounter = 0;
+        }
+        if (direction == 1 && animateView>=endView) return;
+        if (direction ==-1 && animateView<=endView) return;
+        return function(d) {
+            //Animate the bar
+            d3.select(this).transition(400).ease("linear")
+                .attr("height",d.nodes[animateView][1])
+                .attr("y",d.nodes[animateView][0])
+                .each("end", animate());
+            //If the bar's hint path is visible, animate it
+            if (d.id == id){
+                //Re-draw the hint path
+                d3.select("#p"+id).attr("d", function(d,i){
+                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
+                });
+                //Re-draw the hint path labels
+                d3.select("#gInner"+id).selectAll(".hintLabels")
+                    .attr("transform",function (d,i) {
+                        //Don't rotate the label resting on top of the bar
+                        if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
+                        else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
+                    });
+            }
+        };
+    }
 }
 /** Redraws the barchart at a specified view
  *  view: the view to draw
