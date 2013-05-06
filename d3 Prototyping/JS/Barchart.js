@@ -50,7 +50,8 @@
 
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
-   this.clickHintLabelFunction = this.placeholder;   
+   this.clickHintLabelFunction = this.placeholder;
+   this.clickSVG = this.placeholder();
    this.dragEvent = null;
    this.draggedBar = -1;
 
@@ -78,14 +79,15 @@ Barchart.prototype.setColours = function(barCol, hintCol, axisCol){
 /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
- Barchart.prototype.init = function(){
+Barchart.prototype.init = function(){
     //Draw the main svg
    this.svg = d3.select(this.id).append("svg")
        .attr("width", this.width+(this.padding*2))
       .attr("height", this.height+(this.padding*2))  
       .style("position", "absolute")
       .style("left", this.leftMargin + "px")
-      .style("top", this.topMargin + "px")  
+      .style("top", this.topMargin + "px")
+      .on("click",this.clickSVG)
       .append("g")
 	  .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
      //Add the blur filter to the SVG so other elements can call it
@@ -160,10 +162,8 @@ this.svg.selectAll("rect")
 	 .attr("id", function (d){return "displayBars"+d.id;})
      .style("cursor", "pointer");
 
-	//Add a blank g element to each bar, to contain its hint path
-	this.svg.selectAll(".gDisplayBars").append("g")
-								  .attr("id",function (d){return "gInner"+d.id;})
-                                  .attr("class","gInner");
+	//Add a blank g element to contain the hint path
+    this.svg.append("g").attr("id","hintPath");
  }
 /** Draws the axes  and the graph title on the SVG
  *  xScale: a function defining the scale of the x-axis
@@ -344,14 +344,14 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 Barchart.prototype.animateHintPath = function (id, interpAmount){
     var ref = this;
     //Re-draw the hint path
-    this.svg.select("#p"+id).attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
+    this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
         var currentX = ref.findHintX(d[0],i,ref.currentView);
         var nextX = ref.findHintX(d[0],i,ref.nextView);
         var interpolateX = d3.interpolate(currentX, nextX);
         return {x:interpolateX(interpAmount),y:d[1]};
     })))
 	//Re-draw the hint path labels
-   this.svg.select("#gInner"+id).selectAll(".hintLabels")
+   this.svg.select("#hintPath").selectAll(".hintLabels")
                     .attr("transform",function (d,i) {
                         var currentX = ref.findHintX(d.x,i,ref.currentView);
                         var nextX = ref.findHintX(d.x,i,ref.nextView);
@@ -370,7 +370,7 @@ Barchart.prototype.animateHintPath = function (id, interpAmount){
 Barchart.prototype.animateInteractionPath = function (id, interpAmount){
     var ref = this;
     //Re-draw the interaction path
-    this.svg.select("#gInner"+id).selectAll(".interactionPath"+id)
+    this.svg.select("#hintPath").selectAll(".interactionPath"+id)
         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
             var currentX = ref.findHintX(d[0],d[2],ref.currentView);
             var nextX = ref.findHintX(d[0],d[2],ref.nextView);
@@ -407,8 +407,6 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  *  id: the id of the dragged bar (if any), to animate it's hint path which is visible
  *  NOTE: This function does not update the view tracking variables
  * */
-//TODO: the hint path labels are not clickable when a bar is on top of it which makes the fast forwarding hard to use
-//TODO: See https://developer.mozilla.org/en-US/docs/CSS/pointer-events
  Barchart.prototype.animateBars = function( id, startView, endView) {
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
@@ -442,11 +440,11 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
             //If the bar's hint path is visible, animate it
             if (d.id == id){
                 //Re-draw the hint path
-                d3.select("#p"+id).attr("d", function(d,i){
+                d3.select("#path").attr("d", function(d,i){
                     return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
                 });
                 //Re-draw the hint path labels
-                d3.select("#gInner"+id).selectAll(".hintLabels")
+                d3.select("#hintPath").selectAll(".hintLabels")
                     .attr("transform",function (d,i) {
                         //Don't rotate the label resting on top of the bar
                         if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
@@ -454,7 +452,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                     });
                 //Re-draw interaction paths (if any)
                 if (ref.interactionPaths.length>0){
-                    d3.select("#gInner"+id).selectAll(".interactionPath"+id)
+                    d3.select("#hintPath").selectAll(".interactionPath"+id)
                         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
                             return {x:ref.findHintX(d[0],d[2],animateView),y:d[1]};
                         }));});
@@ -478,7 +476,7 @@ Barchart.prototype.redrawView = function (view,id){
     //Re-draw the hint path (if id is specified)
     if (id!=-1){
          //Re-draw the hint path
-        this.svg.select("#p"+id).attr("d", function(d,i){
+        this.svg.select("#path").attr("d", function(d,i){
             return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,view),y:d[1]}}));
         });
         //Re-draw the hint path labels
@@ -490,7 +488,7 @@ Barchart.prototype.redrawView = function (view,id){
           });
         //Re-draw interaction paths (if any)
         if (this.interactionPaths.length>0){
-            this.svg.select("#gInner"+id).selectAll(".interactionPath"+id)
+            this.svg.select("#hintPath").selectAll(".interactionPath"+id)
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
                     return {x:ref.findHintX(d[0],d[2],view),y:d[1]};
                 }));});
@@ -546,14 +544,16 @@ Barchart.prototype.snapToView = function (id, heights){
  *  heights: the array of heights and y positions of the bar [ypos,height]
  *  xPos: the x-position of the bar
  * */
-Barchart.prototype.showHintPath = function (id,heights,xPos){
+//TODO: the hint path labels are not clickable when a bar is on top of it which makes the fast forwarding hard to use
+//TODO: See https://developer.mozilla.org/en-US/docs/CSS/pointer-events
+  Barchart.prototype.showHintPath = function (id,heights,xPos){
     var ref = this;
     //Create a dataset to draw the hint path in the format: [x,y]
     this.pathData = heights.map(function (d){return [xPos,d[0]];});
     this.checkAmbiguous();
     //Draw the interaction path(s) (if any)
     if (this.interactionPaths.length >0){
-        this.svg.select("#gInner"+id).selectAll(".interactionPath"+id)
+        this.svg.select("#hintPath").selectAll(".interactionPath"+id)
             .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
             .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
                 return {x:ref.findHintX(d[0],d[2],ref.currentView),y:d[1]};
@@ -565,18 +565,17 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
     }
 
 	//Draw the hint path line
-    this.svg.select("#gInner"+id).append("svg:path")
+    this.svg.select("#hintPath").append("svg:path")
                       .attr("d", ref.hintPathGenerator(ref.pathData.map(function (d,i){
                             return {x:ref.findHintX(d[0],i,ref.currentView),y:d[1]};
                         })))
-                      .attr("id",function (d){return "p"+d.id;})
                       .style("stroke-width", 2)
                       .style("stroke", this.hintColour)
                       .style("fill","none")
-                      .attr("filter", "url(#blur)");
+                      .attr("filter", "url(#blur)").attr("id","path");
 												
 	//Draw the hint labels
-   this.svg.select("#gInner"+id).selectAll("text").data(heights.map(function(d,i){
+   this.svg.select("#hintPath").selectAll("text").data(heights.map(function(d,i){
                    return {x:xPos,y:d[0],label:ref.hintLabels[i]};
                })).enter()
                 .append("svg:text")
@@ -592,9 +591,9 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
                .style("cursor", "pointer");
 
     //Fade out the other bars
-    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
+  /** this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
         .transition().duration(300)
-        .style("fill-opacity", 0.4);
+        .style("fill-opacity", 0.4);*/
 }
 /** Clears the hint path by removing its components from the svg
  *  id: the id of the dragged bar
@@ -603,8 +602,8 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         this.pathData = [];
         this.interactionPaths = [];
         this.isAmbiguous = 0;
-        this.svg.select("#gInner"+id).selectAll("text").remove();
-        this.svg.select("#gInner"+id).selectAll("path").remove();
+        this.svg.select("#hintPath").selectAll("text").remove();
+        this.svg.select("#hintPath").selectAll("path").remove();
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
 //TODO: can use this to also detect really small changes in height to alleviate the interaction

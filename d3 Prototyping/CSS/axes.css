@@ -23,7 +23,7 @@
     font-size:18px;
 }
 /**The labels of the ticks */
-.gInner text {
+#hintPath text {
   font-family: sans-serif;
   font-size:11px;
   text-anchor:middle;  
