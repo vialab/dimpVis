@@ -258,7 +258,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
              }else{
                  //Otherwise, mouse dragging is in bounds
                  ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-                 ref.animateHintPath(id,bounds);
+                 ref.animateHintPath(bounds);
                  newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
              }
          } else if (ref.nextView == ref.lastView){ //At the last bar
@@ -271,7 +271,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
              }else{
                  //Otherwise, mouse dragging is in bounds
                  ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-                 ref.animateHintPath(id,bounds);
+                 ref.animateHintPath(bounds);
                  newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
              }
          }else { //At a bar somewhere in between current and next view
@@ -286,7 +286,7 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
              }else{
                  //Otherwise, mouse dragging is in bounds
                  ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-                 ref.animateHintPath(id,bounds);
+                 ref.animateHintPath(bounds);
                  newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
              }
          }
@@ -338,10 +338,9 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 }
 /** Animates the hint path by horizontally translating it according to the vertical
  *  dragging amount.
- *  id: the id of the dragged bar, for selecting its hint path
  *  interpAmount: the amount the dragged bar has travelled between two views
  * */
-Barchart.prototype.animateHintPath = function (id, interpAmount){
+Barchart.prototype.animateHintPath = function (interpAmount){
     var ref = this;
     //Re-draw the hint path
     this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
@@ -359,18 +358,17 @@ Barchart.prototype.animateHintPath = function (id, interpAmount){
                         return "translate("+interpolateX(interpAmount)+","+ d.y+")";
                     });
     //Re-draw the interaction path (if any)
-    if (this.interactionPaths.length >0) this.animateInteractionPath(id,interpAmount);
+    if (this.interactionPaths.length >0) this.animateInteractionPath(interpAmount);
 }
 /** Animates the interaction path using the same method as the hint path
- *  id: the id of the dragged bar, for selecting its hint path
  *  interpAmount: the amount the dragged bar has travelled between two views
  *  Note: this function is only required if there exists interaction paths (or, stationary bars),
  *  it is called in animateHintPath()
  * */
-Barchart.prototype.animateInteractionPath = function (id, interpAmount){
+Barchart.prototype.animateInteractionPath = function (interpAmount){
     var ref = this;
     //Re-draw the interaction path
-    this.svg.select("#hintPath").selectAll(".interactionPath"+id)
+    this.svg.select("#hintPath").selectAll(".interactionPath")
         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
             var currentX = ref.findHintX(d[0],d[2],ref.currentView);
             var nextX = ref.findHintX(d[0],d[2],ref.nextView);
@@ -452,7 +450,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                     });
                 //Re-draw interaction paths (if any)
                 if (ref.interactionPaths.length>0){
-                    d3.select("#hintPath").selectAll(".interactionPath"+id)
+                    d3.select("#hintPath").selectAll(".interactionPath")
                         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
                             return {x:ref.findHintX(d[0],d[2],animateView),y:d[1]};
                         }));});
@@ -488,7 +486,7 @@ Barchart.prototype.redrawView = function (view,id){
           });
         //Re-draw interaction paths (if any)
         if (this.interactionPaths.length>0){
-            this.svg.select("#hintPath").selectAll(".interactionPath"+id)
+            this.svg.select("#hintPath").selectAll(".interactionPath")
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
                     return {x:ref.findHintX(d[0],d[2],view),y:d[1]};
                 }));});
@@ -553,13 +551,13 @@ Barchart.prototype.snapToView = function (id, heights){
     this.checkAmbiguous();
     //Draw the interaction path(s) (if any)
     if (this.interactionPaths.length >0){
-        this.svg.select("#hintPath").selectAll(".interactionPath"+id)
+        this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
             .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
                 return {x:ref.findHintX(d[0],d[2],ref.currentView),y:d[1]};
             }));})
             .attr("stroke-dasharray","3,3")//Makes the path dashed
-            .attr("class","interactionPath"+id)
+            .attr("class","interactionPath")
             .style("fill","none")
             .style("stroke", this.hintColour);
     }

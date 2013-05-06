@@ -77,7 +77,6 @@ Scatterplot.prototype.init = function() {
        .append("g")
        .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
-
     //Add the blur filter used for the hint path to the SVG so other elements can call it
     this.svg.append("svg:defs")
         .append("svg:filter")
@@ -137,11 +136,6 @@ Scatterplot.prototype.render = function( data, start, labels) {
 	  }))	
       .enter().append("g")
 	  .attr("class","gDisplayPoints");
-
-   //Append an empty g element to contain the hint path
-   this.svg.selectAll(".gDisplayPoints").append("g")
-        .attr("id",function (d){return "gInner"+d.id;})
-        .attr("class","gInner");
      
 	 //Draw the data points
      this.svg.selectAll(".gDisplayPoints").append("svg:circle")
@@ -156,6 +150,10 @@ Scatterplot.prototype.render = function( data, start, labels) {
            .attr("id", function (d){return "displayPoints"+d.id;})
           .style("cursor", "pointer")
           .attr("title", function (d) {return d.label;});
+
+    //Append an empty g element to contain the hint path
+    this.svg.append("g")
+        .attr("id","hintPath");
 }
 /** Draws the axes  and the graph title on the SVG
  *  xScale: a function defining the scale of the x-axis
@@ -408,7 +406,7 @@ Scatterplot.prototype.redrawView = function(view) {
                                          .interpolate("basis-closed"); //Closed B-spline, a loop
                                          //.interpolate("cardinal");
          //Draw all loops at their respective stationary points
-         this.svg.select("#gInner"+id).selectAll(".loop"+id)
+         this.svg.select("#hintPath").selectAll(".loop"+id)
              .data(ref.loops.map(function (d,i){
                    var loopPoints = [];
                    loopPoints = ref.calculateLoopPoints(d[0],d[1],d[2]);
@@ -435,7 +433,7 @@ Scatterplot.prototype.redrawView = function(view) {
     }
 
     //Draw the hint path labels
-    this.svg.select("#gInner"+id).selectAll("text")
+    this.svg.select("#hintPath").selectAll("text")
         .data(adjustedPoints).enter()
         .append("svg:text")
         .text(function(d,i) { return ref.labels[i]; })
@@ -449,9 +447,9 @@ Scatterplot.prototype.redrawView = function(view) {
         .on("click", this.clickHintLabelFunction);
 
     //Render the hint path line
-    this.svg.select("#gInner"+id).append("svg:path")
-        .attr("d", function(d){return line(d.nodes);})
-        .attr("id",function (d){return "p"+d.id;})
+    this.svg.select("#hintPath").append("svg:path")
+        .attr("d",  line(points))
+        .attr("id","path")
         .style("stroke-width", 2)
         .style("stroke", this.hintColour)
         .style("fill", "none")
@@ -469,8 +467,8 @@ Scatterplot.prototype.clearHintPath = function (id) {
     this.isAmbiguous = 0;
     this.loops = []; //Re-set the array
      //Remove the hint path svg elements
-     this.svg.select("#gInner"+id).selectAll("text").remove();
-    this.svg.select("#gInner"+id).selectAll("path").remove();
+     this.svg.select("#hintPath").selectAll("text").remove();
+    this.svg.select("#hintPath").selectAll("path").remove();
 	//Re-set the transparency of faded out points
      this.svg.selectAll(".displayPoints").style("fill-opacity", 1);
 }
