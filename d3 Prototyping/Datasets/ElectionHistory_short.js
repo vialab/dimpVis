@@ -56,6 +56,6 @@ for (var j=0;j<pieDatasetElect.length;j++){
        pieDatasetElect[j].values[k] = dataset[j][k]/totals[k];
    }
 }
-console.log(pieDatasetElect);
+
 
 

@@ -236,58 +236,66 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
          var newValues = []; //Saves the new height and y-position:[y,h]
          var currentY =  d.nodes[ref.currentView][0];
          var nextY = d.nodes[ref.nextView][0];
-          //TODO: program the interaction with stationary and revisiting bars
-        //Check for ambiguous cases
+        //TODO: program the interaction with revisiting bars
+        //TODO:Potential fixes for interacting with the stationary bars:
+        //TODO: if current view is ambiguous but the next one isn't then it's the end of a stationary sequence
+        //TODO: if the current view isn't ambiguous but the next is the it's at the beginning of a stationary sequence
          if (ref.ambiguousBars[ref.currentView][0]==1){ //Stationary bar
              currentY = ref.ambiguousBars[ref.currentView][1];
          }else if (ref.ambiguousBars[ref.nextView][0]==1){//Stationary bar
              nextY = ref.ambiguousBars[ref.nextView][1];
          }
-
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
          var bounds = ref.checkBounds(currentY,nextY,mouseY);
+        //To ensure the original Y position is returned, not the adjusted one (in the ambiguous case)
+         var currentYOriginal =  d.nodes[ref.currentView][0];
+         var nextYOriginal = d.nodes[ref.nextView][0];
 
          if (ref.currentView ==0){ //At the first bar
              if (bounds == currentY){ //Passed lowest bar, out of bounds
-                 newValues = [currentY,currentHeight];
+                 newValues = [currentYOriginal,currentHeight];
              }else if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
                  ref.currentView = ref.nextView;
                  ref.nextView++;
-                 newValues = [nextY,nextHeight];
+                 newValues = [nextYOriginal,nextHeight];
              }else{
                  //Otherwise, mouse dragging is in bounds
                  ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
                  ref.animateHintPath(bounds);
-                 newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+                 if (ref.ambiguousBars[ref.currentView][0]==1) newValues = [currentYOriginal,currentHeight];
+                 else newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
              }
          } else if (ref.nextView == ref.lastView){ //At the last bar
              if (bounds == nextY){ //Passed highest, out of bounds
-                 newValues=[nextY,nextHeight];
+                 newValues=[nextYOriginal,nextHeight];
              }else if (bounds == currentY){ //Passed current, update view tracker variables
                  ref.nextView = ref.currentView;
                  ref.currentView--;
-                 newValues = [currentY,currentHeight];
+                 newValues = [currentYOriginal,currentHeight];
              }else{
                  //Otherwise, mouse dragging is in bounds
                  ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
                  ref.animateHintPath(bounds);
-                 newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+                 if (ref.ambiguousBars[ref.currentView][0]==1) newValues = [currentYOriginal,currentHeight];
+                 else newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
              }
          }else { //At a bar somewhere in between current and next view
              if (bounds == currentY){ //Passed current, update the variables
                  ref.nextView = ref.currentView;
                  ref.currentView--;
-                 newValues = [currentY,currentHeight];
+                 newValues = [currentYOriginal,currentHeight];
              }else if (bounds ==nextY){ //Passed next, update the variables
                  ref.currentView = ref.nextView;
                  ref.nextView++;
-                 newValues = [nextY,nextHeight];
+                 newValues = [nextYOriginal,nextHeight];
              }else{
                  //Otherwise, mouse dragging is in bounds
                  ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
                  ref.animateHintPath(bounds);
-                 newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+                 if (ref.ambiguousBars[ref.currentView][0]==1) newValues = [currentYOriginal,currentHeight];
+                 else newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+
              }
          }
         ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
@@ -542,13 +550,13 @@ Barchart.prototype.snapToView = function (id, heights){
  *  heights: the array of heights and y positions of the bar [ypos,height]
  *  xPos: the x-position of the bar
  * */
-//TODO: the hint path labels are not clickable when a bar is on top of it which makes the fast forwarding hard to use
-//TODO: See https://developer.mozilla.org/en-US/docs/CSS/pointer-events
-  Barchart.prototype.showHintPath = function (id,heights,xPos){
+Barchart.prototype.showHintPath = function (id,heights,xPos){
     var ref = this;
     //Create a dataset to draw the hint path in the format: [x,y]
     this.pathData = heights.map(function (d){return [xPos,d[0]];});
     this.checkAmbiguous();
+    //TODO: interaction paths need to be re-drawn or vertically translated whenever dragging starts at a peak or trough
+    //TODO: interaction paths should be drawn as a sine wave, looks better than a spline http://stackoverflow.com/questions/13893127/how-to-draw-a-path-smoothly-from-start-point-to-end-point-in-d3-js
     //Draw the interaction path(s) (if any)
     if (this.interactionPaths.length >0){
         this.svg.select("#hintPath").selectAll(".interactionPath")
@@ -589,9 +597,9 @@ Barchart.prototype.snapToView = function (id, heights){
                .style("cursor", "pointer");
 
     //Fade out the other bars
-  /** this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
+   this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
         .transition().duration(300)
-        .style("fill-opacity", 0.4);*/
+        .style("fill-opacity", 0.4);
 }
 /** Clears the hint path by removing its components from the svg
  *  id: the id of the dragged bar
@@ -614,8 +622,7 @@ Barchart.prototype.snapToView = function (id, heights){
  *                     only one height in between which introduces directional ambiguity during dragging)
  *
  *  This information is stored in the ambiguousBars array, which gets re-populated each time a
- *  new bar is dragged.  This array is in  the format: [[type, h]...number of views], where y
- *  is the height on the interaction path (provided in the stationary case)
+ *  new bar is dragged.  This array is in  the format: [[type, newY]...number of views]
  * */
 Barchart.prototype.checkAmbiguous = function (){
     var j, currentBar;

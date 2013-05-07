@@ -11,43 +11,43 @@ var pieLabels = ["1990","1995","2000","2005"];
 // Create new pie chart
 ////////////////////////////////////////////////////////////////////////////////
 
-var piechart   = new Piechart(900, 900, 50, 50 , 180,"#piegraph",yearsElect_short);
+var piechart   = new Piechart(50, 50 , 180,"#piegraph","Test Piechart",pieLabels);
 piechart.init();
-piechart.render(piedata);
+piechart.render(piedata,0);
 
 ////////////////////////////////////////////////////////////////////////////////
-// Define some interaction functions for the piechart
+// TODO: Define some interaction functions for the piechart
 ////////////////////////////////////////////////////////////////////////////////
 /**piechart.clickHintLabelFunction = function (){
 
  };*/
 
 piechart.dragEvent = d3.behavior.drag()
-/**.origin(function(d){ //Set the starting point of the drag interaction
+/**.origin(function(d){ //TODO:Set the starting point of the drag interaction
  return {x:d3.event.x,y:d3.event.y};
  })*/
     .on("dragstart", function(d){
-        piechart.clearHintPath(d.id);
-        piechart.showHintPath(d.id);
+        piechart.clearHintPath();
+        piechart.showHintPath(d.id, d.hDirections);
 
     })
     .on("drag", function(d){
         piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);
-        slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
+        //slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
     })
     .on("dragend",function (d){
         //piechart.clearHintPath(d.id);
         piechart.snapToView(d.id,d.endAngle,d.nodes);
-        slider.updateSlider(piechart.currentView);
+        //slider.updateSlider(piechart.currentView);
         //piechart.redrawView();
         //piechart.redrawSegments(d.id,d.startAngle,d.endAngle);
     });
 
-piechart.widget.selectAll(".DisplayArcs")
+piechart.svg.selectAll(".displayArcs")
     .call(piechart.dragEvent);
 
 ////////////////////////////////////////////////////////////////////////////////
-// Create new slider facilitating changing to different views of the visualization
+// TODO: Create new slider facilitating changing to different views of the visualization
 ////////////////////////////////////////////////////////////////////////////////   
 /**var slider   = new Slider(15, 700, 700, 200, "#time",20,yearsElect_short, "Years","#666",50);
 slider.init();
