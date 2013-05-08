@@ -28,7 +28,7 @@ piechart.dragEvent = d3.behavior.drag()
  })*/
     .on("dragstart", function(d){
         piechart.clearHintPath();
-        piechart.showHintPath(d.id, d.hDirections);
+        piechart.showHintPath(d.id, d.hDirections, d.nodes);
 
     })
     .on("drag", function(d){

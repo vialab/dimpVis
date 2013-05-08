@@ -209,6 +209,7 @@ Piechart.prototype.findHintArcs = function (angles){
     }
     return hintArcDirections;
 }
+
 //Updates the angle of a dragged pie segment
 Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
      var ref = this;
@@ -469,62 +470,55 @@ Piechart.prototype.changeView = function (newView){
                    return ref.arcGenerator(d);					   
 				});
 }
-
-
+/**
+ * angles: 1D array of all angles belonging to the hint path
+ * arcIndices: 1D array of all arcs the angles should be drawn on
+ * */
+Piechart.prototype.calculateHintAngles = function (angles,arcIndices){
+    var newAngle, r, x,y;
+    var hintAngles = [];
+    for (var j=0;j<angles.length;j++){
+        newAngle = this.dragStartAngle + angles[j];
+        if (newAngle > this.twoPi){ //Special case when angle wraps around
+            newAngle = newAngle - this.twoPi;
+        }
+        r = this.findHintRadius(arcIndices[j],this.currentView);
+        x = this.cx + r*Math.cos(newAngle - this.halfPi);
+        y = this.cy+ r*Math.sin(newAngle - this.halfPi);
+        hintAngles.push([x,y,r,newAngle]);
+    }
+    return hintAngles;
+}
 /**Displays the hint path for the dragged segment
  * id: the id of the dragged segment
  * hDirections: the drawing directions for the hint path and the segment numbers
+ * angles: an array of all angles to appear on the hint path
  * */
-Piechart.prototype.showHintPath = function (id,hDirections){
-        var ref = this;
-        //Render the hint path
-        this.svg.select("#hintPath").append("path")
-                .attr("d", function (d,i) {
-                      var pathInfo = [];
-                      var r,x,y,newAngle;
-                      for (var j=0;j<hValues.length;j++){
-                        newAngle = ref.dragStartAngle + hValues[j][0];
-                        if (newAngle > ref.twoPi){ //Special case when angle wraps around
-                            newAngle = newAngle - ref.twoPi;
-                        }
-                        r = ref.findHintRadius(hValues[j][1],ref.currentView);
-                        x = ref.cx + r*Math.cos(newAngle - ref.halfPi);
-                        y = ref.cy+ r*Math.sin(newAngle - ref.halfPi);
-                        pathInfo[j] = [x,y,r,newAngle];
-                        //ref.savedAngles[j] = [newAngle,hValues[j][1]];
-                       }
-                      // ref.savedDirections = hDirections;
-                       return ref.createArcString(pathInfo,hDirections);
-                  })
-                .style("fill","none").style("stroke",ref.hintColour).style("stroke-width",1)
-                .attr("class","hintArcs").attr("filter", "url(#blur)");
+Piechart.prototype.showHintPath = function (id,hDirections,angles){
+    var ref = this;
+    var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}));
+
+    //Render the hint path
+    this.svg.select("#hintPath").append("path")
+            .attr("d", ref.createArcString(hintArcInfo,hDirections))
+            .style("fill","none").style("stroke",ref.hintColour).style("stroke-width",1)
+            .attr("class","hintArcs").attr("filter", "url(#blur)");
 		       		
 	//Render the hint labels
-	this.svg.select("#hintPath").selectAll("text").data(function (d){return d.hArcs;}).enter()
+	this.svg.select("#hintPath").selectAll("text")
+        .data(hintArcInfo.map(function (d) {return {x:d[0],y:d[1]}})).enter()
                 .append("svg:text")
-                .text(function(d,i) { return ref.labels[i]; })
-                  .attr("transform", function (d,i){
-                        //Resolve the angle w.r.t to the top of the chart, x and y = 0
-                        var newAngle = ref.dragStartAngle + d[0];
-                        if (newAngle > ref.twoPi){ //Special case when angle wraps around
-                            newAngle = newAngle - ref.twoPi;
-                        }
-                        var r = ref.findHintRadius(d[1],ref.currentView);
-                        var x = ref.cx + r*Math.cos(newAngle - ref.halfPi);
-                        var y = ref.cy+ r*Math.sin(newAngle - ref.halfPi);
-                        return "translate("+x+","+y+")";
+                 .text(function(d,i) { return ref.labels[i]; })
+                 .attr("transform", function (d){return "translate("+ d.x+","+ d.y+")";})
+                 .attr("fill", ref.hintLabelColour)
+                 .style("font-size","10px")
+                 .attr("class","hintLabels");
 
-                    })
-                   .attr("fill", ref.hintLabelColour)
-                   .style("font-size","10px")
-                   .attr("class","hintLabels");
-	
     //Fade out all the other segments
 	this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
             .transition().duration(400).style("fill-opacity", 0.5);
 
 }
-
 /** Clears the hint path by removing all svg elements in #hintPath */
  Piechart.prototype.clearHintPath = function (){
         this.svg.select("#hintPath").selectAll("text").remove();
