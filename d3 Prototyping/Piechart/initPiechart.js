@@ -12,6 +12,11 @@ var pieLabels = ["1990","1995","2000","2005"];
 ////////////////////////////////////////////////////////////////////////////////
 
 var piechart   = new Piechart(50, 50 , 180,"#piegraph","Test Piechart",pieLabels);
+
+//Define the function when the SVG (background) is clicked, should clear the hint path displayed
+piechart.clickSVG = function (){
+    piechart.clearHintPath();
+};
 piechart.init();
 piechart.render(piedata,0);
 

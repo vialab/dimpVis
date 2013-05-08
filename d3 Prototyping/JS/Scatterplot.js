@@ -461,9 +461,8 @@ Scatterplot.prototype.redrawView = function(view) {
 	           .style("fill-opacity", 0.3);
 }
 /**Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag
- * id: The id of the dragged point, to indicate which hint path to remove
  * */
-Scatterplot.prototype.clearHintPath = function (id) {
+Scatterplot.prototype.clearHintPath = function () {
     this.isAmbiguous = 0;
     this.loops = []; //Re-set the array
      //Remove the hint path svg elements

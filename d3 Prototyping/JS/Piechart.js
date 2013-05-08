@@ -48,6 +48,7 @@ function Piechart(x,y, r,id,title,hLabels){
    //Event functions, all declared in main.js  
    this.placeholder = function() {}; 
    this.clickHintLabelFunction = this.placeholder;
+   this.clickSVG = this.placeholder;
    this.dragEvent = null; 
   //Function for drawing the arc segments   
    this.arcGenerator = d3.svg.arc().innerRadius(0).outerRadius(this.radius)
@@ -77,13 +78,12 @@ function Piechart(x,y, r,id,title,hLabels){
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Piechart.prototype.init = function(){
-    //TODO: make SVG clickable to clear hint path
+   //Draw the main svg to contain the whole visualization
    this.svg = d3.select(this.id).append("svg")
-      .attr("width", this.width)
-      .attr("height", this.height)
-      .style("position", "absolute")
-      .style("left", this.xPos + "px")
-      .style("top", this.yPos + "px")  
+      .attr("width", this.width).attr("height", this.height)
+      .style("position", "absolute").style("left", this.xPos + "px")
+      .style("top", this.yPos + "px")
+      .on("click",this.clickSVG)
      .append("g");
    //Add the blur filter to the SVG so other elements can call it
     this.svg.append("svg:defs")

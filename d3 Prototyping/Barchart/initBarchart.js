@@ -5,8 +5,8 @@
 var barchart   = new Barchart(400, 50, 30, 0 , "#bargraph",80,"country","population","Populations of a subset of countries over time",labels);
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
-barchart.clickSVG = function (d){
-    barchart.clearHintPath(barchart.draggedBar);
+barchart.clickSVG = function (){
+    barchart.clearHintPath();
 };
 
 barchart.init();
@@ -26,7 +26,7 @@ barchart.dragEvent = d3.behavior.drag()
         return {x:d.xPos,y:d.nodes[barchart.currentView][0]};
     })
     .on("dragstart", function(d){
-        barchart.clearHintPath(barchart.draggedBar);
+        barchart.clearHintPath();
         barchart.draggedBar = d.id;
         barchart.showHintPath(d.id, d.nodes, d.xPos);
     })
@@ -50,7 +50,7 @@ slider.render();
 //Define the function to respond to the dragging behaviour of the slider tick
  slider.dragEvent = d3.behavior.drag()  
 						.on("dragstart", function(){                           
-                            barchart.clearHintPath(barchart.draggedBar);							
+                            barchart.clearHintPath();
 					     }) 
                       .on("drag", function(){                               				  
 							slider.updateDraggedSlider(d3.event.x);

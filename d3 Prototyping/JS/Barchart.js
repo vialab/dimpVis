@@ -602,9 +602,8 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         .style("fill-opacity", 0.4);
 }
 /** Clears the hint path by removing its components from the svg
- *  id: the id of the dragged bar
  * */
- Barchart.prototype.clearHintPath = function (id){
+ Barchart.prototype.clearHintPath = function (){
         this.pathData = [];
         this.interactionPaths = [];
         this.isAmbiguous = 0;

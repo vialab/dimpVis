@@ -5,8 +5,8 @@
 var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate","life expectancy","Fertility Rate vs. Life Expectancy Over the Years");
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
-scatterplot.clickSVG = function (d){
-    scatterplot.clearHintPath(scatterplot.draggedPoint);
+scatterplot.clickSVG = function (){
+    scatterplot.clearHintPath();
 };
 scatterplot.init();
 
@@ -28,7 +28,7 @@ scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an ar
 	                   })
 					   .on("dragstart", function(d){
                             //d3.event.sourceEvent.stopPropagation(); //TODO: this doesn't seem to work..
-						    scatterplot.clearHintPath(scatterplot.draggedPoint);
+						    scatterplot.clearHintPath();
 						    scatterplot.draggedPoint = d.id;
                             scatterplot.showHintPath(d.id,d.nodes);
 					  })
@@ -54,7 +54,7 @@ slider.render();
 //Define the dragging interaction of the slider which will update the view of the scatterplot
  slider.dragEvent = d3.behavior.drag()  
 						.on("dragstart", function(){                               
-                            scatterplot.clearHintPath(scatterplot.draggedPoint);                            							
+                            scatterplot.clearHintPath();
 					     }) 
                       .on("drag", function(){                               					  
 							slider.updateDraggedSlider(d3.event.x);                       
