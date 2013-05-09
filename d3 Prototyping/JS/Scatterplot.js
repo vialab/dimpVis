@@ -211,7 +211,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
  *  id: The id of the dragged point, for selecting by id
  *  mousex, mouseY: The coordinates of the mouse, received from the drag event
  * */
-//TODO: toggling between label colours for ambiguous points
+//TODO: toggling between label colours for stationary points
 Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
    var ref = this;
     //Save the mouse coordinates
@@ -267,8 +267,22 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
            }
         ref.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
   });
+  if (ref.ambiguousPoints[ref.currentView][0]==2){ //Revisiting point, toggle the label colour
+       ref.toggleLabelColour(ref.currentView,ref.ambiguousPoints[ref.currentView][2]);
+  }
 }
-/**"Animates" the rest of the points while one is being dragged
+/**Toggles the label colour based on the current view, this effect is used for distinguishing the position on
+ * hint path in both ambiguous cases.
+ * currentView: the current view, this label will not be faded out
+ * groupNumber: the group of repeated points the current point belongs to
+ * */
+Scatterplot.prototype.toggleLabelColour = function (currentView,groupNumber){
+    var ref = this;
+    this.svg.selectAll(".hintLabels")
+        .filter(function (d){return ref.ambiguousPoints[d.id][2]==groupNumber;})
+        .attr("fill-opacity",function (d) {return ((d.id==currentView)? 1:0.3);});
+}
+ /**"Animates" the rest of the points while one is being dragged
  * Uses the 't' parameter, which represents approximately how far along a line segment
  * the dragged point has travelled.  The positions of the rest of the points are interpolated
  * based on this t parameter and re-drawn at this interpolated position
@@ -355,7 +369,7 @@ Scatterplot.prototype.changeView = function( newView) {
     //Recursively invoke this function to chain transitions, a new transition is added once
     //the current one is finished
     function animate() {
-        console.log(viewCounter);
+        //console.log(viewCounter);
         viewCounter++;
         if (viewCounter==totalViews) {
             animateView = animateView + direction;
@@ -423,26 +437,27 @@ Scatterplot.prototype.redrawView = function(view) {
     //Adjust the points array to include ambiguous points (if any), otherwise, just keep the original array
     var adjustedPoints = points;
     if (ref.isAmbiguous==1){
-        var counter = -1;
         //Re-map the points array to contain positions which correspond to ambiguous cases (at each ambiguous case, labels are
         // presented as a horizontally oriented list)
         adjustedPoints = points.map(function (d,i){
-            if (ref.ambiguousPoints[i][0]!=0) return [d[0]+25*ref.ambiguousPoints[i][1],d[1]];
+            if (ref.ambiguousPoints[i][0]!=0) return [d[0]+25*ref.ambiguousPoints[i][1],d[1],ref.ambiguousPoints[i][2]];
             return d;
        });
     }
-
     //Draw the hint path labels
     this.svg.select("#hintPath").selectAll("text")
-        .data(adjustedPoints).enter()
-        .append("svg:text")
-        .text(function(d,i) { return ref.labels[i]; })
-        .attr("x", function(d) {return d[0] + ref.pointRadius*2})
-        .attr("y", function (d) {  return d[1] + ref.pointRadius*2; })
+        .data(adjustedPoints.map(function (d,i) {
+            return {x:d[0] + ref.pointRadius*2,y:d[1] + ref.pointRadius*2,id:i}
+         }))
+        .enter().append("svg:text")
+        .text(function(d) { return ref.labels[d.id]; })
+        .attr("x", function(d) {return d.x;})
+        .attr("y", function (d) {  return d.y; })
         .attr("fill", this.pointColour)
         .style("font-size","11px")
         .style("font-family","sans-serif")
         .attr("class","hintLabels")
+        .attr("id",function (d){return "hintLabels"+ d.id})
         .style("cursor","pointer")
         .on("click", this.clickHintLabelFunction);
 
@@ -471,7 +486,6 @@ Scatterplot.prototype.clearHintPath = function () {
 	//Re-set the transparency of faded out points
      this.svg.selectAll(".displayPoints").style("fill-opacity", 1);
 }
-
 /** Calculates the distance between two points
  * (x1,y1) is the first point
  * (x2,y2) is the second point
@@ -536,8 +550,9 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,numPoints){
  *
  *  In this function, three important arrays are populated:
  *  this.ambiguousPoints: an array to quickly determine the type for each point along the hint path
- *                  Format: [[type,adjustedIndex]..total number of points on hint path], the adjusted index is for
- *                  placing the hint label (an offset, such that the labels at one ambiguous point can be a list)
+ *                  Format: [[type,adjustedIndex,group]..total number of points on hint path], the adjusted index is for
+ *                  placing the hint label (an offset, such that the labels at one ambiguous point can be a list).  The group
+ *                  is another index which indicates which group of repeated or common points the point belongs to.
  *  repeatedPoints: an array which combines revisiting and stationary points
  *                  Format: [ [x,y,[[viewIndex,type]..number of view indices matching this point]] .. number of ambiguous points]
  *  this.loops: an array of all loops to draw
@@ -546,16 +561,17 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,numPoints){
  *  points: an array of points to search within
  * */
 Scatterplot.prototype.checkAmbiguous = function (points){
+
     var j, currentPoint;
     var stationaryPoints = [];
     var revisitingPoints = [];
     var repeatedPoints = [];
     var foundIndex = -1;
+
     this.ambiguousPoints = [];
     //Re-set the ambiguousPoints array
-    for (j=0;j<points.length;j++){
-        this.ambiguousPoints[j] = [0];
-    }
+    for (j=0;j<points.length;j++){ this.ambiguousPoints[j] = [0];}
+
     //Populate the stationary and revisiting points array
     //Search for points that match in the x and y values (called "repeated points")
     for (j=0;j<points.length;j++){
@@ -590,6 +606,7 @@ Scatterplot.prototype.checkAmbiguous = function (points){
             }
         }
     }
+
     //Now, need to add adjustedIndex to each ambiguous point so the hint labels can be placed at the correct positions
     //Also, populate the loops array to contain all loops which must be drawn where there are areas of stationary points
     var foundStationary = 0;
@@ -597,7 +614,7 @@ Scatterplot.prototype.checkAmbiguous = function (points){
         var viewIndices = repeatedPoints[j][2];
         for (k=0;k<viewIndices.length;k++){
             var type = viewIndices[k][1];
-            this.ambiguousPoints[viewIndices[k][0]] = [type,k];
+            this.ambiguousPoints[viewIndices[k][0]] = [type,k,j];
             if (type==1) foundStationary = 1;
         }
         if (foundStationary==1) this.loops.push([repeatedPoints[j][0],repeatedPoints[j][1],viewIndices.length]);

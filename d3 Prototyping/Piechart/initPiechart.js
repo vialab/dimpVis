@@ -33,7 +33,7 @@ piechart.dragEvent = d3.behavior.drag()
  })*/
     .on("dragstart", function(d){
         piechart.clearHintPath();
-        piechart.showHintPath(d.id, d.hDirections, d.nodes);
+        piechart.showHintPath(d.id, d.hDirections, d.nodes, d.startAngle);
 
     })
     .on("drag", function(d){
