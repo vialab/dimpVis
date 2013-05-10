@@ -30,6 +30,7 @@ scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an ar
                             //d3.event.sourceEvent.stopPropagation(); //TODO: this doesn't seem to work..
 						    scatterplot.clearHintPath();
 						    scatterplot.draggedPoint = d.id;
+                            scatterplot.previousDragAngle = 0; //To be safe, re-set this
                             scatterplot.showHintPath(d.id,d.nodes);
 					  })
                       .on("drag", function(d){
