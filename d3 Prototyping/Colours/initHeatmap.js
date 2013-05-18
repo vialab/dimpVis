@@ -1,12 +1,6 @@
- var axisLabels = ["transmission", "wheel","seat","engine","brakes","pedal"];
-       
-var years = ["1955","1960","1965","1970","1975","1980"];
-var years_nhtsa = [1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009];
-var heatmap = new Heatmap(20, 20, 1200, 800, "#vis",years_nhtsa,axisLabels,72);
+var heatmap = new Heatmap(20, 20, 5,50,"#vis","Car complaints",years);
 heatmap.init();
-//Render 4x6 matrix as the heatmap, across 6 different views
-heatmap.render(dataMatrix,6,6,matrixColours);
-
+heatmap.render(data,xLabels,yLabels);
  
 heatmap.dragEvent = d3.behavior.drag()
                        .origin(function(d){ //Set the starting point of the drag interaction
@@ -34,11 +28,9 @@ heatmap.dragEvent = d3.behavior.drag()
 					  });	
 
 
-heatmap.widget.selectAll(".cell").call(heatmap.dragEvent);
+heatmap.svg.selectAll(".cell").call(heatmap.dragEvent);
 
-////////////////////////////////////////////////////////////////////////////////
-// Create new slider facilitating changing to different views of the visualization
-////////////////////////////////////////////////////////////////////////////////   
+/**
 var slider   = new Slider(50, 500, 900, 100, "#time",years_nhtsa.length,years_nhtsa, "Years","#666",10);
 slider.init();
 slider.render();

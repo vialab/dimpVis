@@ -1,3 +1,5 @@
+//Data representing co-occurence scores between car parts over time
+//Car accident report dataset from the NHTSA: http://www.nhtsa.gov/
 //From years 1981 to 2009
 //format: [row,col,score]
 var dataset = [
@@ -33,54 +35,32 @@ var dataset = [
 
 ];
 
-/**entity ids:
+/**entity ids: 1- transmission, 2- wheel, 3- seat, 4- engine, 5- brakes,6- pedal */
+var xLabels = yLabels = ["transmission", "wheel","seat","engine","brakes","pedal"];
+var xLength = xLabels.length;
+var yLength = yLabels.length;
+var years = [1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009];
 
-1 transmission
-
-2 wheel
-
-3 seat
-
-4 engine
-
-5 brakes
-
-6 pedal */
-//Format of data array should be: data[index to view/year] = {"row","column","colourValue"}
-var dataMatrix = [];
-var matrixColours = [];
-var count = 0;
-var countColours = 0;
-for (var view=0;view<20;view++){
-     dataMatrix[view] = []; 
-    matrixColours[view] = [];	 
-	 count =0;
-	 countColours = 0;
-     for (var col=0;col<6;col++){  		    
-		  for (var row=0;row<6;row++){
-		    //Searching the real dataset..
-			var foundScore = -1;
-		    for (var j=0;j<dataset[view].length;j++){
-			   if ((dataset[view][j][0]==row && dataset[view][j][1]==col)||(dataset[view][j][0]==col && dataset[view][j][1]==row)){
-			      foundScore = dataset[view][j][2];
-				  break;
-			   }
-			}
-			if (foundScore !=-1){
-			   dataMatrix[view][count] = {"row":row,"column":col,"colourValue":foundScore}; 
-			   matrixColours[view][count] = foundScore;
-			   //matrixColours[countColours] = foundScore;
-				
-			}else{
-			  dataMatrix[view][count] = {"row":row,"column":col,"colourValue":0};
-			  matrixColours[view][count] = 0;
-			 // matrixColours[countColours] = 0;
-            }
-           //countColours++;			
-           count++;			
-		  }
-	}	 
+//Reformat the dataset to match the expected format specified in Heatmap.js
+var data = [];
+var dataCounter = 0;
+for (var row=0;row<xLength;row++){
+    for (var col=0;col<yLength;col++){
+      //Add a new entry for each row,column pair
+      data[dataCounter] = {"row":row,"column":col,"values":[]};
+      //Search for values in the dataset (which has missing entries for some pairs, in this case the score is 0)
+      for (var j=0;j<dataset.length;j++){
+          var found = false;
+          for (var k=0;k<dataset[j].length;k++){
+              if (dataset[j][k][0]==row && dataset[j][k][1]==col){
+                  found = true;
+                  break;
+              }
+          }
+          data[dataCounter].values[j] = (found)? dataset[j][k][2]:0;
+      }
+      dataCounter++;
+    }
 }
 
-	    //  data[view][i] = {"row":currentRow,"column":currentColumn,"colourValue":(Math.random() * (max - min) + min)};	
 

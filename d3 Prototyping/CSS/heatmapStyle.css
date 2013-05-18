@@ -1,10 +1,21 @@
+/** Styles for the heatmap visualization */
 body {
-  font: 10px sans-serif;
   shape-rendering: crispEdges;
 }
-
+.axisVertical {
+    font-family:sans-serif;
+    font-size:14px;
+}
+.axisHorizontal {
+    font-family:sans-serif;
+    font-size:14px;
+}
 .cell{ 
   stroke: #FFF;
+}
+#chartTitle{
+    font-family:sans-serif;
+    font-size:18px;
 }
 
 
