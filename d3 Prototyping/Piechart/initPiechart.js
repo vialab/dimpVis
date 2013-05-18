@@ -1,40 +1,31 @@
-var years = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels      
-var yearsElect = ["1867","1872","1874","1878","1882","1887","1891","1896","1900","1904","1908","1911","1917","1921","1925","1926","1930","1935","1940","1945","1949","1953","1957","1958","1962","1963","1965","1968","1972","1974","1979","1980","1984","1988","1993","1997","2000","2004","2006","2008","2011"];        
-var yearsElect_short = [1949,1953,1957,1958,1962,1963,1965,1968,1972,1974,1979,1980,1984,1988,1993,1997,2000,2004,2006,2008,2011];
-//Fake data for debugging
-piedata = [{"label":"one", "values":[0.2,0.5,0.1,0.4]},
-    {"label":"two", "values":[0.5,0.3,0.1,0.2]},
-    {"label":"three", "values":[0.3,0.2,0.8,0.4]}];
+/** This file creates and coordinates a piechart and a slider according to the provided dataset
+ * */
 
-var pieLabels = ["1990","1995","2000","2005"];
-////////////////////////////////////////////////////////////////////////////////
-// Create new pie chart
-////////////////////////////////////////////////////////////////////////////////
-
-var piechart   = new Piechart(50, 50 , 180,"#piegraph","Test Piechart",pieLabels);
+ //Create a new piechart visualization
+var piechart   = new Piechart(50, 50 , 180,"#piegraph","Test Piechart",labels);
 
 //Define the function when the SVG (background) is clicked, should clear the hint path displayed
 piechart.clickSVG = function (){
     piechart.clearHintPath();
 };
+//Initialize and render the piechart visualization
 piechart.init();
-piechart.render(piedata,0);
+piechart.render(data,0);
 
-////////////////////////////////////////////////////////////////////////////////
-// TODO: Define some interaction functions for the piechart
-////////////////////////////////////////////////////////////////////////////////
+//Define the function for fast-forwarding the view by clicking on any label along the hint path
 /**piechart.clickHintLabelFunction = function (){
 
  };*/
 
+//Define the dragging interaction for the piechart segments
 piechart.dragEvent = d3.behavior.drag()
-/**.origin(function(d){ //TODO:Set the starting point of the drag interaction
- return {x:d3.event.x,y:d3.event.y};
- })*/
+    //TODO:Set the starting point of the drag interaction
+    /**.origin(function(d){
+     return {x:d3.event.x,y:d3.event.y};
+     })*/
     .on("dragstart", function(d){
         piechart.clearHintPath();
         piechart.showHintPath(d.id, d.hDirections, d.nodes, d.startAngle);
-
     })
     .on("drag", function(d){
         piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);
@@ -48,35 +39,27 @@ piechart.dragEvent = d3.behavior.drag()
         //piechart.redrawSegments(d.id,d.startAngle,d.endAngle);
     });
 
-piechart.svg.selectAll(".displayArcs")
-    .call(piechart.dragEvent);
+piechart.svg.selectAll(".displayArcs").call(piechart.dragEvent);
 
-////////////////////////////////////////////////////////////////////////////////
-// TODO: Create new slider facilitating changing to different views of the visualization
-////////////////////////////////////////////////////////////////////////////////   
-/**var slider   = new Slider(15, 700, 700, 200, "#time",20,yearsElect_short, "Years","#666",50);
+//Create a new slider widget as an alternative for switching views of the scatterplot visualization
+var slider   = new Slider(15, 700, "#time",labels, "Years","#666",50);
 slider.init();
 slider.render();
-				  
-////////////////////////////////////////////////////////////////////////////////
-// Define some interaction functions for the slider
-////////////////////////////////////////////////////////////////////////////////
- slider.dragEvent = d3.behavior.drag()  
-						.on("dragstart", function(){                               
-                           						
-					     }) 
-                      .on("drag", function(){                             	
-						    slider.updateDraggedSlider(d3.event.x);  
-                            //piechart.updateSegments(slider.interpValue,slider.currentTick,slider.nextTick);							
-					  })
-					  .on("dragend",function (){
-					      slider.snapToTick(d3.event.x);
-                          piechart.changeView(slider.currentTick);	
-                          piechart.redrawView(-1,-1);						  
-					  });	
 
-slider.widget.select("#slidingTick")				                 			  
-                   .call(slider.dragEvent);	   */
+//Define the dragging interaction for the slider, which moves the sliding tick back and forth
+slider.dragEvent = d3.behavior.drag()
+                    .on("dragstart", function(){ piechart.clearHintPath();})
+                    .on("drag", function(){
+                            slider.updateDraggedSlider(d3.event.x);
+                            piechart.updateSegments(slider.interpValue,slider.currentTick,slider.nextTick);
+                     })
+                     .on("dragend",function (){
+                          slider.snapToTick();
+                          piechart.changeView(slider.currentTick);
+                          //piechart.redrawView(-1,-1);
+                     });
+
+slider.widget.select("#slidingTick").call(slider.dragEvent);
 
 
 				   
