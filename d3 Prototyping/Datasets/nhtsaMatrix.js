@@ -39,7 +39,7 @@ var dataset = [
 var xLabels = yLabels = ["transmission", "wheel","seat","engine","brakes","pedal"];
 var xLength = xLabels.length;
 var yLength = yLabels.length;
-var years = [1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009];
+var labels = [1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009];
 
 //Reformat the dataset to match the expected format specified in Heatmap.js
 var data = [];
@@ -52,7 +52,7 @@ for (var row=0;row<xLength;row++){
       for (var j=0;j<dataset.length;j++){
           var found = false;
           for (var k=0;k<dataset[j].length;k++){
-              if (dataset[j][k][0]==row && dataset[j][k][1]==col){
+              if (dataset[j][k][0]==(row+1) && dataset[j][k][1]==(col+1)){
                   found = true;
                   break;
               }

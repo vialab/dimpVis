@@ -572,13 +572,13 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 
 	//Draw the hint path line
     this.svg.select("#hintPath").append("svg:path")
-                      .attr("d", ref.hintPathGenerator(ref.pathData.map(function (d,i){
-                            return {x:ref.findHintX(d[0],i,ref.currentView),y:d[1]};
-                        })))
-                      .style("stroke-width", 2)
-                      .style("stroke", this.hintColour)
-                      .style("fill","none")
-                      .attr("filter", "url(#blur)").attr("id","path");
+                  .attr("d", ref.hintPathGenerator(ref.pathData.map(function (d,i){
+                        return {x:ref.findHintX(d[0],i,ref.currentView),y:d[1]};
+                    })))
+                  .style("stroke-width", 2)
+                  .style("stroke", this.hintColour)
+                  .style("fill","none")
+                  .attr("filter", "url(#blur)").attr("id","path");
 												
 	//Draw the hint labels
    this.svg.select("#hintPath").selectAll("text").data(heights.map(function(d,i){

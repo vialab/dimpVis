@@ -117,6 +117,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
 	}
      //Find the max and min values of the points, used to scale the axes and the dataset
      var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
+     var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); })); var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
      var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
 
     //Create the scales by mapping the x,y to the svg size

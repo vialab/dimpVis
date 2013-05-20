@@ -38,7 +38,7 @@ barchart.dragEvent = d3.behavior.drag()
         barchart.snapToView(d.id,d.nodes);
         slider.updateSlider(barchart.currentView);
     });
-//Apply the dragging function to every bar
+//Apply the dragging function to each bar
 barchart.svg.selectAll(".displayBars")
     .call(barchart.dragEvent);
 
@@ -49,9 +49,7 @@ slider.render();
 
 //Define the function to respond to the dragging behaviour of the slider tick
  slider.dragEvent = d3.behavior.drag()  
-						.on("dragstart", function(){                           
-                            barchart.clearHintPath();
-					     }) 
+					  .on("dragstart", function(){ barchart.clearHintPath();})
                       .on("drag", function(){                               				  
 							slider.updateDraggedSlider(d3.event.x);
                            barchart.interpolateBars(-1,slider.interpValue,slider.currentTick,slider.nextTick);
