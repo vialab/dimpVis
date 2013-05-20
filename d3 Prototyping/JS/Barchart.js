@@ -530,7 +530,7 @@ Barchart.prototype.findHintX = function (oldX,index,view){
  *  most recent y-position of the dragged bar. View tracking variables are
  *  updated according to which view is "snapped" to.
  *  id: The id of the dragged bar
- *  points: An array of all heights of the dragged point (e.g., d.nodes)
+ *  heights: An array of all heights of the dragged bar (e.g., d.nodes)
  * */
 Barchart.prototype.snapToView = function (id, heights){
    var current =  heights[this.currentView][0];

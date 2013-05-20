@@ -10,12 +10,12 @@ heatmap.init();
     heatmap.clearHintPath();
 };*/
 //TODO:Define click function for each hint path label
-/**barchart.clickHintLabelFunction = function (d, i){
+heatmap.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
-    barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
-    barchart.changeView(i);
+    heatmap.animateColours(heatmap.draggedCell,heatmap.currentView,i);
+    heatmap.changeView(i);
     slider.updateSlider(i);
-};*/
+};
 
 heatmap.render(data,xLabels,yLabels);
 //Define the function to respond to the dragging behaviour of the cells
@@ -23,22 +23,16 @@ heatmap.dragEvent = d3.behavior.drag()
                    .origin(function(d){ return {x:d.x,y:d.y};})
                    .on("dragstart", function(d){
                       heatmap.clearHintPath();
-                       heatmap.selected = d.id;
+                       heatmap.draggedCell = d.id;
                        heatmap.showHintPath(d.id,d.values,d.x,d.y);
-                       heatmap.previousMouseY = d3.event.y;
 
                    })
                   .on("drag", function(d){
-                      if (heatmap.selected != -1){
-                            //heatmap.updateDraggedCell(heatmap.selected,d3.event.y);
-                           //console.log("move mouse");
-                        }
+                        heatmap.updateDraggedCell(d.id,d3.event.y);
                         slider.animateTick(heatmap.interpValue,heatmap.currentView,heatmap.nextView);
                   })
                   .on("dragend",function (d){
-
                        //heatmap.snapToView();
-                       //heatmap.selected = -1;
                        heatmap.previousMouseY = null;
                   });
 
@@ -53,12 +47,13 @@ slider.render();
 slider.dragEvent = d3.behavior.drag()
 					  .on("dragstart", function(){ heatmap.clearHintPath();})
                       .on("drag", function(){                               				  
-							slider.updateDraggedSlider(d3.event.x);                            	
-						    //barchart.updateBars(slider.interpValue,slider.currentTick,slider.nextTick);
+							slider.updateDraggedSlider(d3.event.x);
+                            heatmap.interpolateColours(slider.currentTick,slider.nextTick,slider.interpValue);
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick();
-                          //barchart.changeView(slider.currentTick);
+                          heatmap.changeView(slider.currentTick);
+                          heatmap.redrawView(slider.currentTick,-1);
 					  });
 //Apply the dragging function to the movable tick
 slider.widget.select("#slidingTick").call(slider.dragEvent);

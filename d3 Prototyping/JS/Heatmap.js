@@ -23,10 +23,10 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.nextView = 1;
    this.lastView = hLabels.length-1;
    this.viewChange = 1; //Decrement or increment the currentview
-   this.previousMouseY=null; //To track the old mouse positions
+   this.mouseY=null; //To track the mouse position
    this.interpValue = 0; //Value to track the progress of colour interpolation when switching between views
    this.pixelTolerance = 2; //Number of pixels to move before an interpolation in colour occurs (slow down the colour switching)
-   this.selected = -1; //Variable to track whether or not a day is selected
+   this.draggedCell = -1; //Keeps track of the id of the dragged cell
 
    //Display properties
    this.displayData=[];   
@@ -36,7 +36,8 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.ySpacing = 20; //Spacing for the y of hint path
 
    //Declare some interaction event functions
-   this.dragEvent = null;
+   this.dragEvent = {};
+   this.clickHintLabelFunction = {};
    //TODO:What is this for?
    this.generateHintY = d3.scale.quantize().range([1,2,3,4, 5]);
 }
@@ -167,87 +168,93 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
             .attr("class","axisHorizontal")
             .style("text-anchor", "end");
 }
- //Updates the colour of the dragged cell by interpolation
+/** Compares the vertical distance of the mouse with the two bounding views (using the
+ *  y-position along the hint path).  From this comparison, the views are resolved and
+ *  (if needed), the heatmap is recoloured based on the dragging distance (how close the
+ *  user is to one of the bounding views)
+ *  id: The id of the dragged cell
+ *  mouseY: The y-coordinate of the mouse, received from the drag event
+ * */
 Heatmap.prototype.updateDraggedCell = function(id, mouseY){
-  var ref = this;
-  var yDiff = Math.abs(mouseY - ref.previousMouseY); 
-  /**if (yDiff>=ref.pixelTolerance && yDiff>0 && ref.interpValue < 0.9){
-     ref.interpValue += 0.1;	 
-  }else if (ref.interpValue>=0.9){
-     ref.interpValue = 1;
-  }*/
-  if (yDiff<=ref.pixelTolerance && yDiff>0 && ref.interpValue <= 0.9){
-     ref.interpValue += 0.1;	 
-  }else {
-     ref.interpValue = 1;
-  }
-  var direction = ref.previousMouseY - mouseY;
-
-  this.svg.select("#cell"+id).each(function (d){
-       //Get the y coordinate of the cell and calculate the middle of it      	   
-	  var middleY = d.y+ref.cellSize/2;	 	   
-	  if (direction>0 && ref.currentView !=0){ //Make sure not at first view 
-	         ref.viewChange = -1;			
-             if (ref.interpValue < 1){ //Not yet reached the next view
-			      ref.interpolateColours(-1);
-             }else{			 
-				 ref.currentView--;
-                 ref.interpValue = 0;				 
-				 ref.updateView();	
-             }			 
-         	        		 
-	  }else if (ref.currentView < ref.allData.length){	 //Make sure not at last view 
-             ref.viewChange = 1;	  
-		     if (ref.interpValue < 1){
-			     ref.interpolateColours(1);
-			 }else{
-			    ref.currentView++;	
-                ref.interpValue = 0;				
-			    ref.updateView(); 
-			 }		        		 
-	  }    
-	}); 
-   ref.previousMouseY = mouseY;
-   
+    var ref = this;
+    this.mouseY = mouseY;
+    this.svg.select("#cell"+id).each(function (d){
+       var currentY = d.values[ref.currentView][3];
+       var nextY = d.values[ref.nextView][3];
+       var bounds = ref.checkBounds(currentY,nextY,mouseY);
+       if (ref.currentView ==0){ //First view
+           if (bounds==currentY){ //Exceeding the first view, out of bounds
+              return;
+           }else if (bounds==nextY){ //Passed the next view, update the variables
+               ref.currentView = ref.nextView;
+               ref.nextView++;
+           }else{  //Otherwise, somewhere between current and next
+               ref.interpolateColours(ref.currentView, ref.nextView,bounds);
+           }
+       }else if (ref.nextView ==  ref.lastView){ //At the last view
+           if (bounds == currentY){//Passing the current view, update the variables
+               ref.nextView = ref.currentView;
+               ref.currentView++;
+           }else if (bounds == nextY){ //Exceeding the last view, going out of bounds
+               return;
+           }else{ //Somewhere between next and current
+               ref.interpolateColours(ref.currentView, ref.nextView,bounds);
+           }
+       }else{ //At a view somewhere between current and next
+           if(bounds == currentY){ //Passing current view, update variables
+               ref.nextView = ref.currentView;
+               ref.currentView++;
+           }else if (bounds == nextY){
+               ref.currentView = ref.nextView;
+               ref.nextView++;
+           }else{ //Mouse is in bounds
+               ref.interpolateColours(ref.currentView, ref.nextView,bounds);
+           }
+       }
+    });
 }
-//Updates the colour of the rest of the cells based on the dragged cell
-//Updates the hint path of the dragged cell
-Heatmap.prototype.updateView = function(){
-  var lineGeneratorUpdate = d3.svg.line()
-					.x(function(d,i) { return ref.findHintX(i,ref.currentView); })
-					.y(function(d) { return d[2]; })
-					.interpolate("linear");  
-  var ref = this;
-  //Re-colour all other cells
+/** Checks if the mouse is in bounds defined by y1 and y2
+ *  y1,y2: the bounds
+ *  mouseY: the mouse position
+ *  @return start,end: boundary values are returned if the given
+ *                     mouse position is equal to or has crossed it
+ *          distanceRatio: the percentage the mouse has travelled from
+ *                         y1 to y2
+ * */
+Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
+    //Resolve the boundaries
+    var start,end;
+    if (y1>y2){
+        end = y1;
+        start =y2;
+    }else{
+        start = y1;
+        end = y2;
+    }
+   // console.log("my "+mouseY+"start "+start+" end "+end);
+    //Check if the mouse is between start and end values
+    if (mouseY <= start) return start;
+    else if (mouseY >=end) return end;
+
+    //Find the amount travelled from current to next view (remember: y1 is current and y2 is next)
+    var distanceTravelled = Math.abs(mouseY-y1);
+    var totalDistance = Math.abs(y2 - y1);
+    var distanceRatio = distanceTravelled/totalDistance;
+    this.interpValue = distanceRatio;
+    return distanceRatio;
+}
+
+/**Updates the colour of the cells by interpolating the colour between views
+ * current, next: the views to interpolate between
+ * interpAmount: the amount to interpolate by
+ */
+Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
+  //Re-colour all cells
   this.svg.selectAll(".cell")
- // .transition().duration(400)
-  .attr("fill", function (d){      
-      return d.colours[ref.currentView];  
+  .attr("fill", function (d){
+      var interpolator = d3.interpolateRgb(d.values[current][0],d.values[next][0]);
+      return interpolator(interpAmount);
   });
-  //Re-position the hint path indicator to show current view
-  /**this.svg.select("#hintIndicator")
-             .attr("y",(ref.currentView*ref.cellSize/2));*/
-  this.svg.select("#hintPath").selectAll("text").attr("x",function (d,i) {return ref.findHintX(i,ref.currentView);});
-  //Render the hint path line									    
-    this.svg.select("#hintPath").selectAll("path").attr("d", function(d){
-								         return lineGeneratorUpdate(ref.hintData); 
-								  });
-
-}
-//Updates the colour of the rest of the cells interpolating between views
-//view: -1 if the view is transitioning backwards
-//           1 if the view is transitioning forwards
-Heatmap.prototype.interpolateColours = function(view){
-  var ref = this; 
-  var nextView = view + ref.currentView;
-  //Re-colour all other cells
-  this.svg.selectAll(".cell")
-  //.transition().duration(400)
-  .attr("fill", function (d){    
-      var interpolator = d3.interpolate(d.colours[ref.currentView],d.colours[nextView]);  
-      return interpolator(ref.interpValue);  
-  }); 
-    var travelAmount = Math.abs(nextView*ref.cellSize/2 - ref.currentView*ref.cellSize/2)*ref.interpValue;
    //Re-position the hint path indicator to show transition to next view
   /** this.svg.select("#hintIndicator")
              .attr("y",ref.currentView*ref.cellSize/2+travelAmount);*/
@@ -273,29 +280,122 @@ Heatmap.prototype.interpolateColours = function(view){
   
 			 
 }
-//Snaps to a view based on the direction of the mouse and the interpolation value (which colour is closer)
-Heatmap.prototype.snapToView = function(){
-  var ref = this;
-  if (ref.interpValue > 0.5){ //Only update the view if the interpolation is over 50% to the next colour
-      ref.currentView = ref.currentView+ref.viewChange;
-  }
-  //Update the view
-  ref.interpValue = 0;
-  ref.updateView();  
+/** Animates the colours of the cells by interpolation within the given view boundaries
+ *  start,end: the bounding views
+ *  id: of the most recently dragged cell
+ * */
+Heatmap.prototype.animateColours = function (id,start,end){
+    var ref = this;
+    //Determine the travel direction (e.g., forward or backward in time)
+    var direction = 1;
+    if (start>end) direction=-1;
+
+    //Define some counter variables to keep track of the views passed during the transition
+    var totalViews = this.lastView+1;
+    var viewCounter = -1; //Identifies when a new view is reached
+    var animateView = start; //Indicates when to switch the views (after all points are finished transitioning)
+
+    //Apply multiple transitions to each display point by chaining them
+    this.svg.selectAll(".cell").each(animate());
+
+    //Recursively invoke this function to chain transitions, a new transition is added once
+    //the current one is finished
+    function animate() {
+        viewCounter++;
+        if (viewCounter==totalViews) {
+            animateView = animateView + direction;
+            viewCounter = 0;
+        }
+        if (direction == 1 && animateView>=end) return;
+        if (direction ==-1 && animateView<=end) return;
+        return function(d) {
+            //Animate the cell's colour
+            d3.select(this).transition(400).ease("linear")
+                .attr("fill",d.values[animateView][0])
+                .each("end", animate());
+            //TODO: animate hint path If the cell's hint path is visible, animate it
+            /**if (d.id == id){
+                //Re-draw the hint path
+                d3.select("#path").attr("d", function(d,i){
+                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
+                });
+                //Re-draw the hint path labels
+                d3.select("#hintPath").selectAll(".hintLabels")
+                    .attr("transform",function (d,i) {
+                        //Don't rotate the label resting on top of the bar
+                        if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
+                        else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
+                    });
+                //Re-draw interaction paths (if any)
+                if (ref.interactionPaths.length>0){
+                    d3.select("#hintPath").selectAll(".interactionPath")
+                        .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
+                            return {x:ref.findHintX(d[0],d[2],animateView),y:d[1]};
+                        }));});
+                }
+            }*/
+        };
+    }
 }
-//Draws a hint path for the selected day tile
-//id: The ID of the dragged tile
-// colours: All colour states of the dragged cell
-// x: the current x position of the cell
-// y: the current y position of the cell
-//Tutorial on svg line gradients: http://tutorials.jenkov.com/svg/svg-gradients.html
+ /** Snaps to the nearest view once the dragging on a cell stops
+ *  Nearest view is the closest point on the hint path (either current or next) to the
+ *  most recent y-position of the mouse. View tracking variables are
+ *  updated according to which view is "snapped" to.
+ *  id: The id of the dragged cell
+ *  points: An array of all points along the dragged cell's hint path (e.g., d.values)
+ * */
+Heatmap.prototype.snapToView = function (id, points){
+    var current =  points[this.currentView][3];
+    var next = 	points[this.nextView][3];
+    var currentDist = Math.abs(current - this.mouseY);
+    var nextDist = Math.abs(next - this.mouseY);
+    //Ensure the nextView wasn't the last one to avoid the index going out of bounds
+    if (currentDist > nextDist && this.nextView != this.lastView){
+        this.currentView = this.nextView;
+        this.nextView++;
+    }
+    if (this.nextView == this.lastView)  this.redrawView(this.currentView+1,id);
+    else this.redrawView(this.currentView,id);
+}
+/** Updates the view tracking variables when the view is being changed by an external
+ * visualization (e.g., slider), then redraw the view at the new view.
+ * */
+Heatmap.prototype.changeView = function (newView){
+    if (newView ==0){
+        this.currentView = newView
+        this.nextView = newView+1;
+    }else if (newView == this.lastView){
+        this.nextView = newView;
+        this.currentView = newView -1;
+    }else {
+        this.currentView = newView;
+        this.nextView = newView + 1;
+    }
+}
+/**Redraws the heatmap at a specified view by re-colouring all cells.
+ * Also updates the hint path if id is not -1
+ * id: of the dragged cell */
+Heatmap.prototype.redrawView = function(view,id){
+    this.svg.selectAll(".cell")
+        .attr("fill", function (d){return d.values[view][0];});
+    //TODO: redrawing the hint path
+}
+/** Draws a hint path for the dragged cell on the heatmap
+ * id: of the dragged cell
+ * pathData: information for drawing the path (x,y coords of the line,
+ * colouring information for the gradient - This would be d.values)
+ * x,y: coordinates of the dragged cell
+ * Good tutorial on svg line gradients:
+ * http://tutorials.jenkov.com/svg/svg-gradients.html
+ * */
 Heatmap.prototype.showHintPath = function(id,pathData,x,y){
-//TODO:y should be centered on the cell as well
  var ref = this;
+ //Function for drawing the hint path line
  var lineGenerator = d3.svg.line()
 					.x(function(d) { return d[2]; })
 					.y(function(d) { return d[3]; })
 					.interpolate("linear");   
+
 //Append a linear gradient tag which defines the gradient along the hint path
 this.svg.append("linearGradient")
         .attr("id", "line-gradient")
@@ -333,7 +433,9 @@ this.svg.select("#hintPath").selectAll("text")
 		   .attr("y",function (d){return d[3]-5;})
 		   .text(function (d,i){ return ref.labels[i];})
 		   .style("text-anchor", "middle")
-		   .attr("transform", "translate(" + x + "," + y + ")");
+		   .attr("transform", "translate(" + x + "," + y + ")")
+           .style("cursor", "pointer")
+           .on("click",this.clickHintLabelFunction);
 
 //Append a clear cell with a black border to show which cell is currently selected and dragged
 this.svg.select("#hintPath").append("rect")
@@ -355,4 +457,8 @@ Heatmap.prototype.findHintX = function (index,view){
 }
 
 
+//Todo:ambiguous interaction along hint path (same colour, interaction path?)
+//Todo: non-existent data values in cell (white?)
+//TODO:y should be centered on the cell as well (this means translating hint path in the y when dragging)
 
+//TODO: draw colour scale legend next to heatmap?
