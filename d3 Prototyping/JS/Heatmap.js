@@ -38,8 +38,6 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    //Declare some interaction event functions
    this.dragEvent = {};
    this.clickHintLabelFunction = {};
-   //TODO:What is this for?
-   this.generateHintY = d3.scale.quantize().range([1,2,3,4, 5]);
 }
 /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -50,17 +48,12 @@ Heatmap.prototype.init = function() {
       .attr("id","mainSvg")
       .append("g")
       .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");
-   //TODO: these are almost identical, can't they be re-used?
-   this.svg.append("svg:defs") //The main hint path
+
+   this.svg.append("svg:defs")
         .append("svg:filter")
         .attr("id", "blur")
         .append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
-   /**this.svg.append("svg:defs") //A white background behind the main hint path
-        .append("svg:filter")
-        .attr("id", "blur2")
-        .append("svg:feGaussianBlur")
-        .attr("stdDeviation", 3);*/
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -85,29 +78,31 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
     var colours = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
     var generateColour = d3.scale.quantize().domain([minScore,maxScore]).range(colours);
     //Find the hint y value (of the colour along the colour scale)
-    var calculateHintY = d3.scale.quantize().domain([minScore,maxScore])
+    var hintYOffset = d3.scale.quantize().domain([minScore,maxScore])
         .range(colours.map(function(d,i){return i;}));
 
     //Draw the cells for each entry in the heatmap
     //The allValues array contains information for drawing the cells and drawing the hint path
-    //Format: allValues[j] = [[colour,originalScore,hintX,hintY]...for each view on the hint path]
+    //Format: allValues[j] = [[colour,originalScore,hintX,hintY,yOffset,gradientOffset]...
+    // for each view on the hint path]
     this.svg.selectAll(".cell")
         .data(ref.displayData.map(function (d,i) {
                 //Convert scores into colours
                 var allValues = [];
                 var xCoord = d.row*ref.cellSize;
                 var yCoord = d.column*ref.cellSize;
-                var hintX,hintY,hintLength,j;
+                var hintX,hintY,hintLength, j,yOffset;
                 var prevHintX = 0,prevHintY = 0, cumulativeLengthTotal=0;
                 var hintLengths = [];
                 var hintLengthTotal = 0;
                 for(j=0;j< d.values.length;j++){
+                    yOffset = hintYOffset(d.values[j]);
                     hintX = j*ref.xSpacing+(ref.cellSize/2);
-                    hintY = ref.ySpacing*calculateHintY(d.values[j])+(ref.cellSize/2);
+                    hintY = ref.ySpacing*yOffset+(ref.cellSize/2);
                     hintLength = ref.calculateDistance(prevHintX,prevHintY,hintX,hintY);
                     hintLengthTotal+= hintLength;
                     hintLengths.push(hintLength+cumulativeLengthTotal);
-                    allValues[j] = [generateColour(d.values[j]),d.values[j],hintX,hintY];
+                    allValues[j] = [generateColour(d.values[j]),d.values[j],hintX,hintY,yOffset];
                     prevHintX = hintX;
                     prevHintY = hintY;
                     cumulativeLengthTotal+=hintLength;
@@ -190,6 +185,7 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
                ref.nextView++;
            }else{  //Otherwise, somewhere between current and next
                ref.interpolateColours(ref.currentView, ref.nextView,bounds);
+               ref.animateHintPath(ref.currentView,ref.nextView,bounds);
            }
        }else if (ref.nextView ==  ref.lastView){ //At the last view
            if (bounds == currentY){//Passing the current view, update the variables
@@ -199,6 +195,7 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
                return;
            }else{ //Somewhere between next and current
                ref.interpolateColours(ref.currentView, ref.nextView,bounds);
+               ref.animateHintPath(ref.currentView,ref.nextView,bounds);
            }
        }else{ //At a view somewhere between current and next
            if(bounds == currentY){ //Passing current view, update variables
@@ -209,6 +206,7 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
                ref.nextView++;
            }else{ //Mouse is in bounds
                ref.interpolateColours(ref.currentView, ref.nextView,bounds);
+               ref.animateHintPath(ref.currentView,ref.nextView,bounds);
            }
        }
     });
@@ -243,7 +241,23 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
     this.interpValue = distanceRatio;
     return distanceRatio;
 }
-
+/** Translates the hint path according to the amount dragged from current to next view
+ * current,next: the bounding views of this animation
+ * interpAmount: amount travelled between the views
+ * */
+Heatmap.prototype.animateHintPath = function (current,next,interpAmount){
+  var ref = this;
+  var xTranslate = 0;
+  //TODO: animation in the x and y
+  this.svg.select("#hintPath").selectAll("text").attr("x",function (d,i) {
+         var currentX = ref.findHintX(i,current);
+         var nextX = ref.findHintX(i,next);
+         var addedDistance = Math.abs(nextX - currentX)*interpAmount;
+         xTranslate= currentX-addedDistance;
+         return xTranslate;
+     });
+  this.svg.select("#hintPath").selectAll("path").attr("transform", "translate("+xTranslate+")");
+}
 /**Updates the colour of the cells by interpolating the colour between views
  * current, next: the views to interpolate between
  * interpAmount: the amount to interpolate by
@@ -255,30 +269,6 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
       var interpolator = d3.interpolateRgb(d.values[current][0],d.values[next][0]);
       return interpolator(interpAmount);
   });
-   //Re-position the hint path indicator to show transition to next view
-  /** this.svg.select("#hintIndicator")
-             .attr("y",ref.currentView*ref.cellSize/2+travelAmount);*/
-/**this.svg.select("#hintPath").selectAll("text").attr("x",function (d,i) {
-	         var currentX = ref.findHintX(i,ref.currentView);
-			 var nextX = ref.findHintX(i,nextView);
-			 var addedDistance = Math.abs(nextX - currentX)*travelAmount;
-	        return currentX-addedDistance;
-			});
- var animateLineGenerator = d3.svg.line()
-								.x(function(d,i) { 
-									  var currentX = ref.findHintX(i,ref.currentView);
-									  var nextX = ref.findHintX(i,nextView);
-									  var addedDistance = Math.abs(nextX - currentX)*travelAmount;								
-									return currentX - addedDistance;											       
-								  })
-								.y(function(d) { return d[2]; })
-								.interpolate("linear"); 
-     //Render the hint path line									    
-    this.svg.select("#hintPath").selectAll("path").attr("d", function(d){
-								         return animateLineGenerator(ref.hintData); 
-								  });*/
-  
-			 
 }
 /** Animates the colours of the cells by interpolation within the given view boundaries
  *  start,end: the bounding views
@@ -404,7 +394,7 @@ this.svg.append("linearGradient")
         .attr("x2", "100%").attr("y2", "0%")
         .selectAll("stop").data(pathData)
         .enter().append("stop")
-        .attr("offset", function(d) { return d[4]+"%"; })
+        .attr("offset", function(d) { return d[5]+"%"; })
         .attr("stop-color", function(d) { return d[0]; })
         .attr("stop-opacity",1);
 
@@ -423,14 +413,14 @@ this.svg.select("#hintPath").append("svg:path")
           .style("stroke-width", 4)
           .style("stroke", "url(#line-gradient)")
           .style("fill","none")
-          .attr("transform", "translate(" + x + "," + y +")")
+          .attr("transform", "translate(" + x + "," + y + ")")
           .attr("filter", "url(#blur)");
 	
 //Draw the hint path labels								  
 this.svg.select("#hintPath").selectAll("text")
            .data(pathData).enter().append("text")
 		   .attr("x",function(d){return d[2];})
-		   .attr("y",function (d){return d[3]-5;})
+		   .attr("y",function (d){return d[3];})
 		   .text(function (d,i){ return ref.labels[i];})
 		   .style("text-anchor", "middle")
 		   .attr("transform", "translate(" + x + "," + y + ")")
@@ -444,18 +434,23 @@ this.svg.select("#hintPath").append("rect")
 		.attr("stroke-width",2).attr("fill","none").attr("stroke","#000");
 }
 /** Clears the hint path for a dragged cell by removing all of
- * it's svg components */
+ * it's svg components
+ * */
 Heatmap.prototype.clearHintPath = function(){
    this.svg.select("#hintPath").selectAll("rect").remove();
    this.svg.select("#hintPath").selectAll("path").remove();
    this.svg.select("#line-gradient").remove();
    this.svg.select("#hintPath").selectAll("text").remove();
 }
-//Calculates the x-values for the moving hint path x-coordinates
+/** Finds the new (x,y) coordinates of a point on the hint path
+ *  for when the hint path is translating
+ *  index: index of the hint point (along the hint path)
+ *  view: the current view of the heatmap
+ * */
 Heatmap.prototype.findHintX = function (index,view){
+    //TODO: is this correct?
     return (index*this.xSpacing)-view*this.xSpacing;
 }
-
 
 //Todo:ambiguous interaction along hint path (same colour, interaction path?)
 //Todo: non-existent data values in cell (white?)

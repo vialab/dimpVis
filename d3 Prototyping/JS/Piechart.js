@@ -484,9 +484,15 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
     var ref = this;
     this.dragStartAngle = start; //Important: save the start angle
     var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}));
+    var hintPathArcString = ref.createArcString(hintArcInfo,hDirections);
+    //TODO: not sure if this is needed? Render a white background under the main hint path
+    /**this.svg.select("#hintPath").append("path")
+        .attr("d", hintPathArcString)
+        .style("fill","none").style("stroke","white").style("stroke-width",2)
+        .attr("class","hintArcs").attr("filter", "url(#blur)");*/
     //Render the hint path
     this.svg.select("#hintPath").append("path")
-            .attr("d", ref.createArcString(hintArcInfo,hDirections))
+            .attr("d", hintPathArcString)
             .style("fill","none").style("stroke",ref.hintColour).style("stroke-width",1)
             .attr("class","hintArcs").attr("filter", "url(#blur)");
 	//Render the hint labels
@@ -598,6 +604,7 @@ Piechart.prototype.animateSegments = function( startView, endView) {
             d3.select(this).transition(400).ease("linear")
                 .attr("d", d.nodes[animateView][0])
                 .each("end", animate());
+            //TODO:animate hint path
         };
     }
 }
