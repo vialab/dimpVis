@@ -31,8 +31,8 @@ barchart.dragEvent = d3.behavior.drag()
         barchart.showHintPath(d.id, d.nodes, d.xPos);
     })
     .on("drag", function(d){
-        barchart.updateDraggedBar(d.id,d3.event.y);
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
+        barchart.updateDraggedBar(d.id,d3.event.y);
     })
     .on("dragend",function (d){
         barchart.snapToView(d.id,d.nodes);

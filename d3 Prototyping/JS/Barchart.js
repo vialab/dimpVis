@@ -219,9 +219,9 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     this.svg.selectAll(".axis line").style("stroke",this.axisColour);
     this.svg.selectAll(".axis text").style("fill",this.axisColour);
 }
-/** Re-draws the dragged bar by altering it's height according to the dragging amount
+/** Re-draws the dragged bar by altering it's height according to the dragging amount.
  *  As the bar is dragged, the view variables are updated and the rest
- *  of the bars are animated
+ *  of the bars are animated by calling handleDraggedBar()
  *  id: The id of the dragged bar, for selecting by id
  *  mouseY: The y-coordinate of the mouse, received from the drag event
  *
@@ -233,73 +233,128 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
     this.mouseY = mouseY;
     //Re-draw the bars according to the dragging amount
     this.svg.select("#displayBars"+id).each(function (d) {
-         var newValues = []; //Saves the new height and y-position:[y,h]
          var currentY =  d.nodes[ref.currentView][0];
          var nextY = d.nodes[ref.nextView][0];
-        //TODO: program the interaction with revisiting bars
-        //TODO:Potential fixes for interacting with the stationary bars:
-        //TODO: if current view is ambiguous but the next one isn't then it's the end of a stationary sequence
-        //TODO: if the current view isn't ambiguous but the next is the it's at the beginning of a stationary sequence
-         if (ref.ambiguousBars[ref.currentView][0]==1){ //Stationary bar
-             currentY = ref.ambiguousBars[ref.currentView][1];
-         }else if (ref.ambiguousBars[ref.nextView][0]==1){//Stationary bar
-             nextY = ref.ambiguousBars[ref.nextView][1];
-         }
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
-         var bounds = ref.checkBounds(currentY,nextY,mouseY);
-        //To ensure the original Y position is returned, not the adjusted one (in the ambiguous case)
-         var currentYOriginal =  d.nodes[ref.currentView][0];
-         var nextYOriginal = d.nodes[ref.nextView][0];
-
-         if (ref.currentView ==0){ //At the first bar
-             if (bounds == currentY){ //Passed lowest bar, out of bounds
-                 newValues = [currentYOriginal,currentHeight];
-             }else if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
-                 ref.currentView = ref.nextView;
-                 ref.nextView++;
-                 newValues = [nextYOriginal,nextHeight];
-             }else{
-                 //Otherwise, mouse dragging is in bounds
-                 ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-                 ref.animateHintPath(bounds);
-                 if (ref.ambiguousBars[ref.currentView][0]==1) newValues = [currentYOriginal,currentHeight];
-                 else newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
-             }
-         } else if (ref.nextView == ref.lastView){ //At the last bar
-             if (bounds == nextY){ //Passed highest, out of bounds
-                 newValues=[nextYOriginal,nextHeight];
-             }else if (bounds == currentY){ //Passed current, update view tracker variables
-                 ref.nextView = ref.currentView;
-                 ref.currentView--;
-                 newValues = [currentYOriginal,currentHeight];
-             }else{
-                 //Otherwise, mouse dragging is in bounds
-                 ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-                 ref.animateHintPath(bounds);
-                 if (ref.ambiguousBars[ref.currentView][0]==1) newValues = [currentYOriginal,currentHeight];
-                 else newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
-             }
-         }else { //At a bar somewhere in between current and next view
-             if (bounds == currentY){ //Passed current, update the variables
-                 ref.nextView = ref.currentView;
-                 ref.currentView--;
-                 newValues = [currentYOriginal,currentHeight];
-             }else if (bounds ==nextY){ //Passed next, update the variables
-                 ref.currentView = ref.nextView;
-                 ref.nextView++;
-                 newValues = [nextYOriginal,nextHeight];
-             }else{
-                 //Otherwise, mouse dragging is in bounds
-                 ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-                 ref.animateHintPath(bounds);
-                 if (ref.ambiguousBars[ref.currentView][0]==1) newValues = [currentYOriginal,currentHeight];
-                 else newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
-
-             }
+         var newValues = [];
+        //Checking for stationary bar sequences
+         if (ref.ambiguousBars[ref.currentView][0]==1 && ref.ambiguousBars[ref.nextView][0]==1){ //In middle of sequence
+             ref.handleDraggedBar_stationary(ref.ambiguousBars[ref.currentView][1],ref.ambiguousBars[ref.nextView][1],mouseY,id);
+             newValues = [currentY,currentHeight];
          }
-        ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
+         //TODO: are these cases even needed?
+         /**else if (ref.ambiguousBars[ref.nextView][0]==1){//At the beginning of sequence
+
+         }else if (ref.ambiguousBars[ref.currentView][0]==1){ //At the end of sequence
+
+         }*/
+         else{
+             newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id); //Saves the new height and y-position:[y,h]
+         }
+         ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
      });
+}
+/** Resolves a dragging interaction by comparing the current mouse position with the bounding
+ *  y positions of current and next views.  Ensures the mouse dragged does not cause the dragged
+ *  bar to be drawn out of bounds and keeps track of time progression by updating the view variables
+ *  when a view is switched.
+ *  currentY, nextY: The y-positions of the bar in current and next views
+ *  currentHeight, nextHeight: the heights of the bar in current and next views
+ *  mouseY: the mouse's vertical dragging amount
+ *  id: of the dragged bar
+ *  @return: [newY,newHeight], values used to update the drawing of the dragged bar
+ * */
+Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nextHeight,mouseY,id){
+    var ref = this;
+    var newValues = [];
+    var bounds = ref.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
+    if (ref.currentView ==0){ //At the first bar
+        if (bounds == currentY){ //Passed lowest bar, out of bounds
+            newValues = [currentY,currentHeight];
+        }else if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
+            ref.currentView = ref.nextView;
+            ref.nextView++;
+            newValues = [nextY,nextHeight];
+        }else{
+            //Otherwise, mouse dragging is in bounds
+            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+            ref.animateHintPath(bounds);
+            newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+        }
+    } else if (ref.nextView == ref.lastView){ //At the last bar
+        if (bounds == nextY){ //Passed highest, out of bounds
+            newValues=[nextY,nextHeight];
+        }else if (bounds == currentY){ //Passed current, update view tracker variables
+            ref.nextView = ref.currentView;
+            ref.currentView--;
+            newValues = [currentY,currentHeight];
+        }else{
+            //Otherwise, mouse dragging is in bounds
+            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+            ref.animateHintPath(bounds);
+            newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+        }
+    }else { //At a bar somewhere in between current and next view
+        if (bounds == currentY){ //Passed current, update the variables
+            ref.nextView = ref.currentView;
+            ref.currentView--;
+            newValues = [currentY,currentHeight];
+        }else if (bounds ==nextY){ //Passed next, update the variables
+            ref.currentView = ref.nextView;
+            ref.nextView++;
+            newValues = [nextY,nextHeight];
+        }else{
+            //Otherwise, mouse dragging is in bounds
+            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+            ref.animateHintPath(bounds);
+            newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+        }
+    }
+    return newValues;
+}
+/** Resolves a dragging interaction in a similar method as handleDraggedBar, except
+ *  this function is only called when in the middle of a stationary sequence of bars.
+ *  currentY, nextY: The y-positions of the bar  along the hint path in current and next views
+ *  originalY: The original y-positions of the bar in current and next views (which are equal)
+ *  height: the height of the bar in current and next views (which are equal)
+ *  mouseY: the mouse's vertical dragging amount
+ *  id: of the dragged bar
+ *  Note: no return value, because the height and y position of the dragged bar does not change, only
+ *  need to update the view variables
+ * */
+Barchart.prototype.handleDraggedBar_stationary = function (currentY,nextY,mouseY,id){
+    var ref = this;
+    var bounds = ref.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
+    if (ref.currentView ==0){ //At the first bar
+        if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
+            ref.currentView = ref.nextView;
+            ref.nextView++;
+        }else if (bounds!= currentY){
+            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+            ref.animateHintPath(bounds);
+        }
+    } else if (ref.nextView == ref.lastView){ //At the last bar
+      if (bounds == currentY){ //Passed current, update view tracker variables
+            ref.nextView = ref.currentView;
+            ref.currentView--;
+        }else if (bounds != nextY){
+            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+            ref.animateHintPath(bounds);
+        }
+    }else { //At a bar somewhere in between current and next view
+        if (bounds == currentY){ //Passed current, update the variables
+            ref.nextView = ref.currentView;
+            ref.currentView--;
+        }else if (bounds ==nextY){ //Passed next, update the variables
+            ref.currentView = ref.nextView;
+            ref.nextView++;
+        }else{
+            //Otherwise, mouse dragging is in bounds
+            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
+            ref.animateHintPath(bounds);
+        }
+    }
 }
 /**Computes the new height of a bar based on a new y-position
  * oldHeight: the original height of the bar
@@ -351,27 +406,37 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 Barchart.prototype.animateHintPath = function (interpAmount){
     var ref = this;
     //Re-draw the hint path
-    this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
+   this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
         var currentX = ref.findHintX(d[0],i,ref.currentView);
         var nextX = ref.findHintX(d[0],i,ref.nextView);
         var interpolateX = d3.interpolate(currentX, nextX);
         return {x:interpolateX(interpAmount),y:d[1]};
-    })))
+    })));
+
 	//Re-draw the hint path labels
    this.svg.select("#hintPath").selectAll(".hintLabels")
-                    .attr("transform",function (d,i) {
-                        var currentX = ref.findHintX(d.x,i,ref.currentView);
-                        var nextX = ref.findHintX(d.x,i,ref.nextView);
-                        var interpolateX = d3.interpolate(currentX,nextX);
-                        return "translate("+interpolateX(interpAmount)+","+ d.y+")";
-                    });
+            .attr("transform",function (d,i) {
+                var currentX = ref.findHintX(d.x,i,ref.currentView);
+                var nextX = ref.findHintX(d.x,i,ref.nextView);
+                var interpolateX = d3.interpolate(currentX,nextX);
+                return "translate("+interpolateX(interpAmount)+","+ d.y+")";
+            });
+
     //Re-draw the interaction path (if any)
-    if (this.interactionPaths.length >0) this.animateInteractionPath(interpAmount);
+    if (this.interactionPaths.length >0) {
+        this.svg.select("#hintPath").selectAll(".interactionPath")
+            .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
+                var currentX = ref.findHintX(d[0],d[2],ref.currentView);
+                var nextX = ref.findHintX(d[0],d[2],ref.nextView);
+                var interpolateX = d3.interpolate(currentX, nextX);
+                return {x:interpolateX(interpAmount),y:d[1]};
+               }));
+           });
+    }
 }
-/** Animates the interaction path using the same method as the hint path
- *  interpAmount: the amount the dragged bar has travelled between two views
- *  Note: this function is only required if there exists interaction paths (or, stationary bars),
- *  it is called in animateHintPath()
+/** Animates the interaction path when the path is being dragged along (e.g., when user is moving
+ *  across ambiguous regions on the hint path)
+ *  interpAmount: the amount travelled between two views
  * */
 Barchart.prototype.animateInteractionPath = function (interpAmount){
     var ref = this;
@@ -525,6 +590,15 @@ Barchart.prototype.changeView = function (newView){
 Barchart.prototype.findHintX = function (oldX,index,view){
     return (oldX+this.barWidth/2+(index*this.hintPathSpacing))-view*this.hintPathSpacing;
 }
+/** Re-calculates the yvalues for the moving hint path y-coordinates
+ * (for both points comprising the path and labels)
+ * oldY: the original y position
+ * index: the view index
+ * view: the current view
+ * */
+Barchart.prototype.findHintY = function (oldY,index,view){
+    return oldY-view*this.hintPathSpacing;
+}
 /** Snaps to the nearest view once a dragged bar is released
  *  Nearest view is the closest height (either current or next) to the
  *  most recent y-position of the dragged bar. View tracking variables are
@@ -569,27 +643,27 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
             .style("fill","none")
             .style("stroke", this.hintColour);
     }
-
 	//Draw the hint path line
-    this.svg.select("#hintPath").append("svg:path")
-                  .attr("d", ref.hintPathGenerator(ref.pathData.map(function (d,i){
-                        return {x:ref.findHintX(d[0],i,ref.currentView),y:d[1]};
-                    })))
-                  .style("stroke-width", 2)
-                  .style("stroke", this.hintColour)
-                  .style("fill","none")
-                  .attr("filter", "url(#blur)").attr("id","path");
+   this.svg.select("#hintPath")
+       .append("svg:path")
+       .attr("d", this.hintPathGenerator(ref.pathData.map(function (d,i){
+            return {x:ref.findHintX(d[0],i,ref.currentView),y:d[1]};
+       })))
+       .style("stroke-width", 2)
+       .style("stroke", this.hintColour)
+       .style("fill","none")
+       .attr("filter", "url(#blur)").attr("id","path");
 												
 	//Draw the hint labels
    this.svg.select("#hintPath").selectAll("text").data(heights.map(function(d,i){
                    return {x:xPos,y:d[0],label:ref.hintLabels[i]};
-               })).enter()
+                  })).enter()
                 .append("svg:text")
                 .text(function(d) { return d.label; })
                 .attr("transform",function (d,i) {
-                       //Don't rotate the label resting on top of the bar
-                       if (i==ref.currentView) return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
-                       else return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
+                   //Don't rotate the label resting on top of the bar
+                   if (i==ref.currentView) return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
+                   else return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
                  })
                .attr("fill", "#666")
                .attr("class","hintLabels")

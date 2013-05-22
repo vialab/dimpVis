@@ -364,7 +364,8 @@ Heatmap.prototype.changeView = function (newView){
 }
 /**Redraws the heatmap at a specified view by re-colouring all cells.
  * Also updates the hint path if id is not -1
- * id: of the dragged cell */
+ * id: of the dragged cell
+ * */
 Heatmap.prototype.redrawView = function(view,id){
     this.svg.selectAll(".cell")
         .attr("fill", function (d){return d.values[view][0];});
@@ -384,7 +385,13 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  var lineGenerator = d3.svg.line()
 					.x(function(d) { return d[2]; })
 					.y(function(d) { return d[3]; })
-					.interpolate("linear");   
+					.interpolate("linear");
+
+//Append a clear cell with a black border to show which cell is currently selected and dragged
+    this.svg.select("#hintPath").append("rect")
+        .attr("x",x).attr("y",y)
+        .attr("width",this.cellSize).attr("height",this.cellSize)
+        .attr("stroke-width",2).attr("fill","none").attr("stroke","#000");
 
 //Append a linear gradient tag which defines the gradient along the hint path
 this.svg.append("linearGradient")
@@ -426,12 +433,6 @@ this.svg.select("#hintPath").selectAll("text")
 		   .attr("transform", "translate(" + x + "," + y + ")")
            .style("cursor", "pointer")
            .on("click",this.clickHintLabelFunction);
-
-//Append a clear cell with a black border to show which cell is currently selected and dragged
-this.svg.select("#hintPath").append("rect")
-        .attr("x",x).attr("y",y)
-		.attr("width",this.cellSize).attr("height",this.cellSize)
-		.attr("stroke-width",2).attr("fill","none").attr("stroke","#000");
 }
 /** Clears the hint path for a dragged cell by removing all of
  * it's svg components
