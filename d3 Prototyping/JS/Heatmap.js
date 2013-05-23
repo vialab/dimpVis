@@ -190,7 +190,7 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
        }else if (ref.nextView ==  ref.lastView){ //At the last view
            if (bounds == currentY){//Passing the current view, update the variables
                ref.nextView = ref.currentView;
-               ref.currentView++;
+               ref.currentView--;
            }else if (bounds == nextY){ //Exceeding the last view, going out of bounds
                return;
            }else{ //Somewhere between next and current
@@ -200,7 +200,7 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
        }else{ //At a view somewhere between current and next
            if(bounds == currentY){ //Passing current view, update variables
                ref.nextView = ref.currentView;
-               ref.currentView++;
+               ref.currentView--;
            }else if (bounds == nextY){
                ref.currentView = ref.nextView;
                ref.nextView++;

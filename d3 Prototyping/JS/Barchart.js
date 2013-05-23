@@ -279,7 +279,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         }else{
             //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds);
+            ref.animateHintPath(bounds,-1);
             newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
         }
     } else if (ref.nextView == ref.lastView){ //At the last bar
@@ -292,7 +292,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         }else{
             //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds);
+            ref.animateHintPath(bounds,-1);
             newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
         }
     }else { //At a bar somewhere in between current and next view
@@ -307,7 +307,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         }else{
             //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds);
+            ref.animateHintPath(bounds,-1);
             newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
         }
     }
@@ -332,7 +332,7 @@ Barchart.prototype.handleDraggedBar_stationary = function (currentY,nextY,mouseY
             ref.nextView++;
         }else if (bounds!= currentY){
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds);
+            ref.animateHintPath(bounds,0);
         }
     } else if (ref.nextView == ref.lastView){ //At the last bar
       if (bounds == currentY){ //Passed current, update view tracker variables
@@ -340,7 +340,7 @@ Barchart.prototype.handleDraggedBar_stationary = function (currentY,nextY,mouseY
             ref.currentView--;
         }else if (bounds != nextY){
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds);
+            ref.animateHintPath(bounds,0);
         }
     }else { //At a bar somewhere in between current and next view
         if (bounds == currentY){ //Passed current, update the variables
@@ -352,7 +352,7 @@ Barchart.prototype.handleDraggedBar_stationary = function (currentY,nextY,mouseY
         }else{
             //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds);
+            ref.animateHintPath(bounds,0);
         }
     }
 }
@@ -402,8 +402,10 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 /** Animates the hint path by horizontally translating it according to the vertical
  *  dragging amount.
  *  interpAmount: the amount the dragged bar has travelled between two views
+ *  pathId: set to -1 if all interaction paths should be animated with the hint path
+ *               an id of an interaction path which should be animated vertically and horizontally
  * */
-Barchart.prototype.animateHintPath = function (interpAmount){
+Barchart.prototype.animateHintPath = function (interpAmount,pathId){
     var ref = this;
     //Re-draw the hint path
    this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
@@ -422,34 +424,45 @@ Barchart.prototype.animateHintPath = function (interpAmount){
                 return "translate("+interpolateX(interpAmount)+","+ d.y+")";
             });
 
-    //Re-draw the interaction path (if any)
+    //Re-draw the interaction paths (if any) by horizontally translating them
     if (this.interactionPaths.length >0) {
-        this.svg.select("#hintPath").selectAll(".interactionPath")
-            .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                var currentX = ref.findHintX(d[0],d[2],ref.currentView);
-                var nextX = ref.findHintX(d[0],d[2],ref.nextView);
-                var interpolateX = d3.interpolate(currentX, nextX);
-                return {x:interpolateX(interpAmount),y:d[1]};
-               }));
-           });
+            this.svg.select("#hintPath").selectAll(".interactionPath").filter(function (d) {return d.id !=pathId})
+                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
+                    var currentX = ref.findHintX(d[0],d[2],ref.currentView);
+                    var nextX = ref.findHintX(d[0],d[2],ref.nextView);
+                    var interpolateX = d3.interpolate(currentX, nextX);
+                    return {x:interpolateX(interpAmount),y:d[1]};
+                   }));
+               });
+        if (pathId!=-1){ //TODO:Animate the interaction path in both dimensions to coincide with the dragging along it
+            this.svg.select("#hintPath").selectAll(".interactionPath").filter(function (d) {return d.id ==pathId})
+                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
+                    var currentX = ref.findHintX(d[0],d[2],ref.currentView);
+                    var nextX = ref.findHintX(d[0],d[2],ref.nextView);
+                    var interpolateX = d3.interpolate(currentX, nextX);
+                    return {x:interpolateX(interpAmount),y:d[1]};
+                }));
+             });
+        }
     }
 }
-/** Animates the interaction path when the path is being dragged along (e.g., when user is moving
- *  across ambiguous regions on the hint path)
+/** TODO: Vertically animates an interaction path when the path is being dragged along
+ * (e.g., when user is moving across ambiguous regions on the hint path)
  *  interpAmount: the amount travelled between two views
+ *  id: of the interaction path
  * */
-Barchart.prototype.animateInteractionPath = function (interpAmount){
+/**Barchart.prototype.animateInteractionPath = function (interpAmount,id){
     var ref = this;
     //Re-draw the interaction path
     this.svg.select("#hintPath").selectAll(".interactionPath")
         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-            var currentX = ref.findHintX(d[0],d[2],ref.currentView);
-            var nextX = ref.findHintX(d[0],d[2],ref.nextView);
-            var interpolateX = d3.interpolate(currentX, nextX);
-            return {x:interpolateX(interpAmount),y:d[1]};
+            var currentY = d[1];
+            var nextY = d[1];
+            var interpolateX = d3.interpolate(currentY, nextY);
+            return {x:d[0],y:interpolateX(interpAmount)};
           }));
         });
-}
+}*/
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
  * defined at start and end view. The heights of the other bars are then estimated using the

@@ -43,7 +43,6 @@ function Slider(x, y, id,labels,description,colour,spacing) {
  *  will be drawn.
  * */
 Slider.prototype.init = function() {
-   var ref = this;
    this.widget = d3.select(this.id).append("svg")      
       .attr("width", this.width).attr("height", this.height)
       .style("position", "absolute")

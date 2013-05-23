@@ -17,4 +17,4 @@ for (var row =0;row < xLabels.length;row++){
         counter++;
     }
 }
-console.log(data);
+

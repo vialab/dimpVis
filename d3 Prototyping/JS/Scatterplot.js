@@ -117,7 +117,6 @@ Scatterplot.prototype.render = function( data, start, labels) {
 	}
      //Find the max and min values of the points, used to scale the axes and the dataset
      var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
-     var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); })); var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
      var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
 
     //Create the scales by mapping the x,y to the svg size
@@ -300,6 +299,9 @@ Scatterplot.prototype.toggleLabelColour = function (currentView,groupNumber){
         .filter(function (d){return ref.ambiguousPoints[d.id][2]==groupNumber;})
         .attr("fill-opacity",function (d) {return ((d.id==currentView)? 1:0.3);});
 }
+//TODO: for simplicity, might want to have the interaction loop as a circle programatically, but draw a loop which is approximately fitted to
+//TODO: the underlying circle (which is what the user sees)
+//TODO: the other option is to learn how to drag along a spline
 /**Handles a dragging interaction along an interaction loop (really a circular dragging motion)
  * used to advance forward or backward along the hint path in the stationary point case
  * id: of the dragged point
@@ -398,7 +400,7 @@ Scatterplot.prototype.changeView = function( newView) {
  * */
 //TODO:Add tweening to make the transition smoother
 //TODO: Out of bounds for end points, still pretty buggy might have to do with the view tracking
-//TODO: Toggle label colour when stationary or revisting point is reached? only for the currently selected hint path
+//TODO: Toggling label colour not working properly
  Scatterplot.prototype.animatePoints = function( startView, endView) {
 	 var ref = this;
      //Determine the travel direction (e.g., forward or backward in time)
@@ -685,4 +687,4 @@ Scatterplot.prototype.findInArray = function (x,y,array)
     return -1;
 }
 //TODO: non-existent data points, "hole" in hint path?
-//TODO: does the code handle zero values? (point lies right on the axis)
+//TODO: does the code handle zero values? (point goes off the axis)
