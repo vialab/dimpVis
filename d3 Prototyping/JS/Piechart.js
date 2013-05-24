@@ -211,32 +211,25 @@ Piechart.prototype.findHintArcs = function (angles){
     }
     return hintArcDirections;
 }
-
-//Updates the angle of a dragged pie segment
+/** Compares the dragging angle of the mouse with the two bounding views (using the
+ *  endAngles along the hint path).  From this comparison, the views are resolved and
+ *  (if needed), the piechart segments are re-drawn based on the dragging amount
+ *  id: The id of the dragged segment
+ *  mouseX,mouseY: The coordinates of the mouse
+ * */
 Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
      var ref = this;
 	 //console.log(ref.currentView+" "+ref.nextView);
-     this.svg.select("#displayArcs"+id)
-	            .attr("d", function (d) {
-                    // console.log(ref.currentAngles+" "+ref.nextAngles);					
+     this.svg.select("#displayArcs"+id).attr("d", function (d) {
                     d.startAngle = ref.dragStartAngle;                  	                 		
 					var adj = mouseX - ref.cx;
-					var opp = ref.cy - mouseY;	                
-                    var angle = Math.atan2(adj,opp);             					
-                    if (angle < 0){		//Moved to the other side of the circle, make the angle positive			   
-					   angle = (ref.pi - angle*(-1))+ref.pi;					    
-					}
-                     angle = angle - ref.dragStartAngle;					
-				     d.endAngle = ref.dragStartAngle + angle;					
-                    //TODO: Still doesn't work when angle wraps around 360, start and end angles drawn different ways					 
-					 /**if (ref.dragStartAngle + d.angles[d.angles.length-1][0] > ref.twoPi){ //Detect if the angle will cross over 360 degrees
-						 if (Math.atan2(adj,opp) > 0){ //when the angle becomes positive, moves to the other side of the circle and crosses over 360						     
-							 d.endAngle = ref.twoPi  + Math.atan2(adj,opp);
-							 endAngle = d.endAngle - ref.twoPi;							
-							//console.log(d.endAngle*180/Math.PI+" "+(endAngle*180/Math.PI));
-                         }						 
-				     }*/
-					 //console.log(ref.currentView+" "+ref.nextView);
+					var opp = ref.cy - mouseY;
+                    var angle = Math.atan2(adj,opp);
+                    //Moved to the other side of the circle, make the angle positive
+                    if (angle < 0){	angle = (ref.pi - angle*(-1))+ref.pi;}
+                    angle = angle - ref.dragStartAngle;
+				    d.endAngle = ref.dragStartAngle + angle;
+                   // console.log(d.endAngle*180/Math.PI);
                      var current = ref.dragStartAngle + d.nodes[ref.currentView];
                      var next = ref.dragStartAngle + d.nodes[ref.nextView];
 					 var bounds = ref.checkBounds(current,next,d.endAngle);
@@ -248,7 +241,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 						}else if (bounds == next){ //Passed the next angle, update the tracker variables
 						    ref.currentView = ref.nextView;
 							ref.nextView++;							
-                            ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);                            					
+                            //ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);
                             return ref.arcGenerator(d);							
 						}				  
 						//Otherwise, dragged angle is in bounds								
@@ -261,7 +254,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 						}else if (bounds == current){ //Passed the current angle, update the tracker variables
 						  ref.nextView = ref.currentView;
 						  ref.currentView--;					  
-                          ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);                      		  
+                          //ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);
                           return ref.arcGenerator(d);						  
 						}
 						//Otherwise, dragged angle is in bounds
@@ -271,25 +264,31 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 					      if (bounds == current){ //Passed current
 						      ref.nextView = ref.currentView;
 							  ref.currentView--;						
-                               ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);                           						  
+                               //ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);
                               return ref.arcGenerator(d);									  
 						  } else if (bounds ==next){ //Passed next
 						     ref.currentView = ref.nextView;
 							 ref.nextView++;							
-							 ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);	                            							 
+							// ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);
                              return ref.arcGenerator(d);									 
 						  }
 						  //Otherwise, within bounds
 						  //ref.interpolateSegments(d.id,d.endAngle,current,next);
 						  return ref.arcGenerator(d);
-                     } 	
-                  	 
+                     }
                     //console.log("angle: "+(angle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI));			
 				    
 				});	            
 }
-
-Piechart.prototype.checkBounds = function(angle1,angle2,endAngle){ 
+/** Checks if the mouse's dragged angle is in the bounds defined by angle1, angle2
+ *  angle1,angle2: the bounds
+ *  mouseAngle: the mouse position
+ *  @return start,end: boundary values are returned if the given
+ *                     mouse position is equal to or has crossed it
+ *          distanceRatio: the percentage the mouse has travelled from
+ *                         angle1 to angle2
+ * */
+Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
     var start,end;
 	if (angle1>angle2){
 	 end = angle1;
@@ -298,13 +297,17 @@ Piechart.prototype.checkBounds = function(angle1,angle2,endAngle){
 	  start = angle1;
 	  end = angle2;
 	}
-	//Check if mouse is between path defined by (start,end)
-	if (endAngle <= start){
+	if (mouseAngle <= start){
 	   return start;
-	}else if (endAngle >=end){
+	}else if (mouseAngle >=end){
 	   return end;
 	}
-	return "ok";	
+    //Find the amount travelled from current to next view (remember: angle1 is current and angle2 is next)
+    var distanceTravelled = Math.abs(mouseAngle-angle1);
+    var totalDistance = Math.abs(angle2 - angle1);
+    var distanceRatio = distanceTravelled/totalDistance;
+    this.interpValue = distanceRatio;
+    return distanceRatio;
 }
 //Updates the next and current arrays used for animating segments to make sure interpolation is always between two views
 //TODO: shouldn't be saving these angles in an array..change to become actual attribute of the data
@@ -325,8 +328,7 @@ Piechart.prototype.updateAngles = function (start,current,next){
 }
 //Animates (or resizes) other segments while a segment is being dragged
 Piechart.prototype.interpolateSegments = function (id,mouseAngle,current,next){
-    var ref = this;	
-   
+    var ref = this;
 	//ref.saveAngles();
 	//Determine how much distance was travelled by the dragged segment and the total distance its endAngle can move
 	var travelled = Math.abs(mouseAngle - current);

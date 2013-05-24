@@ -32,7 +32,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.displayData=[];   
    this.labels = hLabels;
    this.numViews = hLabels.length;
-   this.xSpacing = 30; //Spacing across x for hint path
+   this.xSpacing = 50; //Spacing across x for hint path
    this.ySpacing = 20; //Spacing for the y of hint path
 
    //Declare some interaction event functions
@@ -44,15 +44,11 @@ function Heatmap(x, y, cs, id,title,hLabels) {
  * */
 Heatmap.prototype.init = function() {
    this.svg = d3.select(this.id)
-      .append("svg")
-      .attr("id","mainSvg")
-      .append("g")
+      .append("svg").attr("id","mainSvg").append("g")
       .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");
 
-   this.svg.append("svg:defs")
-        .append("svg:filter")
-        .attr("id", "blur")
-        .append("svg:feGaussianBlur")
+   this.svg.append("svg:defs").append("svg:filter")
+        .attr("id", "blur").append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
 }
 /** Render the visualization onto the svg
@@ -79,8 +75,8 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
     var generateColour = d3.scale.quantize().domain([minScore,maxScore]).range(colours);
     //Find the hint y value (of the colour along the colour scale)
     var hintYOffset = d3.scale.quantize().domain([minScore,maxScore])
-        .range(colours.map(function(d,i){return i;}));
-
+        .range(colours.map(function(d,i){return i;}).reverse());//Lower colours on scale have lower offsets
+                                                                //Which means drag up to reach higher scores (darker colours)
     //Draw the cells for each entry in the heatmap
     //The allValues array contains information for drawing the cells and drawing the hint path
     //Format: allValues[j] = [[colour,originalScore,hintX,hintY,yOffset,gradientOffset]...
@@ -97,8 +93,8 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
                 var hintLengthTotal = 0;
                 for(j=0;j< d.values.length;j++){
                     yOffset = hintYOffset(d.values[j]);
-                    hintX = j*ref.xSpacing+(ref.cellSize/2);
-                    hintY = ref.ySpacing*yOffset+(ref.cellSize/2);
+                    hintX = j*ref.xSpacing+xCoord;
+                    hintY = ref.ySpacing*yOffset+yCoord;
                     hintLength = ref.calculateDistance(prevHintX,prevHintY,hintX,hintY);
                     hintLengthTotal+= hintLength;
                     hintLengths.push(hintLength+cumulativeLengthTotal);
@@ -146,22 +142,22 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
         .text(this.chartTitle);
 
     this.svg.selectAll(".axisVertical").data(yLabels)
-            .enter().append("svg:text")
-            .text(function(d) {return d;})
-            .attr("x",this.xpos+this.width-100)
-            .attr("y",function (d,i){return ref.cellSize*i+ref.cellSize/2;})
-            .attr("fill",this.labelColour)
-            .attr("class","axisVertical");
+        .enter().append("svg:text")
+        .text(function(d) {return d;})
+        .attr("x",this.xpos+this.width-100)
+        .attr("y",function (d,i){return ref.cellSize*i+ref.cellSize/2;})
+        .attr("fill",this.labelColour)
+        .attr("class","axisVertical");
 
     this.svg.selectAll(".axisHorizontal").data(xLabels)
-            .enter().append("svg:text")
-            .text(function(d) { return d;})
-            .attr("transform",function (d,i) {
-                return "translate("+(ref.cellSize*i+ref.cellSize/2)+
-                    ","+(ref.ypos+ref.height-100)+") rotate(-65)";
-            }).attr("fill",this.labelColour)
-            .attr("class","axisHorizontal")
-            .style("text-anchor", "end");
+        .enter().append("svg:text")
+        .text(function(d) { return d;})
+        .attr("transform",function (d,i) {
+            return "translate("+(ref.cellSize*i+ref.cellSize/2)+
+                ","+(ref.ypos+ref.height-100)+") rotate(-65)";
+        }).attr("fill",this.labelColour)
+        .attr("class","axisHorizontal")
+        .style("text-anchor", "end");
 }
 /** Compares the vertical distance of the mouse with the two bounding views (using the
  *  y-position along the hint path).  From this comparison, the views are resolved and
@@ -174,8 +170,9 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
     var ref = this;
     this.mouseY = mouseY;
     this.svg.select("#cell"+id).each(function (d){
-       var currentY = d.values[ref.currentView][3];
+       var currentY = d.x+ref.cellSize/2;
        var nextY = d.values[ref.nextView][3];
+        console.log(currentY+" "+nextY);
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
        if (ref.currentView ==0){ //First view
            if (bounds==currentY){ //Exceeding the first view, out of bounds
@@ -247,16 +244,25 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
  * */
 Heatmap.prototype.animateHintPath = function (current,next,interpAmount){
   var ref = this;
-  var xTranslate = 0;
-  //TODO: animation in the x and y
-  this.svg.select("#hintPath").selectAll("text").attr("x",function (d,i) {
+  //TODO: animation in the x and y, better to use transform but hard to find the translate amount?
+  /**this.svg.select("#hintPath").selectAll("text").attr("x",function (d,i) {
          var currentX = ref.findHintX(i,current);
          var nextX = ref.findHintX(i,next);
          var addedDistance = Math.abs(nextX - currentX)*interpAmount;
-         xTranslate= currentX-addedDistance;
-         return xTranslate;
-     });
-  this.svg.select("#hintPath").selectAll("path").attr("transform", "translate("+xTranslate+")");
+     // (index*this.xSpacing)-view*this.xSpacing;
+         return currentX-addedDistance;
+     });*/
+ var coords = this.svg.select("#hintPath").selectAll("text").data();
+ var currentPt = coords[current];
+ var nextPt = coords[next];
+ var interpolator = d3.interpolate(currentPt,nextPt);
+ var interpolatedPt = interpolator(interpAmount);
+
+// var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+","+(currentPt[1] - interpolatedPt[1])+")";
+    var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+")";
+ //console.log(currentY+" "+nextY);
+ this.svg.select("#hintPath").selectAll("text").attr("transform", translateStr);
+  this.svg.select("#hintPath").selectAll("path").attr("transform", translateStr);
 }
 /**Updates the colour of the cells by interpolating the colour between views
  * current, next: the views to interpolate between
@@ -381,12 +387,16 @@ Heatmap.prototype.redrawView = function(view,id){
  * */
 Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  var ref = this;
+ //Re map the pathData to contain only x,y for drawing the hint path, assign the current view's position to the
+ //centre of the cell
+ var coords = pathData.map(function (d,i){return (i==ref.currentView)? [x+ref.cellSize/2,y+ref.cellSize/2]:[d[2],d[3]]});
+
  //Function for drawing the hint path line
  var lineGenerator = d3.svg.line()
-					.x(function(d) { return d[2]; })
-					.y(function(d) { return d[3]; })
+					.x(function(d){return d[0];})
+					.y(function(d){return d[1];})
 					.interpolate("linear");
-
+//TODO: current position on hint path should be centered on the cell
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
         .attr("x",x).attr("y",y)
@@ -407,30 +417,30 @@ this.svg.append("linearGradient")
 
 //Draw the white underlayer of the hint path
 this.svg.select("#hintPath").append("svg:path")
-          .attr("d", lineGenerator(pathData))
+          .attr("d", lineGenerator(coords))
           .style("stroke-width", 10)
           .style("stroke", "white")
           .style("fill","none")
-          .attr("transform", "translate(" + x + "," + y + ")")
+         // .attr("transform", "translate(" + x + "," + y + ")")
           .attr("filter", "url(#blur)");
 
 //Draw the main hint path line
  this.svg.select("#hintPath").append("svg:path")
-          .attr("d",lineGenerator(pathData))
+          .attr("d",lineGenerator(coords))
           .style("stroke-width", 4)
           .style("stroke", "url(#line-gradient)")
           .style("fill","none")
-          .attr("transform", "translate(" + x + "," + y + ")")
+          //.attr("transform", "translate(" + x + "," + y + ")")
           .attr("filter", "url(#blur)");
 	
 //Draw the hint path labels								  
 this.svg.select("#hintPath").selectAll("text")
-           .data(pathData).enter().append("text")
-		   .attr("x",function(d){return d[2];})
-		   .attr("y",function (d){return d[3];})
+           .data(coords).enter().append("text")
+		   .attr("x",function(d){return d[0];})
+		   .attr("y",function (d){return d[1];})
 		   .text(function (d,i){ return ref.labels[i];})
 		   .style("text-anchor", "middle")
-		   .attr("transform", "translate(" + x + "," + y + ")")
+		   //.attr("transform", "translate(" + x + "," + y + ")")
            .style("cursor", "pointer")
            .on("click",this.clickHintLabelFunction);
 }
