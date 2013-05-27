@@ -93,8 +93,8 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
                 var hintLengthTotal = 0;
                 for(j=0;j< d.values.length;j++){
                     yOffset = hintYOffset(d.values[j]);
-                    hintX = j*ref.xSpacing+xCoord;
-                    hintY = ref.ySpacing*yOffset+yCoord;
+                    hintX = j*ref.xSpacing;
+                    hintY = ref.ySpacing*yOffset;
                     hintLength = ref.calculateDistance(prevHintX,prevHintY,hintX,hintY);
                     hintLengthTotal+= hintLength;
                     hintLengths.push(hintLength+cumulativeLengthTotal);
@@ -387,16 +387,16 @@ Heatmap.prototype.redrawView = function(view,id){
  * */
 Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  var ref = this;
- //Re map the pathData to contain only x,y for drawing the hint path, assign the current view's position to the
- //centre of the cell
- var coords = pathData.map(function (d,i){return (i==ref.currentView)? [x+ref.cellSize/2,y+ref.cellSize/2]:[d[2],d[3]]});
+ //Create the translation coordinates: to the centre of the dragged cell, offset by the current view's y-position along the hint path
+ var translateX = x+ref.cellSize/2;
+ var translateY = y+ref.cellSize/2-pathData[ref.currentView][3];
 
  //Function for drawing the hint path line
  var lineGenerator = d3.svg.line()
-					.x(function(d){return d[0];})
-					.y(function(d){return d[1];})
+					.x(function(d){return d[2];})
+					.y(function(d){return d[3];})
 					.interpolate("linear");
-//TODO: current position on hint path should be centered on the cell
+
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
         .attr("x",x).attr("y",y)
@@ -417,30 +417,30 @@ this.svg.append("linearGradient")
 
 //Draw the white underlayer of the hint path
 this.svg.select("#hintPath").append("svg:path")
-          .attr("d", lineGenerator(coords))
+          .attr("d", lineGenerator(pathData))
           .style("stroke-width", 10)
           .style("stroke", "white")
           .style("fill","none")
-         // .attr("transform", "translate(" + x + "," + y + ")")
+          .attr("transform", "translate("+translateX+"," + translateY+ ")")
           .attr("filter", "url(#blur)");
 
 //Draw the main hint path line
  this.svg.select("#hintPath").append("svg:path")
-          .attr("d",lineGenerator(coords))
+          .attr("d",lineGenerator(pathData))
           .style("stroke-width", 4)
           .style("stroke", "url(#line-gradient)")
           .style("fill","none")
-          //.attr("transform", "translate(" + x + "," + y + ")")
+          .attr("transform", "translate("+translateX+"," + translateY+ ")")
           .attr("filter", "url(#blur)");
 	
 //Draw the hint path labels								  
 this.svg.select("#hintPath").selectAll("text")
-           .data(coords).enter().append("text")
-		   .attr("x",function(d){return d[0];})
-		   .attr("y",function (d){return d[1];})
+           .data(pathData).enter().append("text")
+		   .attr("x",function(d){return d[2];})
+		   .attr("y",function (d){return d[3];})
 		   .text(function (d,i){ return ref.labels[i];})
 		   .style("text-anchor", "middle")
-		   //.attr("transform", "translate(" + x + "," + y + ")")
+           .attr("transform", "translate("+translateX+"," + translateY+ ")")
            .style("cursor", "pointer")
            .on("click",this.clickHintLabelFunction);
 }
