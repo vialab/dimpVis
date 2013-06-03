@@ -310,12 +310,12 @@ Scatterplot.prototype.dragAlongLoop = function (id){
      var ref = this;
      //Get the position of the stationary point
      var points = this.svg.select("#displayPoints"+id).data().map(function (d) {return d.nodes[ref.currentView];});
-     var x = points[0][0];
-     var y = points[0][1];
+	 var theta = Math.PI/3;
+     var cx = points[0][0] + this.loopRadius/2*Math.cos(theta);
+	 var cy = points[0][1] + this.loopRadius/2*Math.sin(theta);
      //Calculate the angle of the mouse w.r.t the stationary point
-     var angle = Math.atan2(this.mouseX-x,this.mouseY-y);
-    //Ignore negative angles, looking in the range of 0 to PI, since the loop is almost a semi-circle
-     if (angle>0){
+     var angle = Math.atan2(this.mouseX-cx,this.mouseY-cy);   
+    /** if (angle>0){
          //Resolve the dragging direction, 1 is counter-clockwise and 0 is clockwise
          var draggingDirection = (angle<this.previousDragAngle)?0:1;
          //console.log(draggingDirection);
@@ -328,7 +328,12 @@ Scatterplot.prototype.dragAlongLoop = function (id){
            }
          }
          this.previousDragAngle = angle;
-     }
+     }*/
+	 if (angle < 0){angle = (Math.PI - angle*(-1))+Math.PI;}
+	 var newX = cx+this.loopRadius/2*Math.cos(angle);
+	  var newY = cy+this.loopRadius/2*Math.sin(angle);
+	 ref.svg.select("#displayPoints"+id).attr("cx",newX).attr("cy",newY);
+	 console.log(angle*180/Math.PI);
 
 }
  /**"Animates" the rest of the points while one is being dragged
@@ -528,6 +533,16 @@ Scatterplot.prototype.drawLoops = function (id){
         .attr("class","loop"+id)
         .style("fill","none")
         .style("stroke", this.hintColour);
+    var cx = ref.loops[0][0] + this.loopRadius/2*Math.cos(Math.PI/3);
+	var cy = ref.loops[0][1] + this.loopRadius/2*Math.sin(Math.PI/3);
+		console.log(this.svg.selectAll(".loop"+id).data());
+    //Debugging: draw a circle to estimate the loop
+    this.svg.select("#hintPath").append("circle")
+	    .attr("cx",cx)
+		.attr("cy",cy)
+		.attr("r",this.loopRadius/2)
+        .attr("fill","none")
+		.attr("stroke","black");
 }
 /**Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag
  * */
@@ -579,9 +594,8 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
  * @return an array of all loop points and the year index in the format: [[x,y], etc.]
  * */
 Scatterplot.prototype.calculateLoopPoints = function (x,y,numPoints){
-    var loopPoints = [];
-    var pi = Math.PI;
-    var interval = pi/6;
+    var loopPoints = [];  
+    var interval = Math.PI/6;
     //The first point of the path should be the original point, as a reference for drawing the loop
     loopPoints.push([x,y]);
     //Generate some polar coordinates for forming the loop around x,y using arbitrary angles

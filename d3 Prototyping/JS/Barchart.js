@@ -669,19 +669,19 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 												
 	//Draw the hint labels
    this.svg.select("#hintPath").selectAll("text").data(heights.map(function(d,i){
-                   return {x:xPos,y:d[0],label:ref.hintLabels[i]};
-                  })).enter()
-                .append("svg:text")
-                .text(function(d) { return d.label; })
-                .attr("transform",function (d,i) {
-                   //Don't rotate the label resting on top of the bar
-                   if (i==ref.currentView) return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
-                   else return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
-                 })
-               .attr("fill", "#666")
-               .attr("class","hintLabels")
-               .on("click",this.clickHintLabelFunction)
-               .style("cursor", "pointer");
+           return {x:xPos,y:d[0],label:ref.hintLabels[i]};
+        })).enter()
+        .append("svg:text")
+        .text(function(d) { return d.label; })
+        .attr("transform",function (d,i) {
+           //Don't rotate the label resting on top of the bar
+           if (i==ref.currentView) return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
+           else return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
+         })
+       .attr("fill", "#666")
+       .attr("class","hintLabels")
+       .on("click",this.clickHintLabelFunction)
+       .style("cursor", "pointer");
 
     //Fade out the other bars
    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
