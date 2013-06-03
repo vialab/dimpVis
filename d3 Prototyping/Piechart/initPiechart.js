@@ -29,10 +29,9 @@ piechart.dragEvent = d3.behavior.drag()
     })
     .on("drag", function(d){
         piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);
-        //slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
+        slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
     })
     .on("dragend",function (d){
-        //piechart.clearHintPath(d.id);
         piechart.snapToView(d.id,d.endAngle,d.nodes);
         //slider.updateSlider(piechart.currentView);
         //piechart.redrawView();

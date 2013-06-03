@@ -20,12 +20,11 @@ heatmap.clickHintLabelFunction = function (d, i){
 heatmap.render(data,xLabels,yLabels);
 //Define the function to respond to the dragging behaviour of the cells
 heatmap.dragEvent = d3.behavior.drag()
-                   .origin(function(d){ return {x:d.x,y:d.y};})
+                   .origin(function(d){ return {x:d.x+heatmap.cellSize/2,y:d.y+heatmap.cellSize/2};})
                    .on("dragstart", function(d){
                       heatmap.clearHintPath();
                        heatmap.draggedCell = d.id;
-                       heatmap.showHintPath(d.id,d.values,d.x,d.y);
-
+                       heatmap.showHintPath(d.id,d.values,d.x,d.y,heatmap.currentView);
                    })
                   .on("drag", function(d){
                         heatmap.updateDraggedCell(d.id,d3.event.y);

@@ -170,13 +170,17 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
  *  mouseY: The y-coordinate of the mouse, received from the drag event
  * */
 Heatmap.prototype.updateDraggedCell = function(id, mouseY){
-    var ref = this;
+   var ref = this;
    this.mouseY = mouseY;
+   var coords = this.svg.selectAll(".hintLabels").data();
+    var currentY = coords[ref.currentView][1];
+    var nextY = coords[ref.nextView][1];
 
    this.svg.select("#cell"+id).each(function (d){
-       var currentY = d.y+ref.cellSize/2;
-       var nextY =  d.values[ref.nextView][3]+ d.y+ref.cellSize/2 - d.values[ref.currentView][3];
-      // console.log(currentY+" "+nextY+" "+mouseY);
+      // var currentY = d.y+ref.cellSize/2;
+      // var nextY =  d.values[ref.nextView][3]+ d.y+ref.cellSize/2 - d.values[ref.currentView][3];
+       console.log(currentY+" "+nextY+" "+mouseY);
+       console.log(ref.currentView+" "+ref.nextView);
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
        if (ref.currentView ==0){ //First view
            if (bounds==currentY){ //Exceeding the first view, out of bounds
@@ -230,7 +234,6 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
         start = y1;
         end = y2;
     }
-   // console.log("my "+mouseY+"start "+start+" end "+end);
     //Check if the mouse is between start and end values
     if (mouseY <= start) return start;
     else if (mouseY >=end) return end;
@@ -256,7 +259,9 @@ Heatmap.prototype.animateHintPath = function (current,next,currentY,nextY,interp
   var interpolator = d3.interpolate(currentPt,nextPt);
   var interpolatedPt = interpolator(interpAmount);
   //console.log(interpolatedPt);
-  var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+","+(currentPt[1]-interpolatedPt[1])+")";
+  //var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+","+(currentPt[1]-interpolatedPt[1])+")";
+  var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+")";
+    console.log(translateStr);
   this.svg.select("#hintPath").selectAll("text").attr("transform", translateStr);
   this.svg.select("#hintPath").selectAll("path").attr("transform", translateStr);
 }
@@ -266,8 +271,7 @@ Heatmap.prototype.animateHintPath = function (current,next,currentY,nextY,interp
  */
 Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
   //Re-colour all cells
-  this.svg.selectAll(".cell")
-  .attr("fill", function (d){
+  this.svg.selectAll(".cell").attr("fill", function (d){
       var interpolator = d3.interpolateRgb(d.values[current][0],d.values[next][0]);
       return interpolator(interpAmount);
   });
@@ -350,8 +354,7 @@ Heatmap.prototype.snapToView = function (id, points,y){
     if (this.nextView == this.lastView) {
         this.redrawView(this.currentView+1);
         //this.redrawHintPath( y+this.cellSize/2-points[this.currentView+1][3],points[this.currentView+1][2]);
-    }
-    else {
+    } else {
         this.redrawView(this.currentView);
         //this.redrawHintPath( y+this.cellSize/2-points[this.currentView][3],points[this.currentView][2]);
     }
@@ -411,13 +414,15 @@ Heatmap.prototype.redrawHintPath = function(currentX,currentY){
  * pathData: information for drawing the path (x,y coords of the line,
  * colouring information for the gradient - This would be d.values)
  * x,y: coordinates of the dragged cell
+ * view: the view to start drawing the path at
  * Good tutorial on svg line gradients:
  * http://tutorials.jenkov.com/svg/svg-gradients.html
  * */
-Heatmap.prototype.showHintPath = function(id,pathData,x,y){
+Heatmap.prototype.showHintPath = function(id,pathData,x,y,view){
  var ref = this;
  //Create the translation coordinates: to the centre of the dragged cell, offset by the current view's y-position along the hint path
- var translateY = y+ref.cellSize/2- pathData[ref.currentView][3];
+ var translateY = y+ref.cellSize/2- pathData[view][3];
+ //TODO: horizontally position the hint path at the provided view
  var coords = pathData.map(function (d){return [d[2],d[3]+translateY];});
 
 //Append a clear cell with a black border to show which cell is currently selected and dragged
@@ -462,6 +467,7 @@ this.svg.select("#hintPath").selectAll("text")
 		   .text(function (d,i){ return ref.labels[i];})
 		   .style("text-anchor", "middle")
            .style("cursor", "pointer")
+           .attr("class","hintLabels")
            .on("click",this.clickHintLabelFunction);
 }
 /** Clears the hint path for a dragged cell by removing all of

@@ -276,8 +276,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
             ref.currentView = ref.nextView;
             ref.nextView++;
             newValues = [nextY,nextHeight];
-        }else{
-            //Otherwise, mouse dragging is in bounds
+        }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
             ref.animateHintPath(bounds,-1);
             newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
@@ -289,8 +288,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
             ref.nextView = ref.currentView;
             ref.currentView--;
             newValues = [currentY,currentHeight];
-        }else{
-            //Otherwise, mouse dragging is in bounds
+        }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
             ref.animateHintPath(bounds,-1);
             newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
@@ -304,8 +302,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
             ref.currentView = ref.nextView;
             ref.nextView++;
             newValues = [nextY,nextHeight];
-        }else{
-            //Otherwise, mouse dragging is in bounds
+        }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
             ref.animateHintPath(bounds,-1);
             newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
@@ -467,8 +464,8 @@ Barchart.prototype.animateHintPath = function (interpAmount,pathId){
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
  * defined at start and end view. The heights of the other bars are then estimated using the
  * interpAmount and re-drawn at the new height
- * id: The id of the dragged point
- * interpAmount: The t parameter, or amount to interpolate by
+ * id: The id of the dragged bar
+ * interpAmount: amount to interpolate by
  * startView,endView: Define the range to interpolate across
  * */
 Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView){
