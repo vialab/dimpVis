@@ -2,7 +2,7 @@
  * */
 
 //Create new heatmap visualization
-var heatmap = new Heatmap(30, 30,50,"#vis","Car complaints",labels);
+var heatmap = new Heatmap(30, 30,50,"#vis","",labels);
 heatmap.init();
 
 //TODO:Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed

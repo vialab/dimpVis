@@ -2,7 +2,7 @@
  * */
 
 //Create new barchart visualization
-var barchart   = new Barchart(400, 50, 30, 0 , "#bargraph",80,"country","population","Populations of a subset of countries over time",labels);
+var barchart   = new Barchart(400, 50, 30, 0 , "#bargraph",80,"country","population","Populations of a selected group of countries over time",labels);
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 barchart.clickSVG = function (){

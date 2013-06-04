@@ -179,7 +179,7 @@ Heatmap.prototype.updateDraggedCell = function(id, mouseY){
    this.svg.select("#cell"+id).each(function (d){
       // var currentY = d.y+ref.cellSize/2;
       // var nextY =  d.values[ref.nextView][3]+ d.y+ref.cellSize/2 - d.values[ref.currentView][3];
-       console.log(currentY+" "+nextY+" "+mouseY);
+      // console.log(currentY+" "+nextY+" "+mouseY);
        console.log(ref.currentView+" "+ref.nextView);
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
        if (ref.currentView ==0){ //First view
@@ -258,10 +258,10 @@ Heatmap.prototype.animateHintPath = function (current,next,currentY,nextY,interp
   var nextPt = [coords[next][0],nextY];
   var interpolator = d3.interpolate(currentPt,nextPt);
   var interpolatedPt = interpolator(interpAmount);
-  //console.log(interpolatedPt);
+  //console.log("interppt"+interpolatedPt[0]+"current"+coords[current][0]+"next"+coords[next][0]);
   //var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+","+(currentPt[1]-interpolatedPt[1])+")";
-  var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+")";
-    console.log(translateStr);
+  var translateStr = "translate("+(-interpolatedPt[0]+ref.cellSize/2)+")";
+   // console.log(translateStr);
   this.svg.select("#hintPath").selectAll("text").attr("transform", translateStr);
   this.svg.select("#hintPath").selectAll("path").attr("transform", translateStr);
 }
