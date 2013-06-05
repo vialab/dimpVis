@@ -38,6 +38,7 @@ function Piechart(x,y, r,id,title,hLabels){
    this.nextAngles = []; //An array for each segment which stores the previous angle (used for interpolation in interpolateSegments())
    this.currentAngles = [];     
    this.dragStartAngle = 0;  //The starting angle for the pie segment being dragged
+   this.draggedSegment = 0; //Id of the dragged segment
    this.interpValue=0;
    this.previousDirection = 1; //Tracks the direction travelled (forward or backward in time) to infer the next view
                                //1 if going forward, -1 if going backward
@@ -111,16 +112,15 @@ Piechart.prototype.init = function(){
          .range(["#74c476", "#31a354","#a1d99b","#c7e9c0",  "#3182bd", "#6baed6", "#9ecae1","#c6dbef"]);
 
 	//Assign the data to the paths drawn as pie segments
-	this.svg.selectAll("path")
-                 .data(this.displayData.map(function (d,i) {
-                     var angles = [];
-                    //Calculate and save the angle values based on a given percentage value (as a decimal)
-                    for (var j=0;j< ref.numViews;j++){
-                        angles[j] = d.values[j]*ref.twoPi;
-                    }
-                    var hintArcInfo = ref.findHintArcs(angles);
-	                return {nodes:angles,label:d.label,id:i,startAngle:0,endAngle:0,colour:colourScale(i),
-                          hDirections:hintArcInfo};
+	this.svg.selectAll("path").data(this.displayData.map(function (d,i) {
+                         var angles = [];
+                        //Calculate and save the angle values based on a given percentage value (as a decimal)
+                        for (var j=0;j< ref.numViews;j++){
+                            angles[j] = d.values[j]*ref.twoPi;
+                        }
+                        var hintArcInfo = ref.findHintArcs(angles);
+                        return {nodes:angles,label:d.label,id:i,startAngle:0,endAngle:0,colour:colourScale(i),
+                              hDirections:hintArcInfo};
 	              }))
 				 .enter().append("g")
                  .attr("class","gDisplayArcs");
@@ -139,7 +139,7 @@ this.svg.selectAll(".gDisplayArcs").append("path")
                         d.endAngle = ref.endAngles[d.id];
                        return ref.arcGenerator(d);
                  })
-    //TODO: labels on the piechart?
+    //TODO: labels on the piechart? Or legend?
 				/** .append("text")
 				 .attr("transform", function (d,i){											        
 						return "translate(" + arc.centroid(d) + ")"; 													
@@ -166,28 +166,32 @@ Piechart.prototype.calculateLayout = function (angles,start,id){
     // this.startAngles[j] = ((angleSum >this.twoPi) ? (angleSum-this.twoPi):(angleSum));
     // this.endAngles[j] = (((angleSum + currentAngle)>this.twoPi) ? (angleSum + currentAngle-this.twoPi):(angleSum + currentAngle));
     var angleSum, currentAngle;
+    //Adjust the id (if using the slider)
+    var newId  = id;
+    if (id==-1){newId = this.draggedSegment}
+
     //First assign the start and end angles to the currently dragged segment (id)
-    var endAngle = start+angles[id];
+    var endAngle = start+angles[newId];
     //this.startAngles[id] = ((start>this.twoPi) ? (start-this.twoPi):(start));
     //this.endAngles[id] = ((endAngle >this.twoPi) ? (endAngle-this.twoPi):(endAngle));
-    this.startAngles[id] = start;
-    this.endAngles[id] = endAngle;
+    this.startAngles[newId] = start;
+    this.endAngles[newId] = endAngle;
     angleSum = endAngle;
     //Then, assign start/end angles to all segments whose indices occur after id (> id)
-    for (var j=(id+1);j<angles.length;j++){
+    for (var j=(newId+1);j<angles.length;j++){
         currentAngle = angles[j];
         this.startAngles[j] = angleSum;
         this.endAngles[j] = angleSum + currentAngle;
         angleSum += currentAngle;
     }
     //Now assign start/end angles to all segments with indices before id (0 to <id)
-    for (var j=0;j<id;j++){
+    for (var j=0;j<newId;j++){
         currentAngle = angles[j];
         this.startAngles[j] = angleSum;
         this.endAngles[j] = angleSum + currentAngle;
         angleSum += currentAngle;
     }
-    //console.log("ends "+this.endAngles.map(function (d){return d*180/Math.PI})+" starts "+this.startAngles.map(function (d){return d*180/Math.PI}));
+    console.log("ends "+this.endAngles.map(function (d){return d*180/Math.PI})+" starts "+this.startAngles.map(function (d){return d*180/Math.PI}));
 }
 /** Finds the hint arcs of a pie segment, specifically this function finds when the arc changes growth direction
  *  as it increases and decreases over time
@@ -230,7 +234,7 @@ Piechart.prototype.findHintArcs = function (angles){
  * */
 Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
      var ref = this;
-    //TODO: handle when switching directions (discontinuity)
+    //TODO: handle when switching directions (infer time continuity)
 	 //console.log(ref.currentView+" "+ref.nextView);
      this.svg.select("#displayArcs"+id).attr("d", function (d) {
                 d.startAngle = ref.dragStartAngle;
@@ -255,10 +259,9 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                         ref.currentView = ref.nextView;
                         ref.nextView++;
                         return ref.arcGenerator(d);
-                        //ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);
                     }
                     //Otherwise, dragged angle is in bounds
-                    ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView);
+                    ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView,ref.interpValue);
                     ref.animateHintPath(d.hDirections, d.nodes);
                     return ref.arcGenerator(d);
                  } else if (ref.nextView == ref.lastView){ //At the largest end angle
@@ -269,11 +272,10 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                       d.endAngle = current;
                       ref.nextView = ref.currentView;
                       ref.currentView--;
-                        //ref.updateAngles(ref.dragStartAngle,ref.currentView,ref.nextView);
                       return ref.arcGenerator(d);
                     }
                     //Otherwise, dragged angle is in bounds
-                    ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView);
+                    ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
                     ref.animateHintPath(d.hDirections, d.nodes);
                     return ref.arcGenerator(d);
                  }	else { //At an angle somewhere in between the largest and smallest
@@ -289,7 +291,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                          return ref.arcGenerator(d);
                       }
                       //Otherwise, within bounds
-                      ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView);
+                      ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
                       ref.animateHintPath(d.hDirections, d.nodes);
                       return ref.arcGenerator(d);
                  }
@@ -326,8 +328,8 @@ Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
     return distanceRatio;
 }
 //Updates the next and current arrays used for animating segments to make sure interpolation is always between two views
-//TODO: shouldn't be saving these angles in an array..change to become actual attribute of the data
-Piechart.prototype.updateAngles = function (start,current,next){
+//TODO: not sure if this function is needed
+/**Piechart.prototype.updateAngles = function (start,current,next){
   var ref = this;
   var sumCurrent = sumNext = start;
    this.svg.selectAll(".displayArcs").each(function (d){
@@ -340,7 +342,7 @@ Piechart.prototype.updateAngles = function (start,current,next){
 		  ref.nextAngles[d.id][1] = sumNext + d.nodes[next];         
 		  sumNext += d.nodes[next]; 
    });
-}
+}*/
 /**"Animates" the rest of the segments while one is being dragged
  * Uses the interpAmount to determine how far the segment has travelled between the two angles
  * defined at start and end view. The angles of the other bars are estimated using the
@@ -349,22 +351,18 @@ Piechart.prototype.updateAngles = function (start,current,next){
  * mouseAngle: the angle of the dragged segment
  * startView,endView: Define the range to interpolate across
  * */
-Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endView){
+Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endView,interpAmount){
     var ref = this;
     var newAngles = [];
-    var debug_sum = 0;
     //TODO: doesn't work when angle wraps around 180 or 360
 	this.svg.selectAll(".displayArcs").each(function (d) {
            if (d.id == id){
                newAngles.push(mouseAngle);
-               debug_sum+=mouseAngle;
            }else{
                 var interpolator = d3.interpolate(d.nodes[startView], d.nodes[endView]);
-                newAngles.push(interpolator(ref.interpValue));
-               debug_sum+=interpolator(ref.interpValue);
+                newAngles.push(interpolator(interpAmount));
            }
 	 });
-    //console.log(debug_sum*180/Math.PI);
     this.calculateLayout(newAngles,this.dragStartAngle,id);
     //Redraw the segments at the interpolated angles
     this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
@@ -372,7 +370,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
             d.startAngle = ref.startAngles[d.id];
             d.endAngle = ref.endAngles[d.id];
             return ref.arcGenerator(d);
-        })
+        });
 }
 /** Animates the hint path by angular translating it inwards corresponding to the dragging
  *  amount
@@ -391,26 +389,26 @@ Piechart.prototype.animateHintPath = function (hDirections,angles){
        return "translate("+hintArcInfo[i][0]+","+hintArcInfo[i][1]+")";
     });
 }
-//Snaps to the nearest view (in terms of mouse location and the segment being dragged)
-//id: dragged segment id, mouseAngle: the last angle computed for the dragged segment before the drag event ended
-// allAngles: the array of all angles for the dragged segment (shouldn't really need to pass this, seems inefficient)
+/**Snaps to the nearest view in terms of mouse angle and the two views bounding the time frame
+ * id: of the dragged segment
+ * allAngles: of the dragged segment (across all views)
+ * mouseAngle: the angle of the mouse
+ * */
 Piechart.prototype.snapToView = function (id,mouseAngle,allAngles){
-       var ref = this;    
-	   var current =  ref.dragStartAngle + allAngles[ref.currentView];
-	   var next = ref.dragStartAngle + allAngles[ref.nextView];
+	   var current =  this.dragStartAngle + allAngles[this.currentView];
+	   var next = this.dragStartAngle + allAngles[this.nextView];
 	  //console.log("BEFORE SNAP: next "+next+", "+ref.nextView+" current "+current+" ,"+ref.currentView+"mouse "+mouseAngle);	 	  
 	   var currentDist = Math.abs(current - mouseAngle);
 	   var nextDist = Math.abs(next - mouseAngle);
-	  
-	   if (currentDist>nextDist && ref.nextView != ref.numArcs){ //Passed next, advance the variables forward
+	   if (currentDist>nextDist && this.nextView != this.numArcs){ //Passed next, advance the variables forward
 			//Make sure the nextViewIndex wasn't the last one to avoid index out of bounds
-			ref.currentView = ref.nextView;
-			ref.nextView++;  
-            ref.redrawView(-1,id);			
-		}else if (ref.nextView == ref.numArcs){
-	      ref.redrawView((ref.currentView+1),id);		
+			this.currentView = this.nextView;
+			this.nextView++;
+            this.redrawView(this.currentView,id);
+		}else if (this.nextView == this.numArcs){
+	        this.redrawView((this.currentView+1),id);
        }else{
-	      ref.redrawView(-1,id);		
+	        this.redrawView(this.currentView,id);
        }
 }
 /** Updates the view tracking variables when the view is being changed by an external
@@ -425,43 +423,22 @@ Piechart.prototype.changeView = function (newView){
 	   this.nextView = newView+1;	   
    }
 }
-//Redraws the Piechart, mainly used for snapToView and to update based on other svg changes
+/** Redraws the piechart at a specified view, by re-calculating the layout
+ *  view: the view to draw at
+ *  id: of the currently or previously dragged segment
+ * */
  Piechart.prototype.redrawView = function (view,id){ 
-      var ref = this;
-    //Resolve which view to draw	  
-      var displayView = ref.currentView;
-       if (view!=-1){
-	     displayView = view;
-	    }		   
-	 //console.log("SNAP: current View "+displayView+" next view index "+ref.nextViewIndex+" current view index "+ref.currentViewIndex);
-     
-	 //Grab the end angle of the dragged segment	
-	 //TODO: Refactor this, shouldn't have to select the dragged segment element each time
-    var angleSumStart = ref.dragStartAngle;
-	var angleSumEnd;
-	this.svg.select("#displayArcs"+id)
-	            .attr("d", function (d) { 
-                    angleSumEnd = ref.dragStartAngle + d.nodes[displayView];
-                    d.endAngle = angleSumEnd;					
-				});						   
-    //Update the angles of the rest of the stationary segments
-    this.svg.selectAll(".displayArcs")
-	             //.transition().duration(400)
-	            .attr("d", function (d) {                               				   
-                    if (d.id != id){					 
-					   if (d.id < id){ //segments rendered before the dragged segment
-					      d.endAngle = angleSumStart;
-						  d.startAngle = d.endAngle - d.nodes[displayView];
-						  angleSumStart += d.nodes[displayView];											  
-					   }else{ //segments rendered after the dragged one
-					      d.startAngle = angleSumEnd;
-						  d.endAngle = d.startAngle + d.nodes[displayView];
-						  angleSumEnd += d.nodes[displayView];												  
-					   }					    					
-                    }                
-                   //Redraw the segment				   
-                   return ref.arcGenerator(d);					   
-				});
+   var ref = this;
+   var newAngles = [];
+   newAngles = this.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes[view]});
+   //Recalculate the piechart layout at the view
+   this.calculateLayout(newAngles,this.dragStartAngle,id);
+   //Redraw the piechart at the new view
+   this.svg.selectAll(".displayArcs").attr("d", function (d){
+             d.startAngle = ref.startAngles[d.id];
+             d.endAngle = ref.endAngles[d.id];
+             return ref.arcGenerator(d);
+         });
 }
 /** Calculates the hint angles for drawing a hint path, an array stores
  *  the x,y position for drawing the label, the radius of the arc and
@@ -496,6 +473,7 @@ Piechart.prototype.calculateHintAngles = function (angles,arcIndices,flag){
 Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
     var ref = this;
     this.dragStartAngle = start; //Important: save the start angle
+    this.draggedSegment = id;
     var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}),0);
     var hintPathArcString = ref.createArcString(hintArcInfo,hDirections);
 
@@ -520,8 +498,8 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
          .attr("class","hintLabels");
 
     //Fade out all the other segments
-	/**this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
-            .transition().duration(400).style("fill-opacity", 0.5);*/
+	this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
+            .transition().duration(400).style("fill-opacity", 0.5);
 }
 /** Clears the hint path by removing all svg elements in #hintPath
  * */
@@ -611,7 +589,7 @@ Piechart.prototype.animateSegments = function( startView, endView) {
     if (startView>endView) direction=-1;
 
     //Define some counter variables to keep track of the views passed during the transition
-    var totalViews = ref.lastView+1;
+    var totalViews = this.lastView+1;
     var viewCounter = -1; //Identifies when a new view is reached
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
 
@@ -636,20 +614,4 @@ Piechart.prototype.animateSegments = function( startView, endView) {
             //TODO:animate hint path
         };
     }
-}
-//A function meant only to interface with other visualizations or the slider
-//Given an interpolation value, update segments accordingly between the view 'current' and 'next'
-//TODO: merge with interpolateSegments(), as in scatter and bar charts
-Piechart.prototype.updateSegments = function(interpValue,currentI,nextI){  
-var ref = this;
- 		this.svg.selectAll(".displayArcs")
-	            .attr("d", function (d) {				   
-                    	var newEndAngle = d.nodes[nextI]+d.startAngle;			  
-					    var interpolator = d3.interpolate({startAngle:d.startAngle,endAngle:d.endAngle},{startAngle:d.startAngle,endAngle:newEndAngle});
-					    var newAngle = interpolator(interpValue);
-						d.endAngle = newAngle.endAngle;
-						d.startAngle = newAngle.startAngle;
-						 //console.log(d.prevStart+" "+d.startAngle);                                     
-                        return ref.arcGenerator(d);					   
-				});
 }

@@ -47,16 +47,16 @@ slider.render();
 
 //Define the dragging interaction for the slider, which moves the sliding tick back and forth
 slider.dragEvent = d3.behavior.drag()
-                    .on("dragstart", function(){ piechart.clearHintPath();})
-                    .on("drag", function(){
-                            slider.updateDraggedSlider(d3.event.x);
-                            piechart.updateSegments(slider.interpValue,slider.currentTick,slider.nextTick);
-                     })
-                     .on("dragend",function (){
-                          slider.snapToTick();
-                          piechart.changeView(slider.currentTick);
-                          //piechart.redrawView(-1,-1);
-                     });
+        .on("dragstart", function(){ piechart.clearHintPath();})
+        .on("drag", function(){
+                slider.updateDraggedSlider(d3.event.x);
+                piechart.interpolateSegments(-1,0,slider.currentTick,slider.nextTick,slider.interpValue);
+         })
+         .on("dragend",function (){
+              slider.snapToTick();
+              piechart.changeView(slider.currentTick);
+              //piechart.redrawView(-1,-1);
+         });
 
 slider.widget.select("#slidingTick").call(slider.dragEvent);
 
