@@ -1,7 +1,7 @@
 /** This file creates and coordinates a piechart and a slider according to the provided dataset
  * */
 
- //Create a new piechart visualization
+//Create a new piechart visualization
 var piechart   = new Piechart(50, 50 , 180,"#piegraph","Test Piechart",labels);
 
 //Define the function when the SVG (background) is clicked, should clear the hint path displayed
@@ -13,9 +13,12 @@ piechart.init();
 piechart.render(data,0);
 
 //Define the function for fast-forwarding the view by clicking on any label along the hint path
-/**piechart.clickHintLabelFunction = function (){
-
- };*/
+piechart.clickHintLabelFunction = function (d,i){
+     d3.event.stopPropagation();
+     piechart.animateSegments(piechart.draggedSegment,piechart.currentView,i);
+     piechart.changeView(i);
+     slider.updateSlider(i);
+ };
 
 //Define the dragging interaction for the piechart segments
 piechart.dragEvent = d3.behavior.drag()

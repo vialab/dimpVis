@@ -24,11 +24,10 @@
 
    //Set up some display properties
    this.svg = null; //Reference to svg container
-   this.displayData = null; //To store the data set to be visualized
    this.barWidth = bw;
-   this.numBars = hLabels.length;
+   this.numBars = 0; //Set this later
    this.strokeWidth=5;
-   this.width = (bw+this.strokeWidth)*this.numBars;
+   this.width = 0; //Set this later
    this.height = h;
    this.hintPathSpacing = 30; //Amount of horizontal distance between labels on hint path
    this.base = h-5; //Starting y-position of the bars (the base)
@@ -82,7 +81,8 @@ Barchart.prototype.setColours = function(barCol, hintCol, axisCol){
 Barchart.prototype.init = function(){
     //Draw the main svg
    this.svg = d3.select(this.id).append("svg")
-       .attr("width", this.width+(this.padding*2))
+       .attr("id","mainSvg")
+       .attr("width", this.width)
       .attr("height", this.height+(this.padding*2))  
       .style("position", "absolute")
       .style("left", this.leftMargin + "px")
@@ -111,11 +111,13 @@ Barchart.prototype.init = function(){
  * */
  Barchart.prototype.render = function(data,start){
       var ref = this;
-     //Save some values
-	  this.displayData = data;
-      this.currentView = start;
+    //Save some values and set the width of the svg (based on number of bars)
+     this.numBars = data.length;
+     this.width = (this.barWidth+this.strokeWidth)*this.numBars;
+     d3.select("#mainSvg").attr("width",this.width+(this.padding*2));
 
      //Resolve the index value for the next view (e.g., if currentView is 0, then nextView should be set to 1)
+     this.currentView = start;
      if (this.currentView ==0){
          this.nextView = this.currentView+1;
      }else if (this.currentView == this.lastView){
@@ -127,13 +129,13 @@ Barchart.prototype.init = function(){
      //Find the max value of the heights, used to scale the axes and the dataset
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
 
-    //Create the scales
+     //Create the scales
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
      var yScale =  d3.scale.linear().domain([0, max_h]).range([ref.height,0]);
 
 //Assign data values to a set of rectangles representing the bars of the chart
 this.svg.selectAll("rect")
-    .data(this.displayData.map(function (d,i) {
+    .data(data.map(function (d,i) {
             //Need to adjust the dataset to contain y-positions and heights
             //Array format is: data[viewIndex] = [y of top of bar, height of bar]
             var data = [];
@@ -715,14 +717,14 @@ Barchart.prototype.checkAmbiguous = function (){
     this.ambiguousBars = [];
 
     //Re-set the ambiguousPoints array
-    for (j=0;j<this.numBars;j++){
+    for (j=0;j<this.lastView;j++){
         this.ambiguousBars[j] = [0];
     }
     //Populate the stationary and revisiting bars array
     //Search for heights that are equal (called "repeated bars")
-    for (j=0;j<this.numBars;j++){
+    for (j=0;j<this.lastView;j++){
         currentBar= this.pathData[j][1];
-        for (var k=j;k<this.numBars;k++){
+        for (var k=j;k<this.lastView;k++){
             if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
             //if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<1){ //An almost repeated bar, less than one pixel difference
                 this.isAmbiguous = 1;
@@ -764,7 +766,7 @@ Barchart.prototype.findPaths = function (startIndex){
     var pathInfo = [];
     pathInfo[0] = this.pathData[startIndex][1];
     pathInfo[1] = [];
-    for (var j=startIndex; j< this.numBars;j++){
+    for (var j=startIndex; j< this.lastView;j++){
         if (this.ambiguousBars[j][0]==1){
             if (j!=startIndex && this.ambiguousBars[j-1][0]!=1){ //Starting a new path
                 //Need to calculate points to draw the loop, based on the original point value

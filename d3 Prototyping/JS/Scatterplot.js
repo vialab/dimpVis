@@ -39,11 +39,10 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.mouseX = -1; //Keep track of mouse coordinates for the dragend event
    this.mouseY = -1;
    this.interpValue = 0; //Stores the current interpolation value (percentage travelled) when a point is dragged between two views
-   this.displayData = [];// Stores the dataset to be visualized
    this.labels = []; //Stores the labels of the hint path
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
    this.loops = []; //Stores points to draw for interaction loops (if any)
-   this.previousDragAngle = 0; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
+   this.previousLoopAngle = 0; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
 
    //Variables to track interaction events
    this.dragged = -1;
@@ -102,7 +101,6 @@ Scatterplot.prototype.render = function( data, start, labels) {
    var ref = this; //Reference variable
 	//Save the function parameters
    this.labels = labels;
-   this.displayData = data;
    this.currentView = start;
    this.lastView = labels.length -1;
 
@@ -128,7 +126,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
 
   // Set up the data for drawing the points according to the values in the data set
   this.svg.selectAll("circle")
-     .data(this.displayData.map(function (d,i) {
+     .data(data.map(function (d,i) {
             //Re-scale the points such that they are drawn within the svg container
            d.points.forEach(function (d) {
                d[0] = xScale(d[0]);
@@ -224,6 +222,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
     if (currentPointInfo[0]==1){ //Stationary point
         this.dragAlongLoop(id);
     }else{
+        this.previousLoopAngle = 0;
         this.dragAlongPath(id);
     }
     //Toggle the label colours (if arrived at an ambiguous point)
@@ -301,7 +300,6 @@ Scatterplot.prototype.toggleLabelColour = function (currentView,groupNumber){
 }
 //TODO: for simplicity, might want to have the interaction loop as a circle programatically, but draw a loop which is approximately fitted to
 //TODO: the underlying circle (which is what the user sees)
-//TODO: the other option is to learn how to drag along a spline
 /**Handles a dragging interaction along an interaction loop (really a circular dragging motion)
  * used to advance forward or backward along the hint path in the stationary point case
  * id: of the dragged point
@@ -310,31 +308,32 @@ Scatterplot.prototype.dragAlongLoop = function (id){
      var ref = this;
      //Get the position of the stationary point
      var points = this.svg.select("#displayPoints"+id).data().map(function (d) {return d.nodes[ref.currentView];});
-	 var theta = Math.PI/3;
+	 var theta =Math.PI/3;
      var cx = points[0][0] + this.loopRadius/2*Math.cos(theta);
 	 var cy = points[0][1] + this.loopRadius/2*Math.sin(theta);
-     //Calculate the angle of the mouse w.r.t the stationary point
-     var angle = Math.atan2(this.mouseX-cx,this.mouseY-cy);   
-    /** if (angle>0){
-         //Resolve the dragging direction, 1 is counter-clockwise and 0 is clockwise
-         var draggingDirection = (angle<this.previousDragAngle)?0:1;
-         //console.log(draggingDirection);
-         var amountTravelled = angle/Math.PI; //Used for interpolation
-         if (amountTravelled>=1){ //Update the view based on the dragged direction
-           if (draggingDirection==1){
-               console.log("towards current, backward in time");
-           }else{
-               console.log("towards next, forward in time");
-           }
-         }
-         this.previousDragAngle = angle;
-     }*/
-	 if (angle < 0){angle = (Math.PI - angle*(-1))+Math.PI;}
-	 var newX = cx+this.loopRadius/2*Math.cos(angle);
-	  var newY = cy+this.loopRadius/2*Math.sin(angle);
-	 ref.svg.select("#displayPoints"+id).attr("cx",newX).attr("cy",newY);
-	 console.log(angle*180/Math.PI);
+     //TODO: figure out how to automatically calculate these
+     var referenceAngleCurrent = 3.6; //Clockwise crosses this first
+     var referenceAngleNext = 3.7; //Counterclockwise crosses this first
 
+     //Calculate the angle of the mouse w.r.t the stationary point
+     var angle = Math.atan2(this.mouseX-cx,this.mouseY-cy);
+	 if (angle < 0){angle = (Math.PI - angle*(-1))+Math.PI;}
+     /**var isClockwise = 1;
+     if (angle > this.previousLoopAngle){ isClockwise = 0;}
+     if (isClockwise ==1){ //Moving clockwise (towards next, forward in time)
+      if (angle < referenceAngleCurrent){
+          console.log("passing current, starting a revolution");
+      }else if (angle > referenceAngleNext && Math.abs(angle-referenceAngleNext)<=0.05){
+          console.log("passing next, finishing revolution");
+      }
+    }else{ //Move counter-clockwise (towards current, backward in time)
+
+    }*/
+     var newX = cx+this.loopRadius/2*Math.cos(angle);
+	 var newY = cy+this.loopRadius/2*Math.sin(angle);
+	 ref.svg.select("#displayPoints"+id).attr("cx",newX).attr("cy",newY);
+     this.previousLoopAngle = angle;
+	 console.log(angle);
 }
  /**"Animates" the rest of the points while one is being dragged
  * Uses the 't' parameter, which represents approximately how far along a line segment
@@ -533,10 +532,10 @@ Scatterplot.prototype.drawLoops = function (id){
         .attr("class","loop"+id)
         .style("fill","none")
         .style("stroke", this.hintColour);
-    var cx = ref.loops[0][0] + this.loopRadius/2*Math.cos(Math.PI/3);
-	var cy = ref.loops[0][1] + this.loopRadius/2*Math.sin(Math.PI/3);
-		console.log(this.svg.selectAll(".loop"+id).data());
     //Debugging: draw a circle to estimate the loop
+    var cx = ref.loops[0][0] + this.loopRadius/2*Math.cos(0);
+	var cy = ref.loops[0][1] + this.loopRadius/2*Math.sin(0);
+		console.log(this.svg.selectAll(".loop"+id).data());
     this.svg.select("#hintPath").append("circle")
 	    .attr("cx",cx)
 		.attr("cy",cy)
@@ -625,7 +624,6 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,numPoints){
  *  points: an array of points to search within
  * */
 Scatterplot.prototype.checkAmbiguous = function (points){
-
     var j, currentPoint;
     var stationaryPoints = [];
     var revisitingPoints = [];

@@ -47,11 +47,11 @@ function Piechart(x,y, r,id,title,hLabels){
    this.halfPi = Math.PI/2;
    this.twoPi = Math.PI*2;
    
-   //Event functions, all declared in main.js  
-   this.placeholder = function() {}; 
-   this.clickHintLabelFunction = this.placeholder;
-   this.clickSVG = this.placeholder;
-   this.dragEvent = null; 
+   //Event functions, declared in the init.js file
+   this.clickHintLabelFunction = {};
+   this.clickSVG = {};
+   this.dragEvent = null;
+
   //Function for drawing the arc segments   
    this.arcGenerator = d3.svg.arc().innerRadius(0).outerRadius(this.radius)
 					   .startAngle(function (d) {return d.startAngle;})
@@ -61,7 +61,7 @@ function Piechart(x,y, r,id,title,hLabels){
     this.hintColour = "#1f77b4";
     this.grey = "#c7c7c7";
 }
-/**TODO:Customize the display colours of the piechart, to change the default?*/
+//TODO:Not high priority, customize the display colours of the piechart, to change the default
 
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -110,7 +110,8 @@ Piechart.prototype.init = function(){
      var colourScale = d3.scale.quantize()
          .domain([0,this.numArcs])
          .range(["#74c476", "#31a354","#a1d99b","#c7e9c0",  "#3182bd", "#6baed6", "#9ecae1","#c6dbef"]);
-
+   //TODO: use linear or other colour scale which will not require each segment to have it's own colour,
+   //TODO: otherwise you end up with multiple segments of the same colour
 	//Assign the data to the paths drawn as pie segments
 	this.svg.selectAll("path").data(this.displayData.map(function (d,i) {
                          var angles = [];
@@ -139,7 +140,7 @@ this.svg.selectAll(".gDisplayArcs").append("path")
                         d.endAngle = ref.endAngles[d.id];
                        return ref.arcGenerator(d);
                  })
-    //TODO: labels on the piechart? Or legend?
+    //TODO: labels on the piechart? Or a legend?
 				/** .append("text")
 				 .attr("transform", function (d,i){											        
 						return "translate(" + arc.centroid(d) + ")"; 													
@@ -191,7 +192,7 @@ Piechart.prototype.calculateLayout = function (angles,start,id){
         this.endAngles[j] = angleSum + currentAngle;
         angleSum += currentAngle;
     }
-    console.log("ends "+this.endAngles.map(function (d){return d*180/Math.PI})+" starts "+this.startAngles.map(function (d){return d*180/Math.PI}));
+    //console.log("ends "+this.endAngles.map(function (d){return d*180/Math.PI})+" starts "+this.startAngles.map(function (d){return d*180/Math.PI}));
 }
 /** Finds the hint arcs of a pie segment, specifically this function finds when the arc changes growth direction
  *  as it increases and decreases over time
@@ -327,22 +328,6 @@ Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
     this.interpValue = distanceRatio;
     return distanceRatio;
 }
-//Updates the next and current arrays used for animating segments to make sure interpolation is always between two views
-//TODO: not sure if this function is needed
-/**Piechart.prototype.updateAngles = function (start,current,next){
-  var ref = this;
-  var sumCurrent = sumNext = start;
-   this.svg.selectAll(".displayArcs").each(function (d){
-         //Update for the current view		 
-          ref.currentAngles[d.id][0] = sumCurrent;		 
-		  ref.currentAngles[d.id][1] = sumCurrent + d.nodes[current];         
-		  sumCurrent += d.nodes[current];   
-		 //Update for the next view
-		  ref.nextAngles[d.id][0] = sumNext;
-		  ref.nextAngles[d.id][1] = sumNext + d.nodes[next];         
-		  sumNext += d.nodes[next]; 
-   });
-}*/
 /**"Animates" the rest of the segments while one is being dragged
  * Uses the interpAmount to determine how far the segment has travelled between the two angles
  * defined at start and end view. The angles of the other bars are estimated using the
@@ -379,7 +364,6 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  * */
 Piechart.prototype.animateHintPath = function (hDirections,angles){
     var ref = this;
-    var savedRadii = []; //TODO: Shouldn't need to save by array
     var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}),1);
     var hintPathArcString = ref.createArcString(hintArcInfo,hDirections);
     //Redraw the hint path
@@ -485,21 +469,23 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")
-            .attr("d", hintPathArcString)
-            .style("fill","none").style("stroke",ref.hintColour).style("stroke-width",1)
-            .attr("class","hintArcs").attr("filter", "url(#blur)");
+        .attr("d", hintPathArcString)
+        .style("fill","none").style("stroke",ref.hintColour).style("stroke-width",1)
+        .attr("class","hintArcs").attr("filter", "url(#blur)");
 
 	//Render the hint labels
 	this.svg.select("#hintPath").selectAll("text")
-        .data(hintArcInfo.map(function (d) {return {x:d[0],y:d[1]}})).enter()
+         .data(hintArcInfo.map(function (d) {return {x:d[0],y:d[1]}})).enter()
          .append("svg:text").text(function(d,i) { return ref.labels[i]; })
          .attr("transform", function (d){return "translate("+ d.x+","+ d.y+")";})
          .attr("fill", ref.hintLabelColour).style("font-size","10px")
+         .on("click",this.clickHintLabelFunction)
+         .style("cursor", "pointer")
          .attr("class","hintLabels");
 
     //Fade out all the other segments
 	this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
-            .transition().duration(400).style("fill-opacity", 0.5);
+         .transition().duration(400).style("fill-opacity", 0.5);
 }
 /** Clears the hint path by removing all svg elements in #hintPath
  * */
@@ -522,10 +508,8 @@ Piechart.prototype.findHintRadius = function (index,view){
 Piechart.prototype.interpolateHintRadius = function (index,startView,endView){
     var startRadius = this.findHintRadius(index,startView);
     var endRadius = this.findHintRadius(index,endView);
-    //var newRadius = Math.abs(endRadius-startRadius)*this.interpValue;
     var interpolator = d3.interpolate(startRadius,endRadius);
     return interpolator(this.interpValue);
-    //return startRadius - newRadius;
 }
 /** A function which manually constructs the path string to draw a hint path consisting of arcs
  *  The format of the string is: M startX startY A rX rY 0 0 0 endX endY
@@ -577,12 +561,11 @@ Piechart.prototype.createArcString = function (pathInfo,directions){
 /** Animates all segments on the piechart along the hint path of a selected segment
  *  startView to endView, this function is called when "fast-forwarding"
  *  is invoked (by clicking a year label on the hint path)
- *  startView: View index to start the animation at
- *  endView: View to end the animation at (need to update view variables
- *  according to this value)
+ *  startView, endView: View indices bounding the animation
+ *  id: of the dragged segment (if any)
  *  NOTE: This function does not update the view tracking variables
  * */
-Piechart.prototype.animateSegments = function( startView, endView) {
+Piechart.prototype.animateSegments = function(id, startView, endView) {
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
     var direction = 1;
@@ -594,11 +577,11 @@ Piechart.prototype.animateSegments = function( startView, endView) {
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
 
     //Apply multiple transitions to each display point by chaining them
-    this.svg.selectAll(".displaySegments").each(animate());
-
+    this.svg.selectAll(".displayArcs").call(function (d){return animate(d);});
+   //TODO: this doesn't work
     //Recursively invoke this function to chain transitions, a new transition is added once
     //the current one is finished
-    function animate() {
+    function animate(d) {
         viewCounter++;
         if (viewCounter==totalViews) {
             animateView = animateView + direction;
@@ -606,12 +589,36 @@ Piechart.prototype.animateSegments = function( startView, endView) {
         }
         if (direction == 1 && animateView>=endView) return;
         if (direction ==-1 && animateView<=endView) return;
+        var currentAngles = [];
         return function(d) {
-            d3.select(this).transition(400).ease("linear")
-                //TODO: need to recompute the layout
-                .attr("d", d.nodes[animateView][0])
+            console.log(d);
+            var newAngles = [];
+            //newAngles = this.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes[animateView]});
+            console.log(d3.select(this).data());
+            //Recalculate the piechart layout at the view
+            //ref.calculateLayout(newAngles,ref.dragStartAngle,id);
+            //Redraw the piechart at the new view
+            d3.selectAll(this).transition(400).ease("linear")
+                .attr("d", function (d){
+                    d.startAngle = ref.startAngles[d.id];
+                    d.endAngle = ref.endAngles[d.id];
+                    return ref.arcGenerator(d);
+                 })
                 .each("end", animate());
             //TODO:animate hint path
+            //If the bar's hint path is visible, animate it
+            if (d.id == id){
+                //Re-draw the hint path
+                /**d3.select("#hintPath").selectAll("path").attr("d", function(d,i){
+                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
+                });
+                //Re-draw the hint path labels
+                d3.select("#hintPath").selectAll(".hintLabels").attr("transform",function (d,i) {
+                        //Don't rotate the label resting on top of the bar
+                        if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
+                        else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
+                });*/
+            }
         };
     }
 }

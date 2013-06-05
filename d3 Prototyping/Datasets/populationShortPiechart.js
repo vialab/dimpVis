@@ -38,17 +38,17 @@ var data = [];
  var totals = [0,0,0,0,0,0,0,0,0,0,0];
  //Populate the values array for each cluster, with population totals
  for (var j = 0;j<data.length;j++){
- data[j].values[0] += dataset[j].Pop1955;
- data[j].values[1] += dataset[j].Pop1960;
- data[j].values[2] += dataset[j].Pop1965;
- data[j].values[3] += dataset[j].Pop1970;
- data[j].values[4] += dataset[j].Pop1975;
- data[j].values[5] += dataset[j].Pop1980;
- data[j].values[6] += dataset[j].Pop1985;
- data[j].values[7] += dataset[j].Pop1990;
- data[j].values[8] += dataset[j].Pop1995;
- data[j].values[9] += dataset[j].Pop2000;
- data[j].values[10] += dataset[j].Pop2005;
+        data[j].values[0] += dataset[j].Pop1955;
+        data[j].values[1] += dataset[j].Pop1960;
+        data[j].values[2] += dataset[j].Pop1965;
+        data[j].values[3] += dataset[j].Pop1970;
+        data[j].values[4] += dataset[j].Pop1975;
+        data[j].values[5] += dataset[j].Pop1980;
+        data[j].values[6] += dataset[j].Pop1985;
+        data[j].values[7] += dataset[j].Pop1990;
+        data[j].values[8] += dataset[j].Pop1995;
+        data[j].values[9] += dataset[j].Pop2000;
+        data[j].values[10] += dataset[j].Pop2005;
 
  }
  //Get the totals for each view (to divide the values by)
