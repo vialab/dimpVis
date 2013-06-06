@@ -2,7 +2,7 @@
  * */
 
 //Create new barchart visualization
-var barchart   = new Barchart(400, 50, 30, 0 , "#bargraph",80,"country","population","Populations of a selected group of countries over time",labels);
+var barchart   = new Barchart(400, 50, 30, 0 , "#bargraph",80,"g8+5 countries","CO2 emissions per person (metric tons)","CO2 Emissions of the G8+5 Countries",labels);
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 barchart.clickSVG = function (){
@@ -14,6 +14,7 @@ barchart.init();
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
+    d3.event.preventDefault();
     barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
     barchart.changeView(i);
     slider.updateSlider(i);
@@ -43,7 +44,7 @@ barchart.svg.selectAll(".displayBars")
     .call(barchart.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(50, 600, "#time",labels, "Years","#666",50);
+var slider   = new Slider(50, 600, "#time",labels, "Time","#666",17);
 slider.init();
 slider.render();
 

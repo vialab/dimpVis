@@ -128,8 +128,6 @@ Barchart.prototype.init = function(){
      }
      //Find the max value of the heights, used to scale the axes and the dataset
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
-
-     //TODO: values seem to be reversed
      //Create the scales
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
      var yScale =  d3.scale.linear().domain([0, max_h]).range([0,ref.height]);
@@ -189,7 +187,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     this.svg.append("text")
         .attr("class", "axisLabel")
         .attr("x", this.width+this.padding)
-        .attr("y", this.height+this.padding-10)
+        .attr("y", this.height+this.padding-3)
         .style("fill",this.axisColour)
         .text(this.xLabel);
 

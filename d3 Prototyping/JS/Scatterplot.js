@@ -392,6 +392,7 @@ Scatterplot.prototype.changeView = function( newView) {
             this.nextView = newView + 1;
 	}
 }
+//TODO: for some reason, doesn't work anymore? AnimateView incrementing to the totalViews
 /** Animates all points in the scatterplot along their hint paths from
  *  startView to endView, this function is called when "fast-forwarding"
  *  is invoked (by clicking a year label on the hint path)
@@ -422,7 +423,6 @@ Scatterplot.prototype.changeView = function( newView) {
     //Recursively invoke this function to chain transitions, a new transition is added once
     //the current one is finished
     function animate() {
-        //console.log(viewCounter);
         viewCounter++;
         if (viewCounter==totalViews) {
             animateView = animateView + direction;
@@ -431,6 +431,7 @@ Scatterplot.prototype.changeView = function( newView) {
        if (direction == 1 && animateView>=endView) return;
        if (direction ==-1 && animateView<=endView) return;
         return function(d) {
+            console.log(viewCounter);
                 d3.select(this).transition(400).ease("linear")
                 .attr("cx",d.nodes[animateView][0])
                 .attr("cy",d.nodes[animateView][1])

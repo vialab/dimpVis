@@ -254,49 +254,42 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                  if (ref.currentView == 0) {  //At the start angle
                     if (bounds == current){ //Passed current angle, out of bounds
                        d.endAngle = current;
-                       return ref.arcGenerator(d);
                     }else if (bounds == next){ //Passed the next angle, update the tracker variables
                         d.endAngle = next;
                         ref.currentView = ref.nextView;
                         ref.nextView++;
-                        return ref.arcGenerator(d);
+                    }else{   //Otherwise, dragged angle is in bounds
+                        ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView,ref.interpValue);
+                        ref.animateHintPath(d.hDirections, d.nodes);
                     }
-                    //Otherwise, dragged angle is in bounds
-                    ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView,ref.interpValue);
-                    ref.animateHintPath(d.hDirections, d.nodes);
-                    return ref.arcGenerator(d);
                  } else if (ref.nextView == ref.lastView){ //At the largest end angle
                     if (bounds == next) { //Passed the largest end angle, out of bounds
                        d.endAngle = next;
-                       return ref.arcGenerator(d);
                     }else if (bounds == current){ //Passed the current angle, update the tracker variables
                       d.endAngle = current;
                       ref.nextView = ref.currentView;
                       ref.currentView--;
-                      return ref.arcGenerator(d);
+                    }else { //Otherwise, dragged angle is in bounds
+                        ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
+                        ref.animateHintPath(d.hDirections, d.nodes);
                     }
-                    //Otherwise, dragged angle is in bounds
-                    ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
-                    ref.animateHintPath(d.hDirections, d.nodes);
-                    return ref.arcGenerator(d);
                  }	else { //At an angle somewhere in between the largest and smallest
                       if (bounds == current){ //Passed current
                           d.endAngle = current;
                           ref.nextView = ref.currentView;
                           ref.currentView--;
-                          return ref.arcGenerator(d);
                       } else if (bounds ==next){ //Passed next
                          d.endAngle = next;
                          ref.currentView = ref.nextView;
                          ref.nextView++;
-                         return ref.arcGenerator(d);
+                      }else { //Otherwise, within bounds
+                          ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
+                          ref.animateHintPath(d.hDirections, d.nodes);
                       }
-                      //Otherwise, within bounds
-                      ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
-                      ref.animateHintPath(d.hDirections, d.nodes);
-                      return ref.arcGenerator(d);
+
                  }
-                //console.log("angle: "+(angle*180/Math.PI)+" endangle "+(d.endAngle*180/Math.PI));
+             return ref.arcGenerator(d);
+
 	});
 }
 /** Checks if the mouse's dragged angle is in the bounds defined by angle1, angle2
@@ -485,7 +478,7 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
 
     //Fade out all the other segments
 	this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
-         .transition().duration(400).style("fill-opacity", 0.5);
+         .transition().duration(400).style("fill-opacity", 0);
 }
 /** Clears the hint path by removing all svg elements in #hintPath
  * */
