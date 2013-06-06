@@ -2,7 +2,7 @@
  * */
 
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate","life expectancy","Fertility Rate vs. Life Expectancy Over the Years");
+var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries");
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 scatterplot.clickSVG = function (){
@@ -13,6 +13,7 @@ scatterplot.init();
 //Define the click interaction of the hint labels to invoke fast switching among views
 scatterplot.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation(); //Prevents the event from propagating down to the SVG
+    d3.event.preventDefault();
     scatterplot.animatePoints(scatterplot.currentView, i);
     scatterplot.changeView(i);
     slider.updateSlider(i);
@@ -32,6 +33,7 @@ scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an ar
 						    scatterplot.draggedPoint = d.id;
                             scatterplot.previousDragAngle = 0; //To be safe, re-set this
                             scatterplot.showHintPath(d.id,d.nodes);
+                            //d3.event.sourceEvent.preventDefault(); //TODO: supposed to disable text selections https://groups.google.com/forum/?fromgroups#!topic/d3-js/2hrmSnJ5lr0
 					  })
                       .on("drag", function(d){
                            scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
@@ -48,7 +50,7 @@ scatterplot.svg.selectAll(".displayPoints")
                    .call(scatterplot.dragEvent);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(15, 700, "#time",labels, "Years","#666",50);
+var slider   = new Slider(15, 700, "#time",labels, "Time","#666",50);
 slider.init();
 slider.render();
 				  

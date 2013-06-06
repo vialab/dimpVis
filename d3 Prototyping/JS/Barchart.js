@@ -129,9 +129,10 @@ Barchart.prototype.init = function(){
      //Find the max value of the heights, used to scale the axes and the dataset
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
 
+     //TODO: values seem to be reversed
      //Create the scales
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
-     var yScale =  d3.scale.linear().domain([0, max_h]).range([ref.height,0]);
+     var yScale =  d3.scale.linear().domain([0, max_h]).range([0,ref.height]);
 
 //Assign data values to a set of rectangles representing the bars of the chart
 this.svg.selectAll("rect")
@@ -140,7 +141,7 @@ this.svg.selectAll("rect")
             //Array format is: data[viewIndex] = [y of top of bar, height of bar]
             var data = [];
             for (var j=0;j< d.heights.length;j++){
-                data[j] = [ref.base - yScale(d.heights[j]),yScale(d.heights[j])];
+               data[j] = [ref.base - yScale(d.heights[j]),yScale(d.heights[j])];
             }
 	        return {nodes:data,id:i,label:d.label,xPos:xScale(i)+ref.padding+ref.strokeWidth};
 	  }))
@@ -158,7 +159,7 @@ this.svg.selectAll("rect")
      .attr("x", function(d){return d.xPos;})
      .attr("y", function(d){ return d.nodes[ref.currentView][0];})
      .attr("width", this.barWidth)
-     .attr("height", function(d) { return d.nodes[ref.currentView][1]; })
+     .attr("height", function(d) {return d.nodes[ref.currentView][1]; })
 	 .attr("fill", this.barColour)
 	 .attr("class", "displayBars")
 	 .attr("id", function (d){return "displayBars"+d.id;})

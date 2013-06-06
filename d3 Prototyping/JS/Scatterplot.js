@@ -70,14 +70,13 @@ Scatterplot.prototype.setColours = function(pointCol, hintCol, axisCol){
  * */
 Scatterplot.prototype.init = function() {
    this.svg = d3.select(this.id).append("svg")
-      .attr("width", this.width+(this.padding*2))
+      .attr("width", this.width+(this.padding*2.5))
       .attr("height", this.height+(this.padding*2))
        .attr("x",this.xpos)
        .attr("y",this.ypos)
        .on("click",this.clickSVG)//TODO: Want to be able to click the background of the graph (not a point) as a way of clearing the hint path, right now events are interfering
        .append("g")
        .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
-
     //Add the blur filter used for the hint path to the SVG so other elements can call it
     this.svg.append("svg:defs")
         .append("svg:filter")
@@ -220,7 +219,8 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
     var currentPointInfo = this.ambiguousPoints[this.currentView];
     //Re-draw the dragged point along the hint path
     if (currentPointInfo[0]==1){ //Stationary point
-        this.dragAlongLoop(id);
+        //this.dragAlongLoop(id);
+        this.toggleLabelColour(this.currentView,currentPointInfo[2]);
     }else{
         this.previousLoopAngle = 0;
         this.dragAlongPath(id);
@@ -404,7 +404,7 @@ Scatterplot.prototype.changeView = function( newView) {
  * */
 //TODO:Add tweening to make the transition smoother
 //TODO: Out of bounds for end points, still pretty buggy might have to do with the view tracking
-//TODO: Toggling label colour not working properly
+//TODO: Toggling label colour not working
  Scatterplot.prototype.animatePoints = function( startView, endView) {
 	 var ref = this;
      //Determine the travel direction (e.g., forward or backward in time)
@@ -446,8 +446,8 @@ Scatterplot.prototype.changeView = function( newView) {
 Scatterplot.prototype.redrawView = function(view) {
     this.svg.selectAll(".displayPoints")
 	          .transition().duration(300)
-	           .attr("cx",function (d){return d.nodes[view][0];})
-			   .attr("cy",function (d){return d.nodes[view][1];});
+	          .attr("cx",function (d){return d.nodes[view][0];})
+			  .attr("cy",function (d){return d.nodes[view][1];});
 }
 /** Displays the hint path by appending text labels and a path to the svg
  * id: The id of the dragged point, to determine which hint path to draw
@@ -533,7 +533,7 @@ Scatterplot.prototype.drawLoops = function (id){
         .style("fill","none")
         .style("stroke", this.hintColour);
     //Debugging: draw a circle to estimate the loop
-    var cx = ref.loops[0][0] + this.loopRadius/2*Math.cos(0);
+   /** var cx = ref.loops[0][0] + this.loopRadius/2*Math.cos(0);
 	var cy = ref.loops[0][1] + this.loopRadius/2*Math.sin(0);
 		console.log(this.svg.selectAll(".loop"+id).data());
     this.svg.select("#hintPath").append("circle")
@@ -541,7 +541,7 @@ Scatterplot.prototype.drawLoops = function (id){
 		.attr("cy",cy)
 		.attr("r",this.loopRadius/2)
         .attr("fill","none")
-		.attr("stroke","black");
+		.attr("stroke","black");*/
 }
 /**Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag
  * */
