@@ -248,6 +248,17 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                 d.endAngle = ref.dragStartAngle + angle;
                 var current = ref.dragStartAngle + d.nodes[ref.currentView];
                 var next = ref.dragStartAngle + d.nodes[ref.nextView];
+                //Adjust the current and next to ensure they do not exceed 360
+               // var current = ((ref.dragStartAngle + d.nodes[ref.currentView] >ref.twoPi) ? ((ref.dragStartAngle + d.nodes[ref.currentView])-ref.twoPi):(ref.dragStartAngle + d.nodes[ref.currentView]));
+               // var next = ((ref.dragStartAngle + d.nodes[ref.nextView] >ref.twoPi) ? ((ref.dragStartAngle + d.nodes[ref.nextView])-ref.twoPi):(ref.dragStartAngle + d.nodes[ref.nextView]));
+               if (next > ref.twoPi && current < ref.twoPi){ //Detect when one endAngle crosses over the 360 mark
+                      if (d.endAngle >0 && d.endAngle < (next - ref.twoPi)){
+                          d.endAngle= d.endAngle + ref.twoPi;
+                      }
+                 }
+               //(ref.twoPi - current) + (ref.twoPi - next)
+          //console.log( Math.abs(d.nodes[ref.currentView] -  d.nodes[ref.nextView])*180/Math.PI)
+         console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI);
                 //TODO: when dragging angle (d.endAngle) exceeds 360 deg, the angle isn't drawn properly and current,next and d.endAngle don't match for checking the bounds
                  var bounds = ref.checkBounds(current,next,d.endAngle);
                // console.log("current view"+ref.currentView+"next view "+ref.nextView+"current "+current+"next "+next+" computed "+d.endAngle);
@@ -288,6 +299,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                       }
 
                  }
+         console.log("returned: "+d.endAngle*180/Math.PI);
              return ref.arcGenerator(d);
 
 	});
@@ -308,12 +320,14 @@ Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
 	}else{
 	  start = angle1;
 	  end = angle2;
-	}
-	if (mouseAngle <= start){
-	   return start;
-	}else if (mouseAngle >=end){
-	   return end;
-	}
+    }
+
+    if (mouseAngle <= start){
+        return start;
+    }else if (mouseAngle >=end){
+        return end;
+    }
+
     //Find the amount travelled from current to next view (remember: angle1 is current and angle2 is next)
     var distanceTravelled = Math.abs(mouseAngle-angle1);
     var totalDistance = Math.abs(angle2 - angle1);
@@ -478,7 +492,7 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
 
     //Fade out all the other segments
 	this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
-         .transition().duration(400).style("fill-opacity", 0);
+         .transition().duration(400).style("fill-opacity", 0.3);
 }
 /** Clears the hint path by removing all svg elements in #hintPath
  * */
