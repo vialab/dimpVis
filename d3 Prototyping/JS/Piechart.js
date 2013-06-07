@@ -84,14 +84,14 @@ Piechart.prototype.init = function(){
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
  * start: The starting view of the visualization, as an index into the labels array
- *
+ * colours: an array of colours for the piechart, if none is specified (empty array), use a default
  * Data MUST be provided in the following array format:
  * Object{"values":{v1,v2...vn},
  *        "label":"name of pie segment"
  *       }
  *       ..... number of pie segments
  * */
- Piechart.prototype.render = function(data,start){
+ Piechart.prototype.render = function(data,start,colours){
       var ref = this;
      //Save the parameters
 	  this.displayData = data;
@@ -106,55 +106,56 @@ Piechart.prototype.init = function(){
      }else {
          this.nextView = this.currentView + 1;
      }
+     var colourScale = d3.scale.category20();
      //Create a colour scale for the pie segments
-     var colourScale = d3.scale.quantize()
-         .domain([0,this.numArcs])
-         .range(["#74c476", "#31a354","#a1d99b","#c7e9c0",  "#3182bd", "#6baed6", "#9ecae1","#c6dbef"]);
-   //TODO: use linear or other colour scale which will not require each segment to have it's own colour,
-   //TODO: otherwise you end up with multiple segments of the same colour
+     if (colours.length >0){
+         if (this.numArcs <= colours.length){
+             colourScale = d3.scale.quantize().domain([0,this.numArcs]).range(colours);
+         }else{
+             colourScale = d3.scale.linear().domain([0,this.numArcs]).range(colours);
+         }
+     }
 	//Assign the data to the paths drawn as pie segments
 	this.svg.selectAll("path").data(this.displayData.map(function (d,i) {
-                         var angles = [];
-                        //Calculate and save the angle values based on a given percentage value (as a decimal)
-                        for (var j=0;j< ref.numViews;j++){
-                            angles[j] = d.values[j]*ref.twoPi;
-                        }
-                        var hintArcInfo = ref.findHintArcs(angles);
-                        return {nodes:angles,label:d.label,id:i,startAngle:0,endAngle:0,colour:colourScale(i),
-                              hDirections:hintArcInfo};
-	              }))
-				 .enter().append("g")
-                 .attr("class","gDisplayArcs");
+                 var angles = [];
+                //Calculate and save the angle values based on a given percentage value (as a decimal)
+                for (var j=0;j< ref.numViews;j++){
+                    angles[j] = d.values[j]*ref.twoPi;
+                }
+                var hintArcInfo = ref.findHintArcs(angles);
+                return {nodes:angles,label:d.label,id:i,startAngle:0,endAngle:0,colour:colourScale(i),
+                      hDirections:hintArcInfo};
+          }))
+         .enter().append("g")
+         .attr("class","gDisplayArcs");
 
  //Find the start and end angles for the current view
  this.calculateLayout(this.svg.selectAll(".gDisplayArcs").data().map(function (d){return d.nodes[ref.currentView]}),0,0);
 
  //Render the pie segments               				 
 this.svg.selectAll(".gDisplayArcs").append("path")
-				 .attr("fill",function (d){return d.colour;})
-				 .attr("transform", "translate(" + this.cx + "," + this.cy + ")")	 
-				 .attr("id", function (d) {return "displayArcs"+d.id;})	                			 
-				 .attr("class","displayArcs")
-				 .attr("d", function (d) {
-                        d.startAngle = ref.startAngles[d.id];
-                        d.endAngle = ref.endAngles[d.id];
-                       return ref.arcGenerator(d);
-                 })
-    //TODO: labels on the piechart? Or a legend?
-				/** .append("text")
-				 .attr("transform", function (d,i){											        
-						return "translate(" + arc.centroid(d) + ")"; 													
-				})                                          												
-				 .attr("fill", ref.hintLabelColour)				 
-				 .text("Test")*/
-				 .append("title").text(function(d){return d.label;});
-// Add the title of the chart
-this.svg.append("text")
-         .attr("id", "graphTitle").style("fill", this.grey)
-         .text(this.graphTitle).attr("x",10).attr("y",13);
+         .attr("fill",function (d){return d.colour;})
+         .attr("transform", "translate(" + this.cx + "," + this.cy + ")")
+         .attr("id", function (d) {return "displayArcs"+d.id;})
+         .attr("class","displayArcs")
+         .attr("d", function (d) {
+                d.startAngle = ref.startAngles[d.id];
+                d.endAngle = ref.endAngles[d.id];
+               return ref.arcGenerator(d);
+         })
+//TODO: labels on the piechart? Or a legend?
+        /** .append("text")
+         .attr("transform", function (d,i){
+                return "translate(" + arc.centroid(d) + ")";
+        })
+         .attr("fill", ref.hintLabelColour)
+         .text("Test")*/
+         .append("title").text(function(d){return d.label;});
+ // Add the title of the chart
+ this.svg.append("text").attr("id", "graphTitle").style("fill", this.grey).text(this.graphTitle).attr("x",10).attr("y",13);
 
-//Add a g element to contain the hint info		
-this.svg.append("g").attr("id","hintPath");
+ //Add a g element to contain the hint info
+ this.svg.append("g").attr("id","hintPath");
  }
 /** Re-calculates layout of the piechart for a list of angles
  *  The angles are saved in the global arrays startAngles, and endAngles

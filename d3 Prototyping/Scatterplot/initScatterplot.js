@@ -6,6 +6,7 @@ var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility r
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 scatterplot.clickSVG = function (){
+    d3.event.preventDefault();
     scatterplot.clearHintPath();
 };
 scatterplot.init();

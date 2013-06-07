@@ -2,7 +2,8 @@
  * */
 
 //Create a new piechart visualization
-var piechart   = new Piechart(50, 50 , 180,"#piegraph","Test Piechart",labels);
+var piechart   = new Piechart(50, 50 , 180,"#piegraph","Random",labels);
+var colours = ["#74c476", "#31a354","#a1d99b","#c7e9c0",  "#3182bd", "#6baed6", "#9ecae1","#c6dbef"];
 
 //Define the function when the SVG (background) is clicked, should clear the hint path displayed
 piechart.clickSVG = function (){
@@ -10,7 +11,7 @@ piechart.clickSVG = function (){
 };
 //Initialize and render the piechart visualization
 piechart.init();
-piechart.render(data,0);
+piechart.render(data,0,colours);
 
 //Define the function for fast-forwarding the view by clicking on any label along the hint path
 piechart.clickHintLabelFunction = function (d,i){
@@ -36,9 +37,7 @@ piechart.dragEvent = d3.behavior.drag()
     })
     .on("dragend",function (d){
         piechart.snapToView(d.id,d.endAngle,d.nodes);
-        //slider.updateSlider(piechart.currentView);
-        //piechart.redrawView();
-        //piechart.redrawSegments(d.id,d.startAngle,d.endAngle);
+        slider.updateSlider(piechart.currentView);
     });
 
 piechart.svg.selectAll(".displayArcs").call(piechart.dragEvent);
@@ -50,16 +49,16 @@ slider.render();
 
 //Define the dragging interaction for the slider, which moves the sliding tick back and forth
 slider.dragEvent = d3.behavior.drag()
-        .on("dragstart", function(){ piechart.clearHintPath();})
-        .on("drag", function(){
-                slider.updateDraggedSlider(d3.event.x);
-                piechart.interpolateSegments(-1,0,slider.currentTick,slider.nextTick,slider.interpValue);
-         })
-         .on("dragend",function (){
-              slider.snapToTick();
-              piechart.changeView(slider.currentTick);
-              //piechart.redrawView(-1,-1);
-         });
+    .on("dragstart", function(){ piechart.clearHintPath();})
+    .on("drag", function(){
+        slider.updateDraggedSlider(d3.event.x);
+        piechart.interpolateSegments(-1,0,slider.currentTick,slider.nextTick,slider.interpValue);
+    })
+    .on("dragend",function (){
+        slider.snapToTick();
+        piechart.changeView(slider.currentTick);
+        //piechart.redrawView(-1,-1);
+    });
 
 slider.widget.select("#slidingTick").call(slider.dragEvent);
 

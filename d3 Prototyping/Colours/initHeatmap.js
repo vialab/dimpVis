@@ -2,7 +2,7 @@
  * */
 
 //Create new heatmap visualization
-var heatmap = new Heatmap(30, 30,50,"#vis","",labels);
+var heatmap = new Heatmap(30, 30,50,"#vis","Random",labels);
 heatmap.init();
 
 //TODO:Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
@@ -14,7 +14,7 @@ heatmap.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
     heatmap.animateColours(heatmap.draggedCell,heatmap.currentView,i);
     heatmap.changeView(i);
-    slider.updateSlider(i);
+    //slider.updateSlider(i);
 };
 
 heatmap.render(data,xLabels,yLabels);
@@ -22,13 +22,13 @@ heatmap.render(data,xLabels,yLabels);
 heatmap.dragEvent = d3.behavior.drag()
                    .origin(function(d){ return {x:d.x+heatmap.cellSize/2,y:d.y+heatmap.cellSize/2};})
                    .on("dragstart", function(d){
-                      heatmap.clearHintPath();
+                       heatmap.clearHintPath();
                        heatmap.draggedCell = d.id;
-                       heatmap.showHintPath(d.id,d.values,d.x,d.y,heatmap.currentView);
+                       heatmap.showHintPath(d.id,d.values,d.x,d.y);
                    })
                   .on("drag", function(d){
                         heatmap.updateDraggedCell(d.id,d3.event.y);
-                        slider.animateTick(heatmap.interpValue,heatmap.currentView,heatmap.nextView);
+                        //slider.animateTick(heatmap.interpValue,heatmap.currentView,heatmap.nextView);
                   })
                   .on("dragend",function (d){
                        heatmap.snapToView(d.id, d.values, d.y);
@@ -39,7 +39,7 @@ heatmap.dragEvent = d3.behavior.drag()
 heatmap.svg.selectAll(".cell").call(heatmap.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(10, 500, "#time",labels, "Years","#666",15);
+/**var slider   = new Slider(10, 500, "#time",labels, "Years","#666",15);
 slider.init();
 slider.render();
 //Define the function to respond to the dragging behaviour of the slider tick
@@ -55,7 +55,7 @@ slider.dragEvent = d3.behavior.drag()
                           heatmap.redrawView(slider.currentTick,-1);
 					  });
 //Apply the dragging function to the movable tick
-slider.widget.select("#slidingTick").call(slider.dragEvent);
+slider.widget.select("#slidingTick").call(slider.dragEvent);*/
 
 	
 
