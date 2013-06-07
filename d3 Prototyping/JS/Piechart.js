@@ -262,7 +262,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                }
                //(ref.twoPi - current) + (ref.twoPi - next)
                 //console.log( Math.abs(d.nodes[ref.currentView] -  d.nodes[ref.nextView])*180/Math.PI)
-               console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI);
+               //console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI);
 
                  var bounds = ref.checkBounds(current,next,d.endAngle);
                // console.log("current view"+ref.currentView+"next view "+ref.nextView+"current "+current+"next "+next+" computed "+d.endAngle);
@@ -585,28 +585,27 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
 
     //Apply multiple transitions to each display point by chaining them
-    this.svg.selectAll(".displayArcs").call(function (d){return animate(d);});
+    this.svg.selectAll(".displayArcs").each(animate());
    //TODO: this doesn't work
     //Recursively invoke this function to chain transitions, a new transition is added once
     //the current one is finished
-    function animate(d) {
+    function animate() {
         viewCounter++;
         if (viewCounter==totalViews) {
             animateView = animateView + direction;
+             var newAngles = [];
+             newAngles = ref.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes[animateView]});
+            //Recalculate the piechart layout at the view
+            ref.calculateLayout(newAngles,ref.dragStartAngle,id);
+            //ref.calculateLayout([],ref.dragStartAngle,id);
             viewCounter = 0;
         }
         if (direction == 1 && animateView>=endView) return;
         if (direction ==-1 && animateView<=endView) return;
         var currentAngles = [];
         return function(d) {
-            console.log(d);
-            var newAngles = [];
-            //newAngles = this.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes[animateView]});
-            console.log(d3.select(this).data());
-            //Recalculate the piechart layout at the view
-            //ref.calculateLayout(newAngles,ref.dragStartAngle,id);
             //Redraw the piechart at the new view
-            d3.selectAll(this).transition(400).ease("linear")
+            d3.select(this).transition(400)//.ease("linear")
                 .attr("d", function (d){
                     d.startAngle = ref.startAngles[d.id];
                     d.endAngle = ref.endAngles[d.id];
@@ -615,9 +614,9 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
                 .each("end", animate());
             //TODO:animate hint path
             //If the bar's hint path is visible, animate it
-            if (d.id == id){
+           /** if (d.id == id){
                 //Re-draw the hint path
-                /**d3.select("#hintPath").selectAll("path").attr("d", function(d,i){
+                /d3.select("#hintPath").selectAll("path").attr("d", function(d,i){
                     return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
                 });
                 //Re-draw the hint path labels
@@ -625,8 +624,8 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
                         //Don't rotate the label resting on top of the bar
                         if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
                         else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
-                });*/
-            }
+                });
+            }*/
         };
     }
 }

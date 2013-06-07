@@ -607,7 +607,8 @@ Barchart.prototype.findHintX = function (oldX,index,view){
  * index: the view index
  * view: the current view
  * */
-Barchart.prototype.findHintY = function (oldY,index,view){
+//TODO: not used...
+ Barchart.prototype.findHintY = function (oldY,index,view){
     return oldY-view*this.hintPathSpacing;
 }
 /** Snaps to the nearest view once a dragged bar is released
