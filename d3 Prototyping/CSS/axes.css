@@ -1,5 +1,8 @@
-/** Some Styles for the Scatterplot visualization */
-
+/** Some Styles for the Scatterplot visualization, also used by the barchart */
+body {
+    /**Disables default selections (text, svg elements) of the browser*/
+    -webkit-user-select: none;
+}
 /** Axes styles */
 /** The main line of the x and y axis*/
 .axis path, .axis line {

@@ -373,7 +373,8 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  * hDirections: the drawing directions for the hint path and the segment numbers
  * angles: an array of all angles to appear on the hint path
  * */
-Piechart.prototype.animateHintPath = function (hDirections,angles){
+//TODO: try doing this with a translate, instead of recalculating the hint path coordinates
+ Piechart.prototype.animateHintPath = function (hDirections,angles){
     var ref = this;
     var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}),1);
     var hintPathArcString = ref.createArcString(hintArcInfo,hDirections);
@@ -597,7 +598,6 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
              newAngles = ref.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes[animateView]});
             //Recalculate the piechart layout at the view
             ref.calculateLayout(newAngles,ref.dragStartAngle,id);
-            //ref.calculateLayout([],ref.dragStartAngle,id);
             viewCounter = 0;
         }
         if (direction == 1 && animateView>=endView) return;
@@ -614,7 +614,7 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
                 .each("end", animate());
             //TODO:animate hint path
             //If the bar's hint path is visible, animate it
-           /** if (d.id == id){
+           /**  if (d.id == id){
                 //Re-draw the hint path
                 /d3.select("#hintPath").selectAll("path").attr("d", function(d,i){
                     return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));

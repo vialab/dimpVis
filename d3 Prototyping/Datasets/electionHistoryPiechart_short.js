@@ -18,6 +18,7 @@ var dataset = [
     [0,5,12,9,4,11,7,10,6,2,3,4,0,7,6,7,7,5,6,20,6,6,6,1,1,1,2,2,2,1,0,0,1,0,1,1,0,0,1,2,1]
 ];
 var totals = [180,200,206,206,211,215,215,213,213,214,221,221,235,235,245,245,245,245,245,245,262,265,265,265,265,265,265,264,264,264,282,282,282,295,295,301,301,307,308,308,308];
+
 //Generate data for the piechart
 //Format of array:
 // pieDataset = ["clusterLabel":name, "values":[list of all values, one per view]
@@ -30,9 +31,11 @@ for (var j=0;j<parties.length;j++){
 }
 //Now, update the piedataset to contain percentages, using the totals array
 for (var j=0;j<data.length;j++){
-    for (var k=0;k<totals.length;k++){
-        data[j].values[k] = dataset[j][k]/totals[k];
+    for (var k=23;k<totals.length;k++){
+        data[j].values.push(dataset[j][k]/totals[k]);
     }
 }
 var labels = ["1962","1963","1965","1968","1972","1974","1979","1980","1984","1988","1993","1997","2000","2004","2006","2008","2011"];
+
+
 

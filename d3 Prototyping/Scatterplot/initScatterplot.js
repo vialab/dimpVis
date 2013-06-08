@@ -14,7 +14,6 @@ scatterplot.init();
 //Define the click interaction of the hint labels to invoke fast switching among views
 scatterplot.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation(); //Prevents the event from propagating down to the SVG
-   // d3.event.preventDefault();
     scatterplot.animatePoints(scatterplot.currentView, i);
     scatterplot.changeView(i);
     slider.updateSlider(i);
@@ -29,12 +28,10 @@ scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an ar
 							return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
 	                   })
 					   .on("dragstart", function(d){
-                            //d3.event.sourceEvent.stopPropagation(); //TODO: this doesn't seem to work..
 						    scatterplot.clearHintPath();
 						    scatterplot.draggedPoint = d.id;
                             scatterplot.previousDragAngle = 0; //To be safe, re-set this
                             scatterplot.showHintPath(d.id,d.nodes);
-                            //d3.event.sourceEvent.preventDefault(); //TODO: supposed to disable text selections https://groups.google.com/forum/?fromgroups#!topic/d3-js/2hrmSnJ5lr0, also see: http://bl.ocks.org/stepheneb/1184766
 					  })
                       .on("drag", function(d){
                            scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
