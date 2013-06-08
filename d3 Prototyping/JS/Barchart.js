@@ -405,7 +405,7 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
  * */
 //TODO: alot of repeated code with the interpolator, maybe saving the values in an array isn't a bad idea
  Barchart.prototype.animateHintPath = function (interpAmount,pathId){
-    var ref = this;
+   var ref = this;
     //Re-draw the hint path
    this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
         var currentX = ref.findHintX(d[0],i,ref.currentView);
@@ -413,7 +413,6 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
         var interpolateX = d3.interpolate(currentX, nextX);
         return {x:interpolateX(interpAmount),y:d[1]};
     })));
-
 	//Re-draw the hint path labels
    this.svg.select("#hintPath").selectAll(".hintLabels")
             .attr("transform",function (d,i) {
@@ -422,7 +421,6 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
                 var interpolateX = d3.interpolate(currentX,nextX);
                 return "translate("+interpolateX(interpAmount)+","+ d.y+")";
             });
-
     //Re-draw the interaction paths (if any) by horizontally translating them
     if (this.interactionPaths.length >0) {
             this.svg.select("#hintPath").selectAll(".interactionPath").filter(function (d) {return d.id !=pathId})

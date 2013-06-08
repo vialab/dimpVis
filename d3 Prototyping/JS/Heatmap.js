@@ -38,6 +38,8 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    //Declare some interaction event functions
    this.dragEvent = {};
    this.clickHintLabelFunction = {};
+   this.clickSVG = {};
+
   //Function for drawing the hint path line
   //Note: array of points should be in the format [[x,y]..etc.]
    this.lineGenerator = d3.svg.line().x(function(d){return d[0];}).y(function(d){return d[1];}).interpolate("linear");
@@ -47,7 +49,9 @@ function Heatmap(x, y, cs, id,title,hLabels) {
  * */
 Heatmap.prototype.init = function() {
    this.svg = d3.select(this.id)
-      .append("svg").attr("id","mainSvg").append("g")
+      .append("svg").attr("id","mainSvg")
+      .on("click",this.clickSVG)
+      .append("g")
       .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");
 
    this.svg.append("svg:defs").append("svg:filter")
@@ -382,7 +386,6 @@ Heatmap.prototype.redrawView = function(view){
  * */
 Heatmap.prototype.redrawHintPath = function(currentX,currentY,view){
     //TODO: redrawing the hint path - doesn't work, maybe wait until figure out how to properly animate the hint path
-    //TODO: instead of re-drawing, might want to translate
     var ref = this;
    //Translate by x
     var newCoords = this.svg.select("#hintPath").selectAll("text").data().map(function (d,i){
@@ -492,7 +495,7 @@ Heatmap.prototype.findHintX = function (index,view){
    return ((index*this.xSpacing+this.draggedCellX+this.cellSize/2) - (view*this.xSpacing));
 }
 //Todo:ambiguous interaction along hint path (same colour, interaction path?)
-//Todo: non-existent data values in cell (white?)
+//Todo: non-existent data values in cell (white?), this would involve screening the dataset as well, similar to ambiguous cases
 //TODO:y should be centered on the cell as well (this means translating hint path in the y when dragging)
 
 //TODO: draw colour scale legend next to heatmap?

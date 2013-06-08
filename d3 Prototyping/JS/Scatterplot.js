@@ -72,8 +72,7 @@ Scatterplot.prototype.init = function() {
    this.svg = d3.select(this.id).append("svg")
       .attr("width", this.width+(this.padding*2.5))
       .attr("height", this.height+(this.padding*2))
-       .attr("x",this.xpos)
-       .attr("y",this.ypos)
+       .attr("x",this.xpos).attr("y",this.ypos)
        .on("click",this.clickSVG)//TODO: Want to be able to click the background of the graph (not a point) as a way of clearing the hint path, right now events are interfering
        .append("g")
        .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
