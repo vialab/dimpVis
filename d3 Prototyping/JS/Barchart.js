@@ -403,7 +403,8 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
  *  pathId: set to -1 if all interaction paths should be animated with the hint path
  *               an id of an interaction path which should be animated vertically and horizontally
  * */
-Barchart.prototype.animateHintPath = function (interpAmount,pathId){
+//TODO: alot of repeated code with the interpolator, maybe saving the values in an array isn't a bad idea
+ Barchart.prototype.animateHintPath = function (interpAmount,pathId){
     var ref = this;
     //Re-draw the hint path
    this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
@@ -656,21 +657,18 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
             .style("stroke", this.hintColour);
     }
 	//Draw the hint path line
-   this.svg.select("#hintPath")
-       .append("svg:path")
+   this.svg.select("#hintPath").append("svg:path")
        .attr("d", this.hintPathGenerator(ref.pathData.map(function (d,i){
             return {x:ref.findHintX(d[0],i,ref.currentView),y:d[1]};
        })))
-       .style("stroke-width", 2)
-       .style("stroke", this.hintColour)
-       .style("fill","none")
-       .attr("filter", "url(#blur)").attr("id","path");
+       .style("stroke-width", 2).style("stroke", this.hintColour)
+       .style("fill","none").attr("filter", "url(#blur)")
+       .attr("id","path");
 												
 	//Draw the hint labels
    this.svg.select("#hintPath").selectAll("text").data(heights.map(function(d,i){
            return {x:xPos,y:d[0],label:ref.hintLabels[i]};
-        })).enter()
-        .append("svg:text")
+        })).enter().append("svg:text")
         .text(function(d) { return d.label; })
         .attr("transform",function (d,i) {
            //Don't rotate the label resting on top of the bar

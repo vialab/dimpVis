@@ -27,6 +27,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.interpValue = 0; //Value to track the progress of colour interpolation when switching between views
    this.pixelTolerance = 2; //Number of pixels to move before an interpolation in colour occurs (slow down the colour switching)
    this.draggedCell = -1; //Keeps track of the id of the dragged cell
+   this.draggedCellX = -1; //Saved x coordinate of the dragged cell
 
    //Display properties
    this.labels = hLabels;
@@ -94,7 +95,7 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
                 var hintLengthTotal = 0;
                 for(j=0;j< d.values.length;j++){
                     yOffset = hintYOffset(d.values[j]);
-                    hintX = j*ref.xSpacing+xCoord+ref.cellSize/2;
+                    hintX = ref.findHintX(j,ref.currentView);
                     hintY = ref.ySpacing*yOffset;
                     hintLength = ref.calculateDistance(prevHintX,prevHintY,hintX,hintY);
                     hintLengthTotal+= hintLength;
@@ -249,19 +250,16 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
  * interpAmount: amount travelled between the views
  * */
 Heatmap.prototype.animateHintPath = function (current,next,currentY,nextY,interpAmount){
-  var ref = this;
-  //TODO: dragging seems to have to be really drastic to move the hint path..could be the transforms messing things up
-  var coords = this.svg.select("#hintPath").selectAll("text").data();
-  var currentPt = [coords[current][0],currentY];
-  var nextPt = [coords[next][0],nextY];
-  var interpolator = d3.interpolate(currentPt,nextPt);
-  var interpolatedPt = interpolator(interpAmount);
-  //console.log("interppt"+interpolatedPt[0]+"current"+coords[current][0]+"next"+coords[next][0]);
-  //var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+","+(currentPt[1]-interpolatedPt[1])+")";
-  var translateStr = "translate("+(-interpolatedPt[0]+ref.cellSize/2)+")";
-   // console.log(translateStr);
-  this.svg.select("#hintPath").selectAll("text").attr("transform", translateStr);
-  this.svg.select("#hintPath").selectAll("path").attr("transform", translateStr);
+ var ref = this;
+ var newCoords = this.svg.select("#hintPath").selectAll("text").data().map(function (d,i){
+     var current = ref.findHintX(i,ref.currentView);
+     var next = ref.findHintX(i,ref.nextView);
+     var interpolator = d3.interpolate(current,next);
+     var interpolatedPt = interpolator(interpAmount);
+     return [interpolatedPt,d[1]];
+     });
+ this.svg.select("#hintPath").selectAll("text").attr("transform", function(d,i){return "translate("+newCoords[i][0]+")";});
+ this.svg.select("#hintPath").selectAll("path").attr("d", function (d){return ref.lineGenerator(newCoords)});
 }
 /**Updates the colour of the cells by interpolating the colour between views
  * current, next: the views to interpolate between
@@ -376,8 +374,7 @@ Heatmap.prototype.changeView = function (newView){
  * id: of the dragged cell
  * */
 Heatmap.prototype.redrawView = function(view){
-    this.svg.selectAll(".cell")
-        .attr("fill", function (d){return d.values[view][0];});
+    this.svg.selectAll(".cell").attr("fill", function (d){return d.values[view][0];});
 }
 /**Redraws the hintpath at a specified view by translating it
   * currentX, currentY: coordinates of the current view, where to translate the hint path to
@@ -386,10 +383,14 @@ Heatmap.prototype.redrawView = function(view){
 Heatmap.prototype.redrawHintPath = function(currentX,currentY,view){
     //TODO: redrawing the hint path - doesn't work, maybe wait until figure out how to properly animate the hint path
     //TODO: instead of re-drawing, might want to translate
-   //Trying to translate by x but now working..
-   /** var translateStr = "translate("+(-view*this.xSpacing)+")";
-    this.svg.select("#hintPath").selectAll("text").attr("transform", translateStr);
-    this.svg.select("#hintPath").selectAll("path").attr("transform", translateStr);
+    var ref = this;
+   //Translate by x
+    var newCoords = this.svg.select("#hintPath").selectAll("text").data().map(function (d,i){
+        return [ref.findHintX(i,view),d[1]];
+    });
+    this.svg.select("#hintPath").selectAll("text").attr("transform", function(d,i){return "translate("+newCoords[i][0]+")";});
+    this.svg.select("#hintPath").selectAll("path").attr("d", function (d){return ref.lineGenerator(newCoords)});
+  /**
     //Create the translation coordinates: to the centre of the dragged cell, offset by the current view's y-position along the hint path
     //var translateY = y+ref.cellSize/2- pathData[ref.currentView][3];
     // var coords = pathData.map(function (d){return [d[2],d[3]+translateY];});
@@ -423,10 +424,10 @@ Heatmap.prototype.redrawHintPath = function(currentX,currentY,view){
  * */
 Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  var ref = this;
+ this.draggedCellX = x;
  //Create the translation coordinates: to the centre of the dragged cell, offset by the current view's y and x-position along the hint path
  var translateY = y+ref.cellSize/2- pathData[ref.currentView][3];
- var translateX = ref.currentView*ref.xSpacing; //TODO:Doesn't work
- var coords = pathData.map(function (d){return [d[2],d[3]+translateY];});
+ var coords = pathData.map(function (d,i){return [ref.findHintX(i,ref.currentView),d[3]+translateY];});
  //TODO: if the colour does not change for the entire hint path the gradient is not drawn
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
@@ -452,7 +453,6 @@ this.svg.select("#hintPath").append("svg:path")
       .style("stroke-width", 10)
       .style("stroke", "white")
       .style("fill","none")
-    // .attr("transform","translate(-"+translateX+")")
       .attr("filter", "url(#blur)");
 
 //Draw the main hint path line
@@ -461,19 +461,17 @@ this.svg.select("#hintPath").append("svg:path")
       .style("stroke-width", 4)
       .style("stroke", "url(#line-gradient)")
       .style("fill","none")
-      //.attr("transform","translate(-"+translateX+")")
       .attr("filter", "url(#blur)");
 	
 //Draw the hint path labels								  
 this.svg.select("#hintPath").selectAll("text")
        .data(coords).enter().append("text")
-       .attr("x",function(d){return d[0];})
-       .attr("y",function (d){return d[1];})
+       .attr("y",function (d){return d[1];})//TODO:move this to transform when I get y translation working
+       .attr("transform", function (d){return "translate("+d[0]+")"})
        .text(function (d,i){ return ref.labels[i];})
        .style("text-anchor", "middle")
        .style("cursor", "pointer")
        .attr("class","hintLabels")
-       //.attr("transform","translate(-"+translateX+")")
        .on("click",this.clickHintLabelFunction);
 }
 /** Clears the hint path for a dragged cell by removing all of
@@ -484,6 +482,14 @@ Heatmap.prototype.clearHintPath = function(){
    this.svg.select("#hintPath").selectAll("path").remove();
    this.svg.select("#line-gradient").remove();
    this.svg.select("#hintPath").selectAll("text").remove();
+}
+/** Re-calculates the x-values for the moving hint path x-coordinates
+ * (for both points comprising the path and labels)
+ * index: the view index
+ * view: the current view
+ * */
+Heatmap.prototype.findHintX = function (index,view){
+   return ((index*this.xSpacing+this.draggedCellX+this.cellSize/2) - (view*this.xSpacing));
 }
 //Todo:ambiguous interaction along hint path (same colour, interaction path?)
 //Todo: non-existent data values in cell (white?)
