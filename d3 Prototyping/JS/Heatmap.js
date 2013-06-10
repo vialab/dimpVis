@@ -72,7 +72,7 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
     //Set the width and height of the svg, now that the dimensions are known
     this.width = xLabels.length*this.cellSize+100;
     this.height = yLabels.length*this.cellSize+100;
-    d3.select("#mainSvg").attr("width", this.width).attr("height", this.height);
+    d3.select(this.id).select("#mainSvg").attr("width", this.width).attr("height", this.height);
 
     //Find the max and min score in the dataset (used for the colour scale)
     var maxScore = d3.max(data.map(function (d){return d3.max(d.values); }));

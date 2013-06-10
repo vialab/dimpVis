@@ -114,7 +114,7 @@ Barchart.prototype.init = function(){
     //Save some values and set the width of the svg (based on number of bars)
      this.numBars = data.length;
      this.width = (this.barWidth+this.strokeWidth)*this.numBars;
-     d3.select("#mainSvg").attr("width",this.width+(this.padding*2));
+     d3.select(this.id).select("#mainSvg").attr("width",this.width+(this.padding*2));
 
      //Resolve the index value for the next view (e.g., if currentView is 0, then nextView should be set to 1)
      this.currentView = start;
