@@ -49,7 +49,8 @@ function Heatmap(x, y, cs, id,title,hLabels) {
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Heatmap.prototype.init = function() {
-   this.svg = d3.select(this.id)
+
+    this.svg = d3.select(this.id)
       .append("svg").attr("id","mainSvg")
       .on("click",this.clickSVG)
       .append("g")
@@ -101,8 +102,7 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
                 var currentYOffset = 0;
                 for(j=0;j< d.values.length;j++){
                     yOffset = hintYOffset(d.values[j]);
-                    //Always start the visualization at currentview = 0
-                    if (j==0){ currentYOffset = yOffset;}
+                    if (j==0){ currentYOffset = yOffset;}  //Always start the visualization at currentview = 0
                     hintX = ref.findHintX(j,ref.currentView);
                     hintY = ref.findHintY(yOffset, currentYOffset);
                     hintLength = ref.calculateDistance(prevHintX,prevHintY,hintX,hintY);

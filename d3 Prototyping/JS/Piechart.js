@@ -252,20 +252,20 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                 //Adjust the current and next to ensure they do not exceed 360
                // var current = ((ref.dragStartAngle + d.nodes[ref.currentView] >ref.twoPi) ? ((ref.dragStartAngle + d.nodes[ref.currentView])-ref.twoPi):(ref.dragStartAngle + d.nodes[ref.currentView]));
                // var next = ((ref.dragStartAngle + d.nodes[ref.nextView] >ref.twoPi) ? ((ref.dragStartAngle + d.nodes[ref.nextView])-ref.twoPi):(ref.dragStartAngle + d.nodes[ref.nextView]));
-              //TODO: angles are blowing up (>360), should reduce them because the drawing is probably not correct
-               if (next > ref.twoPi && current < ref.twoPi){ //Detect when one endAngle crosses over the 360 mark
+              //TODO: Drawing of angles is still choppy
+               if (next > ref.twoPi && current > ref.twoPi){ //Both angles are wrapped around
+                     d.endAngle= d.endAngle + ref.twoPi;
+               }else  if (next > ref.twoPi || current > ref.twoPi){ //Detect when one endAngle crosses over the 360 mark
                       if (d.endAngle >0 && d.endAngle < (next - ref.twoPi)){
                           d.endAngle= d.endAngle + ref.twoPi;
                       }
-                 }else if (next > ref.twoPi && current > ref.twoPi){ //Both angles are wrapped around
-                   d.endAngle= d.endAngle + ref.twoPi;
                }
                //(ref.twoPi - current) + (ref.twoPi - next)
                 //console.log( Math.abs(d.nodes[ref.currentView] -  d.nodes[ref.nextView])*180/Math.PI)
-               //console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI);
+              // console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI+" view"+ref.currentView);
 
                  var bounds = ref.checkBounds(current,next,d.endAngle);
-               // console.log("current view"+ref.currentView+"next view "+ref.nextView+"current "+current+"next "+next+" computed "+d.endAngle);
+              // console.log("current view"+ref.currentView+"next view "+ref.nextView+"current "+current+"next "+next+" computed "+d.endAngle);
                  if (ref.currentView == 0) {  //At the start angle
                     if (bounds == current){ //Passed current angle, out of bounds
                        d.endAngle = current;
@@ -273,6 +273,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                         d.endAngle = next;
                         ref.currentView = ref.nextView;
                         ref.nextView++;
+                        ref.interpValue = 0;
                     }else{   //Otherwise, dragged angle is in bounds
                         ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView,ref.interpValue);
                         ref.animateHintPath(d.hDirections, d.nodes);
@@ -284,6 +285,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                       d.endAngle = current;
                       ref.nextView = ref.currentView;
                       ref.currentView--;
+                        ref.interpValue = 0;
                     }else { //Otherwise, dragged angle is in bounds
                         ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
                         ref.animateHintPath(d.hDirections, d.nodes);
@@ -293,10 +295,12 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                           d.endAngle = current;
                           ref.nextView = ref.currentView;
                           ref.currentView--;
+                          ref.interpValue = 0;
                       } else if (bounds ==next){ //Passed next
                          d.endAngle = next;
                          ref.currentView = ref.nextView;
                          ref.nextView++;
+                          ref.interpValue = 0;
                       }else { //Otherwise, within bounds
                           ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
                           ref.animateHintPath(d.hDirections, d.nodes);

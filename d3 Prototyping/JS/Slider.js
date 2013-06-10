@@ -197,12 +197,13 @@ Slider.prototype.snapToTick = function() {
  *  object is dragged (e.g., scatterplot point)
  * */
 Slider.prototype.animateTick = function(interpValue, currentView, nextView) {
-    var ref = this;     
+    var ref = this;
     this.widget.select("#slidingTick")
-	           .attr("x",function (){	
-			         var current = ref.tickPositions[currentView];
-				     var next = ref.tickPositions[nextView];	
-					 var interpolator = d3.interpolate(current,next);						 
-					 return interpolator(interpValue);
-	             });  
+           .attr("x",function (){
+                 var current = ref.tickPositions[currentView];
+                 var next = ref.tickPositions[nextView];
+                 var interpolator = d3.interpolate(current,next);
+                 console.log(current+" "+next+" "+interpValue+" "+interpolator(interpValue))
+                 return interpolator(interpValue);
+             });
 }

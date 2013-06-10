@@ -276,6 +276,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         }else if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
             ref.currentView = ref.nextView;
             ref.nextView++;
+            ref.interpValue = 0;
             newValues = [nextY,nextHeight];
         }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
@@ -288,6 +289,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         }else if (bounds == currentY){ //Passed current, update view tracker variables
             ref.nextView = ref.currentView;
             ref.currentView--;
+            ref.interpValue = 0;
             newValues = [currentY,currentHeight];
         }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
@@ -298,10 +300,12 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         if (bounds == currentY){ //Passed current, update the variables
             ref.nextView = ref.currentView;
             ref.currentView--;
+            ref.interpValue = 0;
             newValues = [currentY,currentHeight];
         }else if (bounds ==nextY){ //Passed next, update the variables
             ref.currentView = ref.nextView;
             ref.nextView++;
+            ref.interpValue = 0;
             newValues = [nextY,nextHeight];
         }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);

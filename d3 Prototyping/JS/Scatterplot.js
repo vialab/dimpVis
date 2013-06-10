@@ -252,6 +252,7 @@ Scatterplot.prototype.dragAlongPath = function(id){
                 //Update the view tracking variables
                 ref.currentView = ref.nextView;
                 ref.nextView = ref.currentView +1;
+                ref.interpValue = 0;
                 newPoint = [pt2_x,pt2_y]; //TODO: This won't work for fast motions, need to find the interpolated point in the next line segment to be more accurate
             }else{ //Somewhere in between pt1 and pt2
                 ref.interpolatePoints(id,t,ref.currentView,ref.nextView);
@@ -262,6 +263,7 @@ Scatterplot.prototype.dragAlongPath = function(id){
                 //Update the view tracking variables
                 ref.nextView = ref.currentView;
                 ref.currentView = ref.currentView - 1;
+                ref.interpValue = 0;
                 newPoint= [pt1_x,pt1_y];
             }else if (t>1){  //Passed next view, mouse is going off the path
                 newPoint= [pt2_x,pt2_y];
@@ -273,10 +275,12 @@ Scatterplot.prototype.dragAlongPath = function(id){
             if (t<0){ //Passed current
                 ref.nextView = ref.currentView;
                 ref.currentView = ref.currentView-1;
+                ref.interpValue = 0;
                 newPoint = [pt1_x,pt1_y];
             }else if (t>1){ //Passed next
                 ref.currentView = ref.nextView;
                 ref.nextView = ref.nextView +1;
+                ref.interpValue = 0;
                 newPoint= [pt2_x,pt2_y];
             }else{ //Somewhere between pt1 and pt2
                 ref.interpolatePoints(id,t,ref.currentView,ref.nextView);
