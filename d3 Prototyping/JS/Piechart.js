@@ -56,6 +56,9 @@ function Piechart(x,y, r,id,title,hLabels){
    this.arcGenerator = d3.svg.arc().innerRadius(0).outerRadius(this.radius)
 					   .startAngle(function (d) {return d.startAngle;})
 					   .endAngle(function (d) {return d.endAngle;});
+  //Interpolate function between two values, at the specified amount
+   this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
+
     //Hint path colours
     this.hintLabelColour = "#7f7f7f";
     this.hintColour = "#1f77b4";
@@ -252,7 +255,9 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                 //Adjust the current and next to ensure they do not exceed 360
                // var current = ((ref.dragStartAngle + d.nodes[ref.currentView] >ref.twoPi) ? ((ref.dragStartAngle + d.nodes[ref.currentView])-ref.twoPi):(ref.dragStartAngle + d.nodes[ref.currentView]));
                // var next = ((ref.dragStartAngle + d.nodes[ref.nextView] >ref.twoPi) ? ((ref.dragStartAngle + d.nodes[ref.nextView])-ref.twoPi):(ref.dragStartAngle + d.nodes[ref.nextView]));
-              //TODO: Drawing of angles is still choppy
+              //TODO: Drawing of angles is still choppy, especially when at an edge of the hint path, in this case might need to force the interaction to move in the desired angular direction
+              //TODO: e.g., if the edge changes from counter clockwise to clockwise, then the only dragging direction allowed at this edge is clockwise.. can use hDirections array for this
+             //TODO: for all visualizations, the views toggle at some points, causing the time slider to toggle as well, might be for data objects with very close (almost equal) values
                if (next > ref.twoPi && current > ref.twoPi){ //Both angles are wrapped around
                      d.endAngle= d.endAngle + ref.twoPi;
                }else  if (next > ref.twoPi || current > ref.twoPi){ //Detect when one endAngle crosses over the 360 mark
@@ -260,9 +265,16 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                           d.endAngle= d.endAngle + ref.twoPi;
                       }
                }
+			   if (d.hDirections[ref.currentView][0] == 1){  //At an edge along the hint path, need to enforce the direction
+			      if (current > next){
+				     console.log("counter clockwise");
+				  }else if (current < next){ 
+				     console.log("clockwise");
+				  }			        
+			   }
                //(ref.twoPi - current) + (ref.twoPi - next)
                 //console.log( Math.abs(d.nodes[ref.currentView] -  d.nodes[ref.nextView])*180/Math.PI)
-              // console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI+" view"+ref.currentView);
+               console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI+" view"+ref.currentView);
 
                  var bounds = ref.checkBounds(current,next,d.endAngle);
               // console.log("current view"+ref.currentView+"next view "+ref.nextView+"current "+current+"next "+next+" computed "+d.endAngle);
@@ -274,7 +286,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                         ref.currentView = ref.nextView;
                         ref.nextView++;
                         ref.interpValue = 0;
-                    }else{   //Otherwise, dragged angle is in bounds
+                    }else{   //Otherwise, dragged angle is in bounds					    
                         ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView,ref.interpValue);
                         ref.animateHintPath(d.hDirections, d.nodes);
                     }
@@ -286,7 +298,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                       ref.nextView = ref.currentView;
                       ref.currentView--;
                         ref.interpValue = 0;
-                    }else { //Otherwise, dragged angle is in bounds
+                    }else { //Otherwise, dragged angle is in bounds					    
                         ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
                         ref.animateHintPath(d.hDirections, d.nodes);
                     }
@@ -359,8 +371,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
            if (d.id == id){
                newAngles.push(mouseAngle);
            }else{
-                var interpolator = d3.interpolate(d.nodes[startView], d.nodes[endView]);
-                newAngles.push(interpolator(interpAmount));
+                newAngles.push(ref.interpolator(d.nodes[startView], d.nodes[endView], interpAmount));
            }
 	 });
     this.calculateLayout(newAngles,this.dragStartAngle,id);
@@ -521,8 +532,7 @@ Piechart.prototype.findHintRadius = function (index,view){
 Piechart.prototype.interpolateHintRadius = function (index,startView,endView){
     var startRadius = this.findHintRadius(index,startView);
     var endRadius = this.findHintRadius(index,endView);
-    var interpolator = d3.interpolate(startRadius,endRadius);
-    return interpolator(this.interpValue);
+    return this.interpolator(startRadius,endRadius,this.interpValue);
 }
 /** A function which manually constructs the path string to draw a hint path consisting of arcs
  *  The format of the string is: M startX startY A rX rY 0 0 0 endX endY

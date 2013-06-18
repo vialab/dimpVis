@@ -64,6 +64,8 @@
         .x(function(d,i) { return d.x; })
         .y(function(d) { return d.y; })
         .interpolate("cardinal");
+   //Interpolate function between two values, at the specified amount
+   this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
 /**Customize the display colours of the barchart, to change the default
  * barCol: The colour of the points
@@ -414,16 +416,14 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
    this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
         var currentX = ref.findHintX(d[0],i,ref.currentView);
         var nextX = ref.findHintX(d[0],i,ref.nextView);
-        var interpolateX = d3.interpolate(currentX, nextX);
-        return {x:interpolateX(interpAmount),y:d[1]};
+        return {x:ref.interpolator(currentX,nextX,interpAmount),y:d[1]};
     })));
 	//Re-draw the hint path labels
    this.svg.select("#hintPath").selectAll(".hintLabels")
             .attr("transform",function (d,i) {
                 var currentX = ref.findHintX(d.x,i,ref.currentView);
                 var nextX = ref.findHintX(d.x,i,ref.nextView);
-                var interpolateX = d3.interpolate(currentX,nextX);
-                return "translate("+interpolateX(interpAmount)+","+ d.y+")";
+                return "translate("+ref.interpolator(currentX,nextX,interpAmount)+","+ d.y+")";
             });
     //Re-draw the interaction paths (if any) by horizontally translating them
     if (this.interactionPaths.length >0) {
@@ -431,8 +431,7 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
                     var currentX = ref.findHintX(d[0],d[2],ref.currentView);
                     var nextX = ref.findHintX(d[0],d[2],ref.nextView);
-                    var interpolateX = d3.interpolate(currentX, nextX);
-                    return {x:interpolateX(interpAmount),y:d[1]};
+                    return {x:ref.interpolator(currentX,nextX,interpAmount),y:d[1]};
                    }));
                });
         if (pathId!=-1){ //TODO:Animate the interaction path in both dimensions to coincide with the dragging along it
@@ -440,8 +439,7 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
                     var currentX = ref.findHintX(d[0],d[2],ref.currentView);
                     var nextX = ref.findHintX(d[0],d[2],ref.nextView);
-                    var interpolateX = d3.interpolate(currentX, nextX);
-                    return {x:interpolateX(interpAmount),y:d[1]};
+                    return {x:ref.interpolator(currentX,nextX,interpAmount),y:d[1]};
                 }));
              });
         }
@@ -459,8 +457,8 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
             var currentY = d[1];
             var nextY = d[1];
-            var interpolateX = d3.interpolate(currentY, nextY);
-            return {x:d[0],y:interpolateX(interpAmount)};
+            var interpolateX = this.interpolator(currentY, nextY, interpAmount);
+            return {x:d[0],y:interpolateX};
           }));
         });
 }*/
@@ -473,14 +471,13 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
  * startView,endView: Define the range to interpolate across
  * */
 Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView){
+  var ref = this;
   this.svg.selectAll(".displayBars").filter(function (d){return d.id!=id;})
       .attr("height",function (d){
-          var interpolateHeight = d3.interpolate(d.nodes[startView][1], d.nodes[endView][1]);
-          return interpolateHeight(interpAmount);
+          return ref.interpolator(d.nodes[startView][1], d.nodes[endView][1],interpAmount);
       })
       .attr("y", function(d){
-          var interpolateY = d3.interpolate(d.nodes[startView][0], d.nodes[endView][0]);
-          return interpolateY(interpAmount);
+          return ref.interpolator(d.nodes[startView][0], d.nodes[endView][0],interpAmount);
       });
 }
 /** Animates all bars in the barchart along their hint paths from
@@ -492,7 +489,8 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  *  id: the id of the dragged bar (if any), to animate it's hint path which is visible
  *  NOTE: This function does not update the view tracking variables
  * */
- Barchart.prototype.animateBars = function( id, startView, endView) {
+//TODO: last and first view: animateView going out of bounds
+  Barchart.prototype.animateBars = function( id, startView, endView) {
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
     var direction = 1;

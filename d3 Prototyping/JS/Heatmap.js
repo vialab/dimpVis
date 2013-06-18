@@ -44,6 +44,8 @@ function Heatmap(x, y, cs, id,title,hLabels) {
   //Function for drawing the hint path line
   //Note: array of points should be in the format [[x,y]..etc.]
    this.lineGenerator = d3.svg.line().x(function(d){return d[0];}).y(function(d){return d[1];}).interpolate("linear");
+  //Interpolate function between two values, at the specified amount
+  this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
 /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -206,6 +208,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
            }else if (bounds==nextY){ //Passed the next view, update the variables
                ref.currentView = ref.nextView;
                ref.nextView++;
+               ref.interpValue = 0;
            }else{  //Otherwise, somewhere between current and next
                ref.interpolateColours(ref.currentView, ref.nextView,bounds);
                ref.animateHintPath(currentYOffset,nextYOffset,bounds);
@@ -214,6 +217,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
            if (bounds == currentY){//Passing the current view, update the variables
                ref.nextView = ref.currentView;
                ref.currentView--;
+               ref.interpValue = 0;
            }else if (bounds == nextY){ //Exceeding the last view, going out of bounds
                return;
            }else{ //Somewhere between next and current
@@ -224,9 +228,11 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
            if(bounds == currentY){ //Passing current view, update variables
                ref.nextView = ref.currentView;
                ref.currentView--;
+               ref.interpValue = 0;
            }else if (bounds == nextY){
                ref.currentView = ref.nextView;
                ref.nextView++;
+               ref.interpValue = 0;
            }else{ //Mouse is in bounds
                ref.interpolateColours(ref.currentView, ref.nextView,bounds);
                ref.animateHintPath(currentYOffset,nextYOffset,bounds);
@@ -272,9 +278,7 @@ Heatmap.prototype.animateHintPath = function (currentOffset,nextOffset,interpAmo
  var newCoords = this.svg.select("#hintPath").selectAll("text").data().map(function (d,i){
      var current = ref.findHintX(i,ref.currentView);
      var next = ref.findHintX(i,ref.nextView);
-     var interpolator = d3.interpolate(current,next);
-     var interpolatedPt = interpolator(interpAmount);
-     return [interpolatedPt,d[1]];
+     return [ref.interpolator(current,next,interpAmount),d[1]];
     /** var currentPt = [ref.findHintX(i,ref.currentView),ref.findHintY(d[2],currentOffset)];
      var nextPt = [ref.findHintX(i,ref.nextView),ref.findHintY(d[2],nextOffset)];
      var interpolator = d3.interpolate(currentPt,nextPt);
@@ -291,8 +295,7 @@ Heatmap.prototype.animateHintPath = function (currentOffset,nextOffset,interpAmo
 Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
   //Re-colour all cells
   this.svg.selectAll(".cell").attr("fill", function (d){
-      var interpolator = d3.interpolateRgb(d.values[current][0],d.values[next][0]);
-      return interpolator(interpAmount);
+      return d3.interpolateRgb(d.values[current][0],d.values[next][0])(interpAmount);
   });
 }
 /** Animates the colours of the cells by interpolation within the given view boundaries

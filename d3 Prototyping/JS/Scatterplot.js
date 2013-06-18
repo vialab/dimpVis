@@ -42,7 +42,9 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.labels = []; //Stores the labels of the hint path
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
    this.loops = []; //Stores points to draw for interaction loops (if any)
-   this.previousLoopAngle = 0; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
+   this.previousLoopAngle = "start"; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
+   this.previousLoopDirection = 0; //Keeps track of the dragging direction along a loop (counter- or clockwise)
+   this.countRevolutions = 0; //Counter to keep track of full revolutions around an interaction loop
 
    //Variables to track interaction events
    this.dragged = -1;
@@ -218,15 +220,13 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
     var currentPointInfo = this.ambiguousPoints[this.currentView];
     //Re-draw the dragged point along the hint path
     if (currentPointInfo[0]==1){ //Stationary point
-        //this.dragAlongLoop(id);
-        this.toggleLabelColour(this.currentView,currentPointInfo[2]);
+        this.dragAlongLoop(id,currentPointInfo[2]);
     }else{
-        this.previousLoopAngle = 0;
+        if (currentPointInfo[0]==2){ //Revisiting point
+            this.toggleLabelColour(this.currentView,currentPointInfo[2]);
+        }
+        this.previousLoopAngle = "start";
         this.dragAlongPath(id);
-    }
-    //Toggle the label colours (if arrived at an ambiguous point)
-    if (currentPointInfo[0]==2){ //Revisiting point
-       this.toggleLabelColour(this.currentView,currentPointInfo[2]);
     }
 }
 /** Moves the point along it's hint path as it is dragged by the user.  In this function,
@@ -301,42 +301,82 @@ Scatterplot.prototype.toggleLabelColour = function (currentView,groupNumber){
         .filter(function (d){return ref.ambiguousPoints[d.id][2]==groupNumber;})
         .attr("fill-opacity",function (d) {return ((d.id==currentView)? 1:0.3);});
 }
-//TODO: for simplicity, might want to have the interaction loop as a circle programatically, but draw a loop which is approximately fitted to
-//TODO: the underlying circle (which is what the user sees)
+/**Interpolates the label transparency between start and end view, this fading effect is used for
+ * distinguishing how close the user is from transitioning views the stationary ambiguous cases.
+ * interp: the interpolation amount (amount travelled across start to end)
+ * startView, endView: the bounding views
+ * groupNumber: the group of repeated points the current point belongs to
+ * */
+Scatterplot.prototype.interpolateLabelColour = function (interp,startView,endView,groupNumber){
+    var ref = this;
+    this.svg.selectAll(".hintLabels")
+        .filter(function (d){return ref.ambiguousPoints[d.id][2]==groupNumber;})
+        .attr("fill-opacity",function (d) {
+            if (d.id ==startView){ //Fade out
+                return d3.interpolate(1,0.3)(interp);
+            }else if (d.id == endView){ //Fade in
+                return d3.interpolate(0.3,1)(interp);
+            }
+            return 0.3;
+        });
+}
+//TODO: might want to have the interaction loop as a circle programatically, but draw a loop which is approximately fitted to
+//TODO: the underlying circle (which is what the user sees, and looks nicer than a circle)
 /**Handles a dragging interaction along an interaction loop (really a circular dragging motion)
  * used to advance forward or backward along the hint path in the stationary point case
  * id: of the dragged point
+ * groupNumber: the group of repeated points this loop belongs to
  * */
-Scatterplot.prototype.dragAlongLoop = function (id){
+Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
      var ref = this;
      //Get the position of the stationary point
      var points = this.svg.select("#displayPoints"+id).data().map(function (d) {return d.nodes[ref.currentView];});
-	 var theta =Math.PI/3;
-     var cx = points[0][0] + this.loopRadius/2*Math.cos(theta);
-	 var cy = points[0][1] + this.loopRadius/2*Math.sin(theta);
-     //TODO: figure out how to automatically calculate these
-     var referenceAngleCurrent = 3.6; //Clockwise crosses this first
-     var referenceAngleNext = 3.7; //Counterclockwise crosses this first
+     var cx = points[0][0]+this.loopRadius/2;
+	 var cy = points[0][1];
 
-     //Calculate the angle of the mouse w.r.t the stationary point
+    //Calculate the angle of the mouse w.r.t the stationary point
      var angle = Math.atan2(this.mouseX-cx,this.mouseY-cy);
+    //Convert negative angles into positive
 	 if (angle < 0){angle = (Math.PI - angle*(-1))+Math.PI;}
-     /**var isClockwise = 1;
-     if (angle > this.previousLoopAngle){ isClockwise = 0;}
-     if (isClockwise ==1){ //Moving clockwise (towards next, forward in time)
-      if (angle < referenceAngleCurrent){
-          console.log("passing current, starting a revolution");
-      }else if (angle > referenceAngleNext && Math.abs(angle-referenceAngleNext)<=0.05){
-          console.log("passing next, finishing revolution");
-      }
-    }else{ //Move counter-clockwise (towards current, backward in time)
+   // console.log(this.previousLoopAngle+" "+angle+" "+this.countRevolutions+" "+this.previousLoopDirection);
+    var currentDirection = (angle > this.previousLoopAngle)? 1: 0; //0: clockwise, 1: counter-clockwise
 
-    }*/
-     var newX = cx+this.loopRadius/2*Math.cos(angle);
+    //If the previous angle is "start", dragging has just started, set it to the start angle (computed angle)
+     if (this.previousLoopAngle == "start"){
+         this.toggleLabelColour(this.currentView,groupNumber)
+         this.previousLoopAngle = angle;
+     }else{ //Dragging is in progress
+         //Update the revolution counter, by adding the amount travelled in the angular direction
+         this.countRevolutions += Math.abs(this.previousLoopAngle - angle);
+         if(this.countRevolutions >= Math.PI*2){ //Reached one full revolution, update the view
+             if (currentDirection == 0){ //Passed current view
+                 this.nextView = this.currentView;
+                 this.currentView = this.currentView-1;
+             }else { //Passed next view
+                 this.currentView = this.nextView;
+                 this.nextView = this.nextView +1;
+             }
+             this.toggleLabelColour(this.currentView,groupNumber)
+             this.interpValue = 0;
+             // console.log("full rev"+" "+this.currentView+" "+this.nextView);
+             this.countRevolutions = 0;
+         }else if (currentDirection != this.previousLoopDirection){ //Switching dragging directions, flip the view variables
+             this.countRevolutions = 0;
+         }else{ //Dragging between the views
+             this.interpValue = this.countRevolutions/(Math.PI*2);
+             this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
+             this.interpolateLabelColour(this.interpValue,this.currentView,this.nextView,groupNumber);
+            // console.log(this.interpValue);
+         }
+     }
+    //Debugging: re-draw the circle to show dragging
+     /**var newX = cx+this.loopRadius/2*Math.cos(angle);
 	 var newY = cy+this.loopRadius/2*Math.sin(angle);
-	 ref.svg.select("#displayPoints"+id).attr("cx",newX).attr("cy",newY);
+	 ref.svg.select("#displayPoints"+id).attr("cx",newX).attr("cy",newY);*/
+
+     //Save the dragging angle and direction
      this.previousLoopAngle = angle;
-	 console.log(angle);
+     this.previousLoopDirection = currentDirection;
 }
  /**"Animates" the rest of the points while one is being dragged
  * Uses the 't' parameter, which represents approximately how far along a line segment
@@ -395,7 +435,7 @@ Scatterplot.prototype.changeView = function( newView) {
             this.nextView = newView + 1;
 	}
 }
-//TODO: for some reason, doesn't work anymore? AnimateView incrementing to the totalViews
+//TODO****: for some reason, doesn't work anymore? AnimateView incrementing to the totalViews
 /** Animates all points in the scatterplot along their hint paths from
  *  startView to endView, this function is called when "fast-forwarding"
  *  is invoked (by clicking a year label on the hint path)
@@ -408,7 +448,7 @@ Scatterplot.prototype.changeView = function( newView) {
  * */
 //TODO:Add tweening to make the transition smoother
 //TODO: Out of bounds for end points, still pretty buggy might have to do with the view tracking
-//TODO: Toggling label colour not working
+//TODO: Add toggling label colour for stationary/revisiting points
  Scatterplot.prototype.animatePoints = function( startView, endView) {
 	 var ref = this;
      //Determine the travel direction (e.g., forward or backward in time)
@@ -435,10 +475,10 @@ Scatterplot.prototype.changeView = function( newView) {
        if (direction ==-1 && animateView<=endView) return;
         return function(d) {
             console.log(viewCounter);
-                d3.select(this).transition(400).ease("linear")
-                .attr("cx",d.nodes[animateView][0])
-                .attr("cy",d.nodes[animateView][1])
-                .each("end", animate());
+            d3.select(this).transition(400).ease("linear")
+            .attr("cx",d.nodes[animateView][0])
+            .attr("cy",d.nodes[animateView][1])
+            .each("end", animate());
         };
     }
 }
@@ -524,7 +564,7 @@ Scatterplot.prototype.drawLoops = function (id){
         .interpolate("basis-closed"); //Closed B-spline, a loop
        //.interpolate("cardinal-closed");
    //Draw all loops at their respective stationary points
-    this.svg.select("#hintPath").selectAll(".loop"+id)
+   /** this.svg.select("#hintPath").selectAll(".loop"+id)
         .data(ref.loops.map(function (d,i){
             var loopPoints = [];
             loopPoints = ref.calculateLoopPoints(d[0],d[1],d[2]);
@@ -535,17 +575,20 @@ Scatterplot.prototype.drawLoops = function (id){
         .attr("stroke-dasharray","3,3")//Makes the path dashed
         .attr("class","loop"+id)
         .style("fill","none")
-        .style("stroke", this.hintColour);
-    //Debugging: draw a circle to estimate the loop
-   /** var cx = ref.loops[0][0] + this.loopRadius/2*Math.cos(0);
-	var cy = ref.loops[0][1] + this.loopRadius/2*Math.sin(0);
-		console.log(this.svg.selectAll(".loop"+id).data());
-    this.svg.select("#hintPath").append("circle")
-	    .attr("cx",cx)
-		.attr("cy",cy)
-		.attr("r",this.loopRadius/2)
-        .attr("fill","none")
-		.attr("stroke","black");*/
+        .style("stroke", this.hintColour);*/
+
+    //Draw circles (instead of loops)
+   this.svg.select("#hintPath").selectAll(".loop"+id)
+       .data(ref.loops.map(function (d,i){
+           return {x:d[0]+ref.loopRadius/2,y:d[1],id:i};
+       }))
+       .enter().append("circle")
+       .attr("cx",function (d){return d.x}).attr("cy",function (d){return d.y})
+       .attr("r",this.loopRadius/2)
+       .attr("stroke-dasharray","3,3")//Makes the path dashed
+       .attr("class","loop"+id)
+       .style("fill","none")
+       .style("stroke", this.hintColour);
 }
 /**Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag
  * */
