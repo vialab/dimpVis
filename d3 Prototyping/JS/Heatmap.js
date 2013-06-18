@@ -181,15 +181,16 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
  Heatmap.prototype.updateDraggedCell = function(id, mouseY){
    var ref = this;
    this.mouseY = mouseY;
-
+   //Redraw the colours of all cells according to the dragging amount
    this.svg.select("#cell"+id).each(function (d){
        var currentY = ref.draggedCellY; //Current will always be the center of the dragged cell
        var currentYOffset = d.values[ref.currentView][4];
        var nextYOffset = d.values[ref.nextView][4];
-       var nextY =  ref.findHintY(d.values[ref.nextView][4],currentYOffset);
-       //console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView);
-       console.log(currentYOffset+" "+nextYOffset+" "+mouseY+" "+ref.currentView);
-       //TODO: Shrink the bounding coordinates such that the mouse does not move off the dragged cell?
+       //Next will either be up or down from the center by a fixed amount according to the dragging direction
+       var nextY = (currentYOffset > nextYOffset)? (currentY - ref.cellSize/2):(currentY + ref.cellSize/2);
+      // var nextY =  ref.findHintY(d.values[ref.nextView][4],currentYOffset);
+       console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView);
+       //console.log(currentYOffset+" "+nextYOffset+" "+mouseY+" "+ref.currentView);
        /**var direction;
        var difference = Math.abs(currentYOffset - nextYOffset);
        if (currentY > nextY){ //Dragging upwards
@@ -202,6 +203,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        console.log(direction+" "+difference);*/
        //console.log(ref.currentView+" "+ref.nextView);
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
+       console.log(bounds);
        if (ref.currentView ==0){ //First view
            if (bounds==currentY){ //Exceeding the first view, out of bounds
               return;
@@ -276,14 +278,14 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
 Heatmap.prototype.animateHintPath = function (currentOffset,nextOffset,interpAmount){
  var ref = this;
  var newCoords = this.svg.select("#hintPath").selectAll("text").data().map(function (d,i){
-     var current = ref.findHintX(i,ref.currentView);
+    /** var current = ref.findHintX(i,ref.currentView);
      var next = ref.findHintX(i,ref.nextView);
-     return [ref.interpolator(current,next,interpAmount),d[1]];
-    /** var currentPt = [ref.findHintX(i,ref.currentView),ref.findHintY(d[2],currentOffset)];
+     return [ref.interpolator(current,next,interpAmount),d[1]];*/
+     var currentPt = [ref.findHintX(i,ref.currentView),ref.findHintY(d[2],currentOffset)];
      var nextPt = [ref.findHintX(i,ref.nextView),ref.findHintY(d[2],nextOffset)];
      var interpolator = d3.interpolate(currentPt,nextPt);
      var interpolatedPt = interpolator(interpAmount);
-     return [interpolatedPt[0],interpolatedPt[1]];*/
+     return [interpolatedPt[0],interpolatedPt[1]];
      });
  this.svg.select("#hintPath").selectAll("text").attr("transform", function(d,i){return "translate("+newCoords[i][0]+","+newCoords[i][1]+")";});
  this.svg.select("#hintPath").selectAll("path").attr("d", function (d){return ref.lineGenerator(newCoords)});
@@ -374,14 +376,14 @@ Heatmap.prototype.snapToView = function (id, points,y){
         this.currentView = this.nextView;
         this.nextView++;
     }
-
     //Update the view
     if (this.nextView == this.lastView) {
         this.redrawView(this.currentView+1);
-        this.redrawHintPath( y+this.cellSize/2-points[this.currentView+1][3],points[this.currentView+1][2],this.currentView+1);
+        console.log(points[this.currentView]);
+        this.redrawHintPath(points[this.currentView+1][4],this.currentView+1);
     } else {
         this.redrawView(this.currentView);
-        this.redrawHintPath( y+this.cellSize/2-points[this.currentView][3],points[this.currentView][2],this.currentView);
+        this.redrawHintPath(points[this.currentView][4],this.currentView);
     }
 }
 /** Updates the view tracking variables when the view is being changed by an external
@@ -409,37 +411,13 @@ Heatmap.prototype.redrawView = function(view){
   * currentX, currentY: coordinates of the current view, where to translate the hint path to
  *  view: the view index to draw at
  * */
-Heatmap.prototype.redrawHintPath = function(currentX,currentY,view){
-    //TODO: redrawing the hint path - doesn't work, maybe wait until figure out how to properly animate the hint path
+Heatmap.prototype.redrawHintPath = function(offset,view){
     var ref = this;
-   //Translate by x
     var newCoords = this.svg.select("#hintPath").selectAll("text").data().map(function (d,i){
-        return [ref.findHintX(i,view),d[1]];
+        return [ref.findHintX(i,view),ref.findHintY(d[2],offset)];
     });
     this.svg.select("#hintPath").selectAll("text").attr("transform", function(d,i){return "translate("+newCoords[i][0]+","+newCoords[i][1]+")";});
-    this.svg.select("#hintPath").selectAll("path").attr("d", function (d){return ref.lineGenerator(newCoords)});
-  /**
-    //Create the translation coordinates: to the centre of the dragged cell, offset by the current view's y-position along the hint path
-    //var translateY = y+ref.cellSize/2- pathData[ref.currentView][3];
-    // var coords = pathData.map(function (d){return [d[2],d[3]+translateY];});
-    /**var coords = this.svg.select("#hintPath").selectAll("text").data();
-     var currentPt = [coords[current][0],currentY];
-     var nextPt = [coords[next][0],nextY];
-     var interpolator = d3.interpolate(currentPt,nextPt);
-     var interpolatedPt = interpolator(interpAmount);
-     console.log(interpolatedPt);
-     var translateStr = "translate("+(currentPt[0]-interpolatedPt[0])+","+(currentPt[1]-interpolatedPt[1])+")";
-     this.svg.select("#hintPath").selectAll("text").attr("transform", translateStr);
-     this.svg.select("#hintPath").selectAll("path").attr("transform", translateStr);*/
-   /** var newCoords = points.map(function (d){return [d[2],d[3]+translateY];});
-    this.svg.select("#hintPath").selectAll("text").attr("x",function (d,i) {return newCoords[i][0]})
-        .attr("y",function (d,i){return newCoords[i][1]});
-    this.svg.select("#hintPath").selectAll("path").attr("d",this.lineGenerator(newCoords));*/
-    /**console.log(currentX+" "+currentY);
-    var translateStr = "translate("+currentX+","+currentY+")";
-    this.svg.select("#hintPath").selectAll("text").attr("transform", translateStr);
-    this.svg.select("#hintPath").selectAll("path").attr("transform", translateStr);*/
-
+    this.svg.select("#hintPath").selectAll("path").attr("d", this.lineGenerator(newCoords));
 }
 /** Draws a hint path for the dragged cell on the heatmap
  * id: of the dragged cell

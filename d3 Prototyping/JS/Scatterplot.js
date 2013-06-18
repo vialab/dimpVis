@@ -219,7 +219,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
     this.mouseY = mouseY;
     var currentPointInfo = this.ambiguousPoints[this.currentView];
     //Re-draw the dragged point along the hint path
-    if (currentPointInfo[0]==1){ //Stationary point
+    if (currentPointInfo[0]==1 && this.ambiguousPoints[this.nextView][0] == 1){ //Stationary point
         this.dragAlongLoop(id,currentPointInfo[2]);
     }else{
         if (currentPointInfo[0]==2){ //Revisiting point
@@ -358,7 +358,7 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
              }
              this.toggleLabelColour(this.currentView,groupNumber)
              this.interpValue = 0;
-             // console.log("full rev"+" "+this.currentView+" "+this.nextView);
+             console.log("full rev"+" "+this.currentView+" "+this.nextView);
              this.countRevolutions = 0;
          }else if (currentDirection != this.previousLoopDirection){ //Switching dragging directions, flip the view variables
              this.countRevolutions = 0;
@@ -369,11 +369,6 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
             // console.log(this.interpValue);
          }
      }
-    //Debugging: re-draw the circle to show dragging
-     /**var newX = cx+this.loopRadius/2*Math.cos(angle);
-	 var newY = cy+this.loopRadius/2*Math.sin(angle);
-	 ref.svg.select("#displayPoints"+id).attr("cx",newX).attr("cy",newY);*/
-
      //Save the dragging angle and direction
      this.previousLoopAngle = angle;
      this.previousLoopDirection = currentDirection;
@@ -407,9 +402,17 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
  *  points: An array of all point positions of the dragged point (e.g., d.nodes)
  * */
 Scatterplot.prototype.snapToView = function( id, points) {
-    //Calculate the distances from the dragged point to both current and next
-	var distanceCurrent = this.calculateDistance(this.mouseX,this.mouseY, points[this.currentView][0], points[this.currentView][1]);
-	var distanceNext = this.calculateDistance(this.mouseX,this.mouseY, points[this.nextView][0],points[this.nextView][1]);
+    //TODO: other case where one is stationary but the other is not
+    var distanceCurrent,distanceNext;
+    if (this.ambiguousPoints[this.currentView][0] == 1 && this.ambiguousPoints[this.nextView][0] == 1){ //Current and next are stationary points
+       distanceCurrent = this.previousLoopAngle;
+       distanceNext = Math.PI;
+       console.log(this.previousLoopAngle);
+    }else { //Non-ambiguous point
+        //Calculate the distances from the dragged point to both current and next
+        distanceCurrent = this.calculateDistance(this.mouseX,this.mouseY, points[this.currentView][0], points[this.currentView][1]);
+        distanceNext = this.calculateDistance(this.mouseX,this.mouseY, points[this.nextView][0],points[this.nextView][1]);
+    }
     //Based on the smaller distance, update the scatterplot to that view
     if (distanceCurrent > distanceNext && this.nextView != this.lastView){ //Snapping to next view
 		this.currentView = this.nextView;
@@ -488,8 +491,10 @@ Scatterplot.prototype.changeView = function( newView) {
  * */
 //TODO: Might want to add interpolation or use the interpolate function
 Scatterplot.prototype.redrawView = function(view) {
-    this.svg.selectAll(".displayPoints")
-	          .transition().duration(300)
+    if (this.ambiguousPoints[view][0] == 1){ //A stationary point, update the label colour
+        this.toggleLabelColour(view,this.ambiguousPoints[view][2]);
+    }
+    this.svg.selectAll(".displayPoints").transition().duration(300)
 	          .attr("cx",function (d){return d.nodes[view][0];})
 			  .attr("cy",function (d){return d.nodes[view][1];});
 }
@@ -559,12 +564,11 @@ Scatterplot.prototype.redrawView = function(view) {
 Scatterplot.prototype.drawLoops = function (id){
     var ref = this;
     //Create a function for drawing a loop around a stationary point, as an interaction path
-    var loopGenerator = d3.svg.line().x(function(d) { return d[0]; }).y(function(d) { return d[1]; })
-        //.tension(0)
+   /** var loopGenerator = d3.svg.line().x(function(d) { return d[0]; }).y(function(d) { return d[1]; })
+        .tension(0)
         .interpolate("basis-closed"); //Closed B-spline, a loop
-       //.interpolate("cardinal-closed");
    //Draw all loops at their respective stationary points
-   /** this.svg.select("#hintPath").selectAll(".loop"+id)
+    this.svg.select("#hintPath").selectAll(".loop"+id)
         .data(ref.loops.map(function (d,i){
             var loopPoints = [];
             loopPoints = ref.calculateLoopPoints(d[0],d[1],d[2]);
@@ -590,16 +594,18 @@ Scatterplot.prototype.drawLoops = function (id){
        .style("fill","none")
        .style("stroke", this.hintColour);
 }
-/**Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag
- * */
+/**Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
 Scatterplot.prototype.clearHintPath = function () {
     this.isAmbiguous = 0;
     this.loops = []; //Re-set the array
-     //Remove the hint path svg elements
-     this.svg.select("#hintPath").selectAll("text").remove();
+
+    //Remove the hint path svg elements
+    this.svg.select("#hintPath").selectAll("text").remove();
     this.svg.select("#hintPath").selectAll("path").remove();
+    this.svg.select("#hintPath").selectAll("circle").remove();
+
 	//Re-set the transparency of faded out points
-     this.svg.selectAll(".displayPoints").style("fill-opacity", 1);
+    this.svg.selectAll(".displayPoints").style("fill-opacity", 1);
 }
 /** Calculates the distance between two points
  * (x1,y1) is the first point
@@ -745,5 +751,5 @@ Scatterplot.prototype.findInArray = function (x,y,array)
    }
     return -1;
 }
-//TODO: non-existent data points, "hole" in hint path?
+//TODO: non-existent data points (e.g missing from the data set), "hole" in hint path?
 //TODO: does the code handle zero values? (point goes off the axis)
