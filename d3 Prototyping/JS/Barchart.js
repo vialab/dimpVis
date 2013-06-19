@@ -258,6 +258,20 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
          ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
      });
 }
+/** Updates the view variables to move the visualization forward
+ * (passing the next view)
+ * */
+Barchart.prototype.moveForward = function (){
+    this.currentView = this.nextView;
+    this.nextView++;
+}
+/** Updates the view variables to move the visualization backward
+ * (passing the current view)
+ * */
+Barchart.prototype.moveBackward = function (){
+    this.nextView = this.currentView;
+    this.currentView--;
+}
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragged does not cause the dragged
  *  bar to be drawn out of bounds and keeps track of time progression by updating the view variables
@@ -276,9 +290,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         if (bounds == currentY){ //Passed lowest bar, out of bounds
             newValues = [currentY,currentHeight];
         }else if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
-            ref.currentView = ref.nextView;
-            ref.nextView++;
-            ref.interpValue = 0;
+            ref.moveForward();
             newValues = [nextY,nextHeight];
         }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
@@ -289,9 +301,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         if (bounds == nextY){ //Passed highest, out of bounds
             newValues=[nextY,nextHeight];
         }else if (bounds == currentY){ //Passed current, update view tracker variables
-            ref.nextView = ref.currentView;
-            ref.currentView--;
-            ref.interpValue = 0;
+            ref.moveBackward();
             newValues = [currentY,currentHeight];
         }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
@@ -300,14 +310,10 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         }
     }else { //At a bar somewhere in between current and next view
         if (bounds == currentY){ //Passed current, update the variables
-            ref.nextView = ref.currentView;
-            ref.currentView--;
-            ref.interpValue = 0;
+            ref.moveBackward();
             newValues = [currentY,currentHeight];
         }else if (bounds ==nextY){ //Passed next, update the variables
-            ref.currentView = ref.nextView;
-            ref.nextView++;
-            ref.interpValue = 0;
+            ref.moveForward();
             newValues = [nextY,nextHeight];
         }else{ //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
@@ -332,27 +338,23 @@ Barchart.prototype.handleDraggedBar_stationary = function (currentY,nextY,mouseY
     var bounds = ref.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
     if (ref.currentView ==0){ //At the first bar
         if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
-            ref.currentView = ref.nextView;
-            ref.nextView++;
+            ref.moveForward();
         }else if (bounds!= currentY){
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
             ref.animateHintPath(bounds,0);
         }
     } else if (ref.nextView == ref.lastView){ //At the last bar
       if (bounds == currentY){ //Passed current, update view tracker variables
-            ref.nextView = ref.currentView;
-            ref.currentView--;
+            ref.moveBackward();
         }else if (bounds != nextY){
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
             ref.animateHintPath(bounds,0);
         }
     }else { //At a bar somewhere in between current and next view
         if (bounds == currentY){ //Passed current, update the variables
-            ref.nextView = ref.currentView;
-            ref.currentView--;
+            ref.moveBackward();
         }else if (bounds ==nextY){ //Passed next, update the variables
-            ref.currentView = ref.nextView;
-            ref.nextView++;
+            ref.moveForward();
         }else{
             //Otherwise, mouse dragging is in bounds
             ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
@@ -393,9 +395,13 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 	}
 	//console.log("my "+mouseY+"start "+start+" end "+end);
 	//Check if the mouse is between start and end values
-	if (mouseY <= start) return start;
-	else if (mouseY >=end) return end;
-
+	if (mouseY <= start) {
+        this.interpValue = 0;
+        return start;
+    }else if (mouseY >=end) {
+        this.interpValue = 0;
+        return end;
+    }
     //Find the amount travelled from current to next view (remember: h1 is current and h2 is next)
     var distanceTravelled = Math.abs(mouseY-h1);
     var totalDistance = Math.abs(h2 - h1);

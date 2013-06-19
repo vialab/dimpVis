@@ -208,18 +208,14 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
            if (bounds==currentY){ //Exceeding the first view, out of bounds
               return;
            }else if (bounds==nextY){ //Passed the next view, update the variables
-               ref.currentView = ref.nextView;
-               ref.nextView++;
-               ref.interpValue = 0;
+               ref.moveForward();
            }else{  //Otherwise, somewhere between current and next
                ref.interpolateColours(ref.currentView, ref.nextView,bounds);
                ref.animateHintPath(currentYOffset,nextYOffset,bounds);
            }
        }else if (ref.nextView ==  ref.lastView){ //At the last view
            if (bounds == currentY){//Passing the current view, update the variables
-               ref.nextView = ref.currentView;
-               ref.currentView--;
-               ref.interpValue = 0;
+               ref.moveBackward();
            }else if (bounds == nextY){ //Exceeding the last view, going out of bounds
                return;
            }else{ //Somewhere between next and current
@@ -228,19 +224,29 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
            }
        }else{ //At a view somewhere between current and next
            if(bounds == currentY){ //Passing current view, update variables
-               ref.nextView = ref.currentView;
-               ref.currentView--;
-               ref.interpValue = 0;
+               ref.moveBackward();
            }else if (bounds == nextY){
-               ref.currentView = ref.nextView;
-               ref.nextView++;
-               ref.interpValue = 0;
+               ref.moveForward();
            }else{ //Mouse is in bounds
                ref.interpolateColours(ref.currentView, ref.nextView,bounds);
                ref.animateHintPath(currentYOffset,nextYOffset,bounds);
            }
        }
     });
+}
+/** Updates the view variables to move the visualization forward
+ * (passing the next view)
+ * */
+Heatmap.prototype.moveForward = function (){
+    this.currentView = this.nextView;
+    this.nextView++;
+}
+/** Updates the view variables to move the visualization backward
+ * (passing the current view)
+ * */
+Heatmap.prototype.moveBackward = function (){
+    this.nextView = this.currentView;
+    this.currentView--;
 }
 /** Checks if the mouse is in bounds defined by y1 and y2
  *  y1,y2: the bounds
@@ -261,9 +267,13 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
         end = y2;
     }
     //Check if the mouse is between start and end values
-    if (mouseY <= start) return start;
-    else if (mouseY >=end) return end;
-
+    if (mouseY <= start){
+        this.interpValue = 0;
+        return start;
+    } else if (mouseY >=end) {
+        this.interpValue = 0;
+        return end;
+    }
     //Find the amount travelled from current to next view (remember: y1 is current and y2 is next)
     var distanceTravelled = Math.abs(mouseY-y1);
     var totalDistance = Math.abs(y2 - y1);

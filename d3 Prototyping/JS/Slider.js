@@ -200,10 +200,12 @@ Slider.prototype.snapToTick = function() {
  * */
 Slider.prototype.animateTick = function(interpValue, currentView, nextView) {
     var ref = this;
-    this.widget.select("#slidingTick")
-           .attr("x",function (){
-                 var current = ref.tickPositions[currentView];
-                 var next = ref.tickPositions[nextView];
-                 return d3.interpolate(current,next)(interpValue);
-             });
+    if (interpValue != 0){
+        this.widget.select("#slidingTick")
+               .attr("x",function (){
+                     var current = ref.tickPositions[currentView];
+                     var next = ref.tickPositions[nextView];
+                     return d3.interpolate(current,next)(interpValue);
+                 });
+    }
 }

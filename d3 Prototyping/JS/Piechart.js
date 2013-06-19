@@ -42,6 +42,8 @@ function Piechart(x,y, r,id,title,hLabels){
    this.interpValue=0;
    this.previousDirection = 1; //Tracks the direction travelled (forward or backward in time) to infer the next view
                                //1 if going forward, -1 if going backward
+   this.mouseAngle = -1; //Save the angle of the previously dragged segment
+
    //Constants for angle calculations involving PI
    this.pi = Math.PI;
    this.halfPi = Math.PI/2;
@@ -167,21 +169,18 @@ this.svg.selectAll(".gDisplayArcs").append("path")
  *  id: index of the dragged segment corresponding to start
  * */
 Piechart.prototype.calculateLayout = function (angles,start,id){
-    //TODO: not sure if need to check whether or not the angle exceeds 360, because if angles are reduced then the drawing order is messed up
-    // this.startAngles[j] = ((angleSum >this.twoPi) ? (angleSum-this.twoPi):(angleSum));
-    // this.endAngles[j] = (((angleSum + currentAngle)>this.twoPi) ? (angleSum + currentAngle-this.twoPi):(angleSum + currentAngle));
     var angleSum, currentAngle;
+
     //Adjust the id (if using the slider)
     var newId  = id;
     if (id==-1){newId = this.draggedSegment}
 
     //First assign the start and end angles to the currently dragged segment (id)
     var endAngle = start+angles[newId];
-    //this.startAngles[id] = ((start>this.twoPi) ? (start-this.twoPi):(start));
-    //this.endAngles[id] = ((endAngle >this.twoPi) ? (endAngle-this.twoPi):(endAngle));
     this.startAngles[newId] = start;
     this.endAngles[newId] = endAngle;
     angleSum = endAngle;
+
     //Then, assign start/end angles to all segments whose indices occur after id (> id)
     for (var j=(newId+1);j<angles.length;j++){
         currentAngle = angles[j];
@@ -240,7 +239,6 @@ Piechart.prototype.findHintArcs = function (angles){
 Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
     var ref = this;
     //TODO: handle when switching directions (infer time continuity)
-    //console.log(ref.currentView+" "+ref.nextView);
     this.svg.select("#displayArcs"+id).attr("d", function (d) {
 
         //Set the start angle of the dragged segment
@@ -267,26 +265,24 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
         //DEBUG: console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" angle "+(angle+ref.dragStartAngle)*180/Math.PI+" view"+ref.currentView);
         //TODO: Drawing of angles is still choppy, especially when at an edge of the hint path, in this case might need to force the interaction to move in the desired angular direction
         //TODO: e.g., if the edge changes from counter clockwise to clockwise, then the only dragging direction allowed at this edge is clockwise.. can use hDirections array for this
-        //TODO: for all visualizations, the views toggle at some points, causing the time slider to toggle as well, might be for data objects with very close (almost equal) values
-
-        /**if (d.hDirections[ref.currentView][0] == 1){  //At an edge along the hint path, need to enforce the direction
-            if (current > next){
-                console.log("counter clockwise");
-            }else if (current < next){
-                console.log("clockwise");
-            }
+       // console.log(ref.currentView+" "+ref.nextView+" "+ref.previousDirection);
+      // console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI+" view"+ref.currentView);
+        var atEdge = 0;
+        if (d.hDirections[ref.currentView][1] != d.hDirections[ref.nextView][1]){  //At an edge along the hint path, need to enforce the direction
+           // console.log("at edge");
+                //atEdge = 1;
+               /**if (current > next){
+                   console.log("one d");
+               }else{
+                   console.log("other d");
+               }*/
         }
-        console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI+" view"+ref.currentView);*/
-
-        // console.log("current view"+ref.currentView+"next view "+ref.nextView+"current "+current+"next "+next+" computed "+d.endAngle);
         if (ref.currentView == 0) {  //At the start angle
             if (bounds == current){ //Passed current view angle, going out of bounds
                 d.endAngle = ref.dragStartAngle + current;
             }else if (bounds == next){ //Passed the next view angle, update the tracker variables
                 d.endAngle = ref.dragStartAngle + next;
-                ref.currentView = ref.nextView;
-                ref.nextView++;
-                ref.interpValue = 0;
+                ref.moveForward();
             }else{   //Otherwise, dragged angle is in bounds
                 d.endAngle = ref.dragStartAngle + angle;
                 ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView,ref.interpValue);
@@ -297,9 +293,16 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                 d.endAngle = ref.dragStartAngle + next;
             }else if (bounds == current){ //Passed the current view end angle, update the tracker variables
                 d.endAngle = ref.dragStartAngle + current;
-                ref.nextView = ref.currentView;
-                ref.currentView--;
-                ref.interpValue = 0;
+                ref.moveBackward();
+                /**if (atEdge ==0){
+                    ref.moveBackward();
+                }else{
+                     if (ref.previousDirection==-1){
+                         ref.moveBackward();
+                      }else{
+                         ref.previousDirection = 1;
+                     }
+                }*/
             }else { //Otherwise, dragged angle is in bounds
                 d.endAngle = ref.dragStartAngle + angle;
                 ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
@@ -308,25 +311,36 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
         }	else { //At an angle somewhere in between the current and next view
             if (bounds == current){ //Passed current
                 d.endAngle = ref.dragStartAngle + current;
-                ref.nextView = ref.currentView;
-                ref.currentView--;
-                ref.interpValue = 0;
+                ref.moveBackward();
             } else if (bounds ==next){ //Passed next
                 d.endAngle = ref.dragStartAngle + next;
-                ref.currentView = ref.nextView;
-                ref.nextView++;
-                ref.interpValue = 0;
+                ref.moveForward();
             }else { //Within bounds
                 d.endAngle = ref.dragStartAngle + angle;
                 ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
                 ref.animateHintPath(d.hDirections, d.nodes);
             }
-
         }
-        //console.log("returned: "+d.endAngle*180/Math.PI);
+        ref.mouseAngle = angle;  //Save the dragging angle
         return ref.arcGenerator(d);
-
     });
+
+}
+/** Updates the view variables to move the visualization forward
+ * (passing the next view)
+ * */
+Piechart.prototype.moveForward = function (){
+    this.currentView = this.nextView;
+    this.nextView++;
+    this.previousDirection = 1;
+}
+/** Updates the view variables to move the visualization backward
+ * (passing the current view)
+ * */
+Piechart.prototype.moveBackward = function (){
+    this.nextView = this.currentView;
+    this.currentView--;
+    this.previousDirection = -1;
 }
 /** Checks if the mouse's dragged angle is in the bounds defined by angle1, angle2
  *  angle1,angle2: the bounds
@@ -347,8 +361,10 @@ Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
     }
 
     if (mouseAngle <= start){
+        this.interpValue = 0;
         return start;
     }else if (mouseAngle >=end){
+        this.interpValue = 0;
         return end;
     }
 
@@ -370,15 +386,14 @@ Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
 Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endView,interpAmount){
     var ref = this;
     var newAngles = [];
-    //TODO: doesn't work when angle wraps around 180 or 360
+
 	this.svg.selectAll(".displayArcs").each(function (d) {
-           if (d.id == id){
-               newAngles.push(mouseAngle);
-           }else{
-                newAngles.push(ref.interpolator(d.nodes[startView], d.nodes[endView], interpAmount));
-           }
+       if (d.id == id){newAngles.push(mouseAngle);}
+       else{newAngles.push(ref.interpolator(d.nodes[startView], d.nodes[endView], interpAmount));}
 	 });
+
     this.calculateLayout(newAngles,this.dragStartAngle,id);
+
     //Redraw the segments at the interpolated angles
     this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
         .attr("d", function (d){
@@ -392,7 +407,6 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  * hDirections: the drawing directions for the hint path and the segment numbers
  * angles: an array of all angles to appear on the hint path
  * */
-//TODO: try doing this with a translate, instead of recalculating the hint path coordinates
  Piechart.prototype.animateHintPath = function (hDirections,angles){
     var ref = this;
     var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}),1);
@@ -409,22 +423,19 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  * allAngles: of the dragged segment (across all views)
  * mouseAngle: the angle of the mouse
  * */
-Piechart.prototype.snapToView = function (id,mouseAngle,allAngles){
-	   var current =  this.dragStartAngle + allAngles[this.currentView];
-	   var next = this.dragStartAngle + allAngles[this.nextView];
-	  //console.log("BEFORE SNAP: next "+next+", "+ref.nextView+" current "+current+" ,"+ref.currentView+"mouse "+mouseAngle);	 	  
-	   var currentDist = Math.abs(current - mouseAngle);
-	   var nextDist = Math.abs(next - mouseAngle);
-	   if (currentDist>nextDist && this.nextView != this.numArcs){ //Passed next, advance the variables forward
-			//Make sure the nextViewIndex wasn't the last one to avoid index out of bounds
-			this.currentView = this.nextView;
-			this.nextView++;
-            this.redrawView(this.currentView,id);
-		}else if (this.nextView == this.numArcs){
-	        this.redrawView((this.currentView+1),id);
-       }else{
-	        this.redrawView(this.currentView,id);
-       }
+Piechart.prototype.snapToView = function (id,allAngles){
+
+   var current =  allAngles[this.currentView];
+   var next = allAngles[this.nextView];
+   var currentDist = Math.abs(current - this.mouseAngle);
+   var nextDist = Math.abs(next - this.mouseAngle);
+
+   if (currentDist>nextDist && this.nextView != this.numArcs){ //Passed next, advance the variables forward
+        this.currentView = this.nextView;
+        this.nextView++;
+        this.redrawView(this.currentView,id);
+    }else if (this.nextView == this.numArcs){ this.redrawView((this.currentView+1),id);}
+     else{ this.redrawView(this.currentView,id);}
 }
 /** Updates the view tracking variables when the view is being changed by an external
  * visualization (e.g., slider)
@@ -485,7 +496,6 @@ Piechart.prototype.calculateHintAngles = function (angles,arcIndices,flag){
 Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
     var ref = this;
     this.dragStartAngle = start; //Important: save the start angle
-    this.draggedSegment = id;
     var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}),0);
     var hintPathArcString = ref.createArcString(hintArcInfo,hDirections);
 
@@ -585,6 +595,7 @@ Piechart.prototype.createArcString = function (pathInfo,directions){
     }
     return dString;
 }
+//TODO: this function is not working
 /** Animates all segments on the piechart along the hint path of a selected segment
  *  startView to endView, this function is called when "fast-forwarding"
  *  is invoked (by clicking a year label on the hint path)
@@ -605,22 +616,23 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
 
     //Apply multiple transitions to each display point by chaining them
     this.svg.selectAll(".displayArcs").each(animate());
-   //TODO: this doesn't work
+
     //Recursively invoke this function to chain transitions, a new transition is added once
     //the current one is finished
     function animate() {
         viewCounter++;
         if (viewCounter==totalViews) {
             animateView = animateView + direction;
-             var newAngles = [];
-             newAngles = ref.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes[animateView]});
+            var newAngles = [];
+            newAngles = ref.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes[animateView]});
+            console.log(ref.dragStartAngle);
             //Recalculate the piechart layout at the view
             ref.calculateLayout(newAngles,ref.dragStartAngle,id);
             viewCounter = 0;
         }
         if (direction == 1 && animateView>=endView) return;
         if (direction ==-1 && animateView<=endView) return;
-        var currentAngles = [];
+
         return function(d) {
             //Redraw the piechart at the new view
             d3.select(this).transition(400)//.ease("linear")

@@ -35,11 +35,11 @@ piechart.dragEvent = d3.behavior.drag()
         piechart.showHintPath(d.id, d.hDirections, d.nodes, d.startAngle);
     })
     .on("drag", function(d){
-        slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
         piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);
+        slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
     })
     .on("dragend",function (d){
-        piechart.snapToView(d.id,d.endAngle,d.nodes);
+        piechart.snapToView(d.id,d.nodes);
         slider.updateSlider(piechart.currentView);
     });
 
@@ -60,7 +60,7 @@ slider.dragEvent = d3.behavior.drag()
     .on("dragend",function (){
         slider.snapToTick();
         piechart.changeView(slider.currentTick);
-        //piechart.redrawView(-1,-1);
+        piechart.redrawView(slider.currentTick,piechart.draggedSegment);
     });
 
 slider.widget.select("#slidingTick").call(slider.dragEvent);
