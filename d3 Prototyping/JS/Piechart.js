@@ -238,91 +238,95 @@ Piechart.prototype.findHintArcs = function (angles){
  *  mouseX,mouseY: The coordinates of the mouse
  * */
 Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
-     var ref = this;
+    var ref = this;
     //TODO: handle when switching directions (infer time continuity)
-	 //console.log(ref.currentView+" "+ref.nextView);
-     this.svg.select("#displayArcs"+id).attr("d", function (d) {
-                d.startAngle = ref.dragStartAngle;
-                var adj = mouseX - ref.cx;
-                var opp = ref.cy - mouseY;
-                var angle = Math.atan2(adj,opp);
-                //Moved to the other side of the circle, make the angle positive
-                if (angle < 0){	angle = (ref.pi - angle*(-1))+ref.pi;}
-                angle = angle - ref.dragStartAngle;
+    //console.log(ref.currentView+" "+ref.nextView);
+    this.svg.select("#displayArcs"+id).attr("d", function (d) {
+
+        //Set the start angle of the dragged segment
+        d.startAngle = ref.dragStartAngle;
+
+       //Calculate the angle of the dragged segment
+        var adj = mouseX - ref.cx;
+        var opp = ref.cy - mouseY;
+        var angle = Math.atan2(adj,opp);
+        //DEBUG: console.log("original angle: "+angle*180/Math.PI);
+
+        //Wrapped around 180, make angle positive
+        if (angle < 0){	angle = (ref.pi - angle*(-1))+ref.pi;}
+        angle = angle - ref.dragStartAngle;
+        //Wrapped around 360, adjust the angle according to the start angle
+        if (angle < 0){ angle = (ref.twoPi - ref.dragStartAngle)+(angle + ref.dragStartAngle)}
+
+        //DEBUG: console.log("positive angle: "+angle*180/Math.PI);
+        //Find the angles for the current and next view
+        var current = d.nodes[ref.currentView];
+        var next =  d.nodes[ref.nextView];
+        var bounds = ref.checkBounds(current,next,angle);
+
+        //DEBUG: console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" angle "+(angle+ref.dragStartAngle)*180/Math.PI+" view"+ref.currentView);
+        //TODO: Drawing of angles is still choppy, especially when at an edge of the hint path, in this case might need to force the interaction to move in the desired angular direction
+        //TODO: e.g., if the edge changes from counter clockwise to clockwise, then the only dragging direction allowed at this edge is clockwise.. can use hDirections array for this
+        //TODO: for all visualizations, the views toggle at some points, causing the time slider to toggle as well, might be for data objects with very close (almost equal) values
+
+        /**if (d.hDirections[ref.currentView][0] == 1){  //At an edge along the hint path, need to enforce the direction
+            if (current > next){
+                console.log("counter clockwise");
+            }else if (current < next){
+                console.log("clockwise");
+            }
+        }
+        console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI+" view"+ref.currentView);*/
+
+        // console.log("current view"+ref.currentView+"next view "+ref.nextView+"current "+current+"next "+next+" computed "+d.endAngle);
+        if (ref.currentView == 0) {  //At the start angle
+            if (bounds == current){ //Passed current view angle, going out of bounds
+                d.endAngle = ref.dragStartAngle + current;
+            }else if (bounds == next){ //Passed the next view angle, update the tracker variables
+                d.endAngle = ref.dragStartAngle + next;
+                ref.currentView = ref.nextView;
+                ref.nextView++;
+                ref.interpValue = 0;
+            }else{   //Otherwise, dragged angle is in bounds
                 d.endAngle = ref.dragStartAngle + angle;
-                var current = ref.dragStartAngle + d.nodes[ref.currentView];
-                var next = ref.dragStartAngle + d.nodes[ref.nextView];
-                //Adjust the current and next to ensure they do not exceed 360
-               // var current = ((ref.dragStartAngle + d.nodes[ref.currentView] >ref.twoPi) ? ((ref.dragStartAngle + d.nodes[ref.currentView])-ref.twoPi):(ref.dragStartAngle + d.nodes[ref.currentView]));
-               // var next = ((ref.dragStartAngle + d.nodes[ref.nextView] >ref.twoPi) ? ((ref.dragStartAngle + d.nodes[ref.nextView])-ref.twoPi):(ref.dragStartAngle + d.nodes[ref.nextView]));
-              //TODO: Drawing of angles is still choppy, especially when at an edge of the hint path, in this case might need to force the interaction to move in the desired angular direction
-              //TODO: e.g., if the edge changes from counter clockwise to clockwise, then the only dragging direction allowed at this edge is clockwise.. can use hDirections array for this
-             //TODO: for all visualizations, the views toggle at some points, causing the time slider to toggle as well, might be for data objects with very close (almost equal) values
-               if (next > ref.twoPi && current > ref.twoPi){ //Both angles are wrapped around
-                     d.endAngle= d.endAngle + ref.twoPi;
-               }else  if (next > ref.twoPi || current > ref.twoPi){ //Detect when one endAngle crosses over the 360 mark
-                      if (d.endAngle >0 && d.endAngle < (next - ref.twoPi)){
-                          d.endAngle= d.endAngle + ref.twoPi;
-                      }
-               }
-			   if (d.hDirections[ref.currentView][0] == 1){  //At an edge along the hint path, need to enforce the direction
-			      if (current > next){
-				     console.log("counter clockwise");
-				  }else if (current < next){ 
-				     console.log("clockwise");
-				  }			        
-			   }
-               //(ref.twoPi - current) + (ref.twoPi - next)
-                //console.log( Math.abs(d.nodes[ref.currentView] -  d.nodes[ref.nextView])*180/Math.PI)
-               console.log("current: "+current*180/Math.PI+" next "+next*180/Math.PI+" end "+d.endAngle*180/Math.PI+" view"+ref.currentView);
+                ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView,ref.interpValue);
+                ref.animateHintPath(d.hDirections, d.nodes);
+            }
+        } else if (ref.nextView == ref.lastView){ //At the last view
+            if (bounds == next) { //Passed the next view end angle, going out of bounds
+                d.endAngle = ref.dragStartAngle + next;
+            }else if (bounds == current){ //Passed the current view end angle, update the tracker variables
+                d.endAngle = ref.dragStartAngle + current;
+                ref.nextView = ref.currentView;
+                ref.currentView--;
+                ref.interpValue = 0;
+            }else { //Otherwise, dragged angle is in bounds
+                d.endAngle = ref.dragStartAngle + angle;
+                ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
+                ref.animateHintPath(d.hDirections, d.nodes);
+            }
+        }	else { //At an angle somewhere in between the current and next view
+            if (bounds == current){ //Passed current
+                d.endAngle = ref.dragStartAngle + current;
+                ref.nextView = ref.currentView;
+                ref.currentView--;
+                ref.interpValue = 0;
+            } else if (bounds ==next){ //Passed next
+                d.endAngle = ref.dragStartAngle + next;
+                ref.currentView = ref.nextView;
+                ref.nextView++;
+                ref.interpValue = 0;
+            }else { //Within bounds
+                d.endAngle = ref.dragStartAngle + angle;
+                ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
+                ref.animateHintPath(d.hDirections, d.nodes);
+            }
 
-                 var bounds = ref.checkBounds(current,next,d.endAngle);
-              // console.log("current view"+ref.currentView+"next view "+ref.nextView+"current "+current+"next "+next+" computed "+d.endAngle);
-                 if (ref.currentView == 0) {  //At the start angle
-                    if (bounds == current){ //Passed current angle, out of bounds
-                       d.endAngle = current;
-                    }else if (bounds == next){ //Passed the next angle, update the tracker variables
-                        d.endAngle = next;
-                        ref.currentView = ref.nextView;
-                        ref.nextView++;
-                        ref.interpValue = 0;
-                    }else{   //Otherwise, dragged angle is in bounds					    
-                        ref.interpolateSegments(d.id, angle, ref.currentView,ref.nextView,ref.interpValue);
-                        ref.animateHintPath(d.hDirections, d.nodes);
-                    }
-                 } else if (ref.nextView == ref.lastView){ //At the largest end angle
-                    if (bounds == next) { //Passed the largest end angle, out of bounds
-                       d.endAngle = next;
-                    }else if (bounds == current){ //Passed the current angle, update the tracker variables
-                      d.endAngle = current;
-                      ref.nextView = ref.currentView;
-                      ref.currentView--;
-                        ref.interpValue = 0;
-                    }else { //Otherwise, dragged angle is in bounds					    
-                        ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
-                        ref.animateHintPath(d.hDirections, d.nodes);
-                    }
-                 }	else { //At an angle somewhere in between the largest and smallest
-                      if (bounds == current){ //Passed current
-                          d.endAngle = current;
-                          ref.nextView = ref.currentView;
-                          ref.currentView--;
-                          ref.interpValue = 0;
-                      } else if (bounds ==next){ //Passed next
-                         d.endAngle = next;
-                         ref.currentView = ref.nextView;
-                         ref.nextView++;
-                          ref.interpValue = 0;
-                      }else { //Otherwise, within bounds
-                          ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
-                          ref.animateHintPath(d.hDirections, d.nodes);
-                      }
+        }
+        //console.log("returned: "+d.endAngle*180/Math.PI);
+        return ref.arcGenerator(d);
 
-                 }
-             //console.log("returned: "+d.endAngle*180/Math.PI);
-             return ref.arcGenerator(d);
-
-	});
+    });
 }
 /** Checks if the mouse's dragged angle is in the bounds defined by angle1, angle2
  *  angle1,angle2: the bounds
