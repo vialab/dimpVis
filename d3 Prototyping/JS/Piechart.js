@@ -604,6 +604,7 @@ Piechart.prototype.createArcString = function (pathInfo,directions){
  *  NOTE: This function does not update the view tracking variables
  * */
 Piechart.prototype.animateSegments = function(id, startView, endView) {
+    if (startView == endView){return;}
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
     var direction = 1;

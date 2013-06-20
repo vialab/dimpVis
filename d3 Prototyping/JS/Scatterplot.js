@@ -211,13 +211,13 @@ Scatterplot.prototype.render = function( data, start, labels) {
  *  id: The id of the dragged point, for selecting by id
  *  mousex, mouseY: The coordinates of the mouse, received from the drag event
  * */
-//TODO: toggling between label colours for stationary points
 //TODO: special cases: when current is stationary but next isn't and vice versa
 Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
     //Save the mouse coordinates
     this.mouseX = mouseX;
     this.mouseY = mouseY;
     var currentPointInfo = this.ambiguousPoints[this.currentView];
+    //console.log(this.currentView+" "+this.nextView);
     //Re-draw the dragged point along the hint path
     if (currentPointInfo[0]==1 && this.ambiguousPoints[this.nextView][0] == 1){ //Stationary point
         this.dragAlongLoop(id,currentPointInfo[2]);
@@ -353,12 +353,14 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
                  this.nextView = this.currentView;
                  this.currentView = this.currentView-1;
              }else { //Passed next view
+                 console.log("passing next"+this.nextView);
                  this.currentView = this.nextView;
                  this.nextView = this.nextView +1;
+                 console.log(this.currentView);
              }
              this.toggleLabelColour(this.currentView,groupNumber)
              this.interpValue = 0;
-             console.log("full rev"+" "+this.currentView+" "+this.nextView);
+            // console.log("full rev"+" "+this.currentView+" "+this.nextView);
              this.countRevolutions = 0;
          }else if (currentDirection != this.previousLoopDirection){ //Switching dragging directions, flip the view variables
              this.countRevolutions = 0;
@@ -366,12 +368,12 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
              this.interpValue = this.countRevolutions/(Math.PI*2);
              this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
              this.interpolateLabelColour(this.interpValue,this.currentView,this.nextView,groupNumber);
-            // console.log(this.interpValue);
          }
      }
      //Save the dragging angle and direction
      this.previousLoopAngle = angle;
      this.previousLoopDirection = currentDirection;
+    console.log("prev direction "+this.previousLoopDirection);
 }
  /**"Animates" the rest of the points while one is being dragged
  * Uses the 't' parameter, which represents approximately how far along a line segment
@@ -438,7 +440,6 @@ Scatterplot.prototype.changeView = function( newView) {
             this.nextView = newView + 1;
 	}
 }
-//TODO****: for some reason, doesn't work anymore? AnimateView incrementing to the totalViews
 /** Animates all points in the scatterplot along their hint paths from
  *  startView to endView, this function is called when "fast-forwarding"
  *  is invoked (by clicking a year label on the hint path)
@@ -453,7 +454,8 @@ Scatterplot.prototype.changeView = function( newView) {
 //TODO: Out of bounds for end points, still pretty buggy might have to do with the view tracking
 //TODO: Add toggling label colour for stationary/revisiting points
  Scatterplot.prototype.animatePoints = function( startView, endView) {
-	 var ref = this;
+     if (startView == endView){return;}
+     var ref = this;
      //Determine the travel direction (e.g., forward or backward in time)
      var direction = 1;
      if (startView>endView) direction=-1;
@@ -474,10 +476,11 @@ Scatterplot.prototype.changeView = function( newView) {
             animateView = animateView + direction;
             viewCounter = 0;
         }
-       if (direction == 1 && animateView>=endView) return;
-       if (direction ==-1 && animateView<=endView) return;
         return function(d) {
-            console.log(viewCounter);
+            //Ensure the animateView index is not out of bounds
+            if (direction == 1 && animateView>endView) {return};
+            if (direction ==-1 && animateView<endView) {return};
+            //Re-draw each point at the current view in the animation sequence
             d3.select(this).transition(400).ease("linear")
             .attr("cx",d.nodes[animateView][0])
             .attr("cy",d.nodes[animateView][1])
@@ -489,9 +492,9 @@ Scatterplot.prototype.changeView = function( newView) {
  *  view: the view to draw
  *  NOTE: view tracking variables are not updated by this function
  * */
-//TODO: Might want to add interpolation or use the interpolate function
+//TODO: For later, Might want to add interpolation or use the interpolate function
 Scatterplot.prototype.redrawView = function(view) {
-    if (this.ambiguousPoints[view][0] == 1){ //A stationary point, update the label colour
+    if (this.ambiguousPoints.length != 0 && this.ambiguousPoints[view][0] == 1){ //A stationary point, update the label colour
         this.toggleLabelColour(view,this.ambiguousPoints[view][2]);
     }
     this.svg.selectAll(".displayPoints").transition().duration(300)

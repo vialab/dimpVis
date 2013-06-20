@@ -497,6 +497,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  * */
 //TODO: last and first view: animateView going out of bounds
   Barchart.prototype.animateBars = function( id, startView, endView) {
+    if (startView == endView){return;}
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
     var direction = 1;
@@ -702,7 +703,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
 //TODO: can use this to also detect really small changes in height to alleviate the interaction
-//TODO: do we really need to pre-detect the revisiting case, could check on the fly in updateDraggedBar(), also the revisiting problem might be resolved when inferring time continuity
+//TODO: do we really need to pre-detect the revisiting case? could check on the fly in updateDraggedBar(), also the revisiting problem might be resolved when inferring time continuity
 /** Search for ambiguous cases in a list of heights/y-coordinates.  Ambiguous cases are tagged by type, using a number.
  *  The scheme is:
  *  0: not ambiguous
@@ -758,13 +759,12 @@ Barchart.prototype.checkAmbiguous = function (){
      console.log(revisitingPoints);*/
 
 }
-/** Finds areas in the data set which require interaction paths, which are sequences of
- * stationary points.  This function will populate an array containing all data for
- * drawing a sine wave which is used to guide the interaction across areas of stationary bars
+/** This function will populate an array containing all data for drawing a sine wave:
  * interactionPaths[] = [[points for the sine wave]..number of paths]
  * Note: this function is only called in checkAmbiguous(), because it uses the resulting
  * ambiguousBars array
- * startIndex: the index of the first stationary bar in the ambiguousBars array
+ * startIndex: the index of the first stationary bar (only for reducing the search, can just
+ * set this to 0)
  * */
 Barchart.prototype.findPaths = function (startIndex){
     var pathInfo = [];

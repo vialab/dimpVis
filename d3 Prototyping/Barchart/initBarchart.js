@@ -44,7 +44,7 @@ barchart.svg.selectAll(".displayBars")
     .call(barchart.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(50, 600, "#time",labels, "Time","#666",17);
+var slider   = new Slider(50, 600, "#time",labels, "Time","#666",40);
 slider.init();
 slider.render();
 
