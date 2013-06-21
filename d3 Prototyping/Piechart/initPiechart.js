@@ -11,7 +11,7 @@ piechart.clickSVG = function (){
 };
 //Initialize and render the piechart visualization
 piechart.init();
-piechart.render(data,0,colours);
+piechart.render(data,colours);
 
 //Define the function for fast-forwarding the view by clicking on any label along the hint path
 piechart.clickHintLabelFunction = function (d,i){

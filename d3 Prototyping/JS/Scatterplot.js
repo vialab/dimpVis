@@ -370,9 +370,15 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
              this.interpolateLabelColour(this.interpValue,this.currentView,this.nextView,groupNumber);
          }
      }
-     //Save the dragging angle and direction
-     this.previousLoopAngle = angle;
-     this.previousLoopDirection = currentDirection;
+
+    //Debugging: re-draw the circle to show dragging
+    /**var newX = cx+this.loopRadius/2*Math.cos(angle);
+    var newY = cy+this.loopRadius/2*Math.sin(angle);
+    ref.svg.select("#displayPoints"+id).attr("cx",newX).attr("cy",newY);*/
+
+    //Save the dragging angle and direction
+    this.previousLoopAngle = angle;
+    this.previousLoopDirection = currentDirection;
     console.log("prev direction "+this.previousLoopDirection);
 }
  /**"Animates" the rest of the points while one is being dragged
@@ -451,7 +457,7 @@ Scatterplot.prototype.changeView = function( newView) {
  *  NOTE: This function does not update the view tracking variables
  * */
 //TODO:Add tweening to make the transition smoother
-//TODO: Out of bounds for end points, still pretty buggy might have to do with the view tracking
+//TODO: Still pretty buggy might have to do with the view tracking, sometimes doesn't animate to the correct view, exact cause of this is unknown
 //TODO: Add toggling label colour for stationary/revisiting points
  Scatterplot.prototype.animatePoints = function( startView, endView) {
      if (startView == endView){return;}
@@ -505,7 +511,7 @@ Scatterplot.prototype.redrawView = function(view) {
  * id: The id of the dragged point, to determine which hint path to draw
  * points: An array of all points of the dragged point (e.g., d.nodes)
  * */
-//TODO: Better way for label placement to minimize overlap
+//TODO: For Later, find a better way for label placement to minimize overlap (detect really close points and shift the label positions)
  Scatterplot.prototype.showHintPath = function (id,points){
     var ref = this;
     //Function for drawing a linearly interpolated path between set of points
