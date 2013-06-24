@@ -30,6 +30,7 @@
    this.width = 0; //Set this later
    this.height = h;
    this.hintPathSpacing = 30; //Amount of horizontal distance between labels on hint path
+   this.amplitude = 20; //Of the interaction path sine wave
    this.base = h-5; //Starting y-position of the bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
 
@@ -46,7 +47,8 @@
    this.mouseY = -1;
    this.ambiguousBars = [];
    this.interactionPaths = [];
-
+   this.previousDirection = 1; //Keeps track of the direction travelling over time 
+     
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
@@ -63,7 +65,7 @@
    this.interactionPathGenerator = d3.svg.line()
         .x(function(d,i) { return d.x; })
         .y(function(d) { return d.y; })
-        .interpolate("cardinal");
+        .interpolate("basis");
    //Interpolate function between two values, at the specified amount
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
@@ -240,10 +242,10 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
          var nextY = d.nodes[ref.nextView][0];
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
-         var newValues = [];
+         var newValues = [];       
         //Checking for stationary bar sequences
          if (ref.ambiguousBars[ref.currentView][0]==1 && ref.ambiguousBars[ref.nextView][0]==1){ //In middle of sequence
-             ref.handleDraggedBar_stationary(ref.ambiguousBars[ref.currentView][1],ref.ambiguousBars[ref.nextView][1],mouseY,id);
+             //ref.handleDraggedBar_stationary(ref.ambiguousBars[ref.currentView][1],ref.ambiguousBars[ref.nextView][1],mouseY,id);
              newValues = [currentY,currentHeight];
          }
          //TODO: are these cases even needed?
@@ -262,15 +264,21 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
  * (passing the next view)
  * */
 Barchart.prototype.moveForward = function (){
-    this.currentView = this.nextView;
-    this.nextView++;
+    if (this.nextView < this.lastView){ //Avoid index out of bounds
+        this.currentView = this.nextView;
+        this.nextView++;
+    }
+    this.previousDirection = 1;
 }
 /** Updates the view variables to move the visualization backward
  * (passing the current view)
  * */
 Barchart.prototype.moveBackward = function (){
-    this.nextView = this.currentView;
-    this.currentView--;
+    if (this.currentView > 0){ //Avoid index out of bounds
+        this.nextView = this.currentView;
+        this.currentView--;
+    }
+    this.previousDirection = -1;
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragged does not cause the dragged
@@ -286,41 +294,17 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
     var ref = this;
     var newValues = [];
     var bounds = ref.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
-    if (ref.currentView ==0){ //At the first bar
-        if (bounds == currentY){ //Passed lowest bar, out of bounds
-            newValues = [currentY,currentHeight];
-        }else if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
-            ref.moveForward();
-            newValues = [nextY,nextHeight];
-        }else{ //Otherwise, mouse dragging is in bounds
-            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds,-1);
-            newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
-        }
-    } else if (ref.nextView == ref.lastView){ //At the last bar
-        if (bounds == nextY){ //Passed highest, out of bounds
-            newValues=[nextY,nextHeight];
-        }else if (bounds == currentY){ //Passed current, update view tracker variables
-            ref.moveBackward();
-            newValues = [currentY,currentHeight];
-        }else{ //Otherwise, mouse dragging is in bounds
-            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds,-1);
-            newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
-        }
-    }else { //At a bar somewhere in between current and next view
-        if (bounds == currentY){ //Passed current, update the variables
-            ref.moveBackward();
-            newValues = [currentY,currentHeight];
-        }else if (bounds ==nextY){ //Passed next, update the variables
-            ref.moveForward();
-            newValues = [nextY,nextHeight];
-        }else{ //Otherwise, mouse dragging is in bounds
-            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds,-1);
-            newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
-        }
-    }
+    if (bounds == mouseY){
+        ref.interpolateBars(id,ref.interpValue,ref.currentView,ref.nextView);
+        ref.animateHintPath(ref.interpValue,-1);
+        newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+    }else if (bounds == currentY ){ //Passing current
+        ref.moveBackward();
+        newValues = [currentY,currentHeight];
+    }else{ //Passing next
+        ref.moveForward();
+        newValues = [nextY,nextHeight];
+    }   
     return newValues;
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedBar, except
@@ -407,7 +391,7 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
     var totalDistance = Math.abs(h2 - h1);
     var distanceRatio = distanceTravelled/totalDistance;
     this.interpValue = distanceRatio;
-	return distanceRatio;
+	return mouseY;
 }
 /** Animates the hint path by horizontally translating it according to the vertical
  *  dragging amount.
@@ -418,34 +402,29 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 //TODO: alot of repeated code with the interpolator, maybe saving the values in an array isn't a bad idea
  Barchart.prototype.animateHintPath = function (interpAmount,pathId){
    var ref = this;
+   var translateCurrent = this.hintPathSpacing*this.currentView;
+   var translateNext = this.hintPathSpacing*this.nextView;
+     console.log(translateCurrent+" "+translateNext);
     //Re-draw the hint path
-   this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){
-        var currentX = ref.findHintX(d[0],i,ref.currentView);
-        var nextX = ref.findHintX(d[0],i,ref.nextView);
-        return {x:ref.interpolator(currentX,nextX,interpAmount),y:d[1]};
+   this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){       
+        return {x:ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),y:d[1]};
     })));
 	//Re-draw the hint path labels
    this.svg.select("#hintPath").selectAll(".hintLabels")
-            .attr("transform",function (d,i) {
-                var currentX = ref.findHintX(d.x,i,ref.currentView);
-                var nextX = ref.findHintX(d.x,i,ref.nextView);
-                return "translate("+ref.interpolator(currentX,nextX,interpAmount)+","+ d.y+")";
+            .attr("transform",function (d,i) {                
+                return "translate("+ref.interpolator(d.x-translateCurrent,d.x-translateNext,interpAmount)+","+ d.y+")";
             });
     //Re-draw the interaction paths (if any) by horizontally translating them
     if (this.interactionPaths.length >0) {
             this.svg.select("#hintPath").selectAll(".interactionPath").filter(function (d) {return d.id !=pathId})
-                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                    var currentX = ref.findHintX(d[0],d[2],ref.currentView);
-                    var nextX = ref.findHintX(d[0],d[2],ref.nextView);
-                    return {x:ref.interpolator(currentX,nextX,interpAmount),y:d[1]};
+                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){                    
+                    return {x:ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),y:d[1]};
                    }));
                });
-        if (pathId!=-1){ //TODO:Animate the interaction path in both dimensions to coincide with the dragging along it
+        if (pathId!=-1){ //TODO:Repeated code here?
             this.svg.select("#hintPath").selectAll(".interactionPath").filter(function (d) {return d.id ==pathId})
-                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                    var currentX = ref.findHintX(d[0],d[2],ref.currentView);
-                    var nextX = ref.findHintX(d[0],d[2],ref.nextView);
-                    return {x:ref.interpolator(currentX,nextX,interpAmount),y:d[1]};
+                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){                    
+                    return {x:ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),y:d[1]};
                 }));
              });
         }
@@ -507,7 +486,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
     var totalViews = this.lastView+1;
     var viewCounter = -1; //Identifies when a new view is reached
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
-
+    
     //Apply multiple transitions to each display point by chaining them
     this.svg.selectAll(".displayBars").each(animate());
 
@@ -529,22 +508,23 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                 .each("end", animate());
             //If the bar's hint path is visible, animate it
             if (d.id == id){
+                var translate = animateView*ref.hintPathSpacing;
                 //Re-draw the hint path
                 d3.select("#path").attr("d", function(d,i){
-                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
+                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:d[0] - translate,y:d[1]}}));
                 });
                 //Re-draw the hint path labels
                 d3.select("#hintPath").selectAll(".hintLabels")
                     .attr("transform",function (d,i) {
                         //Don't rotate the label resting on top of the bar
-                        if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
-                        else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
+                        if (i==animateView) return "translate("+(d.x - translate)+","+ d.y+")";
+                        else return "translate("+((d.x - translate)-10)+","+ d.y+")";
                     });
                 //Re-draw interaction paths (if any)
                 if (ref.interactionPaths.length>0){
                     d3.select("#hintPath").selectAll(".interactionPath")
                         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                            return {x:ref.findHintX(d[0],d[2],animateView),y:d[1]};
+                            return {x:d[0]-translate,y:d[1]};
                         }));});
                 }
             }
@@ -565,22 +545,23 @@ Barchart.prototype.redrawView = function (view,id){
               .attr("y", function (d){return d.nodes[view][0];});
     //Re-draw the hint path (if id is specified)
     if (id!=-1){
+        var translate = view*this.hintPathSpacing;
          //Re-draw the hint path
         this.svg.select("#path").attr("d", function(d,i){
-            return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,view),y:d[1]}}));
+            return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:d[0]-translate,y:d[1]}}));
         });
         //Re-draw the hint path labels
         this.svg.selectAll(".hintLabels")
             .attr("transform",function (d,i) {
                 //Don't rotate the label resting on top of the bar
-                if (i==view) return "translate("+ref.findHintX(d.x,i,view)+","+ d.y+")";
-                else return "translate("+(ref.findHintX(d.x,i,view)-10)+","+ d.y+")";
+                if (i==view) return "translate("+(d.x-translate)+","+ d.y+")";
+                else return "translate("+((d.x-translate)-10)+","+ d.y+")";
           });
         //Re-draw interaction paths (if any)
         if (this.interactionPaths.length>0){
             this.svg.select("#hintPath").selectAll(".interactionPath")
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                    return {x:ref.findHintX(d[0],d[2],view),y:d[1]};
+                    return {x:d[0]-translate,y:d[1]};
                 }));});
         }
     }
@@ -606,18 +587,8 @@ Barchart.prototype.changeView = function (newView){
  * index: the view index
  * view: the current view
  * */
-Barchart.prototype.findHintX = function (oldX,index,view){
-    return (oldX+this.barWidth/2+(index*this.hintPathSpacing))-view*this.hintPathSpacing;
-}
-/** Re-calculates the yvalues for the moving hint path y-coordinates
- * (for both points comprising the path and labels)
- * oldY: the original y position
- * index: the view index
- * view: the current view
- * */
-//TODO: not used...
- Barchart.prototype.findHintY = function (oldY,index,view){
-    return oldY-view*this.hintPathSpacing;
+Barchart.prototype.findHintX = function (oldX,index){
+    return (oldX+this.barWidth/2+(index*this.hintPathSpacing));
 }
 /** Snaps to the nearest view once a dragged bar is released
  *  Nearest view is the closest height (either current or next) to the
@@ -647,8 +618,9 @@ Barchart.prototype.snapToView = function (id, heights){
 Barchart.prototype.showHintPath = function (id,heights,xPos){
     var ref = this;
     //Create a dataset to draw the hint path in the format: [x,y]
-    this.pathData = heights.map(function (d){return [xPos,d[0]];});
+    this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0]];});
     this.checkAmbiguous();
+    var translate = this.hintPathSpacing*this.currentView;
     //TODO: interaction paths need to be re-drawn or vertically translated whenever dragging starts at a peak or trough
     //TODO: interaction paths should be drawn as a sine wave, looks better than a spline http://stackoverflow.com/questions/13893127/how-to-draw-a-path-smoothly-from-start-point-to-end-point-in-d3-js
     //Draw the interaction path(s) (if any)
@@ -656,7 +628,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
             .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                return {x:ref.findHintX(d[0],d[2],ref.currentView),y:d[1]};
+                return {x:d[0]-translate,y:d[1]};
             }));})
             .attr("stroke-dasharray","3,3")//Makes the path dashed
             .attr("class","interactionPath")
@@ -666,21 +638,21 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 	//Draw the hint path line
    this.svg.select("#hintPath").append("svg:path")
        .attr("d", this.hintPathGenerator(ref.pathData.map(function (d,i){
-            return {x:ref.findHintX(d[0],i,ref.currentView),y:d[1]};
+            return {x:d[0]-translate,y:d[1]};
        })))
        .style("stroke-width", 2).style("stroke", this.hintColour)
        .style("fill","none").attr("filter", "url(#blur)")
        .attr("id","path");
 												
 	//Draw the hint labels
-   this.svg.select("#hintPath").selectAll("text").data(heights.map(function(d,i){
-           return {x:xPos,y:d[0],label:ref.hintLabels[i]};
+   this.svg.select("#hintPath").selectAll("text").data(ref.pathData.map(function(d,i){
+           return {x:d[0],y:d[1],label:ref.hintLabels[i]};
         })).enter().append("svg:text")
         .text(function(d) { return d.label; })
         .attr("transform",function (d,i) {
            //Don't rotate the label resting on top of the bar
-           if (i==ref.currentView) return "translate("+ref.findHintX(d.x,i,ref.currentView)+","+ d.y+")";
-           else return "translate("+(ref.findHintX(d.x,i,ref.currentView)-10)+","+ d.y+")";
+           if (i==ref.currentView) return "translate("+(d.x-translate)+","+ d.y+")";
+           else return "translate("+((d.x-translate)-10)+","+ d.y+")";
          })
        .attr("fill", "#666")
        .attr("class","hintLabels")
@@ -788,28 +760,23 @@ Barchart.prototype.findPaths = function (startIndex){
  * Note: this function is only called in findPaths()
  * h: the original height which defines the base axis of the sine wave
  * indices: the corresponding year indices, this array's length is the number of peaks of the path
- * @return an array of all points for the sine wave peaks and the year index in the format: [[x,y,index], etc.]
+ * @return an array of points for drawing the sine wave: [[x,y], etc.]
  * */
+
 Barchart.prototype.calculatePathPoints = function (h,indices){
-    var pathPoints = [];
+    var pathPoints = [];    
     //Save the x and y coordinates of the stationary bar
     var xPos = this.pathData[indices[0]][0];
     var yPos = this.pathData[indices[0]][1];
-    //The first point of the path should be the original point
-    pathPoints.push([xPos,yPos,indices[0]]);
-    var direction = 1; //Up or down direction of the sine wave, toggles among peaks
-    var amplitude = 20; //Height above or below the base (yPos)
-    for (var j=1;j<=indices.length;j++){
-        //Only need to compute the y value, since x will stay the same and is adjusted as needed by findHintX()
-        var newY = direction*amplitude + yPos;
-        direction = direction*-1; //Reverse the direction
-        //Save the y value in the ambiguousBars array, to be used later when determining the interaction direction
-        var originalIndex = indices[j-1];
-        pathPoints.push([xPos,newY,originalIndex]);
-        this.ambiguousBars[originalIndex] = [1,newY];
-    }
-    //The last point of the path should be the original point
-    pathPoints.push([xPos,yPos,indices[indices.length-1]]);
+    //Calculate the period
+    var totalPts = indices.length + (indices.length-1);        
+    var angle = 0;
+    for (var j=0;j<totalPts;j++){
+        var theta = angle + (Math.PI/2)*j;
+        var y = this.amplitude*Math.sin(theta)+ yPos;
+        var x = (this.hintPathSpacing/2)*j + xPos;
+        pathPoints.push([x,y]);        
+    }   
     return pathPoints;
 }
 //TODO: does the code handle non-existent data values? also, does it handle zero values?
