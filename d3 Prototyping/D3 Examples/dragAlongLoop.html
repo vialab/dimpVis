@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<style>
+
+path {
+  fill: none;
+  stroke: #000;
+  stroke-width: 3px;
+}
+
+</style>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+/** From the examples: http://bl.ocks.org/mbostock/5649592 and http://bl.ocks.org/mbostock/1705868
+ *  this is an example of dragging a point along a spline curve */
+
+var line = d3.svg.line()
+    .tension(0)
+    .interpolate("basis-closed");
+
+var cx = 80, cy = 40; //Closing part of loop
+var radius = 200;
+var centreAngle = Math.PI/6; //Just an arbitrary angle for how to orient the loop
+
+var points = generatePoints(cx,cy); //Generate a set of points for drawing the curve
+
+//Set up the main svg
+var svg = d3.select("body").append("svg")
+    .datum(points)
+    .attr("width", 960)
+    .attr("height", 500);
+
+//Draw the individual points (mainly for debugging)
+svg.selectAll(".points").data(points).enter()
+        .append("circle")
+        .attr("cx", function (d){return d[0]})
+        .attr("cy", function (d){return d[1]})
+        .attr("r",5)
+        .attr("class",".points");
+
+//Draw the spline
+svg.append("path")
+     .attr("id","mainPath")
+     .attr("d", line);
+
+//Draw another circle which is the approximate centre point of the spline loop
+svg.append("circle").attr("cx",(cx+ (radius/2)*Math.cos(centreAngle))).attr("cy",(cy + (radius/2)*Math.sin(centreAngle)))
+        .attr("r",5).attr("fill","steelblue").attr("id","centrePoint");
+
+//Draw the draggable circle
+svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",10).attr("fill","red").attr("id","draggableCircle");
+
+//Create the dragging function
+var dragging = d3.behavior.drag()
+        .on("drag", function(){
+            var mouseX = d3.event.x, mouseY = d3.event.y;
+            var centreX = cx + (radius/2)*Math.cos(centreAngle);
+            var centreY =  cy + (radius/2)*Math.sin(centreAngle);
+            var mouseAngle = Math.atan2(mouseX-centreX,mouseY-centreY);
+
+            //Convert negative angles into positive ones
+            if (mouseAngle < 0){mouseAngle = (Math.PI - mouseAngle*(-1))+Math.PI;}
+
+            //Find the approximate percentage the mouse has travelled (angular) along a circle using the middle of the loop as the centre
+            var distanceAlongCircle = mouseAngle/(Math.PI*2);
+            var path = d3.select("#mainPath").node();
+            var length = path.getTotalLength();
+            var newPoint = path.getPointAtLength(length*(1-distanceAlongCircle));
+
+            //Re-draw the circle according to the new estimated point along the spline
+            d3.select("#draggableCircle").attr("cx",newPoint.x).attr("cy",newPoint.y);
+        });
+
+//Set the dragging function of the draggable circle
+svg.select("#draggableCircle").call(dragging);
+
+/**Generates a set of points which extend from cx,cy in arbitrary angular directions */
+function generatePoints(cx,cy){
+    var points = [];
+    points.push([cx,cy]);
+    var x,y;
+    var angle = centreAngle;
+    for (var j = 0; j <= 2;j++){
+        points.push([(cx + radius*Math.cos(angle*j)),(cy+ radius*Math.sin(angle*j))]);
+    }
+    points.push([cx,cy]);
+    return points;
+}
+
+</script>
