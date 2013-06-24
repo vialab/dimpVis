@@ -117,30 +117,37 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
            if (ref.currentTick == 0){ //First tick
                if (mouseX <= current){//Out of bounds: Passed first tick
                   return current;
-               }else if (mouseX >= next){
+               }else if (mouseX > next){
                    ref.currentTick = ref.nextTick;
-                   ref.nextTick = ref.currentTick+1;
+                   ref.nextTick++;
+                   this.interpValue = 0;
+                }else{
+                   ref.setInterpolation(mouseX,current,next);
                 }
-                  ref.setInterpolation(mouseX,current,next);
-                  return mouseX;
+                return mouseX;
            }else if (ref.nextTick == (ref.numTicks-1)){ //Last tick
                if (mouseX>= next){  //Out of bounds: Passed last tick
                   return next;
-               }else if (mouseX <= current){
+               }else if (mouseX < current){
                     ref.nextTick = ref.currentTick;
                     ref.currentTick--;
+                    this.interpValue = 0;
+               }else{
+                   ref.setInterpolation(mouseX,current,next);
                }
-               ref.setInterpolation(mouseX,current,next);
                return mouseX;
            }else{ //A tick in between the end ticks
-                if (mouseX <= current){ //Passed current
+                if (mouseX < current){ //Passed current
                     ref.nextTick = ref.currentTick;
                     ref.currentTick--;
-                }else if (mouseX>=next){ //Passed next
+                    this.interpValue = 0;
+                }else if (mouseX>next){ //Passed next
                     ref.currentTick = ref.nextTick;
                     ref.nextTick++;
+                    this.interpValue = 0;
+                }else{
+                    ref.setInterpolation(mouseX,current,next);
                 }
-                ref.setInterpolation(mouseX,current,next);
                 return mouseX;
            }
 	});
@@ -153,11 +160,7 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 Slider.prototype.setInterpolation = function( mouseX,current,next) {
      var totalDistance = Math.abs(next-current);
 	 var distanceTravelled = Math.abs(mouseX - current);
-	 if (totalDistance !=0){
-	    this.interpValue = distanceTravelled/totalDistance;
-	 }else {
-	    this.interpValue = 1; //TODO: might be causing that flickering problem
-	 }
+	 this.interpValue = distanceTravelled/totalDistance;
 }
 /** Updates the location of the draggable tick to the new view
  * */

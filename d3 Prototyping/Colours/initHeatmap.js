@@ -11,7 +11,6 @@ heatmap.clickSVG = function (){
 
 heatmap.init();
 
-//TODO:Define click function for each hint path label
 heatmap.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
     heatmap.animateColours(heatmap.draggedCell,heatmap.currentView,i);
@@ -47,16 +46,17 @@ slider.init();
 slider.render();
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
-					  .on("dragstart", function(){ heatmap.clearHintPath();})
-                      .on("drag", function(){                               				  
-							slider.updateDraggedSlider(d3.event.x);
-                            heatmap.interpolateColours(slider.currentTick,slider.nextTick,slider.interpValue);
-					  })
-					  .on("dragend",function (){
-					      slider.snapToTick();
-                          heatmap.changeView(slider.currentTick);
-                          heatmap.redrawView(slider.currentTick);
-					  });
+                  .on("dragstart", function(){ heatmap.clearHintPath();})
+                  .on("drag", function(){
+                       console.log(slider.currentTick+" "+slider.nextTick+" "+slider.interpValue);
+                        heatmap.interpolateColours(slider.currentTick,slider.nextTick,slider.interpValue);
+                        slider.updateDraggedSlider(d3.event.x);
+                  })
+                  .on("dragend",function (){
+                      slider.snapToTick();
+                      heatmap.changeView(slider.currentTick);
+                      heatmap.redrawView(slider.currentTick);
+                  });
 //Apply the dragging function to the movable tick
 slider.widget.select("#slidingTick").call(slider.dragEvent);
 

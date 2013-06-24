@@ -47,7 +47,9 @@
    this.mouseY = -1;
    this.ambiguousBars = [];
    this.interactionPaths = [];
+   this.pathDirection = -1; //Directon travelling along an interaction path
    this.previousDirection = 1; //Keeps track of the direction travelling over time 
+   this.passedMiddle = -1; //Passed the mid point of the peak of the sine wave
      
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
@@ -243,20 +245,23 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
          var newValues = [];       
-        //Checking for stationary bar sequences
-         if (ref.ambiguousBars[ref.currentView][0]==1 && ref.ambiguousBars[ref.nextView][0]==1){ //In middle of sequence
-             //ref.handleDraggedBar_stationary(ref.ambiguousBars[ref.currentView][1],ref.ambiguousBars[ref.nextView][1],mouseY,id);
+        //Checking for stationary bar sequences 
+        var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
+        var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
+       
+        if (currentAmbiguous == 1 && nextAmbiguous ==0){ 
+            ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
+        }else if (currentAmbiguous == 0 && nextAmbiguous==1){
+            ref.pathDirection = ref.ambiguousBars[ref.nextView][1];  
+        }
+            
+        if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
+             ref.handleDraggedBar_stationary(currentY,mouseY,id);
              newValues = [currentY,currentHeight];
-         }
-         //TODO: are these cases even needed?
-         /**else if (ref.ambiguousBars[ref.nextView][0]==1){//At the beginning of sequence
-
-         }else if (ref.ambiguousBars[ref.currentView][0]==1){ //At the end of sequence
-
-         }*/
-         else{
+         }else{ //No ambiguity             
              newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id); //Saves the new height and y-position:[y,h]
          }
+        //console.log(ref.previousDirection);
          ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
      });
 }
@@ -309,42 +314,35 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedBar, except
  *  this function is only called when in the middle of a stationary sequence of bars.
- *  currentY, nextY: The y-positions of the bar  along the hint path in current and next views
- *  originalY: The original y-positions of the bar in current and next views (which are equal)
- *  height: the height of the bar in current and next views (which are equal)
+ *  barY: The y-position of the stationary bar  
  *  mouseY: the mouse's vertical dragging amount
  *  id: of the dragged bar
- *  Note: no return value, because the height and y position of the dragged bar does not change, only
- *  need to update the view variables
  * */
-Barchart.prototype.handleDraggedBar_stationary = function (currentY,nextY,mouseY,id){
+Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
     var ref = this;
-    var bounds = ref.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
-    if (ref.currentView ==0){ //At the first bar
-        if (bounds == nextY){ //Passed the next bar height, update the view tracking variables
-            ref.moveForward();
-        }else if (bounds!= currentY){
-            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds,0);
-        }
-    } else if (ref.nextView == ref.lastView){ //At the last bar
-      if (bounds == currentY){ //Passed current, update view tracker variables
-            ref.moveBackward();
-        }else if (bounds != nextY){
-            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds,0);
-        }
-    }else { //At a bar somewhere in between current and next view
-        if (bounds == currentY){ //Passed current, update the variables
-            ref.moveBackward();
-        }else if (bounds ==nextY){ //Passed next, update the variables
-            ref.moveForward();
-        }else{
-            //Otherwise, mouse dragging is in bounds
-            ref.interpolateBars(id,bounds,ref.currentView,ref.nextView);
-            ref.animateHintPath(bounds,0);
-        }
-    }
+    var base = barY + this.pathDirection*this.amplitude;
+    //console.log(ref.currentView+" "+ref.nextView);
+    console.log(barY+" "+mouseY);
+    var bounds = ref.checkBounds(barY,base,mouseY);    
+     if (bounds == mouseY){
+        ref.interpolateBars(id,ref.interpValue,ref.currentView,ref.nextView);
+        ref.animateHintPath(ref.interpValue,-1);       
+    }else if (bounds == barY ){ //Passing the bar
+        
+        if (ref.passedMiddle ==1){            
+            if (ref.previousDirection == 1){
+                ref.moveForward();                
+            }else{
+                ref.moveBackward();
+            }
+            //Flip the path direction
+            ref.pathDirection = (ref.pathDirection ==1)?-1:1;
+            ref.passedMiddle = -1;
+        }       
+    }else{ //At the peak/trough
+        ref.passedMiddle = 1;        
+    } 
+    console.log(ref.pathDirection);
 }
 /**Computes the new height of a bar based on a new y-position
  * oldHeight: the original height of the bar
@@ -390,6 +388,17 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
     var distanceTravelled = Math.abs(mouseY-h1);
     var totalDistance = Math.abs(h2 - h1);
     var distanceRatio = distanceTravelled/totalDistance;
+    //Set the previous direction
+    if (distanceRatio > this.interpValue){ //Moving forward               
+        if (this.previousDirection == -1){
+            this.previousDirection = 1;
+        }
+     }else { //Going backward                
+        if (this.previousDirection == 1){
+            this.previousDirection = -1;
+        }
+    }
+    //Save the current interpolation value
     this.interpValue = distanceRatio;
 	return mouseY;
 }
@@ -399,12 +408,11 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
  *  pathId: set to -1 if all interaction paths should be animated with the hint path
  *               an id of an interaction path which should be animated vertically and horizontally
  * */
-//TODO: alot of repeated code with the interpolator, maybe saving the values in an array isn't a bad idea
  Barchart.prototype.animateHintPath = function (interpAmount,pathId){
    var ref = this;
    var translateCurrent = this.hintPathSpacing*this.currentView;
    var translateNext = this.hintPathSpacing*this.nextView;
-     console.log(translateCurrent+" "+translateNext);
+    
     //Re-draw the hint path
    this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){       
         return {x:ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),y:d[1]};
@@ -430,23 +438,6 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
         }
     }
 }
-/** TODO: Vertically animates an interaction path when the path is being dragged along
- * (e.g., when user is moving across ambiguous regions on the hint path)
- *  interpAmount: the amount travelled between two views
- *  id: of the interaction path
- * */
-/**Barchart.prototype.animateInteractionPath = function (interpAmount,id){
-    var ref = this;
-    //Re-draw the interaction path
-    this.svg.select("#hintPath").selectAll(".interactionPath")
-        .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-            var currentY = d[1];
-            var nextY = d[1];
-            var interpolateX = this.interpolator(currentY, nextY, interpAmount);
-            return {x:d[0],y:interpolateX};
-          }));
-        });
-}*/
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
  * defined at start and end view. The heights of the other bars are then estimated using the
@@ -621,8 +612,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
     this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0]];});
     this.checkAmbiguous();
     var translate = this.hintPathSpacing*this.currentView;
-    //TODO: interaction paths need to be re-drawn or vertically translated whenever dragging starts at a peak or trough
-    //TODO: interaction paths should be drawn as a sine wave, looks better than a spline http://stackoverflow.com/questions/13893127/how-to-draw-a-path-smoothly-from-start-point-to-end-point-in-d3-js
+    //TODO: interaction paths need to be re-drawn or vertically translated whenever dragging starts at a peak or trough   
     //Draw the interaction path(s) (if any)
     if (this.interactionPaths.length >0){
         this.svg.select("#hintPath").selectAll(".interactionPath")
@@ -776,7 +766,14 @@ Barchart.prototype.calculatePathPoints = function (h,indices){
         var y = this.amplitude*Math.sin(theta)+ yPos;
         var x = (this.hintPathSpacing/2)*j + xPos;
         pathPoints.push([x,y]);        
-    }   
+    }  
+    
+    //Tagging the first and last points of the stationary sequence to indicate whether
+    //the path starts and ends in peak (1) or trough(-1)
+    this.ambiguousBars[indices[0]] = [1,-1];
+    var endDirection = ((indices.length -1) % 2 ==0) ? 1:-1;    
+    this.ambiguousBars[indices[indices.length-1]] = [1,endDirection];
+
     return pathPoints;
 }
 //TODO: does the code handle non-existent data values? also, does it handle zero values?
