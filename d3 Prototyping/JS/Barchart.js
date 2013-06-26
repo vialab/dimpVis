@@ -67,7 +67,7 @@
    this.interactionPathGenerator = d3.svg.line()
         .x(function(d,i) { return d.x; })
         .y(function(d) { return d.y; })
-        .interpolate("basis");
+        .interpolate("basis"); //TODO: basis floats beneath and above the control points, so the height being used as bounds is not accurate
    //Interpolate function between two values, at the specified amount
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
