@@ -5,8 +5,14 @@
 
 path {
   fill: none;
-  stroke: #000;
+  stroke: #c7c7c7;
   stroke-width: 2px;
+  stroke-dasharray:3,3;
+}
+#draggableCircle {
+    fill: #FFF;
+    stroke: #c7c7c7;
+    stroke-width: 2px;
 }
 
 </style>
@@ -26,16 +32,9 @@ var startDirection = -1; //Starts with a trough
 var endDirection = 1; //Ends with a peak
 var currentDirection = startDirection;
 
-
-    
-var allPoints = generatePoints(10,9); //Generate a set of points for drawing the curve
+var allPoints = generatePoints(9); //Generate a set of points for drawing the curve
 var points = allPoints[0]; //All points to make the dataset more fine grained (smoother curve)
 var viewPoints = allPoints[1]; //Points indexed to the views
-
-//console.log(viewPoints);
-//points.map(function (d){ if (d[1].toFixed(0)!=by) viewPoints.push(d[1])}); //Points indexed to the views
-
-var horizontalLength = points[points.length-1][0] - bx; //how big the sinewave spans horizontally
 
 //Set up the main svg
 var svg = d3.select("body").append("svg")
@@ -43,7 +42,7 @@ var svg = d3.select("body").append("svg")
     .attr("width", 960)
     .attr("height", 500);
 
-//Draw the individual points (mainly for debugging)
+//Draw the individual points (debugging)
 /**svg.selectAll(".points").data(points).enter()
         .append("circle").attr("r",3)
         .attr("cx", function (d){return d[0]})
@@ -55,7 +54,8 @@ svg.selectAll(".labels").data(viewPoints).enter()
         .append("text").text(function (d,i) {return i;})        
         .attr("x", function (d){return d[0]})
         .attr("y", function (d){return d[1]})
-        .attr("class","labels");
+        .attr("class","labels")
+        .attr("fill","#666");
 
 //Draw the spline
 svg.append("path")
@@ -66,21 +66,14 @@ svg.append("path")
 svg.append("circle").attr("cx",bx).attr("cy",by).attr("r",10)
         .attr("fill","red").attr("id","draggableCircle");
 
-
 var oldMouseY = 0;
 var boundary = null;
-var direction = -1;
 var passedMiddle = 0;
 var currentView = 0, nextView = 1;
 var lastView = viewPoints.length-1;
 var timeDirection = 1; //Direction travelling along time (different than direction of dragging)
 var interpValue = 0;
 var xSpacing = 80; //Between views
-
-//Get information about the sine wave's length
-var path = d3.select("#mainPath").node();
-var length = path.getTotalLength();
-var pathSegment = length/viewPoints.length;
 
 //Create the dragging function
 var dragging = d3.behavior.drag() 
@@ -91,10 +84,9 @@ var dragging = d3.behavior.drag()
         })
         .on("drag", function(d){
             var mouseY = d3.event.y, mouseX = d3.event.x;
-            var direction;
             var newY;
             //Figure out the dragging direction (up or down)
-            direction = (mouseY<oldMouseY)?1:-1;
+            var direction = (mouseY<oldMouseY)?1:-1;
             //Make sure the mouse stays in bounds
             var bounds = checkBounds(boundary,by,mouseY);
 
@@ -110,7 +102,6 @@ var dragging = d3.behavior.drag()
                  else {passedMiddle =0;}
                  newY = boundary;
              }else{ //At base
-
                  //Update the view
                  if (timeDirection ==1){
                      moveForward();
@@ -191,28 +182,14 @@ function checkBounds (h1,h2,mouseY){
 }
 /**Finds the approximate distance travelled between views */
 function findInterpolation(boundary,by,mouse){
-    var travelled,total;
-    console.log(passedMiddle);
-    /**travelled = Math.abs(mouse - by);
-    total = Math.abs(boundary - by);
-    interpValue = travelled/total;*/
-    //Calculate and adjust the interp value according to where the user is along the sine peak/trough
-   /** if (timeDirection == 1){ //Currently going forward in time
-
-    }else{ //Currently going backward in time
-
-    }*/
-
+    var travelled;
+    var total = Math.abs(boundary - by);
     if (passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
          travelled = Math.abs(mouse - by);
-         total = Math.abs(boundary - by);
          interpValue = travelled/(total*2);
-         //interpValue = interpValue*0.5;
     }else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
         travelled = Math.abs(mouse - boundary);
-        total = Math.abs(boundary - by);
         interpValue = (travelled+total)/(total*2);
-       // interpValue = interpValue*0.5 + 0.5;
     }
 }
 /**Updates the view variables to move backward along the sine wave */
@@ -246,11 +223,11 @@ function translatePath(){
 /**Generates a set of points which extend from cx,cy in arbitrary angular directions
  * base: the horizontal axis of the wave
  * length: number of points (draw half a period between points) */
-function generatePoints(base,length){
+function generatePoints(length){
     var pathPoints = [];
     var viewPoints = [];
     //Calculate the period
-    var totalPts = 3*length + (length-1);
+    var totalPts = 3*length + (length-3);
     var angle = 0;
     for (var j=0;j<totalPts;j++){
         var theta = angle + (Math.PI/4)*j;
