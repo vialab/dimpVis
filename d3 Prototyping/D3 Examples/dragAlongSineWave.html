@@ -52,10 +52,10 @@ var svg = d3.select("body").append("svg")
 
 //Draw some labels at each peak/trough
 svg.selectAll(".labels").data(viewPoints).enter()
-        .append("text").text(function (d,i) {return i;})
+        .append("text").text(function (d,i) {return i;})        
         .attr("x", function (d){return d[0]})
         .attr("y", function (d){return d[1]})
-        .attr("class",".labels");
+        .attr("class","labels");
 
 //Draw the spline
 svg.append("path")
@@ -224,8 +224,13 @@ function moveForward (){
 }
 /**Translates the sine wave horizontally to show movement over time */
 function translatePath(){
-    var translateAmount = xSpacing*interpValue;
-   // d3.select("#mainPath").attr("d",);
+    var translateAmount = xSpacing*interpValue + xSpacing*currentView;
+    
+    d3.select("#mainPath").transition().ease("linear")
+    .attr("transform", "translate(" + (-translateAmount) + ")"); 
+    
+    d3.selectAll(".labels").transition().ease("linear")
+    .attr("transform", "translate(" + (-translateAmount) + ")");
 }
 /**Generates a set of points which extend from cx,cy in arbitrary angular directions
  * base: the horizontal axis of the wave
