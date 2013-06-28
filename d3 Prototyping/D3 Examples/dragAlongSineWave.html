@@ -99,42 +99,38 @@ var dragging = d3.behavior.drag()
             var bounds = checkBounds(boundary,by,mouseY);
 
              if (bounds == mouseY){
-                 /**var amountTravelled = pathSegment*viewPoints[currentView][1];
-                 var amountTravelled =  (mouseX - bx)/horizontalLength;
-                 var newPoint = path.getPointAtLength(length*amountTravelled);*/
                  findInterpolation(boundary,by,mouseY);
                  translatePath();
                  findTimeDirection(direction);
-                 console.log(timeDirection+" "+interpValue);
+                 console.log("time direction: "+timeDirection+" "+interpValue);
                  newY = mouseY;
                 // console.log("in bounds)";
              }else if (bounds == boundary){ //At boundary
-                 if (passedMiddle ==0){
-                     passedMiddle = 1;
-                     console.log("moving away");
-                 }
+                 if (timeDirection ==1){passedMiddle = 1}
+                 else {passedMiddle =0;}
                  newY = boundary;
              }else{ //At base
-                 if (passedMiddle ==1){
-                     currentDirection = (currentDirection==1)?-1:1;
-                     boundary = (currentDirection==1)?(by-amplitude):(amplitude+by);
-                     //Update the view
-                     if (timeDirection ==1){moveForward();}
-                     else{moveBackward();}
+
+                 //Update the view
+                 if (timeDirection ==1){
+                     moveForward();
                      passedMiddle = 0;
-                     console.log("updated current direction"+currentDirection);
                  }
-                 newY=by;
+                 else{
+                     moveBackward();
+                     passedMiddle = 1;
+                 }
+                console.log(currentView+" "+nextView);
+                newY=by;
              }
             //console.log(mouseY+" "+boundary+" "+by);
-
             //console.log(timeDirection);
-            console.log(currentView+" "+nextView);
             //console.log(passedMiddle);
             //Redraw the point along the sine wave to reflect the dragging amount
             d3.select("#draggableCircle").attr("cy",newY);
             oldMouseY = mouseY;
         });
+
 //Set the dragging function of the draggable circle
 svg.select("#draggableCircle").call(dragging);
 
@@ -160,7 +156,7 @@ function checkBounds (h1,h2,mouseY){
 }
 /**Updates the time direction to show whether the user is moving forward or backward in time along the sine wave
  * vertical drag direction of the mouse is either up (1) or down (-1)*/
-//TODO:refactor this
+//TODO:refactor this, not sure if it's working..
  function findTimeDirection (dragDirection){
     if (currentDirection == -1){
         if (passedMiddle==0){ //Drag up ->backwards
@@ -191,28 +187,41 @@ function checkBounds (h1,h2,mouseY){
             }
         }
     }
+
 }
 /**Finds the approximate distance travelled between views */
 function findInterpolation(boundary,by,mouse){
     var travelled,total;
+    console.log(passedMiddle);
+    /**travelled = Math.abs(mouse - by);
+    total = Math.abs(boundary - by);
+    interpValue = travelled/total;*/
     //Calculate and adjust the interp value according to where the user is along the sine peak/trough
+   /** if (timeDirection == 1){ //Currently going forward in time
+
+    }else{ //Currently going backward in time
+
+    }*/
+
     if (passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
          travelled = Math.abs(mouse - by);
          total = Math.abs(boundary - by);
-         interpValue = travelled/total;
-         interpValue = interpValue*0.5;
+         interpValue = travelled/(total*2);
+         //interpValue = interpValue*0.5;
     }else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
         travelled = Math.abs(mouse - boundary);
         total = Math.abs(boundary - by);
-        interpValue = travelled/total;
-        interpValue = interpValue*0.5 + 0.5;
+        interpValue = (travelled+total)/(total*2);
+       // interpValue = interpValue*0.5 + 0.5;
     }
 }
 /**Updates the view variables to move backward along the sine wave */
 function moveBackward (){
-    if (currentView > 0){ //Avoid index out of bounds
+   if (currentView > 0){
         nextView = currentView;
         currentView--;
+        currentDirection = (currentDirection==1)?-1:1;
+        boundary = (currentDirection==1)?(by-amplitude):(amplitude+by);
     }
 }
 /**Updates the view variables to move forward along the sine wave */
@@ -220,12 +229,14 @@ function moveForward (){
     if (nextView < lastView){ //Avoid index out of bounds
         currentView = nextView;
         nextView++;
+        currentDirection = (currentDirection==1)?-1:1;
+        boundary = (currentDirection==1)?(by-amplitude):(amplitude+by);
     }
 }
 /**Translates the sine wave horizontally to show movement over time */
 function translatePath(){
     var translateAmount = xSpacing*interpValue + xSpacing*currentView;
-    
+
     d3.select("#mainPath").transition().ease("linear")
     .attr("transform", "translate(" + (-translateAmount) + ")"); 
     
