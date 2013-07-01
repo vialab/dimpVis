@@ -243,20 +243,30 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
         var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
         var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
        
-        if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Leaving the stationary points
+        if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Approaching the stationary points from right (along hint path)
             ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
 			ref.passedMiddle = 0;
-            ref.peakValue = (ref.pathDirection==1)?(currentY-ref.amplitude):(ref.amplitude+currentY);			
-        }else if (currentAmbiguous == 0 && nextAmbiguous==1){ //Approaching the stationary points
+            ref.peakValue = (ref.pathDirection==1)?(currentY-ref.amplitude):(ref.amplitude+currentY);
+            if (d3.select("#anchor").empty()){
+                ref.svg.select("#hintPath").append("circle").attr("cx", d.xPos+ref.barWidth/2).attr("cy", currentY).attr("r",5).attr("id","anchor");
+            }
+            newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+        }else if (currentAmbiguous == 0 && nextAmbiguous==1){ //Approaching the stationary points from left (along hint path)
+            ref.pathDirection = -1; //Sine wave always starts with a trough
             ref.passedMiddle = 0;
-            ref.peakValue = (ref.pathDirection==1)?(nextY-ref.amplitude):(ref.amplitude+nextY);			
-        }
-            
-        if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
+            ref.peakValue = (ref.pathDirection==1)?(nextY-ref.amplitude):(ref.amplitude+nextY);
+            if (d3.select("#anchor").empty()){
+                ref.svg.select("#hintPath").append("circle").attr("cx", d.xPos+ref.barWidth/2).attr("cy", currentY).attr("r",5).attr("id","anchor");
+            }
+            newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+        }else if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
              ref.handleDraggedBar_stationary(currentY,mouseY,id);
              newValues = [currentY,currentHeight];
          }else{ //No ambiguity             
              newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id); //Saves the new height and y-position:[y,h]
+             if (!d3.select("#anchor").empty()){
+                 ref.svg.select("#anchor").remove();
+             }
          }
 
         //Save the mouse coordinate
@@ -295,19 +305,18 @@ Barchart.prototype.moveBackward = function (){
  *  @return: [newY,newHeight], values used to update the drawing of the dragged bar
  * */
 Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nextHeight,mouseY,id){
-    var ref = this;
     var newValues = [];
-    var bounds = ref.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
+    var bounds = this.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
     if (bounds == mouseY){	    
-	    ref.findInterpolation(currentY,nextY,mouseY,0); 		
-        ref.interpolateBars(id,ref.interpValue,ref.currentView,ref.nextView);
-        ref.animateHintPath(ref.interpValue,-1);
-        newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
+	    this.findInterpolation(currentY,nextY,mouseY,0); 		
+        this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
+        this.animateHintPath(this.interpValue,-1);
+        newValues = [mouseY,this.findHeight(currentHeight,mouseY,currentY)];
     }else if (bounds == currentY ){ //Passing current
-        ref.moveBackward();
+	    this.moveBackward();	         
         newValues = [currentY,currentHeight];
-    }else{ //Passing next
-        ref.moveForward();
+    }else{ //Passing next	
+        this.moveForward();
         newValues = [nextY,nextHeight];
     }   
     return newValues;
@@ -324,12 +333,12 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
     var draggingDirection = (mouseY<this.mouseY)?1:-1;
     var bounds = this.checkBounds(this.peakValue,barY,mouseY);
 	var newY; //Of the anchor
-	console.log(barY+" "+mouseY+" "+this.peakValue);
+	//console.log(barY+" "+mouseY+" "+this.peakValue);
 	if (bounds == mouseY){
 		 this.findInterpolation(barY,this.peakValue, mouseY, 1);
 		 this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
          this.animateHintPath(this.interpValue,-1);		 	 
-		 console.log("time direction: "+this.timeDirection+" "+this.interpValue);
+		 //console.log("time direction: "+this.timeDirection+" "+this.interpValue);
 		 newY = mouseY;               
     }else if (bounds == this.peakValue){ //At boundary
 		 if (this.timeDirection ==1){this.passedMiddle = 1}
@@ -347,33 +356,10 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
 		 }
 		this.pathDirection = (this.pathDirection==1)?-1:1;
         this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
-		console.log(this.currentView+" "+this.nextView);
+		//console.log(this.currentView+" "+this.nextView);
 		newY=barY;
      }
-	  //d3.select("#draggableCircle").attr("cy",newY); //Re-draw anchor      
-   /** var base = barY + this.pathDirection*this.amplitude;
-    //console.log(ref.currentView+" "+ref.nextView);
-    console.log(barY+" "+mouseY);
-    var bounds = ref.checkBounds(barY,base,mouseY);    
-     if (bounds == mouseY){
-        ref.interpolateBars(id,ref.interpValue,ref.currentView,ref.nextView);
-        ref.animateHintPath(ref.interpValue,-1);       
-    }else if (bounds == barY ){ //Passing the bar
-        
-        if (ref.passedMiddle ==1){            
-            if (ref.previousDirection == 1){
-                ref.moveForward();                
-            }else{
-                ref.moveBackward();
-            }
-            //Flip the path direction
-            ref.pathDirection = (ref.pathDirection ==1)?-1:1;
-            ref.passedMiddle = -1;
-        }       
-    }else{ //At the peak/trough
-        ref.passedMiddle = 1;        
-    } 
-    console.log(ref.pathDirection);*/
+	  d3.select("#anchor").attr("cy",newY); //Re-draw anchor
 }
 /**Computes the new height of a bar based on a new y-position
  * oldHeight: the original height of the bar
@@ -447,6 +433,7 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
      }else { //Going backward              
         this.timeDirection = -1;        
     }
+	//console.log(this.timeDirection);
     //Save the current interpolation value
     this.interpValue = currentInterpValue;
 }
@@ -637,18 +624,29 @@ Barchart.prototype.findHintX = function (oldX,index){
  *  id: The id of the dragged bar
  *  heights: An array of all heights of the dragged bar (e.g., d.nodes)
  * */
-Barchart.prototype.snapToView = function (id, heights){
-   var current =  heights[this.currentView][0];
-   var next = 	heights[this.nextView][0];
-   var currentDist = Math.abs(current - this.mouseY);
-   var nextDist = Math.abs(next - this.mouseY);
-
+Barchart.prototype.snapToView = function (id, heights){  
+   var currentDist, nextDist;
+   
+   //Check if the views are an ambiguous case, set the distances
+   if (this.isAmbiguous==1){   
+        if (this.interpValue > 0.5){ //Snap to nextView
+		   currentDist = 1;
+		   nextDist = 0;
+		}else{ //Snap to current view
+		   currentDist = 0;
+		   nextDist = 1;
+		}
+    }else{    
+      currentDist = Math.abs(heights[this.currentView][0] - this.mouseY);
+      nextDist = Math.abs(heights[this.nextView][0] - this.mouseY);      
+   }   
+   
   //Ensure the nextView wasn't the last one to avoid the index going out of bounds
-   if (currentDist > nextDist && this.nextView != this.lastView){
-        this.currentView = this.nextView;
-        this.nextView++;
-    }
-
+  if (currentDist > nextDist && this.nextView != this.lastView){
+	this.currentView = this.nextView;
+	this.nextView++;
+  }
+  
   //Re-draw at the snapped view
   if (this.nextView == this.lastView)  this.redrawView(this.currentView+1,id);
   else this.redrawView(this.currentView,id);
@@ -664,8 +662,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
     this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0]];});
     this.checkAmbiguous();
     var translate = this.hintPathSpacing*this.currentView;
-
-    //TODO: interaction paths need to be re-drawn or vertically translated whenever dragging starts at a peak or trough
+    
     //Draw the interaction path(s) (if any)
     if (this.interactionPaths.length >0){
         this.svg.select("#hintPath").selectAll(".interactionPath")
@@ -738,12 +735,12 @@ Barchart.prototype.checkAmbiguous = function (){
     this.ambiguousBars = [];
 
     //Re-set the ambiguousPoints array
-    for (j=0;j<this.lastView;j++){
+    for (j=0;j<=this.lastView;j++){
         this.ambiguousBars[j] = [0];
     }
     //Populate the stationary and revisiting bars array
     //Search for heights that are equal (called "repeated bars")
-    for (j=0;j<this.lastView;j++){
+    for (j=0;j<=this.lastView;j++){
         currentBar= this.pathData[j][1];
         for (var k=j;k<this.lastView;k++){
             if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
@@ -825,6 +822,11 @@ Barchart.prototype.calculatePathPoints = function (indices){
         var x = (this.hintPathSpacing/4)*j + xPos;
         pathPoints.push([x,y]);
     }
+
+    //Insert the end direction (1=peak, -1=trough) of the sine wave into ambiguousBars array
+    // (first direction will always be -1)
+    var endDirection = (indices.length % 2==0)?-1:1;
+    this.ambiguousBars[indices[indices.length-1]] = [1,endDirection];
 
     return pathPoints;
 }

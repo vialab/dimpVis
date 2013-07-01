@@ -43,7 +43,7 @@ function Piechart(x,y, r,id,title,hLabels){
    this.dragStartAngle = 0;  //The starting angle for the pie segment being dragged
    this.draggedSegment = 0; //Id of the dragged segment
    this.interpValue=0;
-   this.previousDirection = 1; //Tracks the direction travelled (forward or backward in time) to infer the next view
+   this.timeDirection = 1; //Tracks the direction travelled (forward or backward in time) to infer the next view
                                //1 if going forward, -1 if going backward
    this.mouseAngle = -1; //Save the angle of the previously dragged segment
 
@@ -64,10 +64,10 @@ function Piechart(x,y, r,id,title,hLabels){
   //Interpolate function between two values, at the specified amount
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 
-    //Hint path colours
-    this.hintLabelColour = "#7f7f7f";
-    this.hintColour = "#1f77b4";
-    this.grey = "#c7c7c7";
+   //Saved colours
+   this.hintLabelColour = "#7f7f7f";
+   this.hintColour = "#1f77b4";
+   this.grey = "#c7c7c7";
 }
 //TODO:Not high priority, customize the display colours of the piechart, to change the default
 
@@ -196,31 +196,11 @@ Piechart.prototype.calculateLayout = function (angles,start,id){
  *  to switch drawing direction (1=change direction, 0=no change), and the arc which the angle should be drawn on.
  * */
 Piechart.prototype.findHintArcs = function (angles){
-    var flag = 1;	//Tracks increasing or decreasing segments
-    var currentSegment = 0; //index to indicate which years are drawn on the same hint arc
-    var hintArcDirections = []; //Indicators of when to start changing the drawing direction of the hint path
-    //Add the first angle
-   /** hintArcDirections[0] = [0,currentSegment];
-    for (var j=1;j< angles.length;j++){
-            if ((angles[j] - angles[j-1])>0){ //increasing
-                if (flag ==0){ //Was previously decreasing, direction changed
-                    currentSegment++;
-                    flag = 1;
-                    hintArcDirections[j] = [1,currentSegment];
-                }else{
-                    hintArcDirections[j] = [0,currentSegment];
-                }
-            }else{ //decreasing
-                if (flag==1){	//Was previously increasing, direction changed
-                    flag=0;
-                    currentSegment++;
-                    hintArcDirections[j] = [1,currentSegment];
-                }else{
-                    hintArcDirections[j] = [0,currentSegment];
-                }
-            }
-    }*/
+   var flag = 1;	//Tracks increasing or decreasing segments
+   var currentSegment = 0; //index to indicate which years are drawn on the same hint arc
+   var hintArcDirections = []; //Indicators of when to start changing the drawing direction of the hint path   
    hintArcDirections[0] = [0,0];
+   
     for (var j=1;j< angles.length;j++){
         if ((angles[j] - angles[j-1])>0){ //increasing
             if (flag ==0){ //Was previously decreasing, direction changed
@@ -249,6 +229,7 @@ Piechart.prototype.findHintArcs = function (angles){
 Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
     var ref = this;
     //TODO: handle when switching directions (infer time continuity)
+	//TODO: views are still toggling when trying to drag beyond corners
     this.svg.select("#displayArcs"+id).attr("d", function (d) {
 
         //Set the start angle of the dragged segment
@@ -281,15 +262,9 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
         if (bounds == angle){
             //Set the dragging direction
             if (distanceRatio > ref.interpValue){ //Forward in time
-                //console.log("moving forward");
-                if (ref.previousDirection == -1){
-                    ref.previousDirection = 1;
-                }
+                ref.timeDirection = 1;
             }else { //Going backward in time
-                //console.log("moving backward");
-                if (ref.previousDirection == 1){
-                    ref.previousDirection = -1;
-                }
+                ref.timeDirection = -1;
             }
             //Update the rest of the view
             ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,distanceRatio);
@@ -301,7 +276,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
                 ref.moveForward();
         }
 
-        console.log(ref.currentView+" "+ref.nextView+" "+ref.previousDirection);
+        console.log(ref.currentView+" "+ref.nextView+" "+ref.timeDirection);
         d.endAngle = ref.dragStartAngle + bounds;
         ref.mouseAngle = angle;
         return ref.arcGenerator(d);
@@ -319,8 +294,7 @@ Piechart.prototype.moveForward = function (){
     if (this.nextView < this.lastView){ //Avoid index out of bounds
         this.currentView = this.nextView;
         this.nextView++;
-    }
-    this.previousDirection = 1;
+    }    
 }
 /** Updates the view tracking variables to move the visualization backward
  * (passing the current view)
@@ -333,8 +307,7 @@ Piechart.prototype.moveBackward = function (){
     if (this.currentView > 0){ //Avoid index out of bounds
         this.nextView = this.currentView;
         this.currentView--;
-    }
-    this.previousDirection = -1;
+    }    
 }
 /** Checks if the mouse's dragged angle is in the bounds defined by angle1, angle2
  *  angle1,angle2: the bounds
