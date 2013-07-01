@@ -30,7 +30,7 @@
    this.width = 0; //Set later
    this.height = h;
    this.hintPathSpacing = 30; //Amount of horizontal distance between labels on hint path
-   this.amplitude = 20; //Of the interaction path sine wave
+   this.amplitude = 50; //Of the interaction path sine wave
    this.base = h-5; //Starting y-position of all bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
 
@@ -246,10 +246,10 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
         if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Leaving the stationary points
             ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
 			ref.passedMiddle = 0;
-            ref.peakValue = (ref.pathDirection==1)?(current-ref.amplitude):(ref.amplitude+current);			
+            ref.peakValue = (ref.pathDirection==1)?(currentY-ref.amplitude):(ref.amplitude+currentY);			
         }else if (currentAmbiguous == 0 && nextAmbiguous==1){ //Approaching the stationary points
             ref.passedMiddle = 0;
-            ref.peakValue = (ref.pathDirection==1)?(next-ref.amplitude):(ref.amplitude+next);			
+            ref.peakValue = (ref.pathDirection==1)?(nextY-ref.amplitude):(ref.amplitude+nextY);			
         }
             
         if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
@@ -273,8 +273,7 @@ Barchart.prototype.moveForward = function (){
     if (this.nextView < this.lastView){ //Avoid index out of bounds
         this.currentView = this.nextView;
         this.nextView++;
-    }
-    //this.timeDirection = 1;
+    }   
 }
 /** Updates the view variables to move the visualization backward
  * (passing the current view)
@@ -283,8 +282,7 @@ Barchart.prototype.moveBackward = function (){
     if (this.currentView > 0){ //Avoid index out of bounds
         this.nextView = this.currentView;
         this.currentView--;
-    }
-    //this.timeDirection = -1;
+    }    
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragged does not cause the dragged
@@ -300,7 +298,8 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
     var ref = this;
     var newValues = [];
     var bounds = ref.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
-    if (bounds == mouseY){
+    if (bounds == mouseY){	    
+	    ref.findInterpolation(currentY,nextY,mouseY,0); 		
         ref.interpolateBars(id,ref.interpValue,ref.currentView,ref.nextView);
         ref.animateHintPath(ref.interpValue,-1);
         newValues = [mouseY,ref.findHeight(currentHeight,mouseY,currentY)];
@@ -323,15 +322,16 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
     var ref = this;
     //Figure out the dragging direction (up or down)
     var draggingDirection = (mouseY<this.mouseY)?1:-1;
-    var bounds = checkBounds(this.peakValue,barY,mouseY);
+    var bounds = this.checkBounds(this.peakValue,barY,mouseY);
 	var newY; //Of the anchor
+	console.log(barY+" "+mouseY+" "+this.peakValue);
 	if (bounds == mouseY){
-		 findInterpolation(this.peakValue,barY,mouseY);
-		 translatePath();
-		 findTimeDirection(direction);
-		 //console.log("time direction: "+timeDirection+" "+interpValue);
+		 this.findInterpolation(barY,this.peakValue, mouseY, 1);
+		 this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
+         this.animateHintPath(this.interpValue,-1);		 	 
+		 console.log("time direction: "+this.timeDirection+" "+this.interpValue);
 		 newY = mouseY;               
-    }else if (bounds == this.boundary){ //At boundary
+    }else if (bounds == this.peakValue){ //At boundary
 		 if (this.timeDirection ==1){this.passedMiddle = 1}
 		 else {this.passedMiddle =0;}
 		 newY = this.peakValue;
@@ -346,7 +346,7 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
 			 this.passedMiddle = 1;
 		 }
 		this.pathDirection = (this.pathDirection==1)?-1:1;
-        this.peakValue = (this.peakValue==1)?(barY-this.amplitude):(this.amplitude+barY);
+        this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
 		console.log(this.currentView+" "+this.nextView);
 		newY=barY;
      }
@@ -392,12 +392,11 @@ Barchart.prototype.findHeight = function (oldHeight,newYPos,oldYPos){
  *  mouseY: the mouse position
  *  @return start,end: boundary values are returned if the given
  *                     mouse position is equal to or has crossed it
- *          distanceRatio: the percentage the mouse has travelled from
- *                         h1 to h2
+ *          mouseY: The mouse value, if in bounds
  * */
 //TODO:It is possible that this function will fail, because distanceratio could equal the boundary values..
 Barchart.prototype.checkBounds = function(h1,h2,mouseY){
-   //Resolve the boundaries
+   //Resolve the boundaries for comparison, start is lower value, end is higher 
     var start,end;
 	if (h1>h2){
         end = h1;
@@ -414,20 +413,42 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
     }else if (mouseY >=end) {
         this.interpValue = 0;
         return end;
-    }
-    //Find the amount travelled from current to next view (remember: h1 is current and h2 is next)
-    var distanceTravelled = Math.abs(mouseY-h1);
-    var totalDistance = Math.abs(h2 - h1);
-    var distanceRatio = distanceTravelled/totalDistance;
-    //Set the previous direction
-    /**if (distanceRatio > this.interpValue){ //Moving forward        
-            this.timeDirection = 1;        
+    }     
+	
+	return mouseY;
+}
+/** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
+*   Uses the interpolation amount to find the direction travelling over time and saves it
+*   in the global variable.
+*   b1,b2: y-position of boundary values (mouse is currently in between)
+*   mouse: y-position of the mouse
+*   ambiguity: a flag, = 1, stationary case (interpolation split by the peak on the sine wave)
+*                      = 0, normal case
+*/
+Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
+   var distanceTravelled, currentInterpValue;
+   var total = Math.abs(b2 - b1);
+   //Calculate the new interpolation amount
+   if (ambiguity == 0){
+		distanceTravelled = Math.abs(mouseY-b1);		
+		currentInterpValue = distanceTravelled/total;
+	}else{
+	    if (this.passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
+         distanceTravelled = Math.abs(mouseY - b1);
+         currentInterpValue = distanceTravelled/(total*2);
+		}else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
+	      distanceTravelled = Math.abs(mouseY - b2);
+		  currentInterpValue = (distanceTravelled+total)/(total*2);
+		}
+	}	
+	//Set the direction travelling over time
+    if (currentInterpValue > this.interpValue){ //Moving forward        
+        this.timeDirection = 1;        
      }else { //Going backward              
         this.timeDirection = -1;        
-    }*/
+    }
     //Save the current interpolation value
-    this.interpValue = distanceRatio;
-	return mouseY;
+    this.interpValue = currentInterpValue;
 }
 /** Animates the hint path by horizontally translating it according to the vertical
  *  dragging amount.

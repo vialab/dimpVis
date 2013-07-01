@@ -92,8 +92,7 @@ var dragging = d3.behavior.drag()
 
              if (bounds == mouseY){
                  findInterpolation(boundary,by,mouseY);
-                 translatePath();
-                // findTimeDirection(direction);
+                 translatePath();               
                  console.log("time direction: "+timeDirection+" "+interpValue);
                  newY = mouseY;
                 // console.log("in bounds)";
