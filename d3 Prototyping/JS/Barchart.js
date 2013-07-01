@@ -25,13 +25,13 @@
    //Set up some display properties
    this.svg = null; //Reference to svg container
    this.barWidth = bw;
-   this.numBars = 0; //Set this later
+   this.numBars = 0; //Set later
    this.strokeWidth=5;
-   this.width = 0; //Set this later
+   this.width = 0; //Set later
    this.height = h;
    this.hintPathSpacing = 30; //Amount of horizontal distance between labels on hint path
    this.amplitude = 20; //Of the interaction path sine wave
-   this.base = h-5; //Starting y-position of the bars (the base)
+   this.base = h-5; //Starting y-position of all bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
 
    //Default graph colours, can be changed by called the setColours() function
@@ -48,8 +48,9 @@
    this.ambiguousBars = [];
    this.interactionPaths = [];
    this.pathDirection = -1; //Directon travelling along an interaction path
-   this.previousDirection = 1; //Keeps track of the direction travelling over time 
+   this.timeDirection = 1; //Keeps track of the direction travelling over time 
    this.passedMiddle = -1; //Passed the mid point of the peak of the sine wave
+   this.peakValue = null; //The y-value of the sine wave's peak (or trough)
      
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
@@ -59,15 +60,9 @@
    this.draggedBar = -1;
 
    //Function for drawing a linearly interpolated line (the hint path)
-   this.hintPathGenerator = d3.svg.line()
-        .x(function(d,i) { return d.x; })
-        .y(function(d) { return d.y; })
-        .interpolate("linear");
+   this.hintPathGenerator = d3.svg.line().interpolate("linear");
     //Function for drawing a cardinal spline
-   this.interactionPathGenerator = d3.svg.line()
-        .x(function(d,i) { return d.x; })
-        .y(function(d) { return d.y; })
-        .interpolate("monotone");
+   this.interactionPathGenerator = d3.svg.line().interpolate("monotone");
    //Interpolate function between two values, at the specified amount
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
@@ -236,8 +231,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  * */
 Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
-    //Save the mouse coordinate
-    this.mouseY = mouseY;
     //Re-draw the bars according to the dragging amount
     this.svg.select("#displayBars"+id).each(function (d) {
          var currentY =  d.nodes[ref.currentView][0];
@@ -250,10 +243,13 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
         var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
         var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
        
-        if (currentAmbiguous == 1 && nextAmbiguous ==0){ 
+        if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Leaving the stationary points
             ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
-        }else if (currentAmbiguous == 0 && nextAmbiguous==1){
-            ref.pathDirection = ref.ambiguousBars[ref.nextView][1];  
+			ref.passedMiddle = 0;
+            ref.peakValue = (ref.pathDirection==1)?(current-ref.amplitude):(ref.amplitude+current);			
+        }else if (currentAmbiguous == 0 && nextAmbiguous==1){ //Approaching the stationary points
+            ref.passedMiddle = 0;
+            ref.peakValue = (ref.pathDirection==1)?(next-ref.amplitude):(ref.amplitude+next);			
         }
             
         if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
@@ -262,7 +258,11 @@ Barchart.prototype.updateDraggedBar = function (id,mouseY){
          }else{ //No ambiguity             
              newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id); //Saves the new height and y-position:[y,h]
          }
-        //console.log(ref.previousDirection);
+
+        //Save the mouse coordinate
+        ref.mouseY = mouseY;
+
+        //console.log(ref.timeDirection);
          ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
      });
 }
@@ -274,7 +274,7 @@ Barchart.prototype.moveForward = function (){
         this.currentView = this.nextView;
         this.nextView++;
     }
-    this.previousDirection = 1;
+    //this.timeDirection = 1;
 }
 /** Updates the view variables to move the visualization backward
  * (passing the current view)
@@ -284,7 +284,7 @@ Barchart.prototype.moveBackward = function (){
         this.nextView = this.currentView;
         this.currentView--;
     }
-    this.previousDirection = -1;
+    //this.timeDirection = -1;
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragged does not cause the dragged
@@ -321,7 +321,37 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
  * */
 Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
     var ref = this;
-    var base = barY + this.pathDirection*this.amplitude;
+    //Figure out the dragging direction (up or down)
+    var draggingDirection = (mouseY<this.mouseY)?1:-1;
+    var bounds = checkBounds(this.peakValue,barY,mouseY);
+	var newY; //Of the anchor
+	if (bounds == mouseY){
+		 findInterpolation(this.peakValue,barY,mouseY);
+		 translatePath();
+		 findTimeDirection(direction);
+		 //console.log("time direction: "+timeDirection+" "+interpValue);
+		 newY = mouseY;               
+    }else if (bounds == this.boundary){ //At boundary
+		 if (this.timeDirection ==1){this.passedMiddle = 1}
+		 else {this.passedMiddle =0;}
+		 newY = this.peakValue;
+    }else{ //At base
+		 //Update the view
+		 if (this.timeDirection ==1){
+			 this.moveForward();
+			 this.passedMiddle = 0;
+		 }
+		 else{
+			 this.moveBackward();
+			 this.passedMiddle = 1;
+		 }
+		this.pathDirection = (this.pathDirection==1)?-1:1;
+        this.peakValue = (this.peakValue==1)?(barY-this.amplitude):(this.amplitude+barY);
+		console.log(this.currentView+" "+this.nextView);
+		newY=barY;
+     }
+	  //d3.select("#draggableCircle").attr("cy",newY); //Re-draw anchor      
+   /** var base = barY + this.pathDirection*this.amplitude;
     //console.log(ref.currentView+" "+ref.nextView);
     console.log(barY+" "+mouseY);
     var bounds = ref.checkBounds(barY,base,mouseY);    
@@ -343,7 +373,7 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
     }else{ //At the peak/trough
         ref.passedMiddle = 1;        
     } 
-    console.log(ref.pathDirection);
+    console.log(ref.pathDirection);*/
 }
 /**Computes the new height of a bar based on a new y-position
  * oldHeight: the original height of the bar
@@ -390,15 +420,11 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
     var totalDistance = Math.abs(h2 - h1);
     var distanceRatio = distanceTravelled/totalDistance;
     //Set the previous direction
-    if (distanceRatio > this.interpValue){ //Moving forward               
-        if (this.previousDirection == -1){
-            this.previousDirection = 1;
-        }
-     }else { //Going backward                
-        if (this.previousDirection == 1){
-            this.previousDirection = -1;
-        }
-    }
+    /**if (distanceRatio > this.interpValue){ //Moving forward        
+            this.timeDirection = 1;        
+     }else { //Going backward              
+        this.timeDirection = -1;        
+    }*/
     //Save the current interpolation value
     this.interpValue = distanceRatio;
 	return mouseY;
@@ -416,7 +442,7 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
     
     //Re-draw the hint path
    this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){       
-        return {x:ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),y:d[1]};
+        return [ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),d[1]];
     })));
 	//Re-draw the hint path labels
    this.svg.select("#hintPath").selectAll(".hintLabels")
@@ -427,13 +453,13 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
     if (this.interactionPaths.length >0) {
             this.svg.select("#hintPath").selectAll(".interactionPath").filter(function (d) {return d.id !=pathId})
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){                    
-                    return {x:ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),y:d[1]};
+                    return [ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),d[1]];
                    }));
                });
         if (pathId!=-1){ //TODO:Repeated code here?
             this.svg.select("#hintPath").selectAll(".interactionPath").filter(function (d) {return d.id ==pathId})
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){                    
-                    return {x:ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),y:d[1]};
+                    return [ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),d[1]];
                 }));
              });
         }
@@ -503,7 +529,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                 var translate = animateView*ref.hintPathSpacing;
                 //Re-draw the hint path
                 d3.select("#path").attr("d", function(d,i){
-                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:d[0] - translate,y:d[1]}}));
+                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return [d[0] - translate,d[1]]}));
                 });
                 //Re-draw the hint path labels
                 d3.select("#hintPath").selectAll(".hintLabels")
@@ -516,7 +542,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                 if (ref.interactionPaths.length>0){
                     d3.select("#hintPath").selectAll(".interactionPath")
                         .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                            return {x:d[0]-translate,y:d[1]};
+                            return [d[0]-translate,d[1]];
                         }));});
                 }
             }
@@ -541,7 +567,7 @@ Barchart.prototype.redrawView = function (view,id){
         var translate = view*this.hintPathSpacing;
          //Re-draw the hint path
         this.svg.select("#path").attr("d", function(d,i){
-            return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:d[0]-translate,y:d[1]}}));
+            return ref.hintPathGenerator(ref.pathData.map(function (d,i){return [d[0]-translate,d[1]]}));
         });
         //Re-draw the hint path labels
         this.svg.selectAll(".hintLabels")
@@ -554,7 +580,7 @@ Barchart.prototype.redrawView = function (view,id){
         if (this.interactionPaths.length>0){
             this.svg.select("#hintPath").selectAll(".interactionPath")
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                    return {x:d[0]-translate,y:d[1]};
+                    return [d[0]-translate,d[1]];
                 }));});
         }
     }
@@ -624,7 +650,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
             .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                return {x:d[0]-translate,y:d[1]};
+                return [d[0]-translate,d[1]];
             }));})
             .attr("stroke-dasharray","3,3")//Makes the path dashed
             .attr("class","interactionPath")
@@ -635,7 +661,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 	//Draw the hint path line
    this.svg.select("#hintPath").append("svg:path")
        .attr("d", this.hintPathGenerator(ref.pathData.map(function (d,i){
-            return {x:d[0]-translate,y:d[1]};
+            return [d[0]-translate,d[1]];
        })))
        .style("stroke-width", 2).style("stroke", this.hintColour)
        .style("fill","none").attr("filter", "url(#blur)")

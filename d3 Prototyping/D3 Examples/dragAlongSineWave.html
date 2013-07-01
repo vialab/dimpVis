@@ -93,7 +93,7 @@ var dragging = d3.behavior.drag()
              if (bounds == mouseY){
                  findInterpolation(boundary,by,mouseY);
                  translatePath();
-                 findTimeDirection(direction);
+                // findTimeDirection(direction);
                  console.log("time direction: "+timeDirection+" "+interpValue);
                  newY = mouseY;
                 // console.log("in bounds)";
@@ -145,52 +145,28 @@ function checkBounds (h1,h2,mouseY){
     }
     return mouseY;
 }
-/**Updates the time direction to show whether the user is moving forward or backward in time along the sine wave
- * vertical drag direction of the mouse is either up (1) or down (-1)*/
-//TODO:refactor this, not sure if it's working..
- function findTimeDirection (dragDirection){
-    if (currentDirection == -1){
-        if (passedMiddle==0){ //Drag up ->backwards
-            if (dragDirection==1){
-                timeDirection = -1;
-            }else{
-                timeDirection = 1;
-            }
-        }else{ //Drag up ->forwards
-            if (dragDirection==1){
-                timeDirection = 1;
-            }else{
-                timeDirection = -1;
-            }
-        }
-    }else{
-        if (passedMiddle==0){ //Drag up ->forwards
-            if (dragDirection==1){
-                timeDirection = 1;
-            }else{
-                timeDirection = -1;
-            }
-        }else{ //Drag down ->backwards
-            if (dragDirection==1){
-                timeDirection = -1;
-            }else{
-                timeDirection = 1;
-            }
-        }
-    }
-
-}
-/**Finds the approximate distance travelled between views */
+/**Finds the approximate distance travelled between views and 
+* updates the time direction to show whether the user is moving 
+* forward or backward in time*/
 function findInterpolation(boundary,by,mouse){
     var travelled;
     var total = Math.abs(boundary - by);
+	var currentInterpValue;
     if (passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
          travelled = Math.abs(mouse - by);
-         interpValue = travelled/(total*2);
+         currentInterpValue = travelled/(total*2);
     }else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
         travelled = Math.abs(mouse - boundary);
-        interpValue = (travelled+total)/(total*2);
+        currentInterpValue = (travelled+total)/(total*2);
     }
+	//Find the direction travelling over time
+	if (currentInterpValue > interpValue){
+	    timeDirection = 1;
+	}else{
+	    timeDirection = -1;
+	}
+	//Save the new interpValue
+	interpValue = currentInterpValue;
 }
 /**Updates the view variables to move backward along the sine wave */
 function moveBackward (){
