@@ -254,26 +254,54 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 
         //The interp value represents the dragging direction (increasing -> forward in time, decreasing -> backward in time)
         //Find the amount travelled from current to next view (remember: angle1 is current and angle2 is next)
-        var distanceTravelled = Math.abs(angle-current);
-        var totalDistance = Math.abs(next - current);
-        var distanceRatio = distanceTravelled/totalDistance;
+        ref.findInterpolation(current,next,angle,0);
         var bounds = ref.checkBounds(current,next,angle);
 
+        //Find the angular dragging direction
+        var draggingDirection;
+        if (angle>ref.mouseAngle){draggingDirection = 1}
+        else{draggingDirection = -1}
+
         if (bounds == angle){
-            //Set the dragging direction
-            if (distanceRatio > ref.interpValue){ //Forward in time
-                ref.timeDirection = 1;
-            }else { //Going backward in time
-                ref.timeDirection = -1;
-            }
-            //Update the rest of the view
-            ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,distanceRatio);
+            ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
             ref.animateHintPath(d.hDirections, d.nodes);
-            ref.interpValue = distanceRatio;
         }else if (bounds == current) { //At current
+            if (ref.corners[ref.currentView]==1){ //At a corner
+                if (current > next){ //Ignore drag angles > current
+                    if (angle<=current){
+                        if (ref.timeDirection ==1){ref.moveForward();}
+                        else{ref.moveBackward();}
+                    }
+                }else{ //Ignore drag angles < current
+                    if (angle>=current){
+                        if (ref.timeDirection ==1){ref.moveForward();}
+                        else{ref.moveBackward();}
+                    }
+                }
+                /**if (ref.timeDirection ==1){ref.moveForward();}
+                else{ref.moveBackward();}*/
+            }else{
                 ref.moveBackward();
+            }
         }else{ //At next
+            if (ref.corners[ref.nextView]==1){ //At a corner
+                if (next > current){ //Ignore drag angles > next
+                   if (angle<=next){
+                       if (ref.timeDirection ==1){ref.moveForward();}
+                       else{ref.moveBackward();}
+                   }
+                }else{ //Ignore drag angles < next
+                   if (angle>=next){
+                       if (ref.timeDirection ==1){ref.moveForward();}
+                       else{ref.moveBackward();}
+                   }
+                }
+                /**if (ref.timeDirection ==1){ref.moveForward();}
+                else{ref.moveBackward();}*/
+
+            }else{
                 ref.moveForward();
+            }
         }
 
         console.log(ref.currentView+" "+ref.nextView+" "+ref.timeDirection);
@@ -282,6 +310,42 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
         return ref.arcGenerator(d);
     });
 
+}
+/** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
+ *   Uses the interpolation amount to find the direction travelling over time and save it
+ *   in the global variable.
+ *   b1,b2: y-position of boundary values (mouse is currently in between)
+ *   mouse: y-position of the mouse
+ *   ambiguity: a flag, = 1, stationary case (interpolation split by the peak on the sine wave)
+ *                      = 0, normal case
+ */
+Piechart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
+    var distanceTravelled, currentInterpValue;
+    var total = Math.abs(b2 - b1);
+
+    //Calculate the new interpolation amount
+    if (ambiguity == 0){
+        distanceTravelled = Math.abs(mouseY-b1);
+        currentInterpValue = distanceTravelled/total;
+    }/*else{
+        if (this.passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
+            distanceTravelled = Math.abs(mouseY - b1);
+            currentInterpValue = distanceTravelled/(total*2);
+        }else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
+            distanceTravelled = Math.abs(mouseY - b2);
+            currentInterpValue = (distanceTravelled+total)/(total*2);
+        }
+    }*/ //TODO: implement this when ambiguous case detection is working
+
+    //Set the direction travelling over time
+    if (currentInterpValue > this.interpValue){ //Moving forward
+        this.timeDirection = 1;
+    }else { //Going backward
+        this.timeDirection = -1;
+    }
+
+    //Save the current interpolation value
+    this.interpValue = currentInterpValue;
 }
 /** Updates the view tracking variables to move the visualization forward
  * (passing the next view)
@@ -314,12 +378,12 @@ Piechart.prototype.moveBackward = function (){
  *  mouseAngle: the mouse position
  *  @return start,end: boundary values are returned if the given
  *                     mouse position is equal to or has crossed it
- *          distanceRatio: the percentage the mouse has travelled from
- *                         angle1 to angle2
+ *          mouseAngle: the original dragging angle, if mouse is in bounds
  * */
 Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
     var start,end;
-	if (angle1>angle2){
+
+    if (angle1>angle2){
 	 end = angle1;
 	 start = angle2;
 	}else{
@@ -328,18 +392,15 @@ Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
     }
 
     if (mouseAngle <= start){
-        this.interpValue = 0;
+        if (this.timeDirection == -1) {this.interpValue = 1; }
+        else{this.interpValue = 0;}
         return start;
     }else if (mouseAngle >=end){
-        this.interpValue = 0;
+        if (this.timeDirection == -1) {this.interpValue = 1; }
+        else{this.interpValue = 0;}
         return end;
     }
-    //Find the amount travelled from current to next view (remember: angle1 is current and angle2 is next)
-   /** var distanceTravelled = Math.abs(mouseAngle-angle1);
-    var totalDistance = Math.abs(angle2 - angle1);
-    var distanceRatio = distanceTravelled/totalDistance;
-    this.interpValue = distanceRatio;
-    return distanceRatio;*/
+
     return mouseAngle;
 }
 /**"Animates" the rest of the segments while one is being dragged

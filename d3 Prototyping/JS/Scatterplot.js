@@ -219,21 +219,25 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
     //Save the mouse coordinates
     this.mouseX = mouseX;
     this.mouseY = mouseY;
-    var currentPointInfo = this.ambiguousPoints[this.currentView];
-    var nextPointInfo = this.ambiguousPoints[this.nextView];
 
-    //console.log(this.currentView+" "+this.nextView);
     //Re-draw the dragged point along the hint path
-    if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //Stationary point
-        this.togglePointColour(id,0);
-        this.dragAlongLoop(id,currentPointInfo[2]);
-    }else if (currentPointInfo[0]==1 && nextPointInfo[0] != 1){
-        this.togglePointColour(id,1);
-    }else{
-        if (currentPointInfo[0]==2){ //Revisiting point
+    if (this.isAmbiguous==1){ //Ambiguous cases exist on the hint path
+        var currentPointInfo = this.ambiguousPoints[this.currentView];
+        var nextPointInfo = this.ambiguousPoints[this.nextView];
+        if ((currentPointInfo[0]==1 && nextPointInfo[0] == 0) || (currentPointInfo[0]==0 && nextPointInfo[0] == 1)){ //Approaching stationary points from either side of hint path (but not on loop yet)
+            this.togglePointColour(id,1);
+            this.dragAlongPath(id);
+        }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
+            this.togglePointColour(id,0);
+            this.dragAlongLoop(id,currentPointInfo[2]);
+        }else if (currentPointInfo[0]==2){//Revisiting point
             this.toggleLabelColour(this.currentView,currentPointInfo[2]);
+            this.dragAlongPath(id);
+        }else{
+            this.previousLoopAngle = "start";
+            this.dragAlongPath(id);
         }
-        this.previousLoopAngle = "start";
+    }else{ //No ambiguous cases exist
         this.dragAlongPath(id);
     }
 }
@@ -467,7 +471,6 @@ Scatterplot.prototype.changeView = function( newView) {
  *            http://bost.ocks.org/mike/transition/
  *  NOTE: This function does not update the view tracking variables
  * */
-//TODO:Add tweening to make the transition smoother
 //TODO: Still pretty buggy might have to do with the view tracking, sometimes doesn't animate to the correct view, exact cause of this is unknown
 //TODO: Add toggling label colour for stationary/revisiting points
  Scatterplot.prototype.animatePoints = function( startView, endView) {

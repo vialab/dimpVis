@@ -29,7 +29,7 @@
    this.strokeWidth=5;
    this.width = 0; //Set later
    this.height = h;
-   this.hintPathSpacing = 30; //Amount of horizontal distance between labels on hint path
+   this.hintPathSpacing = 40; //Amount of horizontal distance between labels on hint path
    this.amplitude = 50; //Of the interaction path sine wave
    this.base = h-5; //Starting y-position of all bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
@@ -229,45 +229,47 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  *
  *  Recall: the base of every bar is at this.base, therefore top of the bar is this.base-barHeight
  * */
-Barchart.prototype.updateDraggedBar = function (id,mouseY){
+//TODO: detect revisiting cases and use time inference to alleviate interaction
+ Barchart.prototype.updateDraggedBar = function (id,mouseY){
      var ref = this;
     //Re-draw the bars according to the dragging amount
     this.svg.select("#displayBars"+id).each(function (d) {
+
          var currentY =  d.nodes[ref.currentView][0];
          var nextY = d.nodes[ref.nextView][0];
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
-         var newValues = [];       
+         var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
 
-        //Check for stationary bar sequences
-        var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
-        var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
-       
-        if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Approaching the stationary points from right (along hint path)
-            ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
-			ref.passedMiddle = 0;
-            ref.peakValue = (ref.pathDirection==1)?(currentY-ref.amplitude):(ref.amplitude+currentY);
-            if (d3.select("#anchor").empty()){
-                ref.svg.select("#hintPath").append("circle").attr("cx", d.xPos+ref.barWidth/2).attr("cy", currentY).attr("r",5).attr("id","anchor");
+        if (ref.isAmbiguous ==1){ //At least one stationary sequence exists on the hint path
+            //Check for stationary bar sequences
+            var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
+            var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
+
+            if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Approaching the stationary points from right (along hint path)
+                ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
+                ref.passedMiddle = 0;
+                ref.peakValue = (ref.pathDirection==1)?(currentY-ref.amplitude):(ref.amplitude+currentY);
+                ref.appendAnchor(d.xPos,currentY);
+                newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+            }else if (currentAmbiguous == 0 && nextAmbiguous==1){ //Approaching the stationary points from left (along hint path)
+                ref.pathDirection = -1; //Sine wave always starts with a trough
+                ref.passedMiddle = 0;
+                ref.peakValue = (ref.pathDirection==1)?(nextY-ref.amplitude):(ref.amplitude+nextY);
+                ref.appendAnchor(d.xPos,nextY);
+                newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+            }else if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
+                ref.handleDraggedBar_stationary(currentY,mouseY,id);
+                newValues = [currentY,currentHeight];
+            }else{ //No stationary case to handle right now
+                newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+                ref.removeAnchor();
             }
+
+        }else { //No stationary ambiguous cases exist
             newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
-        }else if (currentAmbiguous == 0 && nextAmbiguous==1){ //Approaching the stationary points from left (along hint path)
-            ref.pathDirection = -1; //Sine wave always starts with a trough
-            ref.passedMiddle = 0;
-            ref.peakValue = (ref.pathDirection==1)?(nextY-ref.amplitude):(ref.amplitude+nextY);
-            if (d3.select("#anchor").empty()){
-                ref.svg.select("#hintPath").append("circle").attr("cx", d.xPos+ref.barWidth/2).attr("cy", currentY).attr("r",5).attr("id","anchor");
-            }
-            newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
-        }else if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
-             ref.handleDraggedBar_stationary(currentY,mouseY,id);
-             newValues = [currentY,currentHeight];
-         }else{ //No ambiguity             
-             newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id); //Saves the new height and y-position:[y,h]
-             if (!d3.select("#anchor").empty()){
-                 ref.svg.select("#anchor").remove();
-             }
-         }
+            ref.removeAnchor();
+        }
 
         //Save the mouse coordinate
         ref.mouseY = mouseY;
@@ -292,10 +294,25 @@ Barchart.prototype.moveBackward = function (){
     if (this.currentView > 0){ //Avoid index out of bounds
         this.nextView = this.currentView;
         this.currentView--;
-    }    
+    }
+}
+/** Appends an anchor to the svg, if there isn't already one
+ *  x,y: the position of the anchor
+ * */
+Barchart.prototype.appendAnchor = function (x,y){
+    if (this.svg.select("#anchor").empty()){
+        this.svg.select("#hintPath").append("circle").attr("cx", x+this.barWidth/2).attr("cy", y).attr("r",5).attr("id","anchor");
+    }
+}
+/** Removes an anchor from the svg, if one is appended
+ * */
+Barchart.prototype.removeAnchor = function (){
+    if (!this.svg.select("#anchor").empty()){
+        this.svg.select("#anchor").remove();
+    }
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
- *  y positions of current and next views.  Ensures the mouse dragged does not cause the dragged
+ *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
  *  bar to be drawn out of bounds and keeps track of time progression by updating the view variables
  *  when a view is switched.
  *  currentY, nextY: The y-positions of the bar in current and next views
@@ -318,7 +335,17 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
     }else{ //Passing next	
         this.moveForward();
         newValues = [nextY,nextHeight];
-    }   
+    }
+   /** else{
+        if (this.timeDirection == 1){
+            this.moveForward();
+            newValues = [nextY,nextHeight];
+        }else{
+            this.moveBackward();
+            newValues = [currentY,currentHeight];
+        }
+        console.log(this.nextView+" "+this.currentView);
+    }*/
     return newValues;
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedBar, except
@@ -328,11 +355,8 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
  *  id: of the dragged bar
  * */
 Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
-    var ref = this;
-    //Figure out the dragging direction (up or down)
-    var draggingDirection = (mouseY<this.mouseY)?1:-1;
     var bounds = this.checkBounds(this.peakValue,barY,mouseY);
-	var newY; //Of the anchor
+	var newY; //To re-draw the anchor
 	//console.log(barY+" "+mouseY+" "+this.peakValue);
 	if (bounds == mouseY){
 		 this.findInterpolation(barY,this.peakValue, mouseY, 1);
@@ -354,6 +378,7 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,id){
 			 this.moveBackward();
 			 this.passedMiddle = 1;
 		 }
+
 		this.pathDirection = (this.pathDirection==1)?-1:1;
         this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
 		//console.log(this.currentView+" "+this.nextView);
@@ -380,7 +405,6 @@ Barchart.prototype.findHeight = function (oldHeight,newYPos,oldYPos){
  *                     mouse position is equal to or has crossed it
  *          mouseY: The mouse value, if in bounds
  * */
-//TODO:It is possible that this function will fail, because distanceratio could equal the boundary values..
 Barchart.prototype.checkBounds = function(h1,h2,mouseY){
    //Resolve the boundaries for comparison, start is lower value, end is higher 
     var start,end;
@@ -394,10 +418,12 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 	//console.log("my "+mouseY+"start "+start+" end "+end);
 	//Check if the mouse is between start and end values
 	if (mouseY <= start) {
-        this.interpValue = 0;
+        if (this.timeDirection == -1) {this.interpValue = 1; }
+        else{this.interpValue = 0;}
         return start;
     }else if (mouseY >=end) {
-        this.interpValue = 0;
+        if (this.timeDirection == -1) {this.interpValue = 1; }
+        else{this.interpValue = 0;}
         return end;
     }     
 	
@@ -433,7 +459,7 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
      }else { //Going backward              
         this.timeDirection = -1;        
     }
-	//console.log(this.timeDirection);
+	console.log(this.timeDirection+" "+this.interpValue+" "+currentInterpValue);
     //Save the current interpolation value
     this.interpValue = currentInterpValue;
 }
@@ -464,7 +490,7 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
                     return [ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),d[1]];
                    }));
                });
-        if (pathId!=-1){ //TODO:Repeated code here?
+        if (pathId!=-1){ //Animate the current interaction path
             this.svg.select("#hintPath").selectAll(".interactionPath").filter(function (d) {return d.id ==pathId})
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){                    
                     return [ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),d[1]];
@@ -573,9 +599,10 @@ Barchart.prototype.redrawView = function (view,id){
     //Re-draw the hint path (if id is specified)
     if (id!=-1){
         var translate = view*this.hintPathSpacing;
+        var savedYCoord;
          //Re-draw the hint path
-        this.svg.select("#path").attr("d", function(d,i){
-            return ref.hintPathGenerator(ref.pathData.map(function (d,i){return [d[0]-translate,d[1]]}));
+        this.svg.select("#path").attr("d", function(){
+            return ref.hintPathGenerator(ref.pathData.map(function (d){return [d[0]-translate,d[1]]}));
         });
         //Re-draw the hint path labels
         this.svg.selectAll(".hintLabels")
@@ -588,8 +615,12 @@ Barchart.prototype.redrawView = function (view,id){
         if (this.interactionPaths.length>0){
             this.svg.select("#hintPath").selectAll(".interactionPath")
                 .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
+                    savedYCoord = d[1]; //Save the y-coord for re-drawing the anchor
                     return [d[0]-translate,d[1]];
                 }));});
+            if (!this.svg.select("#anchor").empty()){ //Re-position the anchor (if exists)
+                this.svg.select("#anchor").attr("cy",savedYCoord);
+            }
         }
     }
 }
@@ -716,21 +747,16 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
 //TODO: can use this to also detect really small changes in height to alleviate the interaction
-//TODO: do we really need to pre-detect the revisiting case? could check on the fly in updateDraggedBar(), also the revisiting problem might be resolved when inferring time continuity
 /** Search for ambiguous cases in a list of heights/y-coordinates.  Ambiguous cases are tagged by type, using a number.
  *  The scheme is:
  *  0: not ambiguous
  *  1: stationary bar (bar which doesn't move for at least 2 consecutive years)
- *  2: revisiting bar (this is a special type of re-visitation, where the bar revisits the same height with
- *                     only one height in between which introduces directional ambiguity during dragging)
- *
  *  This information is stored in the ambiguousBars array, which gets re-populated each time a
  *  new bar is dragged.  This array is in  the format: [[type, newY]...number of views]
  * */
 Barchart.prototype.checkAmbiguous = function (){
     var j, currentBar;
     var stationaryBars = [];
-    var revisitingBars = [];
     this.isAmbiguous = 0;
     this.ambiguousBars = [];
 
@@ -745,8 +771,8 @@ Barchart.prototype.checkAmbiguous = function (){
         for (var k=j;k<this.lastView;k++){
             if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
             //if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<1){ //An almost repeated bar, less than one pixel difference
-                this.isAmbiguous = 1;
                 if (Math.abs(k-j)==1){ //Stationary bar
+                    this.isAmbiguous = 1;
                     //If the bar's index does not exist in the array of all stationary bars, add it
                     if (stationaryBars.indexOf(j)==-1){
                         stationaryBars.push(j);
@@ -756,8 +782,6 @@ Barchart.prototype.checkAmbiguous = function (){
                         this.ambiguousBars[k] = [1];
                     }
                 }
-                /**if (Math.abs(k-j)==2){ //
-                 }*/ //TODO: Use this for barchart ambiguous (revisiting)
             }
         }
 
@@ -767,10 +791,6 @@ Barchart.prototype.checkAmbiguous = function (){
         //Then, generate points for drawing an interaction path
         this.findPaths(d3.min(stationaryBars));
     }
-    /**console.log(this.ambiguousBars);
-    console.log(stationaryPoints);
-     console.log(revisitingPoints);*/
-
 }
 /** This function will populate an array containing all data for drawing a sine wave:
  * interactionPaths[] = [[points for the sine wave]..number of paths]

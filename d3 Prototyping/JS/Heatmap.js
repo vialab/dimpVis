@@ -217,50 +217,34 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
 
        //console.log(ref.currentView+" "+ref.nextView);
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
-       //console.log(bounds);
-       if (ref.currentView ==0){ //First view
-           if (bounds==currentY){ //Exceeding the first view, out of bounds
-              return;
-           }else if (bounds==nextY){ //Passed the next view, update the variables
-               ref.moveForward();
-           }else{  //Otherwise, somewhere between current and next
-               ref.interpolateColours(ref.currentView, ref.nextView,bounds);
-               ref.animateHintPath(currentYOffset,nextYOffset,bounds);
-           }
-       }else if (ref.nextView ==  ref.lastView){ //At the last view
-           if (bounds == currentY){//Passing the current view, update the variables
-               ref.moveBackward();
-           }else if (bounds == nextY){ //Exceeding the last view, going out of bounds
-               return;
-           }else{ //Somewhere between next and current
-               ref.interpolateColours(ref.currentView, ref.nextView,bounds);
-               ref.animateHintPath(currentYOffset,nextYOffset,bounds);
-           }
-       }else{ //At a view somewhere between current and next
-           if(bounds == currentY){ //Passing current view, update variables
-               ref.moveBackward();
-           }else if (bounds == nextY){
-               ref.moveForward();
-           }else{ //Mouse is in bounds
-               ref.interpolateColours(ref.currentView, ref.nextView,bounds);
-               ref.animateHintPath(currentYOffset,nextYOffset,bounds);
-           }
+       if (bounds == mouseY){
+           ref.interpolateColours(ref.currentView, ref.nextView,ref.interpValue);
+           ref.animateHintPath(currentYOffset,nextYOffset,ref.interpValue);
+       }else if (bounds == currentY){ //Passing current view, moving backwards
+           ref.moveBackward();
+       }else{ //Passing next view, moving forwards
+           ref.moveForward();
        }
+
     });
 }
 /** Updates the view variables to move the visualization forward
  * (passing the next view)
  * */
 Heatmap.prototype.moveForward = function (){
-    this.currentView = this.nextView;
-    this.nextView++;
+    if (this.nextView < this.lastView){ //Avoid index out of bounds
+        this.currentView = this.nextView;
+        this.nextView++;
+    }
 }
 /** Updates the view variables to move the visualization backward
  * (passing the current view)
  * */
 Heatmap.prototype.moveBackward = function (){
-    this.nextView = this.currentView;
-    this.currentView--;
+    if (this.currentView > 0){ //Avoid index out of bounds
+        this.nextView = this.currentView;
+        this.currentView--;
+    }
 }
 /** Checks if the mouse is in bounds defined by y1 and y2
  *  y1,y2: the bounds
@@ -293,20 +277,21 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
     var totalDistance = Math.abs(y2 - y1);
     var distanceRatio = distanceTravelled/totalDistance;
     this.interpValue = distanceRatio;
-    return distanceRatio;
+
+    return mouseY;
 }
 /** Translates the hint path according to the amount dragged from current to next view
  * currentOffset,nextOffset: y-value offsets of the two bounding views
  * interpAmount: amount travelled between the views
  * */
 Heatmap.prototype.animateHintPath = function (currentOffset,nextOffset,interpAmount){
- var ref = this;
- var newCoords = this.svg.select("#hintPath").selectAll("text").data().map(function (d,i){
-     return ref.interpolator([ref.findHintX(i,ref.currentView),ref.findHintY(d[2],currentOffset)],
-         [ref.findHintX(i,ref.nextView),ref.findHintY(d[2],nextOffset)],interpAmount);
-  });
- this.svg.select("#hintPath").selectAll("text").attr("transform", function(d,i){return "translate("+newCoords[i][0]+","+newCoords[i][1]+")";});
- this.svg.select("#hintPath").selectAll("path").attr("d",  ref.lineGenerator(newCoords));
+     var ref = this;
+     var newCoords = this.svg.select("#hintPath").selectAll("text").data().map(function (d,i){
+         return ref.interpolator([ref.findHintX(i,ref.currentView),ref.findHintY(d[2],currentOffset)],
+             [ref.findHintX(i,ref.nextView),ref.findHintY(d[2],nextOffset)],interpAmount);
+      });
+     this.svg.select("#hintPath").selectAll("text").attr("transform", function(d,i){return "translate("+newCoords[i][0]+","+newCoords[i][1]+")";});
+     this.svg.select("#hintPath").selectAll("path").attr("d",  ref.lineGenerator(newCoords));
 }
 /**Updates the colour of the cells by interpolating the colour between views
  * current, next: the views to interpolate between
@@ -323,7 +308,8 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
  *  start,end: the bounding views
  *  id: of the most recently dragged cell
  * */
-Heatmap.prototype.animateColours = function (id,start,end){
+//TODO: not priority to fix this function
+ Heatmap.prototype.animateColours = function (id,start,end){
     if (start== end){return;}
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
@@ -600,26 +586,7 @@ Heatmap.prototype.findPaths = function (startIndex){
  * @return an array of all points for the sine wave peaks and the year index in the format: [[x,y,index], etc.]
  * */
 Heatmap.prototype.calculatePathPoints = function (h,indices){
-    /**var pathPoints = [];
-    //Save the x and y coordinates of the stationary bar
-    var xPos = this.pathData[indices[0]][0];
-    var yPos = this.pathData[indices[0]][1];
-    //The first point of the path
-    pathPoints.push([xPos,yPos,indices[0]]);
-    var direction = 1; //Up or down direction of the sine wave, will toggle between peaks
-    var amplitude = 20; //Height above or below the base (yPos)
-    for (var j=1;j<=indices.length;j++){
-        //Only need to compute the y value, since x will stay the same and is adjusted as needed by findHintX()
-        var newY = direction*amplitude + yPos;
-        direction = direction*-1; //Reverse the direction
-        //Save the y value in the ambiguousBars array, to be used later when determining the interaction direction
-        var originalIndex = indices[j-1];
-        pathPoints.push([xPos,newY,originalIndex]);
-        //this.ambiguousBars[originalIndex] = [1,newY];
-    }
-    //The last point of the path
-    pathPoints.push([xPos,yPos,indices[indices.length-1]]);
-    return pathPoints;*/
+
 }
 //Todo:ambiguous interaction along hint path (same colour, interaction path?)
 //Todo: non-existent data values in cell (white?), this would involve screening the dataset as well, similar to ambiguous cases
