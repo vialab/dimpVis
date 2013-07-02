@@ -30,7 +30,7 @@
    this.width = 0; //Set later
    this.height = h;
    this.hintPathSpacing = 40; //Amount of horizontal distance between labels on hint path
-   this.amplitude = 50; //Of the interaction path sine wave
+   this.amplitude = 30; //Of the interaction path sine wave
    this.base = h-5; //Starting y-position of all bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
 

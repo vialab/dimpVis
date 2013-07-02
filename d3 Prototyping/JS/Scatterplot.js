@@ -208,6 +208,22 @@ Scatterplot.prototype.render = function( data, start, labels) {
         .attr("transform", "rotate(-90)")
         .text(this.yLabel);
 }
+/** Appends an anchor to the svg, if there isn't already one
+ *  x,y: the position of the anchor
+ * */
+Scatterplot.prototype.appendAnchor = function (x,y){
+    if (this.svg.select("#anchor").empty()){
+        this.svg.select("#hintPath").append("circle").attr("cx", x).attr("cy", y)
+         .attr("r",5).attr("fill","none").attr("stroke","#c7c7c7").attr("id","anchor");
+    }
+}
+/** Removes an anchor from the svg, if one is appended
+ * */
+Scatterplot.prototype.removeAnchor = function (){
+    if (!this.svg.select("#anchor").empty()){
+        this.svg.select("#anchor").remove();
+    }
+}
 /** Re-draws the dragged point by projecting it onto the the line segment according to
  *  the minimum distance.  As the point is dragged, the views are updated and the rest
  *  of the points are animated
@@ -216,60 +232,70 @@ Scatterplot.prototype.render = function( data, start, labels) {
  * */
 //TODO: special cases: when current is stationary but next isn't and vice versa
 Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
+    var ref = this;
     //Save the mouse coordinates
     this.mouseX = mouseX;
     this.mouseY = mouseY;
-
-    //Re-draw the dragged point along the hint path
-    if (this.isAmbiguous==1){ //Ambiguous cases exist on the hint path
-        var currentPointInfo = this.ambiguousPoints[this.currentView];
-        var nextPointInfo = this.ambiguousPoints[this.nextView];
-        if ((currentPointInfo[0]==1 && nextPointInfo[0] == 0) || (currentPointInfo[0]==0 && nextPointInfo[0] == 1)){ //Approaching stationary points from either side of hint path (but not on loop yet)
-            this.togglePointColour(id,1);
-            this.dragAlongPath(id);
-        }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
-            this.togglePointColour(id,0);
-            this.dragAlongLoop(id,currentPointInfo[2]);
-        }else if (currentPointInfo[0]==2){//Revisiting point
-            this.toggleLabelColour(this.currentView,currentPointInfo[2]);
-            this.dragAlongPath(id);
-        }else{
-            this.previousLoopAngle = "start";
-            this.dragAlongPath(id);
-        }
-    }else{ //No ambiguous cases exist
-        this.dragAlongPath(id);
-    }
-}
-/** Moves the point along it's hint path as it is dragged by the user.  In this function,
- *  the mouse is re-drawn and the view index variables are updated
- * id: of the dragged point
- * */
-Scatterplot.prototype.dragAlongPath = function(id){
-    var ref = this;
-    //Update the point's location
+    //Re-draw the point's according to the position of the dragged point
     this.svg.select("#displayPoints"+id).each( function (d) {
-        //Get the two points of the line segment currently dragged along
         var pt1_x = d.nodes[ref.currentView][0];
         var pt2_x = d.nodes[ref.nextView][0];
         var pt1_y = d.nodes[ref.currentView][1];
         var pt2_y = d.nodes[ref.nextView][1];
-        var minDist = ref.minDistancePoint(ref.mouseX,ref.mouseY,pt1_x,pt1_y,pt2_x,pt2_y);
-        var newPoint = []; //The new point to draw on the line
-        var t = minDist[2]; //To test whether or not the dragged point will pass pt1 or pt2
-        //Update the position of the dragged point
-        if (t<0){ //Passed current
-            ref.moveBackward();
-            newPoint = [pt1_x,pt1_y];
-        }else if (t>1){ //Passed next
-            ref.moveForward();
-            newPoint= [pt2_x,pt2_y];
-        }else{ //Some in between the views (pt1 and pt2)
-            ref.interpolatePoints(id,t,ref.currentView,ref.nextView);
-            newPoint= [minDist[0],minDist[1]];
+        var newPoint = [];
+        if (ref.isAmbiguous==1){ //Ambiguous cases exist on the hint path
+            var currentPointInfo = ref.ambiguousPoints[ref.currentView];
+            var nextPointInfo = ref.ambiguousPoints[ref.nextView];
+            if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching stationary points from left side of hint path (not on loop yet)
+                //ref.togglePointColour(id,1);
+                ref.appendAnchor(pt1_x,pt1_y);
+                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+            }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching stationary points from right side on hint path (not on loop yet)
+                //ref.togglePointColour(id,1);
+                ref.appendAnchor(pt2_x,pt2_y);
+                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+            }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
+                //ref.togglePointColour(id,0);
+                ref.dragAlongLoop(id,currentPointInfo[2]);
+                return;
+            }else if (currentPointInfo[0]==2){//Revisiting point
+                ref.toggleLabelColour(ref.currentView,currentPointInfo[2]);
+                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+            }else{
+                ref.previousLoopAngle = "start";
+                ref.removeAnchor();
+                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+            }
+        }else{ //No ambiguous cases exist
+            newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
         }
+        //Re-draw the dragged point
         ref.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
     });
+}
+/** Calculates the new position of the dragged point
+ * id: of the dragged point
+ * pt1, pt2: the boundary points (of current and next view)
+ * @return the coordinates of the newPoint as an array [x,y]
+ * */
+Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
+    var newPoint = [];
+    //Get the two points of the line segment currently dragged along
+    var minDist = this.minDistancePoint(this.mouseX,this.mouseY,pt1_x,pt1_y,pt2_x,pt2_y);
+    var newPoint = []; //The new point to draw on the line
+    var t = minDist[2]; //To test whether or not the dragged point will pass pt1 or pt2
+    //Update the position of the dragged point
+    if (t<0){ //Passed current
+        this.moveBackward();
+        newPoint = [pt1_x,pt1_y];
+    }else if (t>1){ //Passed next
+        this.moveForward();
+        newPoint= [pt2_x,pt2_y];
+    }else{ //Some in between the views (pt1 and pt2)
+        this.interpolatePoints(id,t,this.currentView,this.nextView);
+        newPoint= [minDist[0],minDist[1]];
+    }
+    return newPoint;
 }
 /** Updates the view variables to move the visualization forward
  * (passing the next view)
@@ -362,12 +388,10 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
          this.countRevolutions += Math.abs(this.previousLoopAngle - angle);
          if(this.countRevolutions >= Math.PI*2){ //Reached one full revolution, update the view
              if (currentDirection == 0){ //Passed current view
-                 this.nextView = this.currentView;
-                 this.currentView = this.currentView-1;
+                 this.moveBackward();
              }else { //Passed next view
                  console.log("passing next"+this.nextView);
-                 this.currentView = this.nextView;
-                 this.nextView = this.nextView +1;
+                 this.moveForward();
                  console.log(this.currentView);
              }
              this.toggleLabelColour(this.currentView,groupNumber)
@@ -383,18 +407,18 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
          }
      }
 
-    //Re-draw the circle along the loop
+    //Re-draw the anchor along the loop
     var distanceTravelled = 1 - (angle/(Math.PI*2));
     var loopPath = d3.select("#loop"+groupNumber).node();
     var totalLength = loopPath.getTotalLength();
     var newPoint = loopPath.getPointAtLength(totalLength*distanceTravelled);
 
-    ref.svg.select("#displayPoints"+id).attr("cx",newPoint.x).attr("cy",newPoint.y);
+    ref.svg.select("#anchor").attr("cx",newPoint.x).attr("cy",newPoint.y);
 
     //Save the dragging angle and direction
     this.previousLoopAngle = angle;
     this.previousLoopDirection = currentDirection;
-    console.log("prev direction "+this.previousLoopDirection);
+    //console.log("prev direction "+this.previousLoopDirection);
 }
  /**"Animates" the rest of the points while one is being dragged
  * Uses the 't' parameter, which represents approximately how far along a line segment
