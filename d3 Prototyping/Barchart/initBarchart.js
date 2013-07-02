@@ -33,7 +33,7 @@ barchart.dragEvent = d3.behavior.drag()
     })
     .on("drag", function(d){
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
-        barchart.updateDraggedBar(d.id,d3.event.y);
+        barchart.updateDraggedBar(d.id,d3.mouse(this)[1],d3.mouse(this)[0]); //Note: d3.mouse gets coordinates relative to svg container (d3.event does not account for transformations)
     })
     .on("dragend",function (d){
         barchart.snapToView(d.id,d.nodes);
