@@ -45,6 +45,7 @@ function Piechart(x,y, r,id,title,hLabels){
    this.interpValue=0;
    this.timeDirection = 1; //Tracks the direction travelled (forward or backward in time) to infer the next view
                                //1 if going forward, -1 if going backward
+   this.previousDragDirection = 1;
    this.mouseAngle = -1; //Save the angle of the previously dragged segment
 
    //Constants for angle calculations involving PI
@@ -254,62 +255,99 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 
         //The interp value represents the dragging direction (increasing -> forward in time, decreasing -> backward in time)
         //Find the amount travelled from current to next view (remember: angle1 is current and angle2 is next)
-        ref.findInterpolation(current,next,angle,0);
-        var bounds = ref.checkBounds(current,next,angle);
 
         //Find the angular dragging direction
-        var draggingDirection;
+        /**var draggingDirection;
         if (angle>ref.mouseAngle){draggingDirection = 1}
-        else{draggingDirection = -1}
-
-        if (bounds == angle){
-            ref.interpolateSegments(d.id, angle,ref.currentView,ref.nextView,ref.interpValue);
-            ref.animateHintPath(d.hDirections, d.nodes);
-        }else if (bounds == current) { //At current
-            if (ref.corners[ref.currentView]==1){ //At a corner
-                if (current > next){ //Ignore drag angles > current
-                    if (angle<=current){
-                        if (ref.timeDirection ==1){ref.moveForward();}
-                        else{ref.moveBackward();}
-                    }
-                }else{ //Ignore drag angles < current
-                    if (angle>=current){
-                        if (ref.timeDirection ==1){ref.moveForward();}
-                        else{ref.moveBackward();}
-                    }
-                }
-                /**if (ref.timeDirection ==1){ref.moveForward();}
-                else{ref.moveBackward();}*/
-            }else{
-                ref.moveBackward();
-            }
-        }else{ //At next
-            if (ref.corners[ref.nextView]==1){ //At a corner
-                if (next > current){ //Ignore drag angles > next
-                   if (angle<=next){
-                       if (ref.timeDirection ==1){ref.moveForward();}
-                       else{ref.moveBackward();}
-                   }
-                }else{ //Ignore drag angles < next
-                   if (angle>=next){
-                       if (ref.timeDirection ==1){ref.moveForward();}
-                       else{ref.moveBackward();}
-                   }
-                }
-                /**if (ref.timeDirection ==1){ref.moveForward();}
-                else{ref.moveBackward();}*/
-
-            }else{
-                ref.moveForward();
-            }
+        else{draggingDirection = -1}*/
+        var newAngle;
+        if (ref.corners[ref.currentView]==1){ //Current is a corner
+            newAngle = ref.handleDraggedSegment_corner(id,current,next,angle, d.hDirections, d.nodes);
+            console.log(ref.currentView+" "+ref.nextView);
+        }else if (ref.corners[ref.nextView]==1){ //Next is a corner
+            newAngle = ref.handleDraggedSegment_corner(id,current,next,angle, d.hDirections, d.nodes);
+            console.log(ref.currentView+" "+ref.nextView);
+        }else{ //No corners
+            newAngle = ref.handleDraggedSegment(id,current,next,angle, d.hDirections, d.nodes);
         }
 
-        console.log(ref.currentView+" "+ref.nextView+" "+ref.timeDirection);
-        d.endAngle = ref.dragStartAngle + bounds;
-        ref.mouseAngle = angle;
+        //console.log(ref.currentView+" "+ref.nextView+" "+ref.timeDirection);
+
+        d.endAngle = ref.dragStartAngle + newAngle;
+
+        ref.mouseAngle = angle; //Save the dragging angle
         return ref.arcGenerator(d);
     });
+}
+/** Finds the new end angle of a dragged pie segment
+ *  current,next: the angles corresponding to current and next views
+ *  mouseAngle: the dragging angle
+ *  id: of the dragged segment
+ *  hDirections, nodes: information for re-drawing the hint path
+ *  @return new end angle of the dragged segment
+ * */
+Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,hDirections,nodes){
+    var bounds = this.checkBounds(current,next,mouseAngle);
 
+    if (bounds == mouseAngle){
+        this.findInterpolation(current,next,mouseAngle,0);
+        this.interpolateSegments(id, mouseAngle,this.currentView,this.nextView,this.interpValue);
+        this.animateHintPath(hDirections, nodes);
+    }else if (bounds == current) { //At current
+        this.moveBackward();
+    }else{ //At next
+        this.moveForward();
+    }
+
+    return bounds;
+}
+/** Finds the new end angle of a dragged pie segment
+ *  current,next: the angles corresponding to current and next views
+ *  mouseAngle: the dragging angle
+ *  id: of the dragged segment
+ *  hDirections, nodes: information for re-drawing the hint path
+ *  @return new end angle of the dragged segment
+ * */
+Piechart.prototype.handleDraggedSegment_corner = function(id,current,next,mouseAngle,hDirections,nodes){
+
+    //Find the angular dragging direction
+     var draggingDirection;
+     if (mouseAngle>this.mouseAngle){draggingDirection = 1}
+     else{draggingDirection = -1}
+     var newAngle;
+    //console.log("dragging "+draggingDirection+" previous: "+this.previousDragDirection+" time "+this.timeDirection);
+    var bounds = this.checkBounds(current,next,mouseAngle);
+    if (bounds == mouseAngle){
+        this.findInterpolation(current,next,mouseAngle,0);
+        this.interpolateSegments(id, mouseAngle,this.currentView,this.nextView,this.interpValue);
+        this.animateHintPath(hDirections, nodes);
+    }else if (bounds == current) { //At current
+        if (current > next){ //Dragging needs to switch 1 -> -1
+            if (mouseAngle>=current && draggingDirection==-1 && this.previousDragDirection==1){
+                if (this.timeDirection ==1){this.moveForward();}
+                else{this.moveBackward();}
+            }
+        }else{//Dragging needs to switch -1 -> 1
+            if (mouseAngle<=current && draggingDirection==1 && this.previousDragDirection==-1){
+                if (this.timeDirection ==1){this.moveForward();}
+                else{this.moveBackward();}
+            }
+        }
+    }else{ //At next
+        if (next > current){ //Dragging needs to switch 1 -> -1
+            if (mouseAngle>=next && draggingDirection==-1 && this.previousDragDirection==1){
+                if (this.timeDirection ==1){this.moveForward();}
+                else{this.moveBackward();}
+            }
+        }else{//Dragging needs to switch -1 -> 1
+            if (mouseAngle<=next && draggingDirection==1 && this.previousDragDirection==-1){
+                if (this.timeDirection ==1){this.moveForward();}
+                else{this.moveBackward();}
+            }
+        }
+    }
+    this.previousDragDirection = draggingDirection;
+    return bounds;
 }
 /** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
  *   Uses the interpolation amount to find the direction travelling over time and save it
@@ -338,14 +376,15 @@ Piechart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
     }*/ //TODO: implement this when ambiguous case detection is working
 
     //Set the direction travelling over time
-    if (currentInterpValue > this.interpValue){ //Moving forward
-        this.timeDirection = 1;
-    }else { //Going backward
-        this.timeDirection = -1;
-    }
+   // if (this.corners[this.currentView]==0 && this.corners[this.nextView]==0){
+        if (currentInterpValue > this.interpValue){ //Moving forward
+            this.timeDirection = 1;
+        }else { //Going backward
+            this.timeDirection = -1;
+        }
+   // }
 
-    //Save the current interpolation value
-    this.interpValue = currentInterpValue;
+    this.interpValue = currentInterpValue; //Save the current interpolation value
 }
 /** Updates the view tracking variables to move the visualization forward
  * (passing the next view)
@@ -435,7 +474,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  * hDirections: the drawing directions for the hint path and the segment numbers
  * angles: an array of all angles to appear on the hint path
  * */
-//TODO: using the election dataset, hint path not animating inwards enough
+//TODO:hint path animation is jerky
 Piechart.prototype.animateHintPath = function (hDirections,angles){
     var ref = this;
     var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}),1);
