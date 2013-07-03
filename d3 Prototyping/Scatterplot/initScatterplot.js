@@ -35,7 +35,7 @@ scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an ar
 					  })
                       .on("drag", function(d){
                            slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
+                           scatterplot.updateDraggedPoint(d.id,d3.mouse(this)[0],d3.mouse(this)[1]);
 					  })
 					  .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
                                                   //coordinates of the scatterplot object

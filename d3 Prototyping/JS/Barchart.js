@@ -462,25 +462,15 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
  * */
  Barchart.prototype.animateHintPath = function (interpAmount){
    var ref = this;
-   var translateCurrent = this.hintPathSpacing*this.currentView;
-   var translateNext = this.hintPathSpacing*this.nextView;
-    
-    //Re-draw the hint path
-   this.svg.select("#path").attr("d",  ref.hintPathGenerator(ref.pathData.map(function (d,i){       
-        return [ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),d[1]];
-    })));
-	//Re-draw the hint path labels
-   this.svg.select("#hintPath").selectAll(".hintLabels")
-            .attr("transform",function (d,i) {                
-                return "translate("+ref.interpolator(d.x-translateCurrent,d.x-translateNext,interpAmount)+","+ d.y+")";
-            });
-    //Re-draw the interaction paths (if any) by horizontally translating them
+   var translateAmount = this.hintPathSpacing*interpAmount + this.hintPathSpacing*this.currentView;
+
+    //Translate the hint path, labels and interaction paths (if any)
+   this.svg.select("#path").attr("transform","translate(" + (-translateAmount) + ")");
+   this.svg.select("#hintPath").selectAll(".hintLabels").attr("transform","translate(" + (-translateAmount) + ")");
+
     if (this.interactionPaths.length >0) {
             this.svg.select("#hintPath").selectAll(".interactionPath")
-                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){                    
-                    return [ref.interpolator(d[0]-translateCurrent,d[0]-translateNext,interpAmount),d[1]];
-                   }));
-               });
+                .attr("transform","translate(" + (-translateAmount) + ")");
     }
 }
 /**"Animates" the rest of the bars while one is being dragged
@@ -545,23 +535,15 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
             //If the bar's hint path is visible, animate it
             if (d.id == id){
                 var translate = animateView*ref.hintPathSpacing;
-                //Re-draw the hint path
-                d3.select("#path").attr("d", function(){
-                    return ref.hintPathGenerator(ref.pathData.map(function (d){return [d[0] - translate,d[1]]}));
-                });
-                //Re-draw the hint path labels
-                d3.select("#hintPath").selectAll(".hintLabels")
-                    .attr("transform",function (d,i) {
-                        //Don't rotate the label resting on top of the bar
-                        if (i==animateView) return "translate("+(d.x - translate)+","+ d.y+")";
-                        else return "translate("+((d.x - translate)-10)+","+ d.y+")";
-                    });
+
+                //Re-draw the hint path and labels
+                d3.select("#path").attr("transform","translate("+(-translate)+")");
+                d3.select("#hintPath").selectAll(".hintLabels").attr("transform","translate("+(-translate)+")");
+
                 //Re-draw interaction paths (if any)
                 if (ref.interactionPaths.length>0){
                     d3.select("#hintPath").selectAll(".interactionPath")
-                        .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                            return [d[0]-translate,d[1]];
-                        }));});
+                        .attr("transform","translate("+(-translate)+")");
                 }
             }
         };
@@ -584,25 +566,17 @@ Barchart.prototype.redrawView = function (view,id){
     if (id!=-1){
         var translate = view*this.hintPathSpacing;
         var savedYCoord;
-         //Re-draw the hint path
-        this.svg.select("#path").attr("d", function(){
-            return ref.hintPathGenerator(ref.pathData.map(function (d){return [d[0]-translate,d[1]]}));
-        });
-        //Re-draw the hint path labels
-        this.svg.selectAll(".hintLabels")
-            .attr("transform",function (d,i) {
-                //Don't rotate the label resting on top of the bar
-                if (i==view) return "translate("+(d.x-translate)+","+ d.y+")";
-                else return "translate("+((d.x-translate)-10)+","+ d.y+")";
-          });
+
+        //Re-draw the hint path and labels
+        this.svg.select("#path").attr("transform","translate("+(-translate)+")");
+        this.svg.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")");
+
         //Re-draw interaction paths (if any)
         if (this.interactionPaths.length>0){
             this.svg.select("#hintPath").selectAll(".interactionPath")
-                .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                    savedYCoord = d[1]; //Save the y-coord for re-drawing the anchor
-                    return [d[0]-translate,d[1]];
-                }));});
-            if (!this.svg.select("#anchor").empty()){ //Re-position the anchor (if exists)
+                .attr("transform","translate("+(-translate)+")");
+            //Re-position the anchor (if exists)
+            if (!this.svg.select("#anchor").empty()){
                 this.svg.select("#anchor").attr("d",function (d){return ref.hintPathGenerator(d)});
             }
         }
@@ -673,22 +647,24 @@ Barchart.prototype.snapToView = function (id, heights){
  * */
 Barchart.prototype.showHintPath = function (id,heights,xPos){
     var ref = this;
+
     //Create a dataset to draw the hint path in the format: [x,y]
     this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0]];});
 
+    //Search the dataset for ambiguous cases (sequences of stationary points)
     this.checkAmbiguous();
     if (this.isAmbiguous==1){
         this.appendAnchor(xPos,0);
     }
 
     var translate = this.hintPathSpacing*this.currentView;
+
     //Draw the interaction path(s) (if any)
     if (this.interactionPaths.length >0){
         this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
-            .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                return [d[0]-translate,d[1]];
-            }));})
+            .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
+            .attr("transform","translate("+(-translate)+")")
             .attr("stroke-dasharray","3,3")//Makes the path dashed
             .attr("class","interactionPath")
             .style("fill","none")
@@ -697,27 +673,22 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("svg:path")
-       .attr("d", this.hintPathGenerator(ref.pathData.map(function (d,i){
-            return [d[0]-translate,d[1]];
-       })))
+       .attr("d", this.hintPathGenerator(ref.pathData))
        .style("stroke-width", 2).style("stroke", this.hintColour)
        .style("fill","none").attr("filter", "url(#blur)")
+       .attr("transform","translate("+(-translate)+")")
        .attr("id","path");
-												
+
 	//Draw the hint labels
    this.svg.select("#hintPath").selectAll("text").data(ref.pathData.map(function(d,i){
            return {x:d[0],y:d[1],label:ref.hintLabels[i]};
         })).enter().append("svg:text")
         .text(function(d) { return d.label; })
-        .attr("transform",function (d,i) {
-           //Don't rotate the label resting on top of the bar
-           if (i==ref.currentView) return "translate("+(d.x-translate)+","+ d.y+")";
-           else return "translate("+((d.x-translate)-10)+","+ d.y+")";
-         })
-       .attr("fill", "#666")
-       .attr("class","hintLabels")
-       .on("click",this.clickHintLabelFunction)
-       .style("cursor", "pointer");
+        .attr("x",function (d){return d.x}).attr("y",function (d){return d.y})
+        .attr("transform", "translate("+(-translate)+")")
+        .attr("fill", "#666").style("cursor", "pointer")
+        .attr("class","hintLabels")
+        .on("click",this.clickHintLabelFunction);
 
     //Fade out the other bars
    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})

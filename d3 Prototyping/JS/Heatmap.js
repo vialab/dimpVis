@@ -33,6 +33,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.previousDragDirection = 1; //Dragging direction of the user: 1 if up, -1 if down
    this.timeDirection = 1 //Direction travelling over time, 1: forward, -1: backward
    this.hintYValues = []; //Saves the hint y-values (at the first view)
+   this.amplitude = 20; //Of the sine wave (interaction path)
 
    //Display properties
    this.labels = hLabels;
@@ -204,11 +205,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        }
        nextY = (pathDirection==1)? (ref.draggedCellY - nextY/6):(ref.draggedCellY + nextY/6);
 
-       //Need to also consider whether dragging direction is changing or continuing in the same direction
-       //If it has changed, will need to determine the direction based on previous activity
-       //If it has not changed, need to adjust the currentY
-
-     //  console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView);
+        //  console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView);
        //console.log(currentYOffset+" "+nextYOffset+" "+mouseY+" "+ref.currentView);
 
       //Find the current vertical dragging direction
@@ -223,13 +220,13 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
            ref.interpolateColours(ref.currentView, ref.nextView,ref.interpValue);
            ref.animateHintPath(currentYOffset,nextYOffset,ref.interpValue);
        }else if (bounds == currentY){ //Passing current view
-           if (pathDirection == ref.previousPathDirection){
+           if (pathDirection != ref.previousPathDirection){
                ref.inferTimeDirection(currentY,nextY,mouseY,draggingDirection);
            }else{
                ref.moveBackward();
            }
        }else{ //Passing next view
-           if (pathDirection == ref.previousPathDirection){
+           if (pathDirection != ref.previousPathDirection){
                ref.inferTimeDirection(nextY,currentY,mouseY,draggingDirection);
            }else{
                ref.moveForward();
@@ -433,7 +430,6 @@ Heatmap.prototype.snapToView = function (id, points,y){
     //Update the view
     if (this.nextView == this.lastView) {
         this.redrawView(this.currentView+1);
-        console.log(points[this.currentView]);
         this.redrawHintPath(points[this.currentView+1][4],this.currentView+1);
     } else {
         this.redrawView(this.currentView);
@@ -489,11 +485,13 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  this.draggedCellX = x+this.cellSize/2; //Save the center coordinates of the dragged cell
  this.draggedCellY = y + this.cellSize/2;
  var currentOffset = pathData[ref.currentView][4];
- //this.checkAmbiguous(pathData); //Check for ambiguous cases
+ this.checkAmbiguous(pathData); //Check for ambiguous cases
 
  //Create the hint path coordinates: centre the path at the dragged cell
  var coords = pathData.map(function (d,i){return [ref.findHintX(i,ref.currentView),ref.findHintY(d[4],currentOffset),d[4]];});
+
  //TODO: if the colour does not change for the entire hint path the gradient is not drawn
+
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
         .attr("x",x).attr("y",y)
@@ -582,7 +580,7 @@ Heatmap.prototype.checkAmbiguous = function (data){
     for (j=0;j<this.lastView;j++){
         this.ambiguousCells[j] = 0;
     }
-    //TODO: what about revisiting cells causing interaction problems?
+
     //Populate the stationary cells array by searching for sequences of continuous equal y-offsets
     for (j=0;j<this.lastView;j++){
         currentCellOffset= yOffsets[j];
@@ -602,10 +600,9 @@ Heatmap.prototype.checkAmbiguous = function (data){
             }
         }
     }
-    //First check if there exists any stationary colours in the dataset
+    //First check if there exists any stationary colours in the dataset..
     if (this.isAmbiguous ==1){
-        //Then, generate points for drawing an interaction path
-        this.findPaths(d3.min(stationaryCells));
+        this.findPaths(d3.min(stationaryCells));//Then, generate points for drawing an interaction path
     }
 }
 /** This function will populate an array containing all data for drawing a sine wave:
@@ -629,16 +626,36 @@ Heatmap.prototype.findPaths = function (startIndex){
             pathInfo[1].push(j);
         }
     }
-    this.interactionPaths.push(this.calculatePathPoints(pathInfo[0],pathInfo[1]));
+    this.interactionPaths.push(this.calculatePathPoints(pathInfo[1]));
 }
-/** Computes the peak points to lie along an interaction path (sine wave)
- * h: the base axis of the sine wave
- * indices: the corresponding year indices, this array's length is the number of peaks in the path
- * @return an array of all points for the sine wave peaks and the year index in the format: [[x,y,index], etc.]
+/** Calculates a set of points to compose a sine wave (for an interaction path)
+ * indices: the corresponding year indices, this array's length is the number of peaks of the path
+ * @return an array of points for drawing the sine wave: [[x,y], etc.]
  * */
-Heatmap.prototype.calculatePathPoints = function (h,indices){
+Heatmap.prototype.calculatePathPoints = function (indices){
+    var angle = 0;
+    var pathPoints = [];
 
+    //Find the period of the sine function
+    var length = indices.length;
+    var totalPts = 3*length + (length-3);
+
+    //Calculate the points (5 per gap between views)
+    for (var j=0;j<totalPts;j++){
+        var theta = angle + (Math.PI/4)*j;
+        var y = this.amplitude*Math.sin(theta)+this.draggedCellY;
+        var x = (this.xSpacing/4)*j + this.draggedCellX;
+        pathPoints.push([x,y]);
+    }
+
+    //Insert the end direction (1=peak, -1=trough) of the sine wave into ambiguousBars array
+    // (first direction will always be -1)
+    var endDirection = (indices.length % 2==0)?-1:1;
+    this.ambiguousCells[indices[indices.length-1]] = [1,endDirection];
+
+    return pathPoints;
 }
+
 //Todo:ambiguous interaction along hint path (same colour, interaction path?)
 //Todo: non-existent data values in cell (white?), this would involve screening the dataset as well, similar to ambiguous cases
 //TODO:y should be centered on the cell as well (this means translating hint path in the y when dragging)

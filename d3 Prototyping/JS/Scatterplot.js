@@ -213,8 +213,9 @@ Scatterplot.prototype.render = function( data, start, labels) {
  * */
 Scatterplot.prototype.appendAnchor = function (x,y){
     if (this.svg.select("#anchor").empty()){
-        this.svg.select("#hintPath").append("circle").attr("cx", x).attr("cy", y)
-         .attr("r",5).attr("fill","none").attr("stroke","#c7c7c7").attr("id","anchor");
+        this.svg.select("#hintPath").append("circle").datum([x,y])
+         .attr("id","anchor").attr("cx", x).attr("cy", y)
+         .attr("r",5).attr("fill","none").attr("stroke","#c7c7c7");
     }
 }
 /** Removes an anchor from the svg, if one is appended
@@ -247,15 +248,13 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
             var currentPointInfo = ref.ambiguousPoints[ref.currentView];
             var nextPointInfo = ref.ambiguousPoints[ref.nextView];
             if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching stationary points from left side of hint path (not on loop yet)
-                //ref.togglePointColour(id,1);
                 ref.appendAnchor(pt1_x,pt1_y);
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching stationary points from right side on hint path (not on loop yet)
-                //ref.togglePointColour(id,1);
                 ref.appendAnchor(pt2_x,pt2_y);
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
-                //ref.togglePointColour(id,0);
+
                 ref.dragAlongLoop(id,currentPointInfo[2]);
                 return;
             }else if (currentPointInfo[0]==2){//Revisiting point
@@ -540,6 +539,10 @@ Scatterplot.prototype.changeView = function( newView) {
 Scatterplot.prototype.redrawView = function(view) {
     if (this.ambiguousPoints.length != 0 && this.ambiguousPoints[view][0] == 1){ //A stationary point, update the label colour
         this.toggleLabelColour(view,this.ambiguousPoints[view][2]);
+        //Re-draw position the anchor at the stationary point (if any)
+        if (!this.svg.select("#anchor").empty()){
+            this.svg.select("#anchor").attr("cx",function (d){return d[0]}).attr("cy",function (d){return d[1]});
+        }
     }
     this.svg.selectAll(".displayPoints").transition().duration(300)
 	          .attr("cx",function (d){return d.nodes[view][0];})
