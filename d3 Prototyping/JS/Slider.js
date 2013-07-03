@@ -28,6 +28,7 @@ function Slider(x, y, id,labels,description,colour,spacing) {
    this.interpValue=0; //Amount of distance travelled between ticks, used to interpolate other visualizations
    this.widget = null;  // Reference to the main widget
    this.sliderPos = this.sliderOffset; //The starting horizontal position of the slider tick (at the first tick)
+   this.timeDirection = 1 //Direction travelling along time line (1 if forward, -1 if backwards)
 
    //Generate an array of x locations for each tick
    this.tickPositions = []; //All x locations of the ticks on the slider
@@ -117,10 +118,10 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
            if (ref.currentTick == 0){ //First tick
                if (mouseX <= current){//Out of bounds: Passed first tick
                   return current;
-               }else if (mouseX > next){
+               }else if (mouseX >= next){
                    ref.currentTick = ref.nextTick;
                    ref.nextTick++;
-                   this.interpValue = 0;
+                   ref.interpValue = (ref.timeDirection == -1)? 1:0;
                 }else{
                    ref.setInterpolation(mouseX,current,next);
                 }
@@ -128,29 +129,29 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
            }else if (ref.nextTick == (ref.numTicks-1)){ //Last tick
                if (mouseX>= next){  //Out of bounds: Passed last tick
                   return next;
-               }else if (mouseX < current){
+               }else if (mouseX <= current){
                     ref.nextTick = ref.currentTick;
                     ref.currentTick--;
-                    this.interpValue = 0;
+                    ref.interpValue = (ref.timeDirection == -1)? 1:0;
                }else{
                    ref.setInterpolation(mouseX,current,next);
                }
                return mouseX;
            }else{ //A tick in between the end ticks
-                if (mouseX < current){ //Passed current
+                if (mouseX <= current){ //Passed current
                     ref.nextTick = ref.currentTick;
                     ref.currentTick--;
-                    this.interpValue = 0;
-                }else if (mouseX>next){ //Passed next
+                    ref.interpValue = (ref.timeDirection == -1)? 1:0;
+                }else if (mouseX>=next){ //Passed next
                     ref.currentTick = ref.nextTick;
                     ref.nextTick++;
-                    this.interpValue = 0;
+                    ref.interpValue = (ref.timeDirection == -1)? 1:0;
                 }else{
                     ref.setInterpolation(mouseX,current,next);
                 }
                 return mouseX;
            }
-	});
+      });
 }
 /** Determines how far the slider has travelled between two ticks (current and next) and sets
  * the interpolation value accordingly (as percentage travelled)
@@ -160,7 +161,16 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
 Slider.prototype.setInterpolation = function( mouseX,current,next) {
      var totalDistance = Math.abs(next-current);
 	 var distanceTravelled = Math.abs(mouseX - current);
-	 this.interpValue = distanceTravelled/totalDistance;
+     var newInterp = distanceTravelled/totalDistance;
+
+     //Set the direction travelling in time
+     if (newInterp > this.interpValue){ //Moving forward
+        this.timeDirection = 1;
+     }else { //Going backward
+        this.timeDirection = -1;
+     }
+
+    this.interpValue = newInterp;
 }
 /** Updates the location of the draggable tick to the new view
  * */
@@ -201,14 +211,14 @@ Slider.prototype.snapToTick = function() {
  *  Note: This function can be used to update the slider as another visualization
  *  object is dragged (e.g., scatterplot point)
  * */
-Slider.prototype.animateTick = function(interpValue, currentView, nextView) {
+Slider.prototype.animateTick = function(interpAmount, currentView, nextView) {
     var ref = this;
-    if (interpValue != 0){
+    if (interpAmount != 0){
         this.widget.select("#slidingTick")
                .attr("x",function (){
                      var current = ref.tickPositions[currentView];
                      var next = ref.tickPositions[nextView];
-                     return d3.interpolate(current,next)(interpValue);
+                     return d3.interpolate(current,next)(interpAmount);
                  });
     }
 }

@@ -220,13 +220,13 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
          var nextHeight = d.nodes[ref.nextView][1];
          var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
 
-        if (ref.isAmbiguous ==1){ //At least one stationary sequence exists on the hint path
-            //Check for stationary bar sequences
+        if (ref.isAmbiguous ==1){ //At least one stationary sequence exists somewhere on the hint path
             var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
             var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
-
+            //Check for stationary bar sequences
             if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Approaching the stationary points from right (along hint path)
                 ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
+                console.log(ref.pathDirection+" "+ref.timeDirection);
                 ref.passedMiddle = 0;
                 ref.peakValue = (ref.pathDirection==1)?(currentY-ref.amplitude):(ref.amplitude+currentY);
                 newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
@@ -246,7 +246,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
             newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
         }
 
-        //Save the mouse coordinate
+        //Save the mouse y-coordinate
         ref.mouseY = mouseY;
 
         //Re-draw the dragged bar
@@ -306,7 +306,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
 
     //Find the current vertical dragging direction of the user
     var draggingDirection = mouseY>this.mouseY ? -1:1;
-    console.log("hint path dir: "+hintPathDirection+" mouse dir: "+draggingDirection+" current view "+this.currentView+" next view "+this.nextView+" interp "+this.interpValue);
+    //console.log("hint path dir: "+hintPathDirection+" mouse dir: "+draggingDirection+" current view "+this.currentView+" next view "+this.nextView+" interp "+this.interpValue);
     //Resolve the bounds
     var bounds = this.checkBounds(currentY,nextY,mouseY);
 
@@ -509,6 +509,7 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
  * */
 Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView){
   var ref = this;
+    console.log(interpAmount+" start view "+startView+" endView "+endView);
   this.svg.selectAll(".displayBars").filter(function (d){return d.id!=id;})
       .attr("height",function (d){
           return ref.interpolator(d.nodes[startView][1], d.nodes[endView][1],interpAmount);
