@@ -319,6 +319,7 @@ Piechart.prototype.inferTimeDirection = function (b1,b2,mouseAngle,draggingDirec
  *                      = 0, normal case
  */
 Piechart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
+
     var distanceTravelled, currentInterpValue;
     var total = Math.abs(b2 - b1);
 
@@ -336,12 +337,8 @@ Piechart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
         }
     }*/ //TODO: implement this when ambiguous case detection is working
 
-    //Set the direction travelling over time
-    if (currentInterpValue > this.interpValue){ //Moving forward
-        this.timeDirection = 1;
-    }else { //Going backward
-        this.timeDirection = -1;
-    }
+    //Set the direction travelling over time (1: forward, -1: backward)
+    this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
 
     this.interpValue = currentInterpValue; //Save the current interpolation value
 }

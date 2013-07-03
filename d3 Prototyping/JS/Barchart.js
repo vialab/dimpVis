@@ -472,12 +472,9 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
 		  currentInterpValue = (distanceTravelled+total)/(total*2);
 		}
 	}	
-	//Set the direction travelling over time
-    if (currentInterpValue > this.interpValue){ //Moving forward        
-        this.timeDirection = 1;        
-     }else { //Going backward              
-        this.timeDirection = -1;        
-    }
+	//Set the direction travelling over time (1: forward, -1: backward)
+    this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
+
 	//console.log(this.timeDirection+" "+this.interpValue+" "+currentInterpValue);
     //Save the current interpolation value
     this.interpValue = currentInterpValue;
@@ -680,9 +677,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 
     //Search the dataset for ambiguous cases (sequences of stationary points)
     this.checkAmbiguous();
-    if (this.isAmbiguous==1){
-        this.appendAnchor(xPos,0);
-    }
+    if (this.isAmbiguous==1){ this.appendAnchor(xPos,0);}
 
     var translate = this.hintPathSpacing*this.currentView;
 
@@ -749,7 +744,7 @@ Barchart.prototype.checkAmbiguous = function (){
     //Search for heights that are equal (called "repeated bars")
     for (j=0;j<=this.lastView;j++){
         currentBar= this.pathData[j][1];
-        for (var k=j;k<this.lastView;k++){
+        for (var k=j;k<=this.lastView;k++){
             if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
             //if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<1){ //An almost repeated bar, less than one pixel difference
                 if (Math.abs(k-j)==1){ //Stationary bar
@@ -782,23 +777,16 @@ Barchart.prototype.checkAmbiguous = function (){
  * */
 Barchart.prototype.findPaths = function (startIndex){
     var pathInfo = [];
-    pathInfo[0] = this.pathData[startIndex][1];
-    pathInfo[1] = [];
-
-    for (var j=startIndex; j< this.lastView;j++){
+    for (var j=startIndex; j<=this.lastView;j++){
         if (this.ambiguousBars[j][0]==1){
             if (j!=startIndex && this.ambiguousBars[j-1][0]!=1){ //Starting a new path
-                //Need to calculate points to draw the loop, based on the original point value
-                this.interactionPaths.push(this.calculatePathPoints(pathInfo[1]));
+                this.interactionPaths.push(this.calculatePathPoints(pathInfo));
                 pathInfo = [];
-                pathInfo[0] = this.pathData[j][1];
-                pathInfo[1] = [];
             }
-            pathInfo[1].push(j);
+            pathInfo.push(j);
         }
     }
-
-    this.interactionPaths.push(this.calculatePathPoints(pathInfo[1]));
+    this.interactionPaths.push(this.calculatePathPoints(pathInfo));
 }
 /** Calculates a set of points to compose a sine wave (for an interaction path)
  * indices: the corresponding year indices, this array's length is the number of peaks of the path
