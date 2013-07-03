@@ -209,10 +209,8 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
         //  console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView);
        //console.log(currentYOffset+" "+nextYOffset+" "+mouseY+" "+ref.currentView);
 
-      //Find the current vertical dragging direction
-       var draggingDirection;
-       if (mouseY>ref.mouseY){draggingDirection = 1}
-       else{draggingDirection = -1}
+       //Find the current vertical dragging direction
+       var draggingDirection = mouseY>ref.mouseY? 1:-1;
 
        //console.log(ref.currentView+" "+ref.nextView);
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
@@ -222,12 +220,14 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
            ref.animateHintPath(currentYOffset,nextYOffset,ref.interpValue);
        }else if (bounds == currentY){ //Passing current view
            if (pathDirection != ref.previousPathDirection){
+              // console.log("changed direction");
                ref.inferTimeDirection(currentY,nextY,mouseY,draggingDirection);
            }else{
                ref.moveBackward();
            }
        }else{ //Passing next view
            if (pathDirection != ref.previousPathDirection){
+               //console.log("changed direction");
                ref.inferTimeDirection(nextY,currentY,mouseY,draggingDirection);
            }else{
                ref.moveForward();

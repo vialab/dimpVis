@@ -38,8 +38,12 @@
    this.currentView = 0; //Starting view of the bars (first year)  
    this.nextView = 1; //Next view of the barchart
    this.lastView = hLabels.length-1; //Index of the last view on the hint path
-   this.interpValue=0;
+
+   this.interpValue=0; //For estimating the time direction and update the barchart view
    this.mouseY = -1;
+   this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
+   this.previousHintPathDirection = 1; //Saves the direction of the hint path (going up or down)
+
    this.ambiguousBars = [];
    this.interactionPaths = [];
    this.pathDirection = -1; //Directon travelling along an interaction path
@@ -245,8 +249,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
         //Save the mouse coordinate
         ref.mouseY = mouseY;
 
-        //console.log(ref.timeDirection);
-         ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
+        //Re-draw the dragged bar
+        ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
      });
 }
 /** Updates the view variables to move the visualization forward
@@ -297,20 +301,68 @@ Barchart.prototype.removeAnchor = function (){
  * */
 Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nextHeight,mouseY,id){
     var newValues = [];
-    var bounds = this.checkBounds(currentY,nextY,mouseY); //Resolve the bounds
+    //Determine the direction of the path (up or down)
+    var hintPathDirection = (currentY > nextY) ? 1:-1;
+
+    //Find the current vertical dragging direction of the user
+    var draggingDirection = mouseY>this.mouseY ? -1:1;
+    console.log("hint path dir: "+hintPathDirection+" mouse dir: "+draggingDirection+" current view "+this.currentView+" next view "+this.nextView+" interp "+this.interpValue);
+    //Resolve the bounds
+    var bounds = this.checkBounds(currentY,nextY,mouseY);
+
+    //Update the view based on where the mouse is w.r.t the view boundaries
     if (bounds == mouseY){	    
 	    this.findInterpolation(currentY,nextY,mouseY,0); 		
         this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
         this.animateHintPath(this.interpValue);
+        this.previousHintPathDirection = hintPathDirection;
         newValues = [mouseY,this.findHeight(currentHeight,mouseY,currentY)];
     }else if (bounds == currentY ){ //Passing current
-	    this.moveBackward();	         
+        if (hintPathDirection != this.previousHintPathDirection){
+            this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,hintPathDirection);
+        }else{
+            this.moveBackward();
+            this.previousHintPathDirection = hintPathDirection;
+        }
         newValues = [currentY,currentHeight];
-    }else{ //Passing next	
-        this.moveForward();
+    }else{ //Passing next
+        if (hintPathDirection != this.previousHintPathDirection){
+            this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,hintPathDirection);
+        }else{
+            this.moveForward();
+            this.previousHintPathDirection = hintPathDirection;
+        }
         newValues = [nextY,nextHeight];
     }
+
+    //Save the dragging direction
+    this.previousDragDirection = draggingDirection;
+
     return newValues;
+}
+/**Infers the time direction when user arrives at corners, inference is based on previous direction
+ * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
+ * changes.
+ * b1,b2: the boundary views (b1 should be the currently encountered corner)
+ * mouseY: dragging position of the mouse
+ * draggingDirection: of the user, 1 if dragging clockwise, -1 is counter-clockwise
+ * hintPathDirection: of the path, 1 if up, -1 if down, saves this value in a global variable only once the view changes
+ * */
+Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,hintPathDirection){
+//console.log(draggingDirection+" "+this.previousDragDirection+" "+this.timeDirection);
+    if (b1 > b2){ //Dragging needs to switch 1 -> -1 in order for view to change
+        if (mouseY>=b1 && draggingDirection==-1 && this.previousDragDirection==1){
+            if (this.timeDirection ==1){this.moveForward();}
+            else{this.moveBackward();}
+            this.previousHintPathDirection = hintPathDirection;
+        }
+    }else{//Dragging needs to switch -1 -> 1 in order for the view to change
+        if (mouseY<=b1 && draggingDirection==1 && this.previousDragDirection==-1){
+            if (this.timeDirection ==1){this.moveForward();}
+            else{this.moveBackward();}
+            this.previousHintPathDirection = hintPathDirection;
+        }
+    }
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedBar, except
  *  this function is only called when in the middle of a stationary sequence of bars.
@@ -321,7 +373,7 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
 Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id){
 
     var bounds = this.checkBounds(this.peakValue,barY,mouseY);
-	var newY; //To re-draw the anchor
+	var newY; //To re-position the anchor
 	//console.log(barY+" "+mouseY+" "+this.peakValue);
 	if (bounds == mouseY){
 		 this.findInterpolation(barY,this.peakValue, mouseY, 1);
@@ -348,7 +400,7 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
 		//console.log(this.currentView+" "+this.nextView);
 		newY=barY;
      }
-	 // d3.select("#anchor").attr("cy",newY); //Re-draw anchor (circle)
+
     var ref = this;
     //d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[d[0][0],d[0][1]],[d[0][0],newY]]);}); //Re-draw anchor (line attached to bar)
      d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[mouseX,mouseY],[d[0][0],newY]]);}); //Re-draw anchor

@@ -504,6 +504,8 @@ Piechart.prototype.changeView = function (newView){
  *       if set to 1, interpolate between two views
  * */
 Piechart.prototype.calculateHintAngles = function (angles,arcIndices,flag){
+
+  //The old hint path design (radius changes when dragging direction changes)
   /**  var newAngle, r, x,y;
     var hintAngles = [];
     for (var j=0;j<angles.length;j++){
@@ -517,6 +519,8 @@ Piechart.prototype.calculateHintAngles = function (angles,arcIndices,flag){
         y = this.cy+ r*Math.sin(newAngle - this.halfPi);
         hintAngles.push([x,y,r,newAngle]);
     }*/
+
+  //New hint path design: separate radius for each year
   var newAngle, r, x,y;
     var hintAngles = [];
     for (var j=0;j<angles.length;j++){
@@ -585,7 +589,7 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
  * index: the arc index (which arc the hint angle lies on)
  * view: the view index*/
 Piechart.prototype.findHintRadius = function (index,view){
-    return this.labelOffset+15*(index-view);
+    return this.labelOffset+18*(index-view);
 }
 /**Interpolates radius between start and end view, used for animating the hint path
  * while a segment is dragged
