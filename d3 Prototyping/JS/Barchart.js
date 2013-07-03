@@ -34,11 +34,6 @@
    this.base = h-5; //Starting y-position of all bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
 
-   //Default graph colours, can be changed by called the setColours() function
-   this.hintColour = "#1f77b4";
-   this.axisColour = "#c7c7c7";
-   this.barColour = "#74c476";
-
    //View index tracker variables
    this.currentView = 0; //Starting view of the bars (first year)  
    this.nextView = 1; //Next view of the barchart
@@ -61,20 +56,10 @@
 
    //Function for drawing a linearly interpolated line (the hint path)
    this.hintPathGenerator = d3.svg.line().interpolate("linear");
-    //Function for drawing a cardinal spline
+   //Function for drawing a sine wave
    this.interactionPathGenerator = d3.svg.line().interpolate("monotone");
    //Interpolate function between two values, at the specified amount
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
-}
-/**Customize the display colours of the barchart, to change the default
- * barCol: The colour of the points
- * hintCol: The colour of the hint path
- * axisCol: The colour of the axes
- * */
-Barchart.prototype.setColours = function(barCol, hintCol, axisCol){
-    this.hintColour = hintCol;
-    this.barColour = barCol;
-    this.axisColour = axisCol;
 }
 /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -159,10 +144,8 @@ this.svg.selectAll("rect")
      .attr("y", function(d){ return d.nodes[ref.currentView][0];})
      .attr("width", this.barWidth)
      .attr("height", function(d) {return d.nodes[ref.currentView][1]; })
-	 .attr("fill", this.barColour)
 	 .attr("class", "displayBars")
-	 .attr("id", function (d){return "displayBars"+d.id;})
-     .style("cursor", "pointer");
+	 .attr("id", function (d){return "displayBars"+d.id;});
 
 	//Add a blank g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -180,7 +163,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     // Add the title of the graph
     this.svg.append("text")
         .attr("id", "graphTitle")
-        .style("fill", this.axisColour)
         .text(this.graphTitle)
         .attr("x",1).attr("y",-15);
 
@@ -189,7 +171,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
         .attr("class", "axisLabel")
         .attr("x", this.width+this.padding)
         .attr("y", this.height+this.padding-3)
-        .style("fill",this.axisColour)
         .text(this.xLabel);
 
     // Add the y-axis label
@@ -197,7 +178,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
         .attr("class", "axisLabel")
         .attr("x", 6)
         .attr("transform", "rotate(-90)")
-        .style("fill",this.axisColour)
         .text(this.yLabel);
 
     // Add the y-axis
@@ -215,11 +195,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
         .text(function (d) {return ref.xLabels[d];})
         .style("text-anchor", "end")
         .attr("transform", "rotate(-65)");
-
-    //Colour the axes and labels
-    this.svg.selectAll(".axis path").style("stroke",this.axisColour);
-    this.svg.selectAll(".axis line").style("stroke",this.axisColour);
-    this.svg.selectAll(".axis text").style("fill",this.axisColour);
 }
 /** Re-draws the dragged bar by altering it's height according to the dragging amount.
  *  As the bar is dragged, the view variables are updated and the rest
@@ -300,8 +275,7 @@ Barchart.prototype.appendAnchor = function (x,y){
     if (this.svg.select("#anchor").empty()){
         //this.svg.select("#hintPath").append("circle").attr("cx", x+this.barWidth/2).attr("cy", y).attr("r",5).attr("id","anchor");
         this.svg.select("#hintPath").append("path").datum([[x+ref.barWidth/2,y]])
-            .attr("d", ref.hintPathGenerator).attr("id","anchor")
-            .style("fill","none").style("stroke", "#c7c7c7");
+            .attr("d", ref.hintPathGenerator).attr("id","anchor");
     }
 }
 /** Removes an anchor from the svg, if one is appended
@@ -660,22 +634,18 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
     var translate = this.hintPathSpacing*this.currentView;
 
     //Draw the interaction path(s) (if any)
-    if (this.interactionPaths.length >0){
+    if (this.isAmbiguous ==1){
         this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
             .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
             .attr("transform","translate("+(-translate)+")")
-            .attr("stroke-dasharray","3,3")//Makes the path dashed
-            .attr("class","interactionPath")
-            .style("fill","none")
-            .style("stroke", "#c7c7c7");
+            .attr("class","interactionPath");
     }
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("svg:path")
        .attr("d", this.hintPathGenerator(ref.pathData))
-       .style("stroke-width", 2).style("stroke", this.hintColour)
-       .style("fill","none").attr("filter", "url(#blur)")
+       .attr("filter", "url(#blur)")
        .attr("transform","translate("+(-translate)+")")
        .attr("id","path");
 
@@ -686,9 +656,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         .text(function(d) { return d.label; })
         .attr("x",function (d){return d.x}).attr("y",function (d){return d.y})
         .attr("transform", "translate("+(-translate)+")")
-        .attr("fill", "#666").style("cursor", "pointer")
-        .attr("class","hintLabels")
-        .on("click",this.clickHintLabelFunction);
+        .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
 
     //Fade out the other bars
    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})

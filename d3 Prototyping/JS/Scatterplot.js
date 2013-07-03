@@ -23,12 +23,6 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.xLabel = xLabel;
    this.yLabel = yLabel;
    this.graphTitle = title;
-
-   //Set some default colours (which can be changed by calling the setColours() function)
-   this.hintColour = "#1f77b4"; //Blue
-   this.pointColour = "#666"; //Dark grey
-   this.axisColour = "#c7c7c7"; //Light grey
-
    // Create a variable to reference the main svg
    this.svg = null;
 
@@ -56,16 +50,6 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.clickHintLabelFunction = this.placeholder;
    this.clickSVG = this.placeholder;
    this.dragEvent = null;
-}
-/**Customize the display colours to the scatterplot, to change the default
- * pointCol: The colour of the points
- * hintCol: The colour of the hint path
- * axisCol: The colour of the axes
- * */
-Scatterplot.prototype.setColours = function(pointCol, hintCol, axisCol){
-   this.hintColour = hintCol;
-   this.pointColour = pointCol;
-   this.axisColour = axisCol;
 }
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -147,10 +131,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
      this.svg.selectAll(".gDisplayPoints").append("svg:circle")
           .attr("cx", function(d) {return d.nodes[ref.currentView][0];})
           .attr("cy", function(d) {return d.nodes[ref.currentView][1]; })
-          .attr("r", this.pointRadius).attr("stroke", "#FFFFFF")
-          .attr("stroke-width", "1").attr("fill",this.pointColour)
-          .style("fill-opacity",1).style("cursor", "pointer")
-          .attr("class", "displayPoints")
+          .attr("r", this.pointRadius).attr("class", "displayPoints")
           .attr("id", function (d){return "displayPoints"+d.id;})
           .attr("title", function (d) {return d.label;});
 
@@ -171,7 +152,6 @@ Scatterplot.prototype.render = function( data, start, labels) {
     // Add the title of the graph
      this.svg.append("text")
          .attr("id", "graphTitle")
-         .style("fill", this.axisColour)
          .text(this.graphTitle)
          .attr("x",1).attr("y",-15);
 
@@ -187,24 +167,17 @@ Scatterplot.prototype.render = function( data, start, labels) {
         .attr("transform", "translate("+ this.padding+ ",0)")
         .call(yAxis);
 
-   //Colour the axes and labels
-   this.svg.selectAll(".axis path").style("stroke",this.axisColour);
-   this.svg.selectAll(".axis line").style("stroke",this.axisColour);
-   this.svg.selectAll(".axis text").style("fill",this.axisColour);
-
     // Add an x-axis label
     this.svg.append("text")
         .attr("class", "axisLabel")
         .attr("x", this.width)
         .attr("y", this.height+this.padding-10)
-        .style("fill",this.axisColour)
         .text(this.xLabel);
 
     // Add a y-axis label
     this.svg.append("text")
         .attr("class", "axisLabel")
         .attr("x", -15)
-        .style("fill",this.axisColour)
         .attr("transform", "rotate(-90)")
         .text(this.yLabel);
 }
@@ -214,8 +187,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
 Scatterplot.prototype.appendAnchor = function (x,y){
     if (this.svg.select("#anchor").empty()){
         this.svg.select("#hintPath").append("circle").datum([x,y])
-         .attr("id","anchor").attr("cx", x).attr("cy", y)
-         .attr("r",5).attr("fill","none").attr("stroke","#c7c7c7");
+         .attr("id","anchor").attr("cx", x).attr("cy", y).attr("r",5);
     }
 }
 /** Removes an anchor from the svg, if one is appended
@@ -586,21 +558,14 @@ Scatterplot.prototype.redrawView = function(view) {
         .text(function(d) { return ref.labels[d.id]; })
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
-        .attr("fill", this.pointColour)
-        .style("font-size","11px")
-        .style("font-family","sans-serif")
         .attr("class","hintLabels")
         .attr("id",function (d){return "hintLabels"+ d.id})
-        .style("cursor","pointer")
         .on("click", this.clickHintLabelFunction);
 
     //Render the hint path line
     this.svg.select("#hintPath").append("svg:path")
         .attr("d",  line(points))
         .attr("id","path")
-        .style("stroke-width", 2)
-        .style("stroke", this.hintColour)
-        .style("fill", "none")
         .attr("filter", "url(#blur)");
 
     //Fade out the other points using a transition
@@ -626,12 +591,9 @@ Scatterplot.prototype.drawLoops = function (id){
         }))
         .enter().append("path")
         .attr("d",function (d){return loopGenerator(d.points);})
-        .attr("stroke-dasharray","3,3")//Makes the path dashed
         .attr("class","loops")
         .attr("id",function (d,i){return "loop"+i;})
-        .style("fill","none")
-        .attr("filter", "url(#blurLoop)")
-        .style("stroke", this.hintColour);
+        .attr("filter", "url(#blurLoop)");
 }
 /**Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
 Scatterplot.prototype.clearHintPath = function () {

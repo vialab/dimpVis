@@ -1,0 +1,35 @@
+/** Some Styles for the barchart visualization */
+
+/*Labels on the hint path */
+.hintLabels {
+  font-family: sans-serif;
+  font-size:11px;
+  text-anchor:middle;
+  fill:#666;
+  cursor:pointer;
+}
+/*The hint path*/
+#path{
+    stroke-width:2;
+    fill:none;
+    stroke:#1f77b4;
+}
+/*The interaction path (sine wave)*/
+.interactionPath{
+ stroke-dasharray:3,3;
+ fill: none;
+ stroke: #c7c7c7;
+}
+/*The anchor along the interaction path */
+#anchor{
+  fill: none;
+  stroke:#c7c7c7;
+}
+/*The bars */
+.displayBars{
+    fill:#74c476;
+    cursor:pointer;
+}
+
+
+

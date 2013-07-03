@@ -1,0 +1,45 @@
+/** Some styles for the Scatterplot visualization */
+body {
+    /**Disables default selections (text, svg elements) of the browser*/
+    -webkit-user-select: none;
+}
+/**The labels on the hint path */
+.hintLabels {
+    font-family: sans-serif;
+    font-size:11px;
+    text-anchor:middle;
+    fill:#666;
+    cursor:pointer;
+}
+
+/*The hint path*/
+#path{
+    stroke-width:2;
+    fill:none;
+    stroke:#1f77b4;
+}
+
+/*The points */
+.displayPoints{
+    fill:#666;
+    stroke:#FFF;
+    stroke-width:1;
+    fill-opacity:1;
+    cursor:pointer;
+}
+
+/*The interaction path (loop)*/
+.loops {
+    fill:none;
+    stroke-dasharray:3,3;
+    stroke:#1f77b4;
+}
+
+/*The anchor along the interaction path */
+#anchor{
+    fill: none;
+    stroke:#c7c7c7;
+}
+
+
+

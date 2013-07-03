@@ -62,13 +62,7 @@ function Piechart(x,y, r,id,title,hLabels){
 					   .endAngle(function (d) {return d.endAngle;});
   //Interpolate function between two values, at the specified amount
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
-
-   //Saved colours
-   this.hintLabelColour = "#7f7f7f";
-   this.hintColour = "#1f77b4";
-   this.grey = "#c7c7c7";
 }
-//TODO:Not high priority, customize the display colours of the piechart, to change the default
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
@@ -147,7 +141,7 @@ this.svg.selectAll(".gDisplayArcs").append("path")
          .text("Test")*/
          .append("title").text(function(d){return d.label;});
  // Add the title of the chart
- this.svg.append("text").attr("id", "graphTitle").style("fill", this.grey).text(this.graphTitle).attr("x",10).attr("y",13);
+ this.svg.append("text").attr("id", "graphTitle").text(this.graphTitle).attr("x",10).attr("y",13);
 
  //Add a g element to contain the hint info
  this.svg.append("g").attr("id","hintPath");
@@ -558,13 +552,13 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
     //Render white path under the main hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
-        .style("fill","none").style("stroke","white").style("stroke-width",4)
+        .attr("id","pathUnderlayer")
         .attr("filter", "url(#blur)");
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
-        .style("fill","none").style("stroke",ref.hintColour).style("stroke-width",1)
+        .attr("id","path")
         .attr("filter", "url(#blur)");
 
 	//Render the hint labels
@@ -572,9 +566,7 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
          .data(hintArcInfo.map(function (d) {return {x:d[0],y:d[1]}})).enter()
          .append("svg:text").text(function(d,i) { return ref.labels[i]; })
          .attr("transform", function (d){return "translate("+ d.x+","+ d.y+")";})
-         .attr("fill", ref.hintLabelColour).style("font-size","10px")
          .on("click",this.clickHintLabelFunction)
-         .style("cursor", "pointer")
          .attr("class","hintLabels");
 
     //Fade out all the other segments

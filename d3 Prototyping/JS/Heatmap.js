@@ -12,7 +12,6 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.ypos = y;
    this.id = id;
    this.cellSize = cs;
-   this.labelColour = "#c7c7c7";
    this.chartTitle = title;
    this.svg = null;
    this.width = null;
@@ -22,18 +21,21 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.currentView = 0;
    this.nextView = 1;
    this.lastView = hLabels.length-1;
+   this.previousPathDirection = 1; // 1: path going up, -1: path going downwards, this is not direction in time
+   this.previousDragDirection = 1; //Dragging direction of the user: 1 if up, -1 if down
+   this.timeDirection = 1 //Direction travelling over time, 1: forward, -1: backward
+
    this.mouseY=null; //To track the mouse position
    this.interpValue = 0; //Value to track the progress of colour interpolation when switching between views
    this.draggedCell = -1; //Keeps track of the id of the dragged cell
    this.draggedCellX = -1; //Saved x coordinate of the dragged cell
    this.draggedCellY = -1; //Saved y coordinate of the dragged cell
+
+   this.hintYValues = []; //Saves the hint y-values (at the first view)
    this.ambiguousCells = []; //Keeps track of which cells are part of an ambiguous case
    this.isAmbiguous = 0;  //A flag to quickly check whether or not there exists ambiguous cases in the data
-   this.previousPathDirection = 1; // 1: path going up, -1: path going downwards, this is not direction in time
-   this.previousDragDirection = 1; //Dragging direction of the user: 1 if up, -1 if down
-   this.timeDirection = 1 //Direction travelling over time, 1: forward, -1: backward
-   this.hintYValues = []; //Saves the hint y-values (at the first view)
    this.amplitude = 20; //Of the sine wave (interaction path)
+   this.interactionPaths = [];
 
    //Display properties
    this.labels = hLabels;
@@ -47,9 +49,13 @@ function Heatmap(x, y, cs, id,title,hLabels) {
 
   //Function for drawing the hint path line
   //Note: array of points should be in the format [[x,y]..etc.]
-   this.lineGenerator = d3.svg.line().x(function(d){return d[0];}).y(function(d){return d[1];}).interpolate("linear");
-  //Interpolate function between two values, at the specified amount
-  this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
+   this.lineGenerator = d3.svg.line().interpolate("linear");
+
+   //Function for drawing a sine wave (interaction path)
+   this.interactionPathGenerator = d3.svg.line().interpolate("monotone");
+
+   //Interpolate function between two values, at the specified amount
+   this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
 /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -128,8 +134,7 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
             .attr("id", function (d) {return "cell"+d.id;})
             .attr("x", function(d) {return d.x; })
             .attr("y", function(d) {return d.y; })
-            .attr("fill", function(d) {return d.values[ref.currentView][0]; })
-            .style("cursor", "pointer");
+            .attr("fill", function(d) {return d.values[ref.currentView][0]; });
 
     //Add the g element to contain the hint path for the dragged tile
     this.svg.append("g").attr("id","hintPath");
@@ -153,15 +158,13 @@ Heatmap.prototype.calculateDistance = function(x1,y1,x2,y2){
 Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
     var ref = this;
     this.svg.append("text").attr("id","chartTitle")
-        .attr("x",-10).attr("y",-10).attr("fill",this.labelColour)
-        .text(this.chartTitle);
+        .attr("x",-10).attr("y",-10).text(this.chartTitle);
 
     this.svg.selectAll(".axisVertical").data(yLabels)
         .enter().append("svg:text")
         .text(function(d) {return d;})
         .attr("x",this.xpos+this.width-100)
         .attr("y",function (d,i){return ref.cellSize*i+ref.cellSize/2;})
-        .attr("fill",this.labelColour)
         .attr("class","axisVertical");
 
     this.svg.selectAll(".axisHorizontal").data(xLabels)
@@ -170,9 +173,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
         .attr("transform",function (d,i) {
             return "translate("+(ref.cellSize*i+ref.cellSize/2)+
                 ","+(ref.ypos+ref.height-100)+") rotate(-65)";
-        }).attr("fill",this.labelColour)
-        .attr("class","axisHorizontal")
-        .style("text-anchor", "end");
+        }).attr("class","axisHorizontal");
 }
 /** Compares the vertical distance of the mouse with the two bounding views (using the
  *  y-position along the hint path).  From this comparison, the views are resolved and
@@ -491,12 +492,20 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  var coords = pathData.map(function (d,i){return [ref.findHintX(i,ref.currentView),ref.findHintY(d[4],currentOffset),d[4]];});
 
  //TODO: if the colour does not change for the entire hint path the gradient is not drawn
-
+    var translateX = this.xSpacing*this.currentView;
+ //Draw the interaction path(s) (if any)
+  if (this.isAmbiguous ==1){
+    this.svg.select("#hintPath").selectAll(".interactionPath")
+        .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
+        .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
+        .attr("transform","translate("+(-translateX)+")")
+        .attr("class","interactionPath");
+  }
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
         .attr("x",x).attr("y",y)
         .attr("width",this.cellSize).attr("height",this.cellSize)
-        .attr("stroke-width",2).attr("fill","none").attr("stroke","#000");
+        .attr("id","draggedCell");
 
 //Append a linear gradient tag which defines the gradient along the hint path
 this.svg.append("linearGradient")
@@ -513,17 +522,14 @@ this.svg.append("linearGradient")
 //Draw the white underlayer of the hint path
 this.svg.select("#hintPath").append("svg:path")
       .attr("d", this.lineGenerator(coords))
-      .style("stroke-width", 10)
-      .style("stroke", "white")
-      .style("fill","none")
+      .attr("id","pathUnderlayer")
       .attr("filter", "url(#blur)");
 
 //Draw the main hint path line
  this.svg.select("#hintPath").append("svg:path")
       .attr("d",this.lineGenerator(coords))
-      .style("stroke-width", 4)
       .style("stroke", "url(#line-gradient)")
-      .style("fill","none")
+      .attr("id","path")
       .attr("filter", "url(#blur)");
 	
 //Draw the hint path labels								  
@@ -531,8 +537,6 @@ this.svg.select("#hintPath").selectAll("text")
        .data(coords).enter().append("text")
        .attr("transform", function (d){return "translate("+d[0]+","+d[1]+")"})
        .text(function (d,i){ return ref.labels[i];})
-       .style("text-anchor", "middle")
-       .style("cursor", "pointer")
        .attr("class","hintLabels")
        .on("click",this.clickHintLabelFunction);
 
@@ -543,6 +547,8 @@ this.hintYValues = coords.map(function (d){return d[1]});
  * it's svg components
  * */
 Heatmap.prototype.clearHintPath = function(){
+   this.isAmbiguous = 0;
+   this.interactionPaths = [];
    this.svg.select("#hintPath").selectAll("rect").remove();
    this.svg.select("#hintPath").selectAll("path").remove();
    this.svg.select("#line-gradient").remove();
