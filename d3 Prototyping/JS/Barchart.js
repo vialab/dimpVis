@@ -716,7 +716,6 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
  Barchart.prototype.clearHintPath = function (){
         this.pathData = [];
         this.interactionPaths = [];
-        this.isAmbiguous = 0;
         this.removeAnchor();
         this.svg.select("#hintPath").selectAll("text").remove();
         this.svg.select("#hintPath").selectAll("path").remove();
@@ -768,10 +767,8 @@ Barchart.prototype.checkAmbiguous = function (){
         this.findPaths(d3.min(stationaryBars));
     }
 }
-/** This function will populate an array containing all data for drawing a sine wave:
+/** Populate an array containing all data for drawing a sine wave:
  * interactionPaths[] = [[points for the sine wave]..number of paths]
- * Note: this function is only called in checkAmbiguous(), because it uses the resulting
- * ambiguousBars array
  * startIndex: the index of the first stationary bar (only for reducing the search, can just
  * set this to 0)
  * */

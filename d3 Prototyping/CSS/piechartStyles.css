@@ -39,3 +39,11 @@ body {
     stroke-width:2;
 }*/
 
+
+/*The interaction path (sine wave)*/
+.interactionPath{
+    stroke-dasharray:3,3;
+    fill: none;
+    stroke: #666;
+}
+
