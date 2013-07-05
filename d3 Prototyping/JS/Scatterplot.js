@@ -226,7 +226,6 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                 ref.appendAnchor(pt2_x,pt2_y);
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
-
                 ref.dragAlongLoop(id,currentPointInfo[2]);
                 return;
             }else if (currentPointInfo[0]==2){//Revisiting point
@@ -347,6 +346,7 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
      var angle = Math.atan2(this.mouseX-loopCx,this.mouseY-loopCy);
     //Convert negative angles into positive
 	 if (angle < 0){angle = (Math.PI - angle*(-1))+Math.PI;}
+
    // console.log(this.previousLoopAngle+" "+angle+" "+this.countRevolutions+" "+this.previousLoopDirection);
     var currentDirection = (angle > this.previousLoopAngle)? 1: 0; //0: clockwise, 1: counter-clockwise
 
@@ -361,9 +361,9 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
              if (currentDirection == 0){ //Passed current view
                  this.moveBackward();
              }else { //Passed next view
-                 console.log("passing next"+this.nextView);
+                // console.log("passing next"+this.nextView);
                  this.moveForward();
-                 console.log(this.currentView);
+                 //console.log(this.currentView);
              }
              this.toggleLabelColour(this.currentView,groupNumber)
              this.interpValue = 0;
@@ -377,7 +377,7 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
              this.interpolateLabelColour(this.interpValue,this.currentView,this.nextView,groupNumber);
          }
      }
-
+console.log(this.countRevolutions);
     //Re-draw the anchor along the loop
     var distanceTravelled = 1 - (angle/(Math.PI*2));
     var loopPath = d3.select("#loop"+groupNumber).node();
@@ -390,6 +390,7 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
     this.previousLoopAngle = angle;
     this.previousLoopDirection = currentDirection;
     //console.log("prev direction "+this.previousLoopDirection);
+
 }
  /**"Animates" the rest of the points while one is being dragged
  * Uses the 't' parameter, which represents approximately how far along a line segment

@@ -402,8 +402,8 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
      }
 
     var ref = this;
-    //d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[d[0][0],d[0][1]],[d[0][0],newY]]);}); //Re-draw anchor (line attached to bar)
-     d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[mouseX,mouseY],[d[0][0],newY]]);}); //Re-draw anchor
+   //d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[d[0][0],d[0][1]],[d[0][0],newY]]);}); //Re-draw anchor (line attached to bar)
+    d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[mouseX,mouseY],[d[0][0],newY]]);}); //Re-draw anchor
 }
 /**Computes the new height of a bar based on a new y-position
  * oldHeight: the original height of the bar
