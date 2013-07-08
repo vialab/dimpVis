@@ -131,7 +131,9 @@ this.svg.selectAll("rect")
             for (var j=0;j< d.heights.length;j++){
                data[j] = [ref.base - yScale(d.heights[j]),yScale(d.heights[j])];
             }
-	        return {nodes:data,id:i,label:d.label,xPos:xScale(i)+ref.padding+ref.strokeWidth};
+            //Find the peaks on the hint path, adjust the data accordingly
+            var yValues = ref.findPeaks(data);
+	        return {nodes:data,id:i,label:d.label,xPos:(xScale(i)+ref.padding+ref.strokeWidth),yCoords:yValues};
 	  }))
      .enter().append("g").attr("class","gDisplayBars")
 	 .attr("id", function (d){return "gDisplayBars"+d.id;});
@@ -154,6 +156,30 @@ this.svg.selectAll("rect")
 	//Add a blank g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
  }
+/**Finds the peaks in a set of values (i.e., on either side of a point, the values are both increasing or decreasing)
+ * Only need to call this function if, when dragging at a peak, there needs to be some tolerance (flexibility) when
+ * passing views
+ * data: a 2D array of [y-value,height]
+ * @return the yValues, adjusted if the value is a peak by some tolerance amount
+ * */
+Barchart.prototype.findPeaks = function (data){
+    var yValues = [];
+    yValues.push(data[0][0]);//First view
+    for (var j=0;j<data.length;j++){
+        var currentY = data[j][0];
+        if (j>0 && j <(data.length-1)){
+            if (data[j-1][0] < currentY && data[j+1][0] < currentY){
+                yValues.push(currentY-10);
+            }else if (data[j-1][0] > currentY && data[j+1][0] > currentY){
+                yValues.push(currentY+10);
+            }else{
+                yValues.push(currentY);
+            }
+        }
+    }
+    yValues.push(data[data.length-1][0]); //Last view
+    return yValues;
+}
 /** Draws the axes  and the graph title on the SVG
  *  xScale: a function defining the scale of the x-axis
  *  yScale: a function defining the scale of the y-axis
@@ -214,19 +240,20 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     //Re-draw the bars according to the dragging amount
     this.svg.select("#displayBars"+id).each(function (d) {
 
-         var currentY =  d.nodes[ref.currentView][0];
-         var nextY = d.nodes[ref.nextView][0];
+         var currentY =  d.yCoords[ref.currentView];
+         var nextY = d.yCoords[ref.nextView];
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
          var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
-
+        console.log(d.yCoords);
+        console.log(d.nodes);
         if (ref.isAmbiguous ==1){ //At least one stationary sequence exists somewhere on the hint path
             var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
             var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
             //Check for stationary bar sequences
             if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Approaching the stationary points from right (along hint path)
                 ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
-                console.log(ref.pathDirection+" "+ref.timeDirection);
+                //console.log(ref.pathDirection+" "+ref.timeDirection);
                 ref.passedMiddle = 0;
                 ref.peakValue = (ref.pathDirection==1)?(currentY-ref.amplitude):(ref.amplitude+currentY);
                 newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
@@ -515,7 +542,7 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
  * */
 Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView){
   var ref = this;
-    console.log(interpAmount+" start view "+startView+" endView "+endView);
+    //console.log(interpAmount+" start view "+startView+" endView "+endView);
   this.svg.selectAll(".displayBars").filter(function (d){return d.id!=id;})
       .attr("height",function (d){
           return ref.interpolator(d.nodes[startView][1], d.nodes[endView][1],interpAmount);

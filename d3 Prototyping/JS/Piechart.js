@@ -567,7 +567,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     this.nextArc = this.currentArc +1;*/
 
     if (this.isAmbiguous ==1 ){ //Draw interaction paths (if any)
-        this.svg.select("#hintPath").selectAll(".interactionPath")
+        /**this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i) {console.log(d);return {points:d[0],id:i,view:d[1]}}))
             .enter().append("path").attr("d",function (d) {return ref.interactionPathGenerator(d.points)})
             .attr("transform",function (d) {
@@ -576,7 +576,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
                 console.log(x+" "+y);
                 var angle = angles[d.view]*180/Math.PI;
                 return "rotate("+angle+" 450,133)"; })
-            .attr("class","interactionPath");
+            .attr("class","interactionPath");*/
     }
 
     //Render white path under the main hint path
@@ -643,8 +643,7 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
     var dString = "";
     var x,y;
     var corners = [];
-    var currentDirection = 1;
-    var previousDirection = currentDirection;
+    var currentDirection = 1, previousDirection = 1;
   //TODO: doesn't draw properly when angle wraps around 360 deg
    for (var j=0;j<pathInfo.length;j++){
         //Either increasing or decreasing
