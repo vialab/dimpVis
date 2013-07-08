@@ -271,15 +271,6 @@ Barchart.prototype.moveBackward = function (){
         this.currentView--;
     }
 }
-/**Changes the colour of the current view label, for emphasizing the user's position on
- * hint path
- * view: index of the view to change colour, this label will not be faded out
- * */
-Barchart.prototype.changeLabelColour = function (view){
-    console.log(this.svg.select("#hintLabel"+view));
-    this.svg.select("#hintLabel"+view)
-        .attr("fill","#666");
-}
 /** Appends an anchor to the svg, if there isn't already one
  *  x,y: the position of the anchor
  * */
@@ -496,16 +487,16 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
    var ref = this;
    var translateAmount = this.hintPathSpacing*interpAmount + this.hintPathSpacing*this.currentView;
 
-    //Translate the hint path and labels and interpolate the label colour to show the transition from current to next view
+    //Translate the hint path and labels and interpolate the label colour opacity to show the transition from current to next view
    this.svg.select("#path").attr("transform","translate(" + (-translateAmount) + ")");
    this.svg.select("#hintPath").selectAll(".hintLabels").attr("transform","translate(" + (-translateAmount) + ")")
-       .attr("fill",function (d) {
+       .attr("fill-opacity",function (d) {
            if (d.id ==ref.currentView){ //Dark to light
-               return d3.interpolate("#666666","#c7c7c7")(interpAmount);
+               return d3.interpolate(1,0.3)(interpAmount);
            }else if (d.id == ref.nextView){ //Light to dark
-               return d3.interpolate("#c7c7c7","#666666")(interpAmount);
+               return d3.interpolate(0.3,1)(interpAmount);
            }
-           return "#c7c7c7";
+           return 0.3;
        });
 
     //Translate interaction paths (if any)
@@ -610,10 +601,8 @@ Barchart.prototype.redrawView = function (view,id){
 
         //Re-draw the hint path and labels
         this.svg.select("#path").attr("transform","translate("+(-translate)+")");
-        this.svg.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")");
-
-       //Colour the current view label
-        this.changeLabelColour(view);
+        this.svg.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
+             .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
 
         //Re-draw interaction paths (if any)
         if (this.interactionPaths.length>0){
@@ -723,7 +712,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         })).enter().append("svg:text")
         .text(function(d) { return d.label; })
         .attr("x",function (d){return d.x}).attr("y",function (d){return d.y})
-        .attr("fill","#c7c7c7")
+        .attr("fill-opacity",function (d){ return ((d.id==ref.currentView)?1:0.3)})
         .attr("transform", "translate("+(-translate)+")")
         .attr("id",function (d) {return "hintLabel"+ d.id})
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
@@ -732,9 +721,6 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
         //.transition().duration(300)
         .style("fill-opacity", 0.4);
-
-   //Fade out other labels (except the current view)
-   this.changeLabelColour(this.currentView);
 }
 /** Clears the hint path by removing its components from the svg
  * */

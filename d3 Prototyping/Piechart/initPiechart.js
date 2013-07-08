@@ -32,7 +32,7 @@ piechart.dragEvent = d3.behavior.drag()
         piechart.clearHintPath();
         //Prevent the angle from blowing up, by making sure it starts under 360 deg
         if (d.startAngle > piechart.twoPi){d.startAngle = d.startAngle - piechart.twoPi}
-        piechart.showHintPath(d.id, d.hDirections, d.nodes, d.startAngle);
+        piechart.showHintPath(d.id, d.nodes, d.startAngle);
     })
     .on("drag", function(d){
         piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);
