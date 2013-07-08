@@ -298,16 +298,6 @@ Scatterplot.prototype.toggleLabelColour = function (currentView,groupNumber){
         .filter(function (d){return ref.ambiguousPoints[d.id][2]==groupNumber;})
         .attr("fill-opacity",function (d) {return ((d.id==currentView)? 1:0.3);});
 }
-/**Toggles the fill of the dragged point (from grey to nothing), turning it into a wireframe
- * whenever it is dragged along an interaction loop
- * id: of the dragged point
- * flag: 0 if the point should be wireframe, 1 if the point should be re-set to it's original colouring
- * */
-Scatterplot.prototype.togglePointColour = function (id,flag){
-    var ref = this;
-    this.svg.select("#displayPoints"+id).attr("fill",function (){return (flag==1)?ref.pointColour:"none"})
-        .attr("stroke",function (){return (flag==1)?"#FFFFFF":ref.axisColour});
-}
 /**Interpolates the label transparency between start and end view, this fading effect is used for
  * distinguishing how close the user is from transitioning views the stationary ambiguous cases.
  * interp: the interpolation amount (amount travelled across start to end)

@@ -47,6 +47,7 @@ function Piechart(x,y, r,id,title,hLabels){
                                //1 if going forward, -1 if going backward
    this.previousDragDirection = 1;
    this.mouseAngle = -1; //Save the angle of the previously dragged segment
+   this.hintArcInfo = []; //The points and radii along the hint path
 
    this.ambiguousSegments = [];
    this.interactionPaths = [];
@@ -552,6 +553,9 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
     this.dragStartAngle = start; //Important: save the start angle and re-set interpolation
     this.interpValue = 0;
 
+    this.hintArcInfo = this.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}),0);
+    var hintPathArcString = this.createArcString(this.hintArcInfo,hDirections,1);
+
     //Check for ambiguous cases in the data
     this.checkAmbiguous(angles);
 
@@ -559,14 +563,16 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
     /**this.currentArc = hDirections[this.currentView][1];
     this.nextArc = this.currentArc +1;*/
 
-    var hintArcInfo = ref.calculateHintAngles(angles,hDirections.map(function (d){return d[1]}),0);
-    var hintPathArcString = ref.createArcString(hintArcInfo,hDirections,1);
-
     if (this.isAmbiguous ==1 ){ //Draw interaction paths (if any)
         this.svg.select("#hintPath").selectAll(".interactionPath")
-            .data(this.interactionPaths.map(function (d,i) {return {points:d,id:i}}))
+            .data(this.interactionPaths.map(function (d,i) {console.log(d);return {points:d[0],id:i,view:d[1]}}))
             .enter().append("path").attr("d",function (d) {return ref.interactionPathGenerator(d.points)})
-            //.attr("transform",)
+            .attr("transform",function (d) {
+                var x = ref.hintArcInfo[d.view][0];
+                var y = ref.hintArcInfo[d.view][1];
+                console.log(x+" "+y);
+                var angle = angles[d.view]*180/Math.PI;
+                return "rotate("+angle+" 450,133)"; })
             .attr("class","interactionPath");
     }
 
@@ -584,7 +590,7 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
 
 	//Render the hint labels
 	this.svg.select("#hintPath").selectAll("text")
-         .data(hintArcInfo.map(function (d) {return {x:d[0],y:d[1]}})).enter()
+         .data(this.hintArcInfo.map(function (d) {return {x:d[0],y:d[1]}})).enter()
          .append("svg:text").text(function(d,i) { return ref.labels[i]; })
          .attr("transform", function (d){return "translate("+ d.x+","+ d.y+")";})
          .on("click",this.clickHintLabelFunction)
@@ -593,6 +599,8 @@ Piechart.prototype.showHintPath = function (id,hDirections,angles,start){
     //Fade out all the other segments
 	this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
          .transition().duration(400).style("fill-opacity", 0.3);
+
+    this.hintArcInfo = []; //Clear the array as it is not needed anymore b/c it is mapped to the svg's
 }
 /** Clears the hint path by removing all svg elements in #hintPath
  * */
@@ -624,13 +632,11 @@ Piechart.prototype.interpolateHintRadius = function (index,startView,endView){
  *  The format of the string is: M startX startY A rX rY 0 0 0 endX endY
  *  Where: startX,startY define the starting point, endX,endY is the ending point
  *         A is the rotation angle, rx,ry is the radius of the arc and the 0's are just unset flags
- *  pathInfo: all information required to draw the path (a 2D array of [x,y,r,angle] for each hint angle
  *  directions: the drawing directions to indicate when to create a new arc on the hint path
  *  findCorners: a flag to determine whether or not corners should be located
  * */
 Piechart.prototype.createArcString = function (pathInfo,directions,findCorners){
     var dString = "";
-    var ref = this;
     var x,y;
     var corners = [];
   //TODO: doesn't draw properly when angle exceeds 360
@@ -651,8 +657,8 @@ Piechart.prototype.createArcString = function (pathInfo,directions,findCorners){
             }
             if (directions[j][0]==1){ //Want to change directions
                 corners.push(1);
-                x = ref.cx + pathInfo[j][2]*Math.cos(pathInfo[j-1][3] - ref.halfPi);
-                y = ref.cy+ pathInfo[j][2]*Math.sin(pathInfo[j-1][3] - ref.halfPi);
+                x = this.cx + pathInfo[j][2]*Math.cos(pathInfo[j-1][3] -this.halfPi);
+                y = this.cy+ pathInfo[j][2]*Math.sin(pathInfo[j-1][3] - this.halfPi);
                 dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two different radii
                 if (pathInfo[j][3] > pathInfo[j-1][3]){
                     dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
@@ -763,7 +769,7 @@ Piechart.prototype.checkAmbiguous = function (angles){
         currentSegment= angles[j];
         for (var k=j;k<=this.lastView;k++){
             if (j!=k && angles[k]== currentSegment){ //Repeated bar is found
-                //if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<1){ //An almost repeated bar, less than one pixel difference
+                //if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<1){ //An almost stationary segment, less than one pixel difference
                 if (Math.abs(k-j)==1){ //Stationary segment is found
                     this.isAmbiguous = 1;
                     //If the bar's index does not exist in the array of all stationary bars, add it
@@ -777,7 +783,6 @@ Piechart.prototype.checkAmbiguous = function (angles){
                 }
             }
         }
-
     }
     //If there exists any stationary segments in the dataset
     if (stationarySegments.length>0){
@@ -787,7 +792,7 @@ Piechart.prototype.checkAmbiguous = function (angles){
 }
 /** Populates "interactionsPath" array with all points for drawing the sine waves:
  * interactionPaths[] = [[points for the sine wave]..number of paths]
- * startIndex: the index of the first stationary bar (only for reducing the search, can just
+ * startIndex: the index of the first stationary bar (only for reducing the search time, can just
  * set this to 0)
  * */
 Piechart.prototype.findPaths = function (startIndex){
@@ -814,13 +819,21 @@ Piechart.prototype.calculatePathPoints = function (indices){
     //Find the period of the sine function
     var length = indices.length;
     var totalPts = 3*length + (length-3);
+    var xPos = 0, yPos = 0;
+    var k = 0;
 
     //Calculate the points (5 per gap between views)
     for (var j=0;j<totalPts;j++){
+        if (j%4 == 0){ //Crossing the axis of the sine wave (at a view point)
+          xPos = this.hintArcInfo[indices[k]][0];
+          yPos = this.hintArcInfo[indices[k]][1];
+          k++;
+        }
         var theta = angle + (Math.PI/4)*j;
-        var y = this.amplitude*Math.sin(theta);//+yPos;
+        var y = this.amplitude*Math.sin(theta); //+ yPos;
         var x = (this.hintRadiusSpacing/4)*j; //+ xPos;
-        pathPoints.push([x,y]);
+
+        pathPoints.push([x,y,xPos,yPos]);
     }
 
     //Insert the end direction (1=peak, -1=trough) of the sine wave into ambiguousBars array
@@ -828,5 +841,5 @@ Piechart.prototype.calculatePathPoints = function (indices){
     var endDirection = (indices.length % 2==0)?-1:1;
     this.ambiguousSegments[indices[indices.length-1]] = [1,endDirection];
 
-    return pathPoints;
+    return [pathPoints,indices[0]];
 }
