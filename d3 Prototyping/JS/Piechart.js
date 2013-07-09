@@ -408,7 +408,7 @@ Piechart.prototype.animateHintPath = function (angles){
     var hintArcInfo = ref.calculateHintAngles(angles,null,1);
     var hintPathArcString = ref.createArcString(hintArcInfo,0);
     //Redraw the hint path
-    this.svg.select("#hintPath").selectAll("path").attr("d", hintPathArcString);
+    this.svg.select("#hintPath").select("#path").attr("d", hintPathArcString);
     //Update the hint labels
    this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
        return "translate("+hintArcInfo[i][0]+","+hintArcInfo[i][1]+")";
@@ -494,8 +494,9 @@ Piechart.prototype.redrawHintPath = function (view,angles){
     var ref = this;
     var hintArcInfo = this.calculateHintAngles(angles,view,0);
     var hintPathArcString = this.createArcString(hintArcInfo,0);
+
     //Redraw the hint path
-    this.svg.select("#hintPath").selectAll("path").attr("d", hintPathArcString);
+    this.svg.select("#path").attr("d", hintPathArcString);
 
     //Update the hint labels and change the opacity to show current view
     this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
@@ -566,17 +567,27 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     /**this.currentArc = hDirections[this.currentView][1];
     this.nextArc = this.currentArc +1;*/
 
+    //NOTE: Angle has to be converted to match the svg rotate standard: (offset by 90 deg)
+    //http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
     if (this.isAmbiguous ==1 ){ //Draw interaction paths (if any)
-        /**this.svg.select("#hintPath").selectAll(".interactionPath")
-            .data(this.interactionPaths.map(function (d,i) {console.log(d);return {points:d[0],id:i,view:d[1]}}))
-            .enter().append("path").attr("d",function (d) {return ref.interactionPathGenerator(d.points)})
+        this.svg.select("#hintPath").selectAll(".interactionPath")
+            .data(this.interactionPaths.map(function (d,i) {
+                var viewIndex = d[1];
+                var xTranslate = ref.hintArcInfo[viewIndex][0];
+                var yTranslate = ref.hintArcInfo[viewIndex][1];
+                var translatedPoints = d[0].map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
+                var angle_deg = (angles[viewIndex]+ref.dragStartAngle)*(180/Math.PI);
+                if (angle_deg >=0 && angle_deg < Math.PI/2){
+                    angle_deg = 270 + angle_deg;
+                }else{
+                    angle_deg = angle_deg - 90;
+                }
+                return {points:translatedPoints,id:i,originX:xTranslate,originY:yTranslate,rotationAngle:angle_deg}
+             })).enter().append("path")
+            .attr("d",function (d) {return ref.interactionPathGenerator(d.points)})
             .attr("transform",function (d) {
-                var x = ref.hintArcInfo[d.view][0];
-                var y = ref.hintArcInfo[d.view][1];
-                console.log(x+" "+y);
-                var angle = angles[d.view]*180/Math.PI;
-                return "rotate("+angle+" 450,133)"; })
-            .attr("class","interactionPath");*/
+                return "rotate("+d.rotationAngle+","+d.originX+","+d.originY+")";
+            }).attr("class","interactionPath");
     }
 
     //Render white path under the main hint path
@@ -610,9 +621,11 @@ Piechart.prototype.showHintPath = function (id,angles,start){
 /** Clears the hint path by removing all svg elements in #hintPath
  * */
  Piechart.prototype.clearHintPath = function (){
+     this.pathData = [];
+     this.interactionPaths = [];
      this.svg.select("#hintPath").selectAll("text").remove();
-        this.svg.select("#hintPath").selectAll("path").remove();
-        this.svg.selectAll(".displayArcs").style("fill-opacity", 1);
+     this.svg.select("#hintPath").selectAll("path").remove();
+     this.svg.selectAll(".displayArcs").style("fill-opacity", 1);
  }
 /**Calculates the amount to translate the hint path inwards or outwards on the piechart
  * this is really acheived by growing or shrinking the radius of the hint path segments
@@ -685,8 +698,7 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
        previousDirection = currentDirection;
     }
 
-    //TODO: not recognizing stationary sequences as a corner (if they lie on a corner)
-    //TODO: what about stationary sequences not at corners???
+    //TODO: not recognizing stationary sequences as a corner (if they lie on a corner), but this might not be a problem because ambiguous cases are handled differently
     if (findCorners==1){
         this.corners = corners;
         this.corners.push(0); //For the last view
@@ -843,8 +855,8 @@ Piechart.prototype.calculatePathPoints = function (indices){
           k++;
         }
         var theta = angle + (Math.PI/4)*j;
-        var y = this.amplitude*Math.sin(theta); //+ yPos;
-        var x = (this.hintRadiusSpacing/4)*j; //+ xPos;
+        var y = this.amplitude*Math.sin(theta);
+        var x = (this.hintRadiusSpacing/4)*j;
 
         pathPoints.push([x,y,xPos,yPos]);
     }
