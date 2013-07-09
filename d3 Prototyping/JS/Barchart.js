@@ -245,8 +245,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
          var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
-        console.log(d.yCoords);
-        console.log(d.nodes);
+
         if (ref.isAmbiguous ==1){ //At least one stationary sequence exists somewhere on the hint path
             var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
             var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
@@ -270,7 +269,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
             }
 
         }else { //No stationary ambiguous cases exist
-            newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+            newValues = ref.handleDraggedBar(currentY,nextY,d.nodes[ref.currentView][0],d.nodes[ref.nextView][0],currentHeight,nextHeight,mouseY,id);
         }
 
         //Save the mouse y-coordinate
@@ -326,7 +325,7 @@ Barchart.prototype.removeAnchor = function (){
  *  id: of the dragged bar
  *  @return: [newY,newHeight], values used to update the drawing of the dragged bar
  * */
-Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nextHeight,mouseY,id){
+Barchart.prototype.handleDraggedBar = function (currentY,nextY,origCurrentY, origNextY, currentHeight,nextHeight,mouseY,id){
     var newValues = [];
     //Determine the direction of the path (up or down)
     var hintPathDirection = (currentY > nextY) ? 1:-1;
@@ -343,25 +342,26 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
         this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
         this.animateHintPath(this.interpValue);
         this.previousHintPathDirection = hintPathDirection;
-        newValues = [mouseY,this.findHeight(currentHeight,mouseY,currentY)];
+        newValues = [mouseY,this.findHeight(mouseY)];
     }else if (bounds == currentY ){ //Passing current
         if (hintPathDirection != this.previousHintPathDirection){
-            this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,hintPathDirection);
+            var y = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,hintPathDirection,origCurrentY);
+            newValues = [y,this.findHeight(y)];
         }else{
             this.moveBackward();
             this.previousHintPathDirection = hintPathDirection;
-        }
-        newValues = [currentY,currentHeight];
+            newValues = [currentY,currentHeight];
+        }       
     }else{ //Passing next
         if (hintPathDirection != this.previousHintPathDirection){
-            this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,hintPathDirection);
+            var y = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,hintPathDirection,origNextY);
+            newValues = [y,this.findHeight(y)];
         }else{
             this.moveForward();
             this.previousHintPathDirection = hintPathDirection;
-        }
-        newValues = [nextY,nextHeight];
+            newValues = [nextY,nextHeight];
+        }       
     }
-
     //Save the dragging direction
     this.previousDragDirection = draggingDirection;
 
@@ -374,8 +374,9 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,currentHeight,nex
  * mouseY: dragging position of the mouse
  * draggingDirection: of the user, 1 if dragging clockwise, -1 is counter-clockwise
  * hintPathDirection: of the path, 1 if up, -1 if down, saves this value in a global variable only once the view changes
+ * @return the y-position the bar should be drawn at
  * */
-Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,hintPathDirection){
+Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,hintPathDirection,origY){
 //console.log(draggingDirection+" "+this.previousDragDirection+" "+this.timeDirection);
     if (b1 > b2){ //Dragging needs to switch 1 -> -1 in order for view to change
         if (mouseY>=b1 && draggingDirection==-1 && this.previousDragDirection==1){
@@ -383,13 +384,24 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
             else{this.moveBackward();}
             this.previousHintPathDirection = hintPathDirection;
         }
+        if (mouseY>=origY){
+            return origY;
+        }else{
+            return mouseY;
+        }
     }else{//Dragging needs to switch -1 -> 1 in order for the view to change
         if (mouseY<=b1 && draggingDirection==1 && this.previousDragDirection==-1){
             if (this.timeDirection ==1){this.moveForward();}
             else{this.moveBackward();}
             this.previousHintPathDirection = hintPathDirection;
         }
-    }
+        if (mouseY<=origY){
+            return origY;
+        }else{
+            return mouseY;
+        }
+    }    
+    
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedBar, except
  *  this function is only called when in the middle of a stationary sequence of bars.
@@ -433,16 +445,11 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
     d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[mouseX,mouseY],[d[0][0],newY]]);}); //Re-draw anchor
 }
 /**Computes the new height of a bar based on a new y-position
- * oldHeight: the original height of the bar
- * newYPos: the new y-position of the bar
- * oldYPos: the old y-position of the bar
- * @return the new height
+ * yPos: current y-position of the bar
+ * @return the new height, from the base of the graph
  * */
-Barchart.prototype.findHeight = function (oldHeight,newYPos,oldYPos){
-    var yDiff = Math.abs(newYPos - this.base);
-    var yDirection = 1;
-    if (newYPos > oldYPos) yDirection = -1; //Moving down
-    return (oldHeight + yDirection*Math.abs(yDiff - oldHeight));
+Barchart.prototype.findHeight = function (yPos){   
+    return Math.abs(yPos - this.base);
 }
 /** Checks if the mouse is in bounds defined by h1 and h2
  *  h1,h2: the bounds
