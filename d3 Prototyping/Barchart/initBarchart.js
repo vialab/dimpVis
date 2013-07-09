@@ -9,6 +9,11 @@ barchart.clickSVG = function (){
     barchart.clearHintPath();
 };
 
+//Toggle the type of indicator displayed when dragging along the sine wave
+d3.selectAll("input").on("change", function change() {
+    barchart.indicatorType = this.value;
+});
+
 barchart.init();
 
 //Define click function for each hint path label

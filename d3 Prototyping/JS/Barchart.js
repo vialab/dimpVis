@@ -58,6 +58,9 @@
    this.dragEvent = null;
    this.draggedBar = -1;
 
+   //Attributes that can be toggled via forms
+   this.indicatorType = 0; //Type of indicator drawn on sine wave, default is outer elastic
+
    //Function for drawing a linearly interpolated line (the hint path)
    this.hintPathGenerator = d3.svg.line().interpolate("linear");
    //Function for drawing a sine wave
@@ -69,16 +72,16 @@
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Barchart.prototype.init = function(){
+
     //Draw the main svg
    this.svg = d3.select(this.id).append("svg")
-       .attr("id","mainSvg")
+       .attr("id","mainSvg").style("position", "absolute")
        .attr("width", this.width)
-      .attr("height", this.height+(this.padding*2))  
-      .style("position", "absolute")
+      .attr("height", this.height+(this.padding*2))
       .style("left", this.leftMargin + "px")
       .style("top", this.topMargin + "px")
       .on("click",this.clickSVG)
-      .append("g")
+      .append("g").attr("id","mainG")
 	  .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
      //Add the blur filter to the SVG so other elements can call it
     this.svg.append("svg:defs")
@@ -101,6 +104,10 @@ Barchart.prototype.init = function(){
  * */
  Barchart.prototype.render = function(data,start){
       var ref = this;
+
+     //Clear all elements in the main svg - only needed if changing the dataset
+    // this.svg.select("#mainG").selectAll("g").remove();
+
     //Save some values and set the width of the svg (based on number of bars)
      this.numBars = data.length;
      this.width = (this.barWidth+this.strokeWidth)*this.numBars;
@@ -242,6 +249,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
          var currentY =  d.yCoords[ref.currentView];
          var nextY = d.yCoords[ref.nextView];
+         var origCurrentY = d.nodes[ref.currentView][0];
+         var origNextY = d.nodes[ref.nextView][0];
          var currentHeight =  d.nodes[ref.currentView][1];
          var nextHeight = d.nodes[ref.nextView][1];
          var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
@@ -255,21 +264,21 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 //console.log(ref.pathDirection+" "+ref.timeDirection);
                 ref.passedMiddle = 0;
                 ref.peakValue = (ref.pathDirection==1)?(currentY-ref.amplitude):(ref.amplitude+currentY);
-                newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+                newValues = ref.handleDraggedBar(currentY,nextY,origCurrentY,origNextY, currentHeight,nextHeight,mouseY,id);
             }else if (currentAmbiguous == 0 && nextAmbiguous==1){ //Approaching the stationary points from left (along hint path)
                 ref.pathDirection = -1; //Sine wave always starts with a trough
                 ref.passedMiddle = 0;
                 ref.peakValue = (ref.pathDirection==1)?(nextY-ref.amplitude):(ref.amplitude+nextY);
-                newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+                newValues = ref.handleDraggedBar(currentY,nextY, origCurrentY,origNextY, currentHeight,nextHeight,mouseY,id);
             }else if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
                 ref.handleDraggedBar_stationary(currentY,mouseY,mouseX,id);
                 newValues = [currentY,currentHeight];
             }else{ //No stationary case to handle right now
-                newValues = ref.handleDraggedBar(currentY,nextY,currentHeight,nextHeight,mouseY,id);
+                newValues = ref.handleDraggedBar(currentY,nextY,origCurrentY, origNextY, currentHeight,nextHeight,mouseY,id);
             }
 
         }else { //No stationary ambiguous cases exist
-            newValues = ref.handleDraggedBar(currentY,nextY,d.nodes[ref.currentView][0],d.nodes[ref.nextView][0],currentHeight,nextHeight,mouseY,id);
+            newValues = ref.handleDraggedBar(currentY,nextY,origCurrentY,origNextY,currentHeight,nextHeight,mouseY,id);
         }
 
         //Save the mouse y-coordinate
@@ -302,14 +311,28 @@ Barchart.prototype.moveBackward = function (){
  * */
 Barchart.prototype.appendAnchor = function (x,y){
     var ref = this;
+    console.log(this.indicatorType);
     if (this.svg.select("#anchor").empty()){
-        //this.svg.select("#hintPath").append("circle").attr("cx", x+this.barWidth/2).attr("cy", y).attr("r",5).attr("id","anchor");
-        this.svg.select("#hintPath").append("path").datum([[x+ref.barWidth/2,y]])
-            .attr("d", ref.hintPathGenerator).attr("id","anchor");
+        if (this.indicatorType ==0 || this.indicatorType ==1){ //Inner or outer elastic
+            this.svg.select("#hintPath").append("path").datum([[x+ref.barWidth/2,y]])
+                .attr("d", ref.hintPathGenerator).attr("id","anchor");
+        }else if (this.indicatorType == 2){ //Circle
+            this.svg.select("#hintPath").append("circle").attr("cx", x+this.barWidth/2).attr("cy", y).attr("r",5).attr("id","anchor");
+        }
     }
 }
-/** Removes an anchor from the svg, if one is appended
- * */
+/** Re-draws the anchor */
+Barchart.prototype.redrawAnchor = function (baseY,mouseX,mouseY,newY){
+    var ref = this;
+    if (this.indicatorType ==0){ //Outer elastic
+        this.svg.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[mouseX,mouseY],[d[0][0],newY]]);});
+    }else if (this.indicatorType == 1){ //Inner Elastic
+        this.svg.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[d[0][0],baseY],[d[0][0],newY]]);});
+    }else if (this.indicatorType ==2){ //Circle
+        this.svg.select("#anchor").attr("cy",newY);
+    }
+}
+/** Removes an anchor from the svg, if one is appended */
 Barchart.prototype.removeAnchor = function (){
     if (!this.svg.select("#anchor").empty()){
         this.svg.select("#anchor").remove();
@@ -434,15 +457,14 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
 			 this.moveBackward();
 			 this.passedMiddle = 1;
 		 }
+
 		this.pathDirection = (this.pathDirection==1)?-1:1;
         this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
-		//console.log(this.currentView+" "+this.nextView);
+
 		newY=barY;
      }
 
-    var ref = this;
-   //d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[d[0][0],d[0][1]],[d[0][0],newY]]);}); //Re-draw anchor (line attached to bar)
-    d3.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[mouseX,mouseY],[d[0][0],newY]]);}); //Re-draw anchor
+    this.redrawAnchor(barY,mouseX,mouseY,newY);
 }
 /**Computes the new height of a bar based on a new y-position
  * yPos: current y-position of the bar
@@ -642,10 +664,7 @@ Barchart.prototype.redrawView = function (view,id){
         if (this.interactionPaths.length>0){
             this.svg.select("#hintPath").selectAll(".interactionPath")
                 .attr("transform","translate("+(-translate)+")");
-            //Re-position the anchor (if exists)
-            if (!this.svg.select("#anchor").empty()){
-                this.svg.select("#anchor").attr("d",function (d){return ref.hintPathGenerator(d)});
-            }
+            this.removeAnchor(); //Anchor will be re-appended in showHintPath()
         }
     }
 }
@@ -720,12 +739,12 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 
     //Search the dataset for ambiguous cases (sequences of stationary points)
     this.checkAmbiguous();
-    if (this.isAmbiguous==1){ this.appendAnchor(xPos,0);}
 
     var translate = this.hintPathSpacing*this.currentView;
 
     //Draw the interaction path(s) (if any)
     if (this.isAmbiguous ==1){
+        this.appendAnchor(xPos,0);
         this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
             .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
@@ -768,9 +787,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
  }
 //TODO: can use this to also detect really small changes in height to alleviate the interaction
 /** Search for ambiguous cases in a list of heights/y-coordinates.  Ambiguous cases are tagged by type, using a number.
- *  The scheme is:
- *  0: not ambiguous
- *  1: stationary bar (bar which doesn't move for at least 2 consecutive years)
+ *  The scheme is: 0: not ambiguous, 1: stationary bar (bar which doesn't move for at least 2 consecutive years)
  *  This information is stored in the ambiguousBars array, which gets re-populated each time a
  *  new bar is dragged.  This array is in  the format: [[type, newY]...number of views]
  * */

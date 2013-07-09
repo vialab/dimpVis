@@ -30,6 +30,16 @@
     fill:#74c476;
     cursor:pointer;
 }
+/**Radio button form for changing the type of indicator drawn along the sine wave*/
+#indicatorForm {
+    position:absolute;
+    right:10px;
+    top:10px;
+    font-family:sans-serif;
+    font-size:14px;
+    fill:#c7c7c7;
+}
+
 
 
 
