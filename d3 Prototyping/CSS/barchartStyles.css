@@ -40,6 +40,24 @@
     fill:#c7c7c7;
 }
 
+/**Radio button form for changing the type of progress indicator drawn along paths*/
+#progressForm {
+    position:absolute;
+    right:10px;
+    top:40px;
+    font-family:sans-serif;
+    font-size:14px;
+    fill:#c7c7c7;
+}
+
+/*Styles for the progress indicator */
+#progress{
+   fill:none;
+   stroke:#206899;
+   stroke-width:2;
+}
+
+
 
 
 

@@ -60,6 +60,7 @@
 
    //Attributes that can be toggled via forms
    this.indicatorType = 0; //Type of indicator drawn on sine wave, default is outer elastic
+   this.progressIndicator = 1; //Type of progress indicator to be drawn along the hint path, default is none
 
    //Function for drawing a linearly interpolated line (the hint path)
    this.hintPathGenerator = d3.svg.line().interpolate("linear");
@@ -321,7 +322,10 @@ Barchart.prototype.appendAnchor = function (x,y){
         }
     }
 }
-/** Re-draws the anchor */
+/** Re-draws the anchor, depends on the type of indicator the user has selected on the form
+ * baseY = y-value of the stationary bar
+ * mouseX, mouseY: mouse coordinates during dragging
+ * newY = newY lies along the sine wave somewhere */
 Barchart.prototype.redrawAnchor = function (baseY,mouseX,mouseY,newY){
     var ref = this;
     if (this.indicatorType ==0){ //Outer elastic
@@ -332,10 +336,35 @@ Barchart.prototype.redrawAnchor = function (baseY,mouseX,mouseY,newY){
         this.svg.select("#anchor").attr("cy",newY);
     }
 }
-/** Removes an anchor from the svg, if one is appended */
-Barchart.prototype.removeAnchor = function (){
-    if (!this.svg.select("#anchor").empty()){
-        this.svg.select("#anchor").remove();
+/** Removes an indicator from the svg, if one is appended
+ * id: of the indicator to remove (should be a string: "#id_name" */
+Barchart.prototype.removeIndicator = function (id){
+    if (!this.svg.select(id).empty()){
+        this.svg.select(id).remove();
+    }
+}
+/** Appends a progress indicator to the svg, if there isn't already one
+ *  data: for drawing the line
+ * */
+Barchart.prototype.appendProgress = function (data){
+    if (this.svg.select("#progress").empty()){
+        this.svg.select("#hintPath").append("path").datum(data)
+          .attr("id","progress").attr("filter", "url(#blur)");
+    }
+}
+/** Re-draws a progress indicator using the stroke dash interpolation example by mike bobstock:
+ * http://bl.ocks.org/mbostock/5649592
+ * */
+Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
+    var ref = this;
+    if (!this.svg.select("#progress").empty()){
+        if (interpAmount ==0){ //Transitioning views
+            this.svg.select("#progress").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
+        }
+        var length = d3.select("#progress").node().getTotalLength();
+        var interpStr = d3.interpolateString("0," + length, length + "," + length);
+        this.svg.select("#progress").attr("stroke-dasharray",interpStr(interpAmount))
+            .attr("transform","translate(" + (-translateAmount) + ")");
     }
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
@@ -348,7 +377,8 @@ Barchart.prototype.removeAnchor = function (){
  *  id: of the dragged bar
  *  @return: [newY,newHeight], values used to update the drawing of the dragged bar
  * */
-Barchart.prototype.handleDraggedBar = function (currentY,nextY,origCurrentY, origNextY, currentHeight,nextHeight,mouseY,id){
+//TODO: when dragging at peaks b/c of tolerance the bar is jumpy
+ Barchart.prototype.handleDraggedBar = function (currentY,nextY,origCurrentY, origNextY, currentHeight,nextHeight,mouseY,id){
     var newValues = [];
     //Determine the direction of the path (up or down)
     var hintPathDirection = (currentY > nextY) ? 1:-1;
@@ -374,7 +404,11 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,origCurrentY, ori
             this.moveBackward();
             this.previousHintPathDirection = hintPathDirection;
             newValues = [currentY,currentHeight];
-        }       
+        }
+
+        if (this.progressIndicator!=1){
+            this.drawProgress(0,0);
+        }
     }else{ //Passing next
         if (hintPathDirection != this.previousHintPathDirection){
             var y = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,hintPathDirection,origNextY);
@@ -383,7 +417,11 @@ Barchart.prototype.handleDraggedBar = function (currentY,nextY,origCurrentY, ori
             this.moveForward();
             this.previousHintPathDirection = hintPathDirection;
             newValues = [nextY,nextHeight];
-        }       
+        }
+
+        if (this.progressIndicator!=1){
+            this.drawProgress(0,0);
+        }
     }
     //Save the dragging direction
     this.previousDragDirection = draggingDirection;
@@ -463,7 +501,6 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
 
 		newY=barY;
      }
-
     this.redrawAnchor(barY,mouseX,mouseY,newY);
 }
 /**Computes the new height of a bar based on a new y-position
@@ -541,7 +578,8 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
  * */
  Barchart.prototype.animateHintPath = function (interpAmount){
    var ref = this;
-   var translateAmount = this.hintPathSpacing*interpAmount + this.hintPathSpacing*this.currentView;
+
+  var translateAmount = this.hintPathSpacing*interpAmount + this.hintPathSpacing*this.currentView;
 
     //Translate the hint path and labels and interpolate the label colour opacity to show the transition from current to next view
    this.svg.select("#path").attr("transform","translate(" + (-translateAmount) + ")");
@@ -560,6 +598,10 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
             this.svg.select("#hintPath").selectAll(".interactionPath")
                 .attr("transform","translate(" + (-translateAmount) + ")");
     }
+
+     if (this.progressIndicator!=1){
+         this.drawProgress(interpAmount,translateAmount);
+     }
 }
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
@@ -664,7 +706,7 @@ Barchart.prototype.redrawView = function (view,id){
         if (this.interactionPaths.length>0){
             this.svg.select("#hintPath").selectAll(".interactionPath")
                 .attr("transform","translate("+(-translate)+")");
-            this.removeAnchor(); //Anchor will be re-appended in showHintPath()
+            this.removeIndicator("#anchor"); //Anchor will be re-appended in showHintPath()
         }
     }
 }
@@ -772,15 +814,20 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 
     //Fade out the other bars
    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
-        //.transition().duration(300)
-        .style("fill-opacity", 0.4);
+        /**.transition().duration(300)*/.style("fill-opacity", 0.4);
+
+    //Draw a progress indicator (if specified)
+    if (this.progressIndicator != 1){
+        this.appendProgress(this.pathData);
+        this.drawProgress(0,0);
+    }
 }
 /** Clears the hint path by removing its components from the svg
  * */
  Barchart.prototype.clearHintPath = function (){
         this.pathData = [];
         this.interactionPaths = [];
-        this.removeAnchor();
+        this.removeIndicator("#anchor");
         this.svg.select("#hintPath").selectAll("text").remove();
         this.svg.select("#hintPath").selectAll("path").remove();
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);

@@ -407,12 +407,25 @@ Piechart.prototype.animateHintPath = function (angles){
     var ref = this;
     var hintArcInfo = ref.calculateHintAngles(angles,null,1);
     var hintPathArcString = ref.createArcString(hintArcInfo,0);
+
     //Redraw the hint path
-    this.svg.select("#hintPath").select("#path").attr("d", hintPathArcString);
+    this.svg.select("#hintPath").selectAll("path").attr("d", hintPathArcString);
+
     //Update the hint labels
    this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
        return "translate("+hintArcInfo[i][0]+","+hintArcInfo[i][1]+")";
     }).attr("fill-opacity",function (d){return ref.interpolateLabelOpacity(d)});
+
+    //Redraw interaction path(s) if any
+    if (this.isAmbiguous==1){
+           this.svg.selectAll(".interactionPath").attr("d",function (d) {
+                var xTranslate = hintArcInfo[d.view][0];
+                var yTranslate = hintArcInfo[d.view][1];
+                var translatedPoints = d.points.map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
+                d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")");
+                return ref.interactionPathGenerator(translatedPoints);
+            });
+    }
 }
 /** Interpolates across two labels to show the user's transition between views
  * d: a node from .hintLabels
@@ -496,12 +509,23 @@ Piechart.prototype.redrawHintPath = function (view,angles){
     var hintPathArcString = this.createArcString(hintArcInfo,0);
 
     //Redraw the hint path
-    this.svg.select("#path").attr("d", hintPathArcString);
+    this.svg.select("#hintPath").selectAll("path").attr("d", hintPathArcString);
 
     //Update the hint labels and change the opacity to show current view
     this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
         return "translate("+hintArcInfo[i][0]+","+hintArcInfo[i][1]+")";
     }).attr("fill-opacity",function (d){return ref.changeLabelOpacity(d,view)});
+
+    //Redraw the interaction path(s) if any
+    if (this.isAmbiguous ==1){
+        this.svg.selectAll(".interactionPath").attr("d",function (d) {
+            var xTranslate = hintArcInfo[d.view][0];
+            var yTranslate = hintArcInfo[d.view][1];
+            var translatedPoints = d.points.map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
+            d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")");
+            return ref.interactionPathGenerator(translatedPoints);
+        });
+    }
 }
 /** Calculates the hint angles for drawing a hint path, an array stores
  *  the x,y position for drawing the label, the radius of the arc and
@@ -573,23 +597,22 @@ Piechart.prototype.showHintPath = function (id,angles,start){
         this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i) {
                 var viewIndex = d[1];
-                var xTranslate = ref.hintArcInfo[viewIndex][0];
-                var yTranslate = ref.hintArcInfo[viewIndex][1];
-                var translatedPoints = d[0].map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
                 var angle_deg = (angles[viewIndex]+ref.dragStartAngle)*(180/Math.PI);
                 if (angle_deg >=0 && angle_deg < Math.PI/2){
                     angle_deg = 270 + angle_deg;
                 }else{
                     angle_deg = angle_deg - 90;
                 }
-                return {points:translatedPoints,id:i,originX:xTranslate,originY:yTranslate,rotationAngle:angle_deg}
-             })).enter().append("path")
-            .attr("d",function (d) {return ref.interactionPathGenerator(d.points)})
-            .attr("transform",function (d) {
-                return "rotate("+d.rotationAngle+","+d.originX+","+d.originY+")";
-            }).attr("class","interactionPath");
+                return {points:d[0],id:i,rotationAngle:angle_deg,view:viewIndex}
+             })).enter().append("path").attr("class","interactionPath")
+            .attr("d",function (d) {
+                var xTranslate = ref.hintArcInfo[d.view][0];
+                var yTranslate = ref.hintArcInfo[d.view][1];
+                var translatedPoints = d.points.map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
+                d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")");
+                return ref.interactionPathGenerator(translatedPoints);
+            });
     }
-
     //Render white path under the main hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)

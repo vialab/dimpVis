@@ -10,8 +10,13 @@ barchart.clickSVG = function (){
 };
 
 //Toggle the type of indicator displayed when dragging along the sine wave
-d3.selectAll("input").on("change", function change() {
+d3.select("#indicatorForm").selectAll("input").on("change", function change() {
     barchart.indicatorType = this.value;
+});
+
+//Toggle the type of progress indicator displayed when dragging along the hint path
+d3.select("#progressForm").selectAll("input").on("change", function change() {
+    barchart.progressIndicator = this.value;
 });
 
 barchart.init();
