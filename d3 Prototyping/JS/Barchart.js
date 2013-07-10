@@ -347,9 +347,14 @@ Barchart.prototype.removeIndicator = function (id){
  *  data: for drawing the line
  * */
 Barchart.prototype.appendProgress = function (data){
+    var ref = this;
+
     if (this.svg.select("#progress").empty()){
         this.svg.select("#hintPath").append("path").datum(data)
-          .attr("id","progress").attr("filter", "url(#blur)");
+            .attr("id","progress").attr("filter", "url(#blur)");
+        if (this.progressIndicator ==1){ //Large progress path
+            this.svg.select("#progress").attr("d", function (d) {return ref.hintPathGenerator(d)});
+        }
     }
 }
 /** Re-draws a progress indicator using the stroke dash interpolation example by mike bobstock:
@@ -357,12 +362,20 @@ Barchart.prototype.appendProgress = function (data){
  * */
 Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
     var ref = this;
+
     if (!this.svg.select("#progress").empty()){
-        if (interpAmount ==0){ //Transitioning views
-            this.svg.select("#progress").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
-        }
+
+        //Create the interpolation function and get the total length of the path
         var length = d3.select("#progress").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
+
+        if (this.progressIndicator == 0 && interpAmount==0){ //Small progress paths, at the point of transitioning views
+           this.svg.select("#progress").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
+        }else if (this.progressIndicator==1){ //Large progress path, adjust the interpolation
+            var interpAmount = (this.currentView-1)/this.lastView + interpAmount/this.lastView;
+            console.log(interpAmount);
+        }
+        //Re-colour the progress path
         this.svg.select("#progress").attr("stroke-dasharray",interpStr(interpAmount))
             .attr("transform","translate(" + (-translateAmount) + ")");
     }
@@ -591,7 +604,7 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
                 .attr("transform","translate(" + (-translateAmount) + ")");
     }
 
-     if (this.progressIndicator!=1){
+     if (this.progressIndicator!=2){
          this.drawProgress(interpAmount,translateAmount);
      }
 }
@@ -809,7 +822,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         /**.transition().duration(300)*/.style("fill-opacity", 0.4);
 
     //Draw a progress indicator (if specified)
-    if (this.progressIndicator != 1){
+    if (this.progressIndicator != 2){
         this.appendProgress(this.pathData);
         this.drawProgress(0,0);
     }
