@@ -16,41 +16,31 @@ path {
 /** From the examples: http://bl.ocks.org/mbostock/5649592 and http://bl.ocks.org/mbostock/1705868
  *  this is an example of dragging a point along a spline curve */
 
-var line = d3.svg.line()
-    .tension(0)
-    .interpolate("basis-closed");
+var line = d3.svg.line().tension(0).interpolate("basis-closed");
 
 var cx = 80, cy = 40; //Closing part of loop
 var radius = 200;
 var centreAngle = Math.PI/6; //Just an arbitrary angle for how to orient the loop
+var refAngle = Math.PI; //Angle to cross which marks one revolution
 
 var points = generatePoints(cx,cy); //Generate a set of points for drawing the curve
-var previous = "start";
-var previousAngle = 0;
-var previousDirection = 1; //counter or clockwise
-var travelled = 0; //Amount travelled along the loop
-var start = 0;
-var passedMiddle = 0;
-var currentDirection = 1;
+var previousSign = 1;
+var previousAngle = "start";
 
 //Set up the main svg
 var svg = d3.select("body").append("svg")
     .datum(points)
-    .attr("width", 960)
-    .attr("height", 500);
+    .attr("width", 960).attr("height", 500);
 
 //Draw the individual points (mainly for debugging)
 svg.selectAll(".points").data(points).enter()
-        .append("circle")
+        .append("circle").attr("class",".points")
         .attr("cx", function (d){return d[0]})
         .attr("cy", function (d){return d[1]})
-        .attr("r",5)
-        .attr("class",".points");
+        .attr("r",5);
 
 //Draw the spline
-svg.append("path")
-     .attr("id","mainPath")
-     .attr("d", line);
+svg.append("path").attr("id","mainPath").attr("d", line);
 
 //Draw another circle which is the approximate centre point of the spline loop
 svg.append("circle").attr("cx",(cx+ (radius/2)*Math.cos(centreAngle))).attr("cy",(cy + (radius/2)*Math.sin(centreAngle)))
@@ -62,50 +52,32 @@ svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",10).attr("fill","red")
 //Create the dragging function
 var dragging = d3.behavior.drag()
         .on("dragstart", function (d){
-            previous = "start"; //signifies the beginning of the drag
+            previousAngle = "start";
             return d;
         }).on("drag", function(){
-
+            //Approach: Using the flipping of the angle sign (positive and negative) to know when the user has at least travelled 180 deg.
             var mouseX = d3.mouse(this)[0], mouseY = d3.mouse(this)[1];
             var centreX = cx + (radius/2)*Math.cos(centreAngle);
             var centreY =  cy + (radius/2)*Math.sin(centreAngle);
             var angle = Math.atan2(mouseX-centreX,mouseY-centreY);
-
+            var sign = (angle>0)?1:-1;
             //Convert negative angle into positive
             var mouseAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle;
-
-            //Approach: Using the flipping of the angle sign (positive and negative) to know when the user has at least travelled 180 deg.
-            var sign = (angle>0)?1:-1;
-
-            if (previous == "start"){ //Starting the dragging
-                start = angle;
-                //previousAngle = mouseAngle;
-            }else{ //In the middle of dragging
-                if (sign!=previous){ //Sign of the angle has switched (needs to flip twice to travel 180 deg)
-                    passedMiddle++;
-                    currentDirection = (mouseAngle < previousAngle)? 1: -1;
-                    console.log("switched signs"+angle*180/Math.PI);
-                }
-                else if (passedMiddle ==2){ //Passed 180 deg
-                    //Get the current dragging direction (1 if clockwise, -1 if counter-clockwise)
-                    currentDirection = (mouseAngle < previousAngle)? 1: -1;
-                    //console.log(currentDirection+" "+(180*mouseAngle/Math.PI)+" "+(180*previousAngle/Math.PI));
-                    if (currentDirection == 1 && angle<= start){ //Going clockwise, completed 1 revolution
-                        console.log("REV: going clockwise current: "+(angle*180/Math.PI)+" start" +(start*180/Math.PI));
-                        passedMiddle = 0;
-                    }else if (currentDirection == -1 && angle >=start) { //Going counter-clockwise, completed 1 revolution
-                        console.log("REV: going counter clockwise current: "+(angle*180/Math.PI)+" start" +(start*180/Math.PI));
-                        passedMiddle = 0;
+            var draggingDirection = (mouseAngle>previousAngle)?-1:1;
+            if (sign!=previousSign && previousAngle !="start"){ //Switching Directions
+                var angle_deg = Math.abs(angle)*180/Math.PI;
+                if (!(angle_deg > 0 && angle_deg < 20)){ //Ignore sign switches within 20 deg from the zero/360 mark
+                    if (draggingDirection==1){
+                        console.log("view increased, clockwise");
+                    }else{
+                        console.log("view decreased, counter-clockwise");
                     }
                 }
             }
-            previous = sign;
+            // console.log(angle*180/Math.PI+" "+previousOrigAngle*180/Math.PI);
+            //Save some important information
             previousAngle = mouseAngle;
-           // previousDirection = currentDirection;
-            //console.log(mouseAngle*180/Math.PI);
-            
-            
-            //if (angle < 0){mouseAngle = (Math.PI - mouseAngle*(-1))+Math.PI;}
+            previousSign = sign;
 
             //Find the approximate percentage the mouse has travelled (angular) along a circle using the middle of the loop as the centre
             var distanceAlongCircle = mouseAngle/(Math.PI*2);
@@ -116,33 +88,7 @@ var dragging = d3.behavior.drag()
 
             //Original Approach: counting the revolutions by summing the difference in angles, but is inaccurate
             //when angle wraps around 360 deg...
-           /** var currentDirection = (mouseAngle > previous)? 1: -1;
-            if (previous == "start"){ //Just starting a new revolution
-                travelled = 0;
-                start = mouseAngle;
-            }else{ //In the middle of a revolution
-                if (travelled >= total){ //Reached one revolution
-                     travelled = 0;
-                     start = mouseAngle;
-                     console.log("1 rev");
-                }else{
-                    var amountTravelled;
-                    if (currentDirection == 1){ //clockwise
-                        if (mouseAngle <= start && mouseAngle <= Math.PI*2){
-                           amountTravelled = start - mouseAngle;
-                        }else{ //wrapped around 360
-                            //amountTravelled =
-                        }
-                    }else{ //counter-clockwise
 
-                    }
-                    travelled = Math.abs(previous - currentLength);
-                }
-            }*/
-
-            //console.log(travelled+" "+total);
-           // console.log(currentLength+" "+previous+" "+" "+travelled+" "+total);
-           // previous = mouseAngle;
             //Re-draw the circle according to the new estimated point along the spline
             d3.select("#draggableCircle").attr("cx",newPoint.x).attr("cy",newPoint.y);
 

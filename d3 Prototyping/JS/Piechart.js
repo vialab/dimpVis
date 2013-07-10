@@ -235,9 +235,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
  * */
 Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,nodes){
     //Find the current angular dragging direction
-    var draggingDirection;
-    if (mouseAngle>this.mouseAngle){draggingDirection = 1}
-    else{draggingDirection = -1}
+    var draggingDirection = (mouseAngle>this.mouseAngle)?1:-1;
 
    //Check to see if the mouse angle is in between current and next, or beyond one of them
     var bounds = this.checkBounds(current,next,mouseAngle);

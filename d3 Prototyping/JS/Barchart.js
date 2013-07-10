@@ -445,22 +445,14 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
             else{this.moveBackward();}
             this.previousHintPathDirection = hintPathDirection;
         }
-        if (mouseY>=origY){
-            return origY;
-        }else{
-            return mouseY;
-        }
+        return (mouseY>=origY)?origY:mouseY;
     }else{//Dragging needs to switch -1 -> 1 in order for the view to change
         if (mouseY<=b1 && draggingDirection==1 && this.previousDragDirection==-1){
             if (this.timeDirection ==1){this.moveForward();}
             else{this.moveBackward();}
             this.previousHintPathDirection = hintPathDirection;
         }
-        if (mouseY<=origY){
-            return origY;
-        }else{
-            return mouseY;
-        }
+        return (mouseY<=origY)?origY:mouseY;
     }    
     
 }
