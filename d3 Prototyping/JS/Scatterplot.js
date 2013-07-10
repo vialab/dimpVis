@@ -360,12 +360,30 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
             this.interpValue = 0;
         }
     }else{ //Dragging in the middle of the loop, animate the view
-        this.interpValue = distanceTravelled;
+        //Need to adjust the distanceTravelled value, because the 1.0 (100% travelled, 360 deg)
+        //mark lies on the edge of the loop opposite to the where the stationary point is
+        var newInterp;
+        if (draggingDirection == 1){
+            if (distanceTravelled > 0.5 && distanceTravelled <=1){
+                newInterp = distanceTravelled/2;
+            }else { //Between 0 and 0.5
+                newInterp = distanceTravelled+0.5;
+            }
+        }else{ //Dragging counter-clockwise
+            if (distanceTravelled > 0.5 && distanceTravelled <=1){
+                newInterp = (1-distanceTravelled) + 0.5;
+            }else { //Between 0 and 0.5
+                newInterp = 0.5 - distanceTravelled;
+            }
+        }
+       // console.log(newInterp+" "+draggingDirection+" "+distanceTravelled);
+       // console.log(newInterp);
+        this.interpValue = newInterp;
         this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
         this.interpolateLabelColour(this.interpValue,this.currentView,this.nextView,groupNumber);
     }
    // console.log(this.previousLoopAngle+" "+angle+" "+this.countRevolutions+" "+this.previousLoopDirection);
-
+    //console.log(this.interpValue);
     //Re-draw the anchor along the loop
     var loopPath = d3.select("#loop"+groupNumber).node();
     var totalLength = loopPath.getTotalLength();

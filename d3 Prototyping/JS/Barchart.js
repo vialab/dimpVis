@@ -60,7 +60,7 @@
 
    //Attributes that can be toggled via forms
    this.indicatorType = 0; //Type of indicator drawn on sine wave, default is outer elastic
-   this.progressIndicator = 1; //Type of progress indicator to be drawn along the hint path, default is none
+   this.progressIndicator = 2; //Type of progress indicator to be drawn along the hint path, default is none
 
    //Function for drawing a linearly interpolated line (the hint path)
    this.hintPathGenerator = d3.svg.line().interpolate("linear");
@@ -344,7 +344,7 @@ Barchart.prototype.removeIndicator = function (id){
     }
 }
 /** Appends a progress indicator to the svg, if there isn't already one
- *  data: for drawing the line
+ *  data: array of points for drawing the line
  * */
 Barchart.prototype.appendProgress = function (data){
     var ref = this;
@@ -359,6 +359,8 @@ Barchart.prototype.appendProgress = function (data){
 }
 /** Re-draws a progress indicator using the stroke dash interpolation example by mike bobstock:
  * http://bl.ocks.org/mbostock/5649592
+ * interpAmount: how far travelled between views
+ * translateAmount: to animate the progress path with the hint path
  * */
 Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
     var ref = this;
@@ -368,13 +370,14 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
         //Create the interpolation function and get the total length of the path
         var length = d3.select("#progress").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
-
+        //Make some adjustments according to the type of progress path selected
         if (this.progressIndicator == 0 && interpAmount==0){ //Small progress paths, at the point of transitioning views
            this.svg.select("#progress").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
         }else if (this.progressIndicator==1){ //Large progress path, adjust the interpolation
             var interpAmount = (this.currentView-1)/this.lastView + interpAmount/this.lastView;
             console.log(interpAmount);
         }
+
         //Re-colour the progress path
         this.svg.select("#progress").attr("stroke-dasharray",interpStr(interpAmount))
             .attr("transform","translate(" + (-translateAmount) + ")");
