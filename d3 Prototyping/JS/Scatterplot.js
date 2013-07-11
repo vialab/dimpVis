@@ -230,7 +230,6 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                 ref.dragAlongLoop(id,currentPointInfo[2]);
                 return;
             }else if (currentPointInfo[0]==2){//Revisiting point
-                ref.toggleLabelColour(ref.currentView,currentPointInfo[2]);
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }else{
                 ref.removeAnchor();
@@ -263,6 +262,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
         newPoint= [pt2_x,pt2_y];
     }else{ //Some in between the views (pt1 and pt2)
         this.interpolatePoints(id,t,this.currentView,this.nextView);
+        this.interpolateLabelColour(this.interpValue);
         newPoint= [minDist[0],minDist[1]];
     }
     return newPoint;
@@ -287,31 +287,16 @@ Scatterplot.prototype.moveBackward = function (){
     }
     this.previousDirection = -1;
 }
- /**Toggles the label colour based on the current view, this effect is used for distinguishing the position on
- * hint path in both ambiguous cases.
- * currentView: the current view, this label will not be faded out
- * groupNumber: the group of repeated points the current point belongs to
- * */
-Scatterplot.prototype.toggleLabelColour = function (currentView,groupNumber){
-    var ref = this;
-    this.svg.selectAll(".hintLabels")
-        .filter(function (d){return ref.ambiguousPoints[d.id][2]==groupNumber;})
-        .attr("fill-opacity",function (d) {return ((d.id==currentView)? 1:0.3);});
-}
 /**Interpolates the label transparency between start and end view, this fading effect is used for
  * distinguishing how close the user is from transitioning views the stationary ambiguous cases.
  * interp: the interpolation amount (amount travelled across start to end)
- * startView, endView: the bounding views
- * groupNumber: the group of repeated points the current point belongs to
  * */
-Scatterplot.prototype.interpolateLabelColour = function (interp,startView,endView,groupNumber){
+Scatterplot.prototype.interpolateLabelColour = function (interp){
     var ref = this;
-    this.svg.selectAll(".hintLabels")
-        .filter(function (d){return ref.ambiguousPoints[d.id][2]==groupNumber;})
-        .attr("fill-opacity",function (d) {
-            if (d.id ==startView){ //Fade out
+    this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d) {
+            if (d.id ==ref.currentView){ //Dark to light
                 return d3.interpolate(1,0.3)(interp);
-            }else if (d.id == endView){ //Fade in
+            }else if (d.id == ref.nextView){ //Light to dark
                 return d3.interpolate(0.3,1)(interp);
             }
             return 0.3;
@@ -356,7 +341,6 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
             }else{ //Dragging counter-clockwise
                 this.moveBackward();
             }
-            this.toggleLabelColour(this.currentView,groupNumber)
             this.interpValue = 0;
         }
     }else{ //Dragging in the middle of the loop, animate the view
@@ -380,7 +364,7 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
        // console.log(newInterp);
         this.interpValue = newInterp;
         this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
-        this.interpolateLabelColour(this.interpValue,this.currentView,this.nextView,groupNumber);
+        this.interpolateLabelColour(this.interpValue);
     }
    // console.log(this.previousLoopAngle+" "+angle+" "+this.countRevolutions+" "+this.previousLoopDirection);
     //console.log(this.interpValue);
@@ -512,13 +496,12 @@ Scatterplot.prototype.changeView = function( newView) {
  * */
 //TODO: For later, Might want to add interpolation or use the interpolate function
 Scatterplot.prototype.redrawView = function(view) {
-    if (this.ambiguousPoints.length != 0 && this.ambiguousPoints[view][0] == 1){ //A stationary point, update the label colour
-        this.toggleLabelColour(view,this.ambiguousPoints[view][2]);
-        //Re-draw position the anchor at the stationary point (if any)
-        if (!this.svg.select("#anchor").empty()){
-            this.svg.select("#anchor").attr("cx",function (d){return d[0]}).attr("cy",function (d){return d[1]});
-        }
+    //Re-draw position the anchor at the stationary point (if any)
+    if (!this.svg.select("#anchor").empty()){
+        this.svg.select("#anchor").attr("cx",function (d){return d[0]}).attr("cy",function (d){return d[1]});
     }
+    //Re-colour the hint path labels
+    this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
     this.svg.selectAll(".displayPoints").transition().duration(300)
 	          .attr("cx",function (d){return d.nodes[view][0];})
 			  .attr("cy",function (d){return d.nodes[view][1];});
@@ -562,6 +545,7 @@ Scatterplot.prototype.redrawView = function(view) {
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
         .attr("class","hintLabels")
+        .attr("fill-opacity",function (d){ return ((d.id==ref.currentView)?1:0.3)})
         .attr("id",function (d){return "hintLabels"+ d.id})
         .on("click", this.clickHintLabelFunction);
 

@@ -400,7 +400,7 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
     var draggingDirection = mouseY>this.mouseY ? -1:1;
     //console.log("hint path dir: "+hintPathDirection+" mouse dir: "+draggingDirection+" current view "+this.currentView+" next view "+this.nextView+" interp "+this.interpValue);
 
-    //Resolve the bounds
+    //Resolve the bounds, find the appropriate y-coords (if at peak, the tolerance adjusted y-value is used instead of the original)
     var currentY = (current[2]==1)?current[3]:current[0];
     var nextY = (next[2]==1)?next[3]:next[0];
     var bounds = this.checkBounds(currentY,nextY,mouseY);
