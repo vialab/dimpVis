@@ -425,11 +425,10 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
  * */
 Scatterplot.prototype.snapToView = function( id, points) {
     //TODO: other case where one is stationary but the other is not
-    //TODO: Fix this for new method of tracking revolutions
     var distanceCurrent,distanceNext;
     if (this.ambiguousPoints[this.currentView][0] == 1 && this.ambiguousPoints[this.nextView][0] == 1){ //Current and next are stationary points
-       distanceCurrent = this.previousLoopAngle;
-       distanceNext = Math.PI;
+       distanceCurrent = this.interpValue;
+       distanceNext = 0.5;
     }else { //Non-ambiguous point
         //Calculate the distances from the dragged point to both current and next
         distanceCurrent = this.calculateDistance(this.mouseX,this.mouseY, points[this.currentView][0], points[this.currentView][1]);
@@ -758,3 +757,4 @@ Scatterplot.prototype.findInArray = function (x,y,array)
 }
 //TODO: non-existent data points (e.g missing from the data set), "hole" in hint path?
 //TODO: does the code handle zero values? (point goes off the axis)
+//TODO: how to visualize a revisiting point within a stationary point sequence (like my example for afghanistan on scatterplot)
