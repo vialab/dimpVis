@@ -78,20 +78,19 @@ Barchart.prototype.init = function(){
    this.svg = d3.select(this.id).append("svg")
        .attr("id","mainSvg").style("position", "absolute")
        .attr("width", this.width)
-      .attr("height", this.height+(this.padding*2))
-      .style("left", this.leftMargin + "px")
-      .style("top", this.topMargin + "px")
-      .on("click",this.clickSVG)
-      .append("g").attr("id","mainG")
-	  .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
-     //Add the blur filter to the SVG so other elements can call it
-    this.svg.append("svg:defs")
-         .append("svg:filter")
-         .attr("id", "blur")
-         .append("svg:feGaussianBlur")
-         .attr("stdDeviation", 5);
+       .attr("height", this.height+(this.padding*2))
+       .style("left", this.leftMargin + "px")
+       .style("top", this.topMargin + "px")
+       .on("click",this.clickSVG)
+       .append("g").attr("id","mainG")
+	   .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
- }
+     //Add the blur filter to the SVG so other elements can call it
+    this.svg.append("svg:defs").append("svg:filter")
+        .attr("id", "blur")
+        .append("svg:feGaussianBlur")
+        .attr("stdDeviation", 5);
+}
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
  * start: The starting view of the visualization, as an index into the labels array
@@ -313,7 +312,6 @@ Barchart.prototype.moveBackward = function (){
  * */
 Barchart.prototype.appendAnchor = function (x,y){
     var ref = this;
-    console.log(this.indicatorType);
     if (this.svg.select("#anchor").empty()){
         if (this.indicatorType ==0 || this.indicatorType ==1){ //Inner or outer elastic
             this.svg.select("#hintPath").append("path").datum([[x+ref.barWidth/2,y]])
@@ -351,8 +349,15 @@ Barchart.prototype.appendProgress = function (data){
     var ref = this;
 
     if (this.svg.select("#progress").empty()){
+        //Add the blur filter to the SVG so other elements can call it
+        this.svg.append("svg:defs").append("svg:filter")
+            .attr("id", "blurProgress")
+            .append("svg:feGaussianBlur")
+            .attr("stdDeviation", 3);
+
         this.svg.select("#hintPath").append("path").datum(data)
-            .attr("id","progress").attr("filter", "url(#blur)");
+            .attr("id","progress").attr("filter", "url(#blurProgress)");
+
         if (this.progressIndicator ==1){ //Large progress path
             this.svg.select("#progress").attr("d", function (d) {return ref.hintPathGenerator(d)});
         }
@@ -717,6 +722,11 @@ Barchart.prototype.redrawView = function (view,id){
                 .attr("transform","translate("+(-translate)+")");
             this.removeIndicator("#anchor"); //Anchor will be re-appended in showHintPath()
         }
+
+        //Re-draw progress paths (if any)
+        if (this.progressIndicator != 2){
+            this.svg.select("#progress").attr("transform","translate("+(-translate)+")");
+        }
     }
 }
 /** Updates the view tracking variables when the view is being changed by an external
@@ -809,7 +819,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
        .attr("filter", "url(#blur)")
        .attr("transform","translate("+(-translate)+")")
        .attr("id","path");
-
+   //TODO: at peaks, the labels on downwards peak are closer inwards making the tolerance value less noticeable at these parts, should position the y different on downwards peaks
 	//Draw the hint labels
    this.svg.select("#hintPath").selectAll("text").data(ref.pathData.map(function(d,i){
            return {x:d[0],y:d[1],label:ref.hintLabels[i],id:i};

@@ -14,7 +14,7 @@ function Piechart(x,y, r,id,title,hLabels){
    this.id = id;
    this.radius = r;
    this.labelOffset = r+10;
-   this.hintRadiusSpacing = 18;
+   this.hintRadiusSpacing = 15;
 
    //Height and width of SVG can be calculated based on radius
    this.width = x + r*5;
@@ -557,7 +557,6 @@ Piechart.prototype.calculateHintAngles = function (angles,view,flag){
   var hintAngles = [];
 
     for (var j=0;j<angles.length;j++){
-
         newAngle = this.dragStartAngle + angles[j];
         if (flag ==0){
             r = this.findHintRadius(j,view);
@@ -622,6 +621,11 @@ Piechart.prototype.showHintPath = function (id,angles,start){
         .attr("d", hintPathArcString)
         .attr("id","path")
         .attr("filter", "url(#blur)");
+    /**var drawLine = d3.svg.line().interpolate("cardinal");
+    this.svg.select("#hintPath").append("path")
+        .attr("d", drawLine(this.hintArcInfo.map(function (d){return [d[0],d[1]]})))
+        .attr("id","path")
+        .attr("filter", "url(#blur)");*/
 
 	//Render the hint labels
 	this.svg.select("#hintPath").selectAll("text")
@@ -672,6 +676,7 @@ Piechart.prototype.interpolateHintRadius = function (index,startView,endView){
  *  Where: startX,startY define the starting point, endX,endY is the ending point
  *         A is the rotation angle, rx,ry is the radius of the arc and the 0's are just unset flags
  *  findCorners: a flag to determine whether or not corners should be located
+ *  Good resource: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
  * */
 Piechart.prototype.createArcString = function (pathInfo,findCorners){
     var dString = "";
@@ -701,19 +706,28 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
                 corners.push(1);
                 x = this.cx + pathInfo[j][2]*Math.cos(pathInfo[j-1][3] -this.halfPi);
                 y = this.cy+ pathInfo[j][2]*Math.sin(pathInfo[j-1][3] - this.halfPi);
-                dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two radii
+                //dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two radii
+                //dString +="S "+pathInfo[j-1][0]+","+pathInfo[j-1][1]+" "+x+","+y; //Small connecting line which joins two radii
+                //dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 0.4 0.4 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
+                //dString +="M "+x+" "+y+" A 0.4 0.4 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]; //Small connecting line which joins two radii
                 if (pathInfo[j][3] > pathInfo[j-1][3]){
+                    dString +="M "+x+" "+y+" A 1.5 1.5 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]; //Small connecting line which joins two radii
                     dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
                         +pathInfo[j][2]+" 0 0 0 "+x+" "+y;
+                   // dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
+                        //+pathInfo[j][2]+" 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1];
                 }else{
+                    dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 1.5 1.5 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
                     dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
                         +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
+                   // dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A "+pathInfo[j][2]+" "
+                        //+pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
+
                 }
             } else {
                 corners.push(0);
                 //Always written as bigger to smaller angle to get the correct drawing direction of arc
-                dString +="M "+x2+" "+y2+" A "+pathInfo[j][2]+" "
-                    +pathInfo[j][2]+" 0 0 0 "+x1+" "+y1;
+                dString +="M "+x2+" "+y2+" A "+pathInfo[j][2]+" "+pathInfo[j][2]+" 0 0 0 "+x1+" "+y1;
             }
         }
        previousDirection = currentDirection;

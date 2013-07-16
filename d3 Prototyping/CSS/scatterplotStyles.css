@@ -32,7 +32,7 @@ body {
 .loops {
     fill:none;
     stroke-dasharray:3,3;
-    stroke:#1f77b4;
+    stroke:#666;
 }
 
 /*The anchor along the interaction path */

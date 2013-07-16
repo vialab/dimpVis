@@ -53,7 +53,8 @@
 /*Styles for the progress indicator */
 #progress{
    fill:none;
-   stroke:#1E5B84;
+  /** stroke:#1E5B84; Old Dark Blue */
+   stroke:#1f77b4;
    stroke-width:2;
 }
 

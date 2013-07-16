@@ -211,7 +211,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
 
        //Find the current vertical dragging direction
        var draggingDirection = mouseY<ref.mouseY? 1:-1;
-       console.log(pathDirection+" "+draggingDirection);
+       //console.log(pathDirection+" "+draggingDirection);
        //console.log(ref.currentView+" "+ref.nextView);
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
 
@@ -238,7 +238,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        }
        ref.previousDragDirection = draggingDirection; //Save the current dragging direction
     });
-     console.log(this.currentView+" "+this.nextView);
+     //console.log(this.currentView+" "+this.nextView);
 
     this.mouseY = mouseY; //Save the mouse coordinate
 }
@@ -336,13 +336,13 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
  * */
 Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount,draggingDirection){
      var translateX = -(this.xSpacing*interpAmount + this.xSpacing*this.currentView);
-
-    if (draggingDirection == -1){
+    var translateY = -(this.ySpacing*currentOffset);
+   /** if (draggingDirection == -1){
          var translateY = -(this.ySpacing*interpAmount + this.ySpacing*currentOffset);
      }else{
          var translateY = ( this.ySpacing*interpAmount - this.ySpacing*currentOffset);
-     }
-     console.log(translateY);
+     }*/
+     //console.log(translateY);
 
      this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+","+translateY+")");
      this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+","+translateY+")");
@@ -483,8 +483,7 @@ Heatmap.prototype.redrawHintPath = function(offset,view){
  * colouring information for the gradient - This would be d.values)
  * x,y: coordinates of the dragged cell
  * view: the view to start drawing the path at
- * Good tutorial on svg line gradients:
- * http://tutorials.jenkov.com/svg/svg-gradients.html
+ * Good tutorial on svg line gradients: http://tutorials.jenkov.com/svg/svg-gradients.html
  * */
 Heatmap.prototype.showHintPath = function(id,pathData,x,y){
 

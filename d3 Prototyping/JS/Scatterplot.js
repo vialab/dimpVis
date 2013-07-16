@@ -38,6 +38,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.loops = []; //Stores points to draw for interaction loops (if any)
    this.previousLoopAngle = "start"; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
    this.previousLoopSign = 0; //Keeps track of the angle switching from positive to negative or vice versa when dragging along a loop
+   this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
 
    //Variables to track interaction events
    this.dragged = -1;
@@ -307,43 +308,54 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
  * id: of the dragged point
  * groupNumber: the group of repeated points this loop belongs to
  * */
-Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
+ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
      var ref = this;
 
      //Get position (centre point) of the stationary point
+     //TODO:These are constants and do not need to be computed each time the mouse drags
      var points = this.svg.select("#displayPoints"+id).data().map(function (d) {return d.nodes[ref.currentView];});
      var anchorAngle = Math.PI/6;
      var loopCx = points[0][0]+this.loopRadius/2*Math.cos(anchorAngle);
      var loopCy = points[0][1]+this.loopRadius/2*Math.sin(anchorAngle);
 
-    //Calculate the angle of the mouse w.r.t the stationary point
-     var angle = Math.atan2(this.mouseX-loopCx,this.mouseY-loopCy);
-     //console.log(angle*180/Math.PI);
-    //Determine the sign of the angle (positive or negative)
-     var sign = (angle>0)?1:-1;
+     var angle = Math.atan2(this.mouseX-loopCx,this.mouseY-loopCy); //Calculate the angle of the mouse w.r.t the stationary point
+     console.log(angle*180/Math.PI);
+     var sign = (angle>0)?1:-1;  //Determine the sign of the angle (positive or negative)
+     var positiveAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle; //Convert negative angles into positive
 
-    //Convert negative angles into positive
-     var positiveAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle;
+     //console.log(positiveAngle*180/Math.PI);
 
-    //Find the angular dragging direction
-     var draggingDirection = (positiveAngle>this.previousLoopAngle)?-1:1;
-
-    //Find the precentage amount travelled along the loop
-    var distanceTravelled = 1 - (positiveAngle/(Math.PI*2));
+    //Find the approximate percentage amount travelled along the loop
+     var distanceTravelled = 1 - positiveAngle/(Math.PI*2);
+     //if (distanceTravelled > 1){distanceTravelled = distanceTravelled - 1}
 
     //Check if the user has crossed the 180 deg mark, approximately where the stationary point lies (to switch views)
     if (sign!=this.previousLoopSign && this.previousLoopAngle !="start"){ //Switching Directions, might be a view change
-        var angle_deg = Math.abs(angle)*180/Math.PI; //Convert to degrees just for convenience
+
+        var draggingDirection = (positiveAngle>this.previousLoopAngle)?-1:1; //Find the angular dragging direction
+        var angle_deg = Math.abs(angle)*180/Math.PI; //Convert to degrees for convenience
+
         if (!(angle_deg > 0 && angle_deg < 20)){ //Ignore sign switches within 20 deg from the zero/360 mark
-            console.log("switch views");
             if (draggingDirection==1){ //Dragging clockwise
                 this.moveForward();
             }else{ //Dragging counter-clockwise
                 this.moveBackward();
             }
+            console.log("switch views"+this.currentView+" "+this.nextView);
             this.interpValue = 0;
         }
     }else{ //Dragging in the middle of the loop, animate the view
+        //TODO: Temporary solution to remove the flickering, could not find reason why the angle and previousAngle are sometimes equal
+        //Set the angular dragging direction
+        var draggingDirection;
+        if (positiveAngle==this.previousLoopAngle){
+            draggingDirection = this.previousDraggingDirection;
+        }else if (positiveAngle >this.previousLoopAngle){
+            draggingDirection = -1;
+        }else{
+            draggingDirection = 1;
+        }
+
         //Need to adjust the distanceTravelled value, because the 1.0 (100% travelled, 360 deg)
         //mark lies on the edge of the loop opposite to the where the stationary point is
         var newInterp;
@@ -360,24 +372,29 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
                 newInterp = 0.5 - distanceTravelled;
             }
         }
-       // console.log(newInterp+" "+draggingDirection+" "+distanceTravelled);
+        //console.log(newInterp+" "+draggingDirection+" "+distanceTravelled);
        // console.log(newInterp);
+
         this.interpValue = newInterp;
         this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
+        console.log("interpolate label colour "+this.currentView+" "+this.nextView);
         this.interpolateLabelColour(this.interpValue);
     }
+
    // console.log(this.previousLoopAngle+" "+angle+" "+this.countRevolutions+" "+this.previousLoopDirection);
-    //console.log(this.interpValue);
+    //console.log(distanceTravelled);
+
+    //TODO:These are constants and do not need to be computed each time the mouse drags
     //Re-draw the anchor along the loop
     var loopPath = d3.select("#loop"+groupNumber).node();
     var totalLength = loopPath.getTotalLength();
     var newPoint = loopPath.getPointAtLength(totalLength*distanceTravelled);
-
     ref.svg.select("#anchor").attr("cx",newPoint.x).attr("cy",newPoint.y);
 
-    //Save the dragging angle and direction
+    //Save the dragging angle and directions
     this.previousLoopAngle = positiveAngle;
     this.previousLoopSign = sign;
+    this.previousDraggingDirection = draggingDirection;
 }
  /**"Animates" the rest of the points while one is being dragged
  * Uses the 't' parameter, which represents approximately how far along a line segment
@@ -563,17 +580,18 @@ Scatterplot.prototype.redrawView = function(view) {
 /** Draws interaction loops as svg paths onto the hint path (if point has stationary cases)
  *  id: of the dragged point
  * */
-Scatterplot.prototype.drawLoops = function (id){
+//TODO: orient loops according to the hint path layout (minimize the amount it crosses over the actual path),
+//TODO:need to determine if it's closer to having a horizontal or vertical structure
+ Scatterplot.prototype.drawLoops = function (id){
     var ref = this;
     //Create a function for drawing a loop around a stationary point, as an interaction path
-    var loopGenerator = d3.svg.line().x(function(d) { return d[0]; }).y(function(d) { return d[1]; })
-        .tension(0)
-        .interpolate("basis-closed"); //Closed B-spline, a loop
+    var loopGenerator = d3.svg.line().tension(0).interpolate("basis-closed"); //Closed B-spline
+
    //Draw all loops at their respective stationary points
     this.svg.select("#hintPath").selectAll(".loops")
         .data(ref.loops.map(function (d,i){
             var loopPoints = [];
-            loopPoints = ref.calculateLoopPoints(d[0],d[1],d[2]);
+            loopPoints = ref.calculateLoopPoints(d[0],d[1]);
             return {points:loopPoints,id:i};
         }))
         .enter().append("path")
@@ -630,16 +648,15 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
 /** Computes the points to lie along an interaction loop
  * Note: this function is only called in findLoops()
  * x,y: Define the center point of the loop (sort of)
- * numPoints: the number of views at the stationary point (might not need this if all loops are the same size)
  * @return an array of all loop points and the year index in the format: [[x,y], etc.]
  * */
-Scatterplot.prototype.calculateLoopPoints = function (x,y,numPoints){
+Scatterplot.prototype.calculateLoopPoints = function (x,y){
     var loopPoints = [];  
     var interval = Math.PI/6;
     //The first point of the path should be the original point, as a reference for drawing the loop
     loopPoints.push([x,y]);
     //Generate some polar coordinates for forming the loop around x,y using arbitrary angles
-    for (var j=1;j<=3;j++){
+    for (var j=0;j<=2;j++){
         loopPoints.push([(x + this.loopRadius*Math.cos(interval*j)),(y+ this.loopRadius*Math.sin(interval*j))]);
     }
     //The last point of the path should be the original point, as a reference for drawing the loop

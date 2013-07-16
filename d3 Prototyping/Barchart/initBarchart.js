@@ -2,7 +2,7 @@
  * */
 
 //Create new barchart visualization
-var barchart   = new Barchart(400, 50, 30, 0 , "#bargraph",80,"g8+5 countries","CO2 emissions per person (metric tons)","CO2 Emissions of the G8+5 Countries",labels);
+var barchart   = new Barchart(400, 50, 30, 100 , "#bargraph",80,"g8+5 countries","CO2 emissions per person (metric tons)","CO2 Emissions of the G8+5 Countries",labels);
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 barchart.clickSVG = function (){
@@ -50,11 +50,10 @@ barchart.dragEvent = d3.behavior.drag()
         slider.updateSlider(barchart.currentView);
     });
 //Apply the dragging function to each bar
-barchart.svg.selectAll(".displayBars")
-    .call(barchart.dragEvent);
+barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(50, 600, "#time",labels, "Time","#666",40);
+var slider   = new Slider(50, 700, "#time",labels, "Time","#666",40);
 slider.init();
 slider.render();
 

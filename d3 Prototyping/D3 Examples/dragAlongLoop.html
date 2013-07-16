@@ -17,11 +17,11 @@ path {
  *  this is an example of dragging a point along a spline curve */
 
 var line = d3.svg.line().tension(0).interpolate("basis-closed");
-
+//var line = d3.svg.line().interpolate("monotone");
+    
 var cx = 80, cy = 40; //Closing part of loop
 var radius = 200;
-var centreAngle = Math.PI/6; //Just an arbitrary angle for how to orient the loop
-var refAngle = Math.PI; //Angle to cross which marks one revolution
+var centreAngle = Math.PI; //An angle for how to orient the loop (how is the loop aligned w.r.t the stationary point)
 
 var points = generatePoints(cx,cy); //Generate a set of points for drawing the curve
 var previousSign = 1;
@@ -30,7 +30,9 @@ var previousAngle = "start";
 //Set up the main svg
 var svg = d3.select("body").append("svg")
     .datum(points)
-    .attr("width", 960).attr("height", 500);
+    .attr("width", 960).attr("height", 500)
+    .style("position","absolute").attr("x",50).attr("y",50)
+    .append("g").attr("transform","translate(150,150)");
 
 //Draw the individual points (mainly for debugging)
 svg.selectAll(".points").data(points).enter()
@@ -59,13 +61,18 @@ var dragging = d3.behavior.drag()
             var mouseX = d3.mouse(this)[0], mouseY = d3.mouse(this)[1];
             var centreX = cx + (radius/2)*Math.cos(centreAngle);
             var centreY =  cy + (radius/2)*Math.sin(centreAngle);
+
+            //Draw the draggable circle
             var angle = Math.atan2(mouseX-centreX,mouseY-centreY);
+            //console.log(angle*180/Math.PI);
             var sign = (angle>0)?1:-1;
             //Convert negative angle into positive
             var mouseAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle;
+             console.log(mouseAngle*180/Math.PI);
             var draggingDirection = (mouseAngle>previousAngle)?-1:1;
             if (sign!=previousSign && previousAngle !="start"){ //Switching Directions
                 var angle_deg = Math.abs(angle)*180/Math.PI;
+                console.log(angle_deg);
                 if (!(angle_deg > 0 && angle_deg < 20)){ //Ignore sign switches within 20 deg from the zero/360 mark
                     if (draggingDirection==1){
                         console.log("view increased, clockwise");
@@ -81,10 +88,16 @@ var dragging = d3.behavior.drag()
 
             //Find the approximate percentage the mouse has travelled (angular) along a circle using the middle of the loop as the centre
             var distanceAlongCircle = mouseAngle/(Math.PI*2);
+            /**var adjust = (1-distanceAlongCircle+0.15);
+            if (adjust > 1){adjust = adjust - 1}*/
+
+            //console.log(distanceAlongCircle+" "+adjust);
             var path = d3.select("#mainPath").node();
             var total = path.getTotalLength();
-            var currentLength = total*(1-distanceAlongCircle);
+            //var currentLength = total*(1-distanceAlongCircle); //Better, but gets stuck at 100% because current length is > totalLength
+            var currentLength = total*0.5;
             var newPoint = path.getPointAtLength(currentLength);
+
 
             //Original Approach: counting the revolutions by summing the difference in angles, but is inaccurate
             //when angle wraps around 360 deg...
@@ -102,10 +115,21 @@ function generatePoints(cx,cy){
     var points = [];
     points.push([cx,cy]);
     var x,y;
-    var angle = centreAngle;
+    //Oriented on the right hand side
+    /**points.push([(cx + radius*Math.cos(-Math.PI/6)),(cy+ radius*Math.sin(-Math.PI/6))]);
+    points.push([(cx + radius*Math.cos(0)),(cy+ radius*Math.sin(0))]);
+    points.push([(cx + radius*Math.cos(Math.PI/6)),(cy+ radius*Math.sin(Math.PI/6))]);*/
+    
+    //Oriented left hand side
+    points.push([(cx + radius*Math.cos(5*Math.PI/6)),(cy+ radius*Math.sin(5*Math.PI/6))]);
+    points.push([(cx + radius*Math.cos(Math.PI)),(cy+ radius*Math.sin(Math.PI))]);
+    points.push([(cx + radius*Math.cos(-5*Math.PI/6)),(cy+ radius*Math.sin(-5*Math.PI/6))]);
+
+    //Oriented lower right, at 30 deg
+   /** var angle = centreAngle;
     for (var j = 0; j <= 2;j++){
         points.push([(cx + radius*Math.cos(angle*j)),(cy+ radius*Math.sin(angle*j))]);
-    }
+    }*/
     points.push([cx,cy]);
     return points;
 }
