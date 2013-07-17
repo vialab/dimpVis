@@ -98,7 +98,6 @@ var dragging = d3.behavior.drag()
             var currentLength = total*0.5;
             var newPoint = path.getPointAtLength(currentLength);
 
-
             //Original Approach: counting the revolutions by summing the difference in angles, but is inaccurate
             //when angle wraps around 360 deg...
 
@@ -121,12 +120,12 @@ function generatePoints(cx,cy){
     points.push([(cx + radius*Math.cos(Math.PI/6)),(cy+ radius*Math.sin(Math.PI/6))]);*/
     
     //Oriented left hand side
-    points.push([(cx + radius*Math.cos(5*Math.PI/6)),(cy+ radius*Math.sin(5*Math.PI/6))]);
-    points.push([(cx + radius*Math.cos(Math.PI)),(cy+ radius*Math.sin(Math.PI))]);
     points.push([(cx + radius*Math.cos(-5*Math.PI/6)),(cy+ radius*Math.sin(-5*Math.PI/6))]);
+    points.push([(cx + radius*Math.cos(Math.PI)),(cy+ radius*Math.sin(Math.PI))]);
+    points.push([(cx + radius*Math.cos(5*Math.PI/6)),(cy+ radius*Math.sin(5*Math.PI/6))]);
 
     //Oriented lower right, at 30 deg
-   /** var angle = centreAngle;
+    /**var angle = Math.PI/6;
     for (var j = 0; j <= 2;j++){
         points.push([(cx + radius*Math.cos(angle*j)),(cy+ radius*Math.sin(angle*j))]);
     }*/

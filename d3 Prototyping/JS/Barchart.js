@@ -40,7 +40,7 @@
    this.lastView = hLabels.length-1; //Index of the last view on the hint path
 
    this.interpValue=0; //For estimating the time direction and update the barchart view
-   this.mouseY = -1;
+   this.mouseY = 0;
    this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
    this.previousHintPathDirection = 1; //Saves the direction of the hint path (going up or down)
 
@@ -50,7 +50,8 @@
    this.timeDirection = 1; //Keeps track of the direction travelling over time 
    this.passedMiddle = -1; //Passed the mid point of the peak of the sine wave
    this.peakValue = null; //The y-value of the sine wave's peak (or trough)
-     
+   this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
+
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
@@ -59,7 +60,7 @@
    this.draggedBar = -1;
 
    //Attributes that can be toggled via forms
-   this.indicatorType = 0; //Type of indicator drawn on sine wave, default is outer elastic
+   this.indicatorType = 2; //Type of indicator drawn on sine wave, default is outer elastic
    this.progressIndicator = 2; //Type of progress indicator to be drawn along the hint path, default is none
 
    //Function for drawing a linearly interpolated line (the hint path)
@@ -138,7 +139,7 @@ this.svg.selectAll("rect")
             for (var j=0;j< d.heights.length;j++){
                data[j] = [ref.base - yScale(d.heights[j]),yScale(d.heights[j])];
             }
-            //Find the peaks on the hint path, adjust the data accordingly
+            //Find the peaks on the hint path, add a flag to indicate peak type
             var newValues = ref.findPeaks(data);
 	        return {nodes:newValues,id:i,label:d.label,xPos:(xScale(i)+ref.padding+ref.strokeWidth)};
 	  }))
@@ -167,7 +168,7 @@ this.svg.selectAll("rect")
  * Only need to call this function if, when dragging at a peak, there needs to be some tolerance (flexibility) when
  * passing views
  * data: a 2D array of [y-value,height]
- * @return the same array with added values to each array entry: 0 or 1 flag if it is a peak, adjusted Y-value (if it is a peak)
+ * @return the same array with added values to each array entry: 0 or 1/-1 flag if it is a peak/trough respectively
  * */
 Barchart.prototype.findPeaks = function (data){
     var newData = data;
@@ -178,11 +179,9 @@ Barchart.prototype.findPeaks = function (data){
         var currentY = data[j][0];
         if (j>0 && j < endIndex){
             if (data[j-1][0] < currentY && data[j+1][0] < currentY){ //Upwards peak
-                newData[j].push(1);
-                newData[j].push(currentY-10);
+                newData[j].push(-1);
             }else if (data[j-1][0] > currentY && data[j+1][0] > currentY){ //Downwards peak
                 newData[j].push(1);
-                newData[j].push(currentY+10);
             }else{ //No peak
                 newData[j].push(0);
             }
@@ -282,12 +281,12 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
             newValues = ref.handleDraggedBar(current,next,mouseY,id);
         }
 
-        //Save the mouse y-coordinate
-        ref.mouseY = mouseY;
-
         //Re-draw the dragged bar
         ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
      });
+
+      //Save the mouse y-coordinate
+      this.mouseY = mouseY;
 }
 /** Updates the view variables to move the visualization forward
  * (passing the next view)
@@ -317,7 +316,10 @@ Barchart.prototype.appendAnchor = function (x,y){
             this.svg.select("#hintPath").append("path").datum([[x+ref.barWidth/2,y]])
                 .attr("d", ref.hintPathGenerator).attr("id","anchor");
         }else if (this.indicatorType == 2){ //Circle
-            this.svg.select("#hintPath").append("circle").attr("cx", x+this.barWidth/2).attr("cy", y).attr("r",5).attr("id","anchor");
+            this.svg.select("#hintPath").append("g").attr("id","anchor");
+            this.svg.select("#anchor").append("circle").attr("cx", x+this.barWidth/2).attr("cy", y).attr("r",4);
+            this.svg.select("#anchor").append("path").datum([[x+ref.barWidth/2,y]])
+                .attr("d", ref.hintPathGenerator);
         }
     }
 }
@@ -332,7 +334,8 @@ Barchart.prototype.redrawAnchor = function (baseY,mouseX,mouseY,newY){
     }else if (this.indicatorType == 1){ //Inner Elastic
         this.svg.select("#anchor").attr("d",function (d) {return ref.hintPathGenerator([[d[0][0],baseY],[d[0][0],newY]]);});
     }else if (this.indicatorType ==2){ //Circle
-        this.svg.select("#anchor").attr("cy",newY);
+        this.svg.select("#anchor").select("path").attr("d",function (d) {return ref.hintPathGenerator([[d[0][0],baseY],[d[0][0],newY]]);});
+        this.svg.select("#anchor").select("circle").attr("cy",newY);
     }
 }
 /** Removes an indicator from the svg, if one is appended
@@ -394,7 +397,7 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
  *  bar to be drawn out of bounds and keeps track of time progression by updating the view variables
  *  when a view is switched.
  *  current, next: The nodes for each bar of current and next views (i.e., [y-pos,height])
- *  mouseY: the mouse's vertical dragging amount
+ *  mouseY: the mouse's vertical dragging coordinate
  *  id: of the dragged bar
  *  @return: [newY,newHeight], values used to update the drawing of the dragged bar
  * */
@@ -402,43 +405,45 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
     var newValues = [];
 
     //Find the current vertical dragging direction of the user
-    var draggingDirection = mouseY>this.mouseY ? -1:1;
-    //console.log("hint path dir: "+hintPathDirection+" mouse dir: "+draggingDirection+" current view "+this.currentView+" next view "+this.nextView+" interp "+this.interpValue);
+    var draggingDirection;
+    if (mouseY>this.mouseY){
+        draggingDirection = -1;
+    }else if (mouseY < this.mouseY){
+        draggingDirection = 1;
+    }else{
+        draggingDirection = this.previousDragDirection;
+    }
 
     //Resolve the bounds, find the appropriate y-coords (if at peak, the tolerance adjusted y-value is used instead of the original)
-    var currentY = (current[2]==1)?current[3]:current[0];
-    var nextY = (next[2]==1)?next[3]:next[0];
+   // var currentY = (current[2]!=0)?(current[0] + current[2]*this.peakTolerance):current[0];
+   // var nextY = (next[2]!=0)?(next[0] + next[2]*this.peakTolerance):next[0];
+    var currentY = current[0];
+    var nextY = next[0];
     var bounds = this.checkBounds(currentY,nextY,mouseY);
-
-    //Determine the direction of the path (up or down)
-    var hintPathDirection = (currentY > nextY) ? 1:-1;
 
     //Update the view based on where the mouse is w.r.t the view boundaries
     if (bounds == mouseY){	    
 	    this.findInterpolation(currentY,nextY,mouseY,0);
         this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
         this.animateHintPath(this.interpValue);
-        this.previousHintPathDirection = hintPathDirection;
         newValues = [mouseY,this.findHeight(mouseY)];
     }else if (bounds == currentY ){ //Passing current
-        if (hintPathDirection != this.previousHintPathDirection){ //At a peak
-            newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,hintPathDirection,current);
+        if (current[2]!=0){
+            newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,current);
         }else{
             this.moveBackward();
-            this.previousHintPathDirection = hintPathDirection;
-            newValues = (current[2]==1)? [currentY,this.findHeight(currentY)]:[currentY,current[1]];
+            newValues = (current[2]!=0)? [currentY,this.findHeight(currentY)]:[currentY,current[1]];
         }
 
         if (this.progressIndicator!=1){
             this.drawProgress(0,0);
         }
     }else{ //Passing next
-        if (hintPathDirection != this.previousHintPathDirection){ //At a peak
-            newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,hintPathDirection,next);
+        if (next[2]!=0){
+            newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,next);
         }else{
             this.moveForward();
-            this.previousHintPathDirection = hintPathDirection;
-            newValues = (next[2]==1)?[nextY,this.findHeight(nextY)]:[nextY,next[1]];
+            newValues = (next[2]!=0)?[nextY,this.findHeight(nextY)]:[nextY,next[1]];
         }
 
         if (this.progressIndicator!=1){
@@ -456,12 +461,22 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
  * b1,b2: the boundary views (b1 should be the currently encountered corner)
  * mouseY: dragging position of the mouse
  * draggingDirection: of the user, 1 if dragging up, -1 is down
- * hintPathDirection: of the path, 1 if up, -1 if down, saves this value in a global variable only once the view changes
  * @return the y-position the bar should be drawn at
  * */
-Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,hintPathDirection,orig){
-//console.log(draggingDirection+" "+this.previousDragDirection+" "+this.timeDirection);
-    if (b1 > b2){ //Dragging needs to switch 1 -> -1 in order for view to change
+Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,orig){
+console.log(draggingDirection+" "+this.previousDragDirection+" "+this.timeDirection);
+    if (this.previousDragDirection!=draggingDirection){
+        console.log("switched dragging direction");
+        if (this.timeDirection ==1){this.moveForward();}
+        else{this.moveBackward();}
+    }
+    if (b1 > b2){
+        return (mouseY>=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
+    }else{
+        return (mouseY<=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
+    }
+
+    /**if (b1 > b2){ //Dragging needs to switch 1 -> -1 in order for view to change
         if (mouseY>=b1 && draggingDirection==-1 && this.previousDragDirection==1){
             if (this.timeDirection ==1){this.moveForward();}
             else{this.moveBackward();}
@@ -475,8 +490,7 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
             this.previousHintPathDirection = hintPathDirection;
         }
         return (mouseY<=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
-    }    
-    
+    }*/
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedBar, except
  *  this function is only called when in the middle of a stationary sequence of bars.
@@ -609,13 +623,13 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
 
     //Translate interaction paths (if any)
     if (this.interactionPaths.length >0) {
-            this.svg.select("#hintPath").selectAll(".interactionPath")
+        this.svg.select("#hintPath").selectAll(".interactionPath")
                 .attr("transform","translate(" + (-translateAmount) + ")");
     }
 
-     if (this.progressIndicator!=2){
-         this.drawProgress(interpAmount,translateAmount);
-     }
+    if (this.progressIndicator!=2){
+       this.drawProgress(interpAmount,translateAmount);
+    }
 }
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
@@ -796,7 +810,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
     var ref = this;
 
     //Create a dataset to draw the hint path in the format: [x,y]
-    this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0]];});
+    this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0],d[2]];});
 
     //Search the dataset for ambiguous cases (sequences of stationary points)
     this.checkAmbiguous();
@@ -819,10 +833,14 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
        .attr("filter", "url(#blur)")
        .attr("transform","translate("+(-translate)+")")
        .attr("id","path");
-   //TODO: at peaks, the labels on downwards peak are closer inwards making the tolerance value less noticeable at these parts, should position the y different on downwards peaks
+
 	//Draw the hint labels
    this.svg.select("#hintPath").selectAll("text").data(ref.pathData.map(function(d,i){
-           return {x:d[0],y:d[1],label:ref.hintLabels[i],id:i};
+           var yCoord = d[1];
+           if (d[2] == -1){ //If the label is at a downwards peak, adjust the y-coordinate such that it doesn't lie on top of the point on the hint path
+               yCoord = yCoord + 10;
+           }
+           return {x:d[0],y:yCoord,label:ref.hintLabels[i],id:i};
         })).enter().append("svg:text")
         .text(function(d) { return d.label; })
         .attr("x",function (d){return d.x}).attr("y",function (d){return d.y})

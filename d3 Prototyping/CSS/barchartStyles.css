@@ -1,5 +1,10 @@
 /** Some Styles for the barchart visualization */
 
+body {
+    /**Disables default selections (text, svg elements) of the browser*/
+    -webkit-user-select: none;
+}
+
 /*Labels on the hint path */
 .hintLabels {
   font-family: sans-serif;

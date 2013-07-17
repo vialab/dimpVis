@@ -234,8 +234,16 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
  *  @return new end angle of the dragged segment
  * */
 Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,nodes){
+
     //Find the current angular dragging direction
-    var draggingDirection = (mouseAngle>this.mouseAngle)?1:-1;
+    var draggingDirection;
+    if (mouseAngle>this.mouseAngle){
+        draggingDirection = 1;
+    }else if (mouseAngle < this.mouseAngle){
+        draggingDirection = -1;
+    }else{
+        draggingDirection = this.previousDragDirection;
+    }
 
    //Check to see if the mouse angle is in between current and next, or beyond one of them
     var bounds = this.checkBounds(current,next,mouseAngle);
@@ -658,6 +666,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
  * view: the view index
  * */
 Piechart.prototype.findHintRadius = function (index,view){
+   // console.log(index+" "+(this.labelOffset+this.hintRadiusSpacing*(index-view)));
     return this.labelOffset+this.hintRadiusSpacing*(index-view);
 }
 /**Interpolates radius between start and end view, used for animating the hint path
@@ -708,20 +717,22 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
                 y = this.cy+ pathInfo[j][2]*Math.sin(pathInfo[j-1][3] - this.halfPi);
                 //dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two radii
                 //dString +="S "+pathInfo[j-1][0]+","+pathInfo[j-1][1]+" "+x+","+y; //Small connecting line which joins two radii
+                var yMiddle = (y+pathInfo[j-1][1])/2 +10;
+                //dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" Q"+pathInfo[j-1][0]+","+yMiddle+" "+x+","+y; //Small connecting line which joins two radii
                 //dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 0.4 0.4 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
                 //dString +="M "+x+" "+y+" A 0.4 0.4 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]; //Small connecting line which joins two radii
                 if (pathInfo[j][3] > pathInfo[j-1][3]){
-                    dString +="M "+x+" "+y+" A 1.5 1.5 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]; //Small connecting line which joins two radii
-                    dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
-                        +pathInfo[j][2]+" 0 0 0 "+x+" "+y;
-                   // dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
-                        //+pathInfo[j][2]+" 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1];
+                    //dString +="M "+x+" "+y+" A 1.5 1.5 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]; //Small connecting line which joins two radii
+                    //dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
+                        //+pathInfo[j][2]+" 0 0 0 "+x+" "+y;
+                   dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
+                        +pathInfo[j][2]+" 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1];
                 }else{
-                    dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 1.5 1.5 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
-                    dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
-                        +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
-                   // dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A "+pathInfo[j][2]+" "
+                   // dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 1.5 1.5 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
+                    //dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
                         //+pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
+                    dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A "+pathInfo[j][2]+" "
+                        +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
 
                 }
             } else {
