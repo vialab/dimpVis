@@ -406,19 +406,17 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
 
     //Find the current vertical dragging direction of the user
     var draggingDirection;
-    if (mouseY>this.mouseY){
-        draggingDirection = -1;
-    }else if (mouseY < this.mouseY){
-        draggingDirection = 1;
-    }else{
-        draggingDirection = this.previousDragDirection;
-    }
+   //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
+    if (mouseY>this.mouseY){ draggingDirection = -1;}
+    else if (mouseY < this.mouseY){ draggingDirection = 1;}
+    else{ draggingDirection = this.previousDragDirection;}
 
     //Resolve the bounds, find the appropriate y-coords (if at peak, the tolerance adjusted y-value is used instead of the original)
-   // var currentY = (current[2]!=0)?(current[0] + current[2]*this.peakTolerance):current[0];
-   // var nextY = (next[2]!=0)?(next[0] + next[2]*this.peakTolerance):next[0];
-    var currentY = current[0];
-    var nextY = next[0];
+    var currentY = (current[2]!=0)?(current[0] + current[2]*this.peakTolerance):current[0];
+    var nextY = (next[2]!=0)?(next[0] + next[2]*this.peakTolerance):next[0];
+   // var currentY = current[0];
+   // var nextY = next[0];
+
     var bounds = this.checkBounds(currentY,nextY,mouseY);
 
     //Update the view based on where the mouse is w.r.t the view boundaries
@@ -464,33 +462,18 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
  * @return the y-position the bar should be drawn at
  * */
 Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,orig){
-console.log(draggingDirection+" "+this.previousDragDirection+" "+this.timeDirection);
-    if (this.previousDragDirection!=draggingDirection){
-        console.log("switched dragging direction");
+   //console.log(draggingDirection+" "+this.previousDragDirection+" "+this.timeDirection);
+
+    if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
         if (this.timeDirection ==1){this.moveForward();}
         else{this.moveBackward();}
     }
-    if (b1 > b2){
+
+    if (b1 > b2){ //Return information for re-drawing the bar
         return (mouseY>=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
     }else{
         return (mouseY<=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
     }
-
-    /**if (b1 > b2){ //Dragging needs to switch 1 -> -1 in order for view to change
-        if (mouseY>=b1 && draggingDirection==-1 && this.previousDragDirection==1){
-            if (this.timeDirection ==1){this.moveForward();}
-            else{this.moveBackward();}
-            this.previousHintPathDirection = hintPathDirection;
-        }
-        return (mouseY>=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
-    }else{//Dragging needs to switch -1 -> 1 in order for the view to change
-        if (mouseY<=b1 && draggingDirection==1 && this.previousDragDirection==-1){
-            if (this.timeDirection ==1){this.moveForward();}
-            else{this.moveBackward();}
-            this.previousHintPathDirection = hintPathDirection;
-        }
-        return (mouseY<=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
-    }*/
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedBar, except
  *  this function is only called when in the middle of a stationary sequence of bars.

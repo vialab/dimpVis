@@ -14,7 +14,7 @@ function Piechart(x,y, r,id,title,hLabels){
    this.id = id;
    this.radius = r;
    this.labelOffset = r+10;
-   this.hintRadiusSpacing = 15;
+   this.hintRadiusSpacing = 25;
 
    //Height and width of SVG can be calculated based on radius
    this.width = x + r*5;
@@ -87,7 +87,7 @@ Piechart.prototype.init = function(){
      .append("svg:filter")
      .attr("id", "blur")
      .append("svg:feGaussianBlur")
-     .attr("stdDeviation", 2);
+     .attr("stdDeviation", 4);
  }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -619,21 +619,24 @@ Piechart.prototype.showHintPath = function (id,angles,start){
             });
     }
     //Render white path under the main hint path
-    this.svg.select("#hintPath").append("path")
+   /** this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","pathUnderlayer")
-        .attr("filter", "url(#blur)");
+        .attr("filter", "url(#blur)");*/
 
     //Render the hint path
-    this.svg.select("#hintPath").append("path")
+    /**this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","path")
-        .attr("filter", "url(#blur)");
-    /**var drawLine = d3.svg.line().interpolate("cardinal");
-    this.svg.select("#hintPath").append("path")
-        .attr("d", drawLine(this.hintArcInfo.map(function (d){return [d[0],d[1]]})))
-        .attr("id","path")
         .attr("filter", "url(#blur)");*/
+    var drawLine = d3.svg.line().interpolate("cardinal");
+    var testPoints = this.findPoints(this.hintArcInfo);
+    console.log(testPoints);
+    this.svg.select("#hintPath").append("path")
+        //.attr("d", drawLine(this.hintArcInfo.map(function (d){return [d[0],d[1]]})))
+        .attr("d", drawLine(testPoints))
+        .attr("id","path")
+        .attr("filter", "url(#blur)");
 
 	//Render the hint labels
 	this.svg.select("#hintPath").selectAll("text")
@@ -692,8 +695,8 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
     var x,y;
     var corners = [];
     var currentDirection = 1, previousDirection = 1;
-  //TODO: doesn't draw properly when angle wraps around 360 deg
-   for (var j=0;j<pathInfo.length;j++){
+    //TODO: doesn't draw properly when angle wraps around 360 deg
+    for (var j=0;j<pathInfo.length;j++){
         //Either increasing or decreasing
         if (j>0){
             var x1,y1,x2,y2; //x2,y2 represents the bigger angle
@@ -724,13 +727,13 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
                 if (pathInfo[j][3] > pathInfo[j-1][3]){
                     //dString +="M "+x+" "+y+" A 1.5 1.5 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]; //Small connecting line which joins two radii
                     //dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
-                        //+pathInfo[j][2]+" 0 0 0 "+x+" "+y;
-                   dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
+                    //+pathInfo[j][2]+" 0 0 0 "+x+" "+y;
+                    dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
                         +pathInfo[j][2]+" 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1];
                 }else{
-                   // dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 1.5 1.5 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
+                    // dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 1.5 1.5 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
                     //dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
-                        //+pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
+                    //+pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
                     dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A "+pathInfo[j][2]+" "
                         +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
 
@@ -741,7 +744,7 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
                 dString +="M "+x2+" "+y2+" A "+pathInfo[j][2]+" "+pathInfo[j][2]+" 0 0 0 "+x1+" "+y1;
             }
         }
-       previousDirection = currentDirection;
+        previousDirection = currentDirection;
     }
 
     //TODO: not recognizing stationary sequences as a corner (if they lie on a corner), but this might not be a problem because ambiguous cases are handled differently
@@ -750,6 +753,36 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
         this.corners.push(0); //For the last view
     }
     return dString;
+}
+/**
+ * */
+Piechart.prototype.findPoints = function (pathInfo){
+   var newPoints = [];
+   var lastIndex = pathInfo.length-1;
+   var startAngle,angleDiff,startRadius,radiusDiff;
+   var totalIntervals = 8; //Play around with this value, will depend on the amount of blur setting
+   //TODO: to save time, can adjust this based on how far apart the angles are (if it's only couple of degrees difference then don't need a big interval)
+   var intermediaryAngle, intermediaryRadius, x, y,factor;
+
+   for (var j=0;j<lastIndex;j++){ //Exclude the last array entry
+        startAngle = pathInfo[j][3];
+        angleDiff= pathInfo[j+1][3] - startAngle;
+        startRadius = pathInfo[j][2];
+        radiusDiff = pathInfo[j+1][2] - startRadius;
+
+        newPoints.push([pathInfo[j][0],pathInfo[j][1]]);
+
+        for (var k = 1;k<totalIntervals;k++){
+            factor = k/totalIntervals;
+            intermediaryAngle = startAngle + angleDiff*factor;
+            intermediaryRadius = startRadius + radiusDiff*factor;
+            x = this.cx + intermediaryRadius*Math.cos(intermediaryAngle  - this.halfPi);
+            y = this.cy+ intermediaryRadius*Math.sin(intermediaryAngle  - this.halfPi);
+            newPoints.push([x,y]);
+        }
+    }
+    newPoints.push([pathInfo[lastIndex][0],pathInfo[lastIndex][1]]);
+    return newPoints;
 }
 //TODO: this function is not working (not high priority)
 /** Animates all segments on the piechart along the hint path of a selected segment
