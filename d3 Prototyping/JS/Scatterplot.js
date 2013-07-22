@@ -438,7 +438,7 @@ Scatterplot.prototype.snapToView = function( id, points) {
         distanceNext = this.calculateDistance(this.mouseX,this.mouseY, points[this.nextView][0],points[this.nextView][1]);
     }
     //Based on the smaller distance, update the scatterplot to that view
-    if (distanceCurrent > distanceNext && this.nextView != this.lastView){ //Snapping to next view
+    if (distanceCurrent > distanceNext && this.nextView <= this.lastView){ //Snapping to next view
 		this.currentView = this.nextView;
 	    this.nextView = this.nextView +1;
      }
@@ -532,6 +532,15 @@ Scatterplot.prototype.redrawView = function(view) {
 //TODO: For Later, find a better way for label placement to minimize overlap (detect really close points and shift the label positions)
  Scatterplot.prototype.showHintPath = function (id,points){
     var ref = this;
+
+    //In case next view went out of bounds (from snapping to view), re-adjust the view variables
+     var drawingView = this.currentView;
+     if (this.nextView>this.lastView){
+         this.nextView--;
+         this.currentView--;
+         drawingView = this.nextView;
+     }
+
     //Function for drawing a linearly interpolated path between set of points
     var line = d3.svg.line()
         .x(function(d) { return d[0]; })
@@ -568,7 +577,7 @@ Scatterplot.prototype.redrawView = function(view) {
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
         .attr("class","hintLabels")
-        .attr("fill-opacity",function (d){ return ((d.id==ref.currentView)?1:0.3)})
+        .attr("fill-opacity",function (d){ return ((d.id==drawingView)?1:0.3)})
         .attr("id",function (d){return "hintLabels"+ d.id})
         .on("click", this.clickHintLabelFunction);
 

@@ -29,7 +29,7 @@ barchart.clickHintLabelFunction = function (d, i){
     barchart.changeView(i);
     slider.updateSlider(i);
 };
-barchart.render(dataset,0);
+barchart.render(dataset);
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
