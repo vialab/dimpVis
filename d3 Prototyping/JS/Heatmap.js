@@ -194,9 +194,9 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
 
        //Determine the direction of the path
        var pathDirection;
-       if (currentY < nextY){ pathDirection = -1; } //Dragging down
+       if (currentY < nextY){ pathDirection = -1;} //Dragging down
        else if (currentY > nextY){pathDirection = 1;} //Dragging up
-       else{pathDirection = 0; } //Ambiguous?
+       else{pathDirection = 0;} //Ambiguous?
 
        //Determine whether the path direction has stayed the same or has changed
        if (pathDirection == ref.previousPathDirection){ //Same direction
@@ -206,8 +206,8 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        }
        nextY = (pathDirection==1)? (ref.draggedCellY - nextY/6):(ref.draggedCellY + nextY/6);
 
-        //  console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView);
-       //console.log(currentYOffset+" "+nextYOffset+" "+mouseY+" "+ref.currentView);
+       // console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView);
+       // console.log(currentYOffset+" "+nextYOffset+" "+mouseY+" "+ref.currentView);
 
        //Find the current vertical dragging direction
        var draggingDirection = mouseY<ref.mouseY? 1:-1;

@@ -31,8 +31,6 @@ function Piechart(x,y, r,id,title,hLabels){
    //View index tracker variables
    this.currentView = 0; //Starting view of the piechart (first year)
    this.nextView = 1;
-   /**this.currentArc = 0;
-   this.nextArc = 1;*/
 
    this.lastView = hLabels.length-1;
    this.numViews = hLabels.length;
@@ -51,6 +49,10 @@ function Piechart(x,y, r,id,title,hLabels){
    this.interactionPaths = [];
    this.isAmbiguous = 0;
    this.amplitude = 20; //Of the sine wave (interaction path)
+   this.amplitudeAngle = 0.1;
+   this.peakValue = null; //The y-value of the sine wave's peak (or trough)
+   this.passedMiddle = -1; //Passed the mid point of the peak of the sine wave
+   this.pathDirection = -1; //Directon travelling along an interaction path
 
    //Constants for angle calculations involving PI
    this.pi = Math.PI;
@@ -218,9 +220,29 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
         var next =  d.nodes[ref.nextView];
         var newAngle;
 
-        //Assuming no ambiguity right now
-        newAngle = ref.handleDraggedSegment(id,current,next,angle,d.nodes);
+        if (ref.isAmbiguous==1){ //Might be at a stationary sequence
+            var currentAmbiguous = ref.ambiguousSegments[ref.currentView][0];
+            var nextAmbiguous = ref.ambiguousSegments[ref.nextView][0];
 
+            if (currentAmbiguous == 1 && nextAmbiguous ==0){
+                ref.pathDirection = ref.ambiguousSegments[ref.currentView][1];
+                ref.passedMiddle = 0;
+                ref.peakValue = (ref.pathDirection==1)?(current-ref.amplitudeAngle):(current+ref.amplitudeAngle);
+                newAngle = ref.handleDraggedSegment(id,current,next,angle, d.nodes);
+            }else if (currentAmbiguous == 0 && nextAmbiguous==1){
+                ref.pathDirection = -1; //Sine wave always starts with a trough
+                ref.passedMiddle = 0;
+                ref.peakValue = (ref.pathDirection==1)?(next-ref.amplitudeAngle):(next+ref.amplitudeAngle);
+                newAngle = ref.handleDraggedSegment(id,current,next,angle, d.nodes);
+            }else if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
+                ref.handleDraggedSegment_stationary(id,current,angle, d.nodes);
+                newAngle = current;
+            }else{ //No stationary case to handle right now
+                newAngle = ref.handleDraggedSegment(id,current,next,angle,d.nodes);
+            }
+        } else{ //No ambiguity on the entire hint path
+            newAngle = ref.handleDraggedSegment(id,current,next,angle,d.nodes);
+        }
         //console.log(ref.currentView+" "+ref.nextView+" "+ref.timeDirection);
         d.endAngle = ref.dragStartAngle + newAngle; //Set the new end angle
         ref.mouseAngle = angle; //Save the dragging angle
@@ -269,6 +291,69 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
     this.previousDragDirection = draggingDirection; //Save the current dragging direction
     return bounds;
 }
+/** Resolves a dragging interaction in a similar method as handleDraggedSegment, except
+ *  this function is only called when in the middle of a stationary sequence of segments.
+ *  angle: The angle of the stationary segment
+ *  mouseAngle: The dragging angle
+ *  id: of the dragged segment
+ *  nodes: d.nodes data from the dragged segment
+ * */
+//TODO: this function will definitely have problems handling angles which wrap around 0/360
+ Piechart.prototype.handleDraggedSegment_stationary = function (id,angle,mouseAngle,nodes){
+
+    var bounds = this.checkBounds(this.peakValue,angle,mouseAngle);
+
+    if (bounds == mouseAngle){
+        this.findInterpolation(angle,this.peakValue, mouseAngle, 1);
+        this.interpolateSegments(id, angle,this.currentView,this.nextView,this.interpValue);
+        this.animateHintPath(nodes);
+       // console.log("time direction: "+this.timeDirection+" "+this.interpValue);
+    }else if (bounds == this.peakValue){ //At boundary
+        if (this.timeDirection ==1){this.passedMiddle = 1}
+        else {this.passedMiddle =0;}
+
+    }else{ //At base
+        //Update the view
+        if (this.timeDirection ==1){
+            this.moveForward();
+            this.passedMiddle = 0;
+        }
+        else{
+            this.moveBackward();
+            this.passedMiddle = 1;
+        }
+
+        this.pathDirection = (this.pathDirection==1)?-1:1;
+        this.peakValue = (this.pathDirection==1)?(angle-this.amplitudeAngle):(angle+this.amplitudeAngle);
+    }
+   //console.log(" mouse angle: "+mouseAngle*180/Math.PI+" base angle: "+angle*180/Math.PI+" peak angle: "+this.peakValue*180/Math.PI);
+    this.redrawAnchor(bounds);
+}
+/** Appends an anchor to the svg, if there isn't already one
+ *  x,y: the position of the anchor
+ * */
+Piechart.prototype.appendAnchor = function (x,y){
+    if (this.svg.select("#anchor").empty()){
+       this.svg.select("#hintPath").append("circle").attr("r",4).attr("id","anchor");
+    }
+}
+/** Re-draws the anchor along the sine wave
+ * */
+Piechart.prototype.redrawAnchor = function (angle){
+    var newAngle = this.convertAngle(angle+this.dragStartAngle);
+
+    var cx = this.cx + this.radius*Math.cos(newAngle);
+    var cy = this.cy + this.radius*Math.sin(newAngle);
+
+    this.svg.select("#anchor").attr("cy",cy).attr("cx",cx);
+}
+/** Removes an anchor from the svg, if one is appended
+ * */
+Piechart.prototype.removeAnchor = function (){
+    if (!this.svg.select("#anchor").empty()){
+        this.svg.select("#anchor").remove();
+    }
+}
 /**Infers the time direction when user arrives at corners, inference is based on previous direction
  * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
  * changes.
@@ -278,44 +363,37 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
  * */
 Piechart.prototype.inferTimeDirection = function (b1,b2,mouseAngle,draggingDirection){
 
-    if (b1 > b2){ //Dragging needs to switch 1 -> -1 in order for view to change
-        if (mouseAngle>=b1 && draggingDirection==-1 && this.previousDragDirection==1){
-            if (this.timeDirection ==1){this.moveForward();}
-            else{this.moveBackward();}
-        }
-    }else{//Dragging needs to switch -1 -> 1 in order for the view to change
-        if (mouseAngle<=b1 && draggingDirection==1 && this.previousDragDirection==-1){
-            if (this.timeDirection ==1){this.moveForward();}
-            else{this.moveBackward();}
-        }
+    if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
+        if (this.timeDirection ==1){this.moveForward();}
+        else{this.moveBackward();}
     }
 }
 /** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
  *   Uses the interpolation amount to find the direction travelling over time and save it
  *   in the global variable.
- *   b1,b2: y-position of boundary values (mouse is currently in between)
- *   mouse: y-position of the mouse
+ *   b1,b2: boundary angles (mouse is currently in between)
+ *   mouseAngle: dragging angle
  *   ambiguity: a flag, = 1, stationary case (interpolation split by the peak on the sine wave)
  *                      = 0, normal case
  */
-Piechart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
+Piechart.prototype.findInterpolation  = function (b1,b2,mouseAngle,ambiguity){
 
     var distanceTravelled, currentInterpValue;
     var total = Math.abs(b2 - b1);
 
     //Calculate the new interpolation amount
     if (ambiguity == 0){
-        distanceTravelled = Math.abs(mouseY-b1);
+        distanceTravelled = Math.abs(mouseAngle-b1);
         currentInterpValue = distanceTravelled/total;
-    }/*else{
+    }else{
         if (this.passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
-            distanceTravelled = Math.abs(mouseY - b1);
+            distanceTravelled = Math.abs(mouseAngle - b1);
             currentInterpValue = distanceTravelled/(total*2);
         }else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
-            distanceTravelled = Math.abs(mouseY - b2);
+            distanceTravelled = Math.abs(mouseAngle - b2);
             currentInterpValue = (distanceTravelled+total)/(total*2);
         }
-    }*/ //TODO: implement this when ambiguous case detection is working
+    }
 
     //Set the direction travelling over time (1: forward, -1: backward)
     this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
@@ -326,10 +404,6 @@ Piechart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
  * (passing the next view)
  * */
 Piechart.prototype.moveForward = function (){
-    /**if(this.corners[this.nextView]==1){
-        this.currentArc = this.nextArc;
-        this.nextArc++;
-    }*/
     if (this.nextView < this.lastView){ //Avoid index out of bounds
         this.currentView = this.nextView;
         this.nextView++;
@@ -339,10 +413,6 @@ Piechart.prototype.moveForward = function (){
  * (passing the current view)
  * */
 Piechart.prototype.moveBackward = function (){
-    /**if(this.corners[this.currentView]==1){
-        this.nextArc = this.currentArc;
-        this.currentArc--;
-    }*/
     if (this.currentView > 0){ //Avoid index out of bounds
         this.nextView = this.currentView;
         this.currentView--;
@@ -409,7 +479,8 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  *  amount
  * angles: an array of all angles to appear on the hint path
  * */
-Piechart.prototype.animateHintPath = function (angles){
+//TODO: might need a better way of animating, should not have to re-calculate all points each time, should use transforms (e.g., translate x,y and scale the size of the arc)
+ Piechart.prototype.animateHintPath = function (angles){
     var ref = this;
     var hintArcInfo = ref.calculateHintAngles(angles,null,1);
     var hintPathArcString = ref.createArcString(hintArcInfo,0);
@@ -531,6 +602,7 @@ Piechart.prototype.redrawHintPath = function (view,angles){
             d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")");
             return ref.interactionPathGenerator(translatedPoints);
         });
+        //this.removeAnchor(); //Anchor will be re-appended in showHintPath()
     }
 }
 /** Calculates the hint angles for drawing a hint path, an array stores
@@ -543,28 +615,11 @@ Piechart.prototype.redrawHintPath = function (view,angles){
  *       if set to 1, interpolate between current and next view
  * */
 Piechart.prototype.calculateHintAngles = function (angles,view,flag){
-
-  //The old hint path design (radius changes when dragging direction changes)
-  //NOTE: for this design need to pass the arcIndices: which arc should the label be drawn on
-  /**  var newAngle, r, x,y;
-    var hintAngles = [];
-    for (var j=0;j<angles.length;j++){
-        newAngle = this.dragStartAngle + angles[j];
-        if (flag ==0){
-            r = this.findHintRadius(arcIndices[j],this.currentArc);
-        }else{
-            r = this.interpolateHintRadius(arcIndices[j],this.currentArc,this.nextArc);
-        }
-        x = this.cx + r*Math.cos(newAngle - this.halfPi);
-        y = this.cy+ r*Math.sin(newAngle - this.halfPi);
-        hintAngles.push([x,y,r,newAngle]);
-    }*/
-
-  //New hint path design: separate radius for each year
-  var newAngle, r, x,y;
+  //Hint path design: separate radius for each year
+  var newAngle, r, x, y;
   var hintAngles = [];
-
-    for (var j=0;j<angles.length;j++){
+  for (var j=0;j<angles.length;j++){
+       //Calculate the new information
         newAngle = this.dragStartAngle + angles[j];
         if (flag ==0){
             r = this.findHintRadius(j,view);
@@ -574,7 +629,75 @@ Piechart.prototype.calculateHintAngles = function (angles,view,flag){
         x = this.cx + r*Math.cos(newAngle - this.halfPi);
         y = this.cy+ r*Math.sin(newAngle - this.halfPi);
         hintAngles.push([x,y,r,newAngle]);
+  }
+   return hintAngles;
+}
+/** This function analyzes the hint path data to do the following:
+ *  Calculate hint path coordinates, radius etc.
+ *  Finds stationary sequences (1 - is stationary, 0 - not)
+ *  Detect corners (changes in angular direction)
+ * */
+Piechart.prototype.processHintPathInfo = function (angles,view){
+    //Hint path design: separate radius for each year
+    var newAngle, r, x, y,previousDirection,prevAngle;
+    var currentDirection = 1;
+    var stationaryAngle = "start";
+    var stationaryGroupNum = 0;
+
+    var hintAngles = [];
+    this.corners = []; //Clear the arrays
+    this.ambiguousSegments =[];
+
+    //Re-set the array
+    for (j=0;j<=this.lastView;j++){
+        this.ambiguousSegments[j] = [0];
     }
+
+    for (var j=0;j<=this.lastView;j++){
+
+        //Step 1: Calculate the new hint path information for this angle
+        newAngle = this.dragStartAngle + angles[j];
+        r = this.findHintRadius(j,view);
+        x = this.cx + r*Math.cos(newAngle - this.halfPi);
+        y = this.cy+ r*Math.sin(newAngle - this.halfPi);
+        hintAngles.push([x,y,r,newAngle]);
+
+        //Step 2: Determine if the angle is on a corner
+        if (j>0){
+            currentDirection = (newAngle>prevAngle)?1:0;
+            if (previousDirection != currentDirection){
+                this.corners.push(1);
+            }else{
+                this.corners.push(0);
+            }
+        }
+
+        //Step 3: Determine if the angle is a part of a stationary sequence
+        if (newAngle == prevAngle){
+            this.isAmbiguous = 1;
+            if (stationaryAngle == "start"){
+                stationaryAngle = newAngle;
+                this.ambiguousSegments[j] = [1,stationaryGroupNum];
+                this.ambiguousSegments[j-1] = [1,stationaryGroupNum];
+            }else{
+                if (stationaryAngle == newAngle){
+                    this.ambiguousSegments[j] = [1,stationaryGroupNum];
+                    this.ambiguousSegments[j-1] = [1,stationaryGroupNum];
+                }else{
+                    stationaryGroupNum++;
+                    stationaryAngle = newAngle;
+                    this.ambiguousSegments[j] = [1,stationaryGroupNum];
+                    this.ambiguousSegments[j-1] = [1,stationaryGroupNum];
+                }
+            }
+        }
+
+        //Save some information
+        previousDirection = currentDirection;
+        prevAngle = newAngle;
+    }
+    this.corners.push(0); //Added for the lastview
+
     return hintAngles;
 }
 /**Displays the hint path for the dragged segment
@@ -586,35 +709,29 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     this.dragStartAngle = start; //Important: save the start angle and re-set interpolation
     this.interpValue = 0;
 
-    this.hintArcInfo = this.calculateHintAngles(angles,this.currentView,0);
+    this.hintArcInfo = this.processHintPathInfo(angles,this.currentView);
+
     var hintPathArcString = this.createArcString(this.hintArcInfo,1);
-
-    //Check for ambiguous cases in the data
-    this.checkAmbiguous(angles);
-
-    //Set the current and next arc tracking vars
-    /**this.currentArc = hDirections[this.currentView][1];
-    this.nextArc = this.currentArc +1;*/
 
     //NOTE: Angle has to be converted to match the svg rotate standard: (offset by 90 deg)
     //http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
     if (this.isAmbiguous ==1 ){ //Draw interaction paths (if any)
+        this.appendAnchor(1,0);
+        this.findPaths(); //Generate points for drawing an interaction path
         this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i) {
                 var viewIndex = d[1];
-                var angle_deg = (angles[viewIndex]+ref.dragStartAngle)*(180/Math.PI);
-                if (angle_deg >=0 && angle_deg < Math.PI/2){
-                    angle_deg = 270 + angle_deg;
-                }else{
-                    angle_deg = angle_deg - 90;
-                }
+                var angle_deg = ref.convertAngle((angles[viewIndex]+ref.dragStartAngle))*(180/Math.PI);
                 return {points:d[0],id:i,rotationAngle:angle_deg,view:viewIndex}
              })).enter().append("path").attr("class","interactionPath")
             .attr("d",function (d) {
+                //Translate the sine wave to it's stationary angle
                 var xTranslate = ref.hintArcInfo[d.view][0];
                 var yTranslate = ref.hintArcInfo[d.view][1];
                 var translatedPoints = d.points.map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
-                d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")");
+
+                d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")"); //Transform the node in this function so data doesn't have to be saved...
+
                 return ref.interactionPathGenerator(translatedPoints);
             });
     }
@@ -625,18 +742,18 @@ Piechart.prototype.showHintPath = function (id,angles,start){
         .attr("filter", "url(#blur)");*/
 
     //Render the hint path
-    /**this.svg.select("#hintPath").append("path")
+    this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","path")
-        .attr("filter", "url(#blur)");*/
-    var drawLine = d3.svg.line().interpolate("cardinal");
-    var testPoints = this.findPoints(this.hintArcInfo);
-    console.log(testPoints);
+        .attr("filter", "url(#blur)");
+   /** var drawLine = d3.svg.line().interpolate("cardinal");
+    var testPoints = this.calculateHintPathPoints(this.hintArcInfo);
+
     this.svg.select("#hintPath").append("path")
         //.attr("d", drawLine(this.hintArcInfo.map(function (d){return [d[0],d[1]]})))
         .attr("d", drawLine(testPoints))
         .attr("id","path")
-        .attr("filter", "url(#blur)");
+        .attr("filter", "url(#blur)");*/
 
 	//Render the hint labels
 	this.svg.select("#hintPath").selectAll("text")
@@ -645,8 +762,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
          .attr("transform", function (d){return "translate("+ d.x+","+ d.y+")";})
          .on("click",this.clickHintLabelFunction)
          .attr("fill-opacity",function (d){ return ref.changeLabelOpacity(d,ref.currentView)})
-         .attr("id",function (d){return "hintLabel"+ d.id})
-         .attr("class","hintLabels");
+         .attr("id",function (d){return "hintLabel"+ d.id}).attr("class","hintLabels");
 
     //Fade out all the other segments
 	this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
@@ -654,11 +770,21 @@ Piechart.prototype.showHintPath = function (id,angles,start){
 
    this.hintArcInfo = [];
 }
-/** Clears the hint path by removing all svg elements in #hintPath
- * */
+/** Angle has to be converted to match the svg rotate standard coordinate system: (offset by 90 deg)
+ *  source: http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
+*/
+Piechart.prototype.convertAngle = function (angle){
+    return (angle >=0 && angle < Math.PI/2)? (3*Math.PI/2 + angle):(angle - Math.PI/2);
+}
+/** Clears the hint path by removing all svg elements in #hintPath */
  Piechart.prototype.clearHintPath = function (){
+     //Re-set some global variables
      this.pathData = [];
      this.interactionPaths = [];
+     this.isAmbiguous = 0;
+
+     //Clear contents of #hintPath
+     this.removeAnchor();
      this.svg.select("#hintPath").selectAll("text").remove();
      this.svg.select("#hintPath").selectAll("path").remove();
      this.svg.selectAll(".displayArcs").style("fill-opacity", 1);
@@ -716,27 +842,16 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
 
             if (currentDirection != previousDirection){ //Changing directions
                 corners.push(1);
-                x = this.cx + pathInfo[j][2]*Math.cos(pathInfo[j-1][3] -this.halfPi);
-                y = this.cy+ pathInfo[j][2]*Math.sin(pathInfo[j-1][3] - this.halfPi);
-                //dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two radii
-                //dString +="S "+pathInfo[j-1][0]+","+pathInfo[j-1][1]+" "+x+","+y; //Small connecting line which joins two radii
-                var yMiddle = (y+pathInfo[j-1][1])/2 +10;
-                //dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" Q"+pathInfo[j-1][0]+","+yMiddle+" "+x+","+y; //Small connecting line which joins two radii
-                //dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 0.4 0.4 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
-                //dString +="M "+x+" "+y+" A 0.4 0.4 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]; //Small connecting line which joins two radii
+                var radiusDiff = Math.abs(pathInfo[j][2] - pathInfo[j-1][2]);
+                x = this.cx + (pathInfo[j-1][2] + radiusDiff*0.35)*Math.cos(pathInfo[j-1][3] -this.halfPi);
+                y = this.cy + (pathInfo[j-1][2] + radiusDiff*0.35)*Math.sin(pathInfo[j-1][3] - this.halfPi);
+                dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two radii
                 if (pathInfo[j][3] > pathInfo[j-1][3]){
-                    //dString +="M "+x+" "+y+" A 1.5 1.5 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]; //Small connecting line which joins two radii
-                    //dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
-                    //+pathInfo[j][2]+" 0 0 0 "+x+" "+y;
                     dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
-                        +pathInfo[j][2]+" 0 0 0 "+pathInfo[j-1][0]+" "+pathInfo[j-1][1];
+                        +pathInfo[j][2]+" 0 0 0 "+x+" "+y;
                 }else{
-                    // dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A 1.5 1.5 0 0 0 "+x+" "+y; //Small connecting line which joins two radii
-                    //dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
-                    //+pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
-                    dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" A "+pathInfo[j][2]+" "
+                    dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
                         +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
-
                 }
             } else {
                 corners.push(0);
@@ -756,7 +871,7 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
 }
 /**
  * */
-Piechart.prototype.findPoints = function (pathInfo){
+ Piechart.prototype.calculateHintPathPoints = function (pathInfo){
    var newPoints = [];
    var lastIndex = pathInfo.length-1;
    var startAngle,angleDiff,startRadius,radiusDiff;
@@ -772,10 +887,22 @@ Piechart.prototype.findPoints = function (pathInfo){
 
         newPoints.push([pathInfo[j][0],pathInfo[j][1]]);
 
+        if (this.corners[j]==1){ //Make the corners look like a loop
+            var cornerX = this.cx + (startRadius + radiusDiff*0.35)*Math.cos(startAngle -this.halfPi);
+            var cornerY = this.cy+ (startRadius + radiusDiff*0.35)*Math.sin(startAngle - this.halfPi);
+            newPoints.push([cornerX,cornerY]);
+        }
+
+       //TODO: stationary regions do not need any intermediary points
         for (var k = 1;k<totalIntervals;k++){
             factor = k/totalIntervals;
+            if (factor <=0.35){
+                intermediaryRadius = startRadius + radiusDiff*0.35;
+            }else{
+                intermediaryRadius = startRadius + radiusDiff*factor;
+            }
             intermediaryAngle = startAngle + angleDiff*factor;
-            intermediaryRadius = startRadius + radiusDiff*factor;
+
             x = this.cx + intermediaryRadius*Math.cos(intermediaryAngle  - this.halfPi);
             y = this.cy+ intermediaryRadius*Math.sin(intermediaryAngle  - this.halfPi);
             newPoints.push([x,y]);
@@ -849,61 +976,16 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
         };
     }
 }
-/** Search for ambiguous cases in a list of angles.  Ambiguous cases are tagged by type, using a number.
- *  The scheme is:
- *  0: not ambiguous
- *  1: stationary segment (doesn't move for at least 2 consecutive years)
- *  This information is stored in the ambiguousSegments array, which gets re-populated each time a
- *  new segment is dragged.  This array is in  the format: [type...number of views]
- *  angles: all angles along the hint path
- * */
-Piechart.prototype.checkAmbiguous = function (angles){
-    var j, currentSegment;
-    var stationarySegments = [];
-    this.isAmbiguous = 0;
-    this.ambiguousSegments = [];
-
-    //Re-set the ambiguousPoints array
-    for (j=0;j<=this.lastView;j++){
-        this.ambiguousSegments[j] = [0];
-    }
-    //Populate the stationary and revisiting bars array
-    //Search for heights that are equal (called "repeated bars")
-    for (j=0;j<=this.lastView;j++){
-        currentSegment= angles[j];
-        for (var k=j;k<=this.lastView;k++){
-            if (j!=k && angles[k]== currentSegment){ //Repeated bar is found
-                //if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<1){ //An almost stationary segment, less than one pixel difference
-                if (Math.abs(k-j)==1){ //Stationary segment is found
-                    this.isAmbiguous = 1;
-                    //If the bar's index does not exist in the array of all stationary bars, add it
-                    if (stationarySegments.indexOf(j)==-1){
-                        stationarySegments.push(j);
-                        this.ambiguousSegments[j] = [1];
-                    }if (stationarySegments.indexOf(k)==-1){
-                        stationarySegments.push(k);
-                        this.ambiguousSegments[k] = [1];
-                    }
-                }
-            }
-        }
-    }
-    //If there exists any stationary segments in the dataset
-    if (stationarySegments.length>0){
-        //Then, generate points for drawing an interaction path
-        this.findPaths(d3.min(stationarySegments));
-    }
-}
 /** Populates "interactionsPath" array with all points for drawing the sine waves:
  * interactionPaths[] = [[points for the sine wave]..number of paths]
- * startIndex: the index of the first stationary bar (only for reducing the search time, can just
- * set this to 0)
  * */
-Piechart.prototype.findPaths = function (startIndex){
+Piechart.prototype.findPaths = function (){
     var pathInfo = [];
-    for (var j=startIndex; j<=this.lastView;j++){
+    var pathNumber = 0;
+    for (var j=0; j<=this.lastView;j++){
         if (this.ambiguousSegments[j][0]==1){
-            if (j!=startIndex && this.ambiguousSegments[j-1][0]!=1){ //Starting a new path
+            if (this.ambiguousSegments[j][1] != pathNumber){ //Starting a new path
+                pathNumber = this.ambiguousSegments[j][1];
                 this.interactionPaths.push(this.calculatePathPoints(pathInfo));
                 pathInfo = [];
             }

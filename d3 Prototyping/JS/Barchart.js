@@ -42,7 +42,6 @@
    this.interpValue=0; //For estimating the time direction and update the barchart view
    this.mouseY = 0;
    this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
-   this.previousHintPathDirection = 1; //Saves the direction of the hint path (going up or down)
 
    this.ambiguousBars = [];
    this.interactionPaths = [];
