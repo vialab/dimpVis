@@ -52,6 +52,9 @@
    this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
    this.atPeak = 0; //Special case where the end point of a sine wave is being approached along the hint path
 
+   this.sineWaveStart = -1; //Start and end views of the sine wave end points
+   this.sineWaveEnd = -1;
+
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
@@ -251,37 +254,52 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
          var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
 
         if (ref.isAmbiguous ==1){ //At least one stationary sequence exists somewhere on the hint path
-            var currentAmbiguous = ref.ambiguousBars[ref.currentView][0];
-            var nextAmbiguous = ref.ambiguousBars[ref.nextView][0];
+            var currentAmbiguous = ref.ambiguousBars[ref.currentView];
+            var nextAmbiguous = ref.ambiguousBars[ref.nextView];
             //Check for stationary bar sequences
-            if (currentAmbiguous == 1 && nextAmbiguous ==0){ //Approaching the stationary points from right (along hint path)
-                ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
-                if((current>next && ref.pathDirection==-1) || (current<next && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
-                    ref.atPeak = 1;
-                }else{
-                    ref.atPeak = 0;
-                }
-                //console.log(ref.pathDirection+" "+ref.timeDirection);
+            if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching the stationary points from right (along hint path)
                 ref.passedMiddle = 0;
+                ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
                 ref.peakValue = (ref.pathDirection==1)?(current[0]-ref.amplitude):(ref.amplitude+current[0]);
+
+
+                ref.sineWaveStart = currentAmbiguous[2];
+                ref.sineWaveEnd = currentAmbiguous[3];
+
+                if (current>next){console.log("current greater than next")}
+                if (current<next){console.log("current less than next")}
+
+                if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
+                    ref.atPeak = 1;
+                }
+               // ref.atPeak = 2;
+                //console.log(ref.pathDirection+" "+ref.timeDirection);
+
                 newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
-            }else if (currentAmbiguous == 0 && nextAmbiguous==1){ //Approaching the stationary points from left (along hint path)
+            }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching the stationary points from left (along hint path)
+                ref.passedMiddle = 0;
                 ref.pathDirection = -1; //Sine wave always starts with a trough
+                ref.peakValue = (ref.pathDirection==1)?(next[0]-ref.amplitude):(ref.amplitude+next[0]);
+
+
+                ref.sineWaveStart = nextAmbiguous[2];
+                ref.sineWaveEnd = nextAmbiguous[3];
+
+
                 if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
                     ref.atPeak = 1;
-                }else{
-                    ref.atPeak = 0;
                 }
-                ref.passedMiddle = 0;
-                ref.peakValue = (ref.pathDirection==1)?(next[0]-ref.amplitude):(ref.amplitude+next[0]);
+
                 newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
-            }else if (currentAmbiguous==1 && nextAmbiguous==1){ //In middle of sequence
-                ref.handleDraggedBar_stationary(current[0],mouseY,mouseX,id);
+            }else if (currentAmbiguous[0]==1 && nextAmbiguous[0]==1){ //In middle of sequence
+                ref.handleDraggedBar_stationary(current[0],mouseY,mouseX,id,draggingDirection,currentAmbiguous[1],nextAmbiguous[1]);
                 newValues = [current[0],current[1]];
             }else{ //No stationary case to handle right now
+
+                ref.atPeak = 0;
+
                 newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
             }
-
         }else { //No stationary ambiguous cases exist
             newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
         }
@@ -294,8 +312,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
     });
 
-      //Save the mouse y-coordinate
-      this.mouseY = mouseY;
+    //Save the mouse y-coordinate
+    this.mouseY = mouseY;
 }
 /** Updates the view variables to move the visualization forward
  * (passing the next view)
@@ -393,7 +411,6 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
            this.svg.select("#progress").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
         }else if (this.progressIndicator==1){ //Large progress path, adjust the interpolation
             var interpAmount = (this.currentView-1)/this.lastView + interpAmount/this.lastView;
-            console.log(interpAmount);
         }
 
         //Re-colour the progress path
@@ -429,7 +446,10 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
         this.animateHintPath(this.interpValue);
         newValues = [mouseY,this.findHeight(mouseY)];
     }else if (bounds == currentY ){ //Passing current
-        if (current[2]!=0){
+
+        //if (current[2]!=0 || this.currentView == this.sineWaveEnd){ //At a peak or a peak formed by hint path and sine wave
+        if (current[2]!=0 || this.atPeak != 0){ //At a peak or a peak formed by hint path and sine wave
+            console.log("infer");
             newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,current);
         }else{
             this.moveBackward();
@@ -440,7 +460,10 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
             this.drawProgress(0,0);
         }
     }else{ //Passing next
-        if (next[2]!=0){
+
+       // if (next[2]!=0 || this.nextView == this.sineWaveStart){ //At a peak or a peak formed by hint path and sine wave
+        if (next[2]!=0 || this.atPeak !=0){ //At a peak or a peak formed by hint path and sine wave
+            console.log("infer");
             newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,next);
         }else{
             this.moveForward();
@@ -482,10 +505,15 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
  *  mouseY, mouseX: coordinates of the mouse
  *  id: of the dragged bar
  *  draggingDirection: vertical dragging direction of the mouse
+ *  isCurrentpt, isNextPt: tells whether the pt is an end point along the sine wave
  * */
 //TODO: jumping whenever the sine wave peak direction is opposite the hint path direction (probably confusing the directions)
- Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id){
-    console.log(this.peakValue+" "+mouseY);
+//TODO: problem when user releases bar and then re-selects it and ends up in the middle of the sine wave (should save sine wave direction)
+ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id,draggingDirection,isCurrentEndPt,isNextEndPt){
+    //console.log(this.peakValue+" "+mouseY+" "+this.atPeak+" "+draggingDirection);
+     //console.log(this.pathDirection+" "+this.peakValue+" "+this.interpValue);
+     //console.log(isCurrentEndPt+" "+isNextEndPt);
+
     var bounds = this.checkBounds(this.peakValue,barY,mouseY);
 	var newY; //To re-position the anchor
 
@@ -496,25 +524,49 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
 		 //console.log("time direction: "+this.timeDirection+" "+this.interpValue);
 		 newY = mouseY;               
     }else if (bounds == this.peakValue){ //At boundary
-		 if (this.timeDirection ==1){this.passedMiddle = 1}
-		 else {this.passedMiddle =0;}
-		 newY = this.peakValue;
+        if (draggingDirection != this.previousDragDirection){
+            if (this.timeDirection ==1){this.passedMiddle = 1}
+            else {this.passedMiddle =0;}
+        }
+        this.interpValue = 0.5;
+        newY = this.peakValue;
     }else{ //At base, update the view
+         //console.log("peak"+this.atPeak);
+         if (this.atPeak!=0){
+             if (draggingDirection != this.previousDragDirection){
+                 this.atPeak = 0;
+             }
+         }else{
 
-		 if (this.timeDirection ==1){
-			 this.moveForward();
-			 this.passedMiddle = 0;
-		 }else{
-			 this.moveBackward();
-			 this.passedMiddle = 1;
-		 }
+             if (this.timeDirection ==1){
+                 //console.log(this.currentView+" "+this.sineWaveStart);
+                 //if (this.currentView != this.sineWaveStart){
+                     //console.log("current view is not sine wave start");
+                     this.moveForward();
+                     this.passedMiddle = 0;
+                     this.pathDirection = (this.pathDirection==1)?-1:1;
+                     this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
+                // }
+                // if (isNextEndPt==0){
+                     // this.moveForward();
+                     // this.passedMiddle = 0;
+                     //console.log("at edge");
+                 //}
+             }else{
+                 //if (isCurrentEndPt ==0){
+                    //console.log("at edge");
+                     this.moveBackward();
+                     this.passedMiddle = 1;
+                     this.pathDirection = (this.pathDirection==1)?-1:1;
+                     this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
+                 //}
+             }
 
-		this.pathDirection = (this.pathDirection==1)?-1:1;
-        this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
-
-		newY=barY;
+         }
+         newY=barY;
      }
-    this.redrawAnchor(barY,mouseX,mouseY,newY);
+     //console.log(this.currentView+" "+this.nextView+" "+this.interpValue);
+     this.redrawAnchor(barY,mouseX,mouseY,newY);
 }
 /**Computes the new height of a bar based on a new y-position
  * yPos: current y-position of the bar
@@ -540,15 +592,17 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
         start = h1;
         end = h2;
 	}
-	//console.log("my "+mouseY+"start "+start+" end "+end);
+
 	//Check if the mouse is between start and end values
 	if (mouseY <= start) {
         if (this.timeDirection == -1) {this.interpValue = 1; }
         else{this.interpValue = 0;}
+        //this.interpValue = 0;
         return start;
     }else if (mouseY >=end) {
         if (this.timeDirection == -1) {this.interpValue = 1; }
         else{this.interpValue = 0;}
+        //this.interpValue = 0;
         return end;
     }     
 	
@@ -581,7 +635,6 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
 	//Set the direction travelling over time (1: forward, -1: backward)
     this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
 
-	//console.log(this.timeDirection+" "+this.interpValue+" "+currentInterpValue);
     //Save the current interpolation value
     this.interpValue = currentInterpValue;
 }
@@ -636,11 +689,9 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
       });
 }
 /** Animates all bars in the barchart along their hint paths from
- *  startView to endView, this function is called when "fast-forwarding"
- *  is invoked (by clicking a year label on the hint path)
- *  startView: View index to start the animation at
- *  endView: View to end the animation at (need to update view variables
- *  according to this value)
+ *  startView to endView, this function is called a year label on the hint path
+ *  is clicked
+ *  startView, endView: View indices to bound the animation
  *  id: the id of the dragged bar (if any), to animate it's hint path which is visible
  *  NOTE: This function does not update the view tracking variables
  * */
@@ -783,8 +834,7 @@ Barchart.prototype.snapToView = function (id, heights){
   }
   
   //Re-draw at the snapped view
-  if (this.nextView == this.lastView)  this.redrawView(this.currentView+1,id);
-  else this.redrawView(this.currentView,id);
+  this.redrawView(this.currentView,id);
 }
 /** Displays the hint path by appending its svg components to the main svg
  *  id: the id of the dragged bar
@@ -875,7 +925,7 @@ Barchart.prototype.checkAmbiguous = function (){
 
     //Re-set the ambiguousPoints array
     for (j=0;j<=this.lastView;j++){
-        this.ambiguousBars[j] = [0];
+        this.ambiguousBars[j] = [0,0];
     }
     //Populate the stationary and revisiting bars array
     //Search for heights that are equal (called "repeated bars")
@@ -889,10 +939,10 @@ Barchart.prototype.checkAmbiguous = function (){
                     //If the bar's index does not exist in the array of all stationary bars, add it
                     if (stationaryBars.indexOf(j)==-1){
                         stationaryBars.push(j);
-                        this.ambiguousBars[j] = [1];
+                        this.ambiguousBars[j] = [1,0];
                     }if (stationaryBars.indexOf(k)==-1){
                         stationaryBars.push(k);
-                        this.ambiguousBars[k] = [1];
+                        this.ambiguousBars[k] = [1,0];
                     }
                 }
             }
@@ -947,10 +997,11 @@ Barchart.prototype.calculatePathPoints = function (indices){
         pathPoints.push([x,y]);
     }
 
-    //Insert the end direction (1=peak, -1=trough) of the sine wave into ambiguousBars array
-    // (first direction will always be -1)
+    //Insert the directions (1=peak, -1=trough) of the end points on the sine wave into ambiguousBars array
+    // (first direction will always be -1), add the indices of the views which begin and end the sine wave
     var endDirection = (indices.length % 2==0)?-1:1;
-    this.ambiguousBars[indices[indices.length-1]] = [1,endDirection];
+    this.ambiguousBars[indices[indices.length-1]] = [1,endDirection,indices[0],indices[indices.length-1]];
+    this.ambiguousBars[indices[0]] = [1,-1,indices[0],indices[indices.length-1]];
 
     return pathPoints;
 }

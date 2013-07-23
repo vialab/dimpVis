@@ -89,7 +89,7 @@ Piechart.prototype.init = function(){
      .append("svg:filter")
      .attr("id", "blur")
      .append("svg:feGaussianBlur")
-     .attr("stdDeviation", 4);
+     .attr("stdDeviation", 2);
  }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -740,18 +740,18 @@ console.log(this.currentView+" "+this.nextView+" "+this.lastView);
         .attr("filter", "url(#blur)");*/
 
     //Render the hint path
-    this.svg.select("#hintPath").append("path")
+    /**this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","path")
-        .attr("filter", "url(#blur)");
-   /** var drawLine = d3.svg.line().interpolate("cardinal");
+        .attr("filter", "url(#blur)");*/
+    var drawLine = d3.svg.line().interpolate("cardinal");
     var testPoints = this.calculateHintPathPoints(this.hintArcInfo);
 
     this.svg.select("#hintPath").append("path")
         //.attr("d", drawLine(this.hintArcInfo.map(function (d){return [d[0],d[1]]})))
         .attr("d", drawLine(testPoints))
         .attr("id","path")
-        .attr("filter", "url(#blur)");*/
+        .attr("filter", "url(#blur)");
 
 	//Render the hint labels
 	this.svg.select("#hintPath").selectAll("text")

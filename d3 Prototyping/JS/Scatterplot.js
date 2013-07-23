@@ -437,14 +437,15 @@ Scatterplot.prototype.snapToView = function( id, points) {
         distanceCurrent = this.calculateDistance(this.mouseX,this.mouseY, points[this.currentView][0], points[this.currentView][1]);
         distanceNext = this.calculateDistance(this.mouseX,this.mouseY, points[this.nextView][0],points[this.nextView][1]);
     }
+
     //Based on the smaller distance, update the scatterplot to that view
     if (distanceCurrent > distanceNext && this.nextView <= this.lastView){ //Snapping to next view
 		this.currentView = this.nextView;
 	    this.nextView = this.nextView +1;
      }
-    //Special case: If the nextView is the last view index, need to re draw the plot on that index (not currentView, which is nextView-1)
-    if (this.nextView == this.lastView) this.redrawView(this.nextView);
-    else this.redrawView(this.currentView);
+
+    //Redraw the view
+    this.redrawView(this.currentView);
 }
 /** Updates the view tracking variables when the view is being changed by an external
  * visualization (e.g., slider)
