@@ -292,6 +292,18 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
                 newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
             }else if (currentAmbiguous[0]==1 && nextAmbiguous[0]==1){ //In middle of sequence
+                //TODO: Later, move these statements into a function (setting peakvalue, passedMiddle, path direction etc.)
+                if (ref.passedMiddle == -1){ //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
+                    ref.pathDirection = draggingDirection;
+                    ref.peakValue = (ref.pathDirection==1)?(current[0]-ref.amplitude):(ref.amplitude+current[0]);
+                    ref.passedMiddle = 0;
+                    if (ref.pathDirection != currentAmbiguous[1]){ //Assume moving backward in time
+                        ref.passedMiddle = 1;
+                        ref.nextView = ref.currentView;
+                        ref.currentView--;
+                    }
+                }
+
                 ref.handleDraggedBar_stationary(current[0],mouseY,mouseX,id,draggingDirection,currentAmbiguous[1],nextAmbiguous[1]);
                 newValues = [current[0],current[1]];
             }else{ //No stationary case to handle right now
@@ -508,11 +520,12 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
  *  isCurrentpt, isNextPt: tells whether the pt is an end point along the sine wave
  * */
 //TODO: jumping whenever the sine wave peak direction is opposite the hint path direction (probably confusing the directions)
-//TODO: problem when user releases bar and then re-selects it and ends up in the middle of the sine wave (should save sine wave direction)
+//TODO: When re-selecting the bar after it's been released in the middle of a sine wave, need to infer time direction based on dragged direction (if user drags up, move the hint path towards the peak on the sine wave)
  Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id,draggingDirection,isCurrentEndPt,isNextEndPt){
     //console.log(this.peakValue+" "+mouseY+" "+this.atPeak+" "+draggingDirection);
      //console.log(this.pathDirection+" "+this.peakValue+" "+this.interpValue);
      //console.log(isCurrentEndPt+" "+isNextEndPt);
+    console.log(this.pathDirection+" "+draggingDirection+" "+this.peakValue);
 
     var bounds = this.checkBounds(this.peakValue,barY,mouseY);
 	var newY; //To re-position the anchor
@@ -565,7 +578,7 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
          }
          newY=barY;
      }
-     console.log(this.currentView+" "+this.nextView+" "+this.interpValue);
+     //console.log(this.currentView+" "+this.nextView+" "+this.interpValue);
      this.redrawAnchor(barY,mouseX,mouseY,newY);
 }
 /**Computes the new height of a bar based on a new y-position
@@ -868,6 +881,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
             .attr("transform","translate("+(-translate)+")")
             .attr("class","interactionPath");
     }
+    this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("svg:path")
@@ -989,19 +1003,29 @@ Barchart.prototype.calculatePathPoints = function (indices){
     var length = indices.length;
     var totalPts = 3*length + (length-3);
 
+    var indexCounter = 0;
+    var sign = -1;
+
     //Calculate the points (5 per gap between views)
     for (var j=0;j<totalPts;j++){
         var theta = angle + (Math.PI/4)*j;
         var y = this.amplitude*Math.sin(theta)+yPos;
         var x = (this.hintPathSpacing/4)*j + xPos;
+        if (j%4==0){ //Add the sign (+1 for peak, -1 for trough) to each ambiguous bar along the sine wave
+           this.ambiguousBars[indices[indexCounter]] = [1,sign];
+            indexCounter++;
+            sign = (sign==-1)?1:-1; //Flip the sign of the sine wave direction
+        }
         pathPoints.push([x,y]);
     }
 
-    //Insert the directions (1=peak, -1=trough) of the end points on the sine wave into ambiguousBars array
-    // (first direction will always be -1), add the indices of the views which begin and end the sine wave
+    //Insert the directions of the end points on the sine wave into ambiguousBars array
+    //Add the indices of the views which begin and end the sine wave
     var endDirection = (indices.length % 2==0)?-1:1;
     this.ambiguousBars[indices[indices.length-1]] = [1,endDirection,indices[0],indices[indices.length-1]];
     this.ambiguousBars[indices[0]] = [1,-1,indices[0],indices[indices.length-1]];
+
+    //console.log(this.ambiguousBars);
 
     return pathPoints;
 }
