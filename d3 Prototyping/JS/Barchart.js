@@ -50,9 +50,9 @@
    this.passedMiddle = -1; //Passed the mid point of the peak of the sine wave
    this.peakValue = null; //The y-value of the sine wave's peak (or trough)
    this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
-   this.atPeak = 0; //Special case where the end point of a sine wave is being approached along the hint path
 
-   this.sineWaveStart = -1; //Start and end views of the sine wave end points
+   this.atPeak = 0; //Special case where the end point of a sine wave is being approached along the hint path
+   this.sineWaveStart = -1; //Start and end views of the sine wave end points, only if they are peaks
    this.sineWaveEnd = -1;
 
    //Set up some event functions, all declared in main.js
@@ -258,7 +258,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
             var nextAmbiguous = ref.ambiguousBars[ref.nextView];
             //Check for stationary bar sequences
             if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching the stationary points from right (along hint path)
-                ref.passedMiddle = 0;
+                ref.passedMiddle = 1; //Interpolation should be greater than 0.5 when entering the sine wave from this side
                 ref.pathDirection = ref.ambiguousBars[ref.currentView][1];
                 ref.peakValue = (ref.pathDirection==1)?(current[0]-ref.amplitude):(ref.amplitude+current[0]);
 
@@ -266,8 +266,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 ref.sineWaveStart = currentAmbiguous[2];
                 ref.sineWaveEnd = currentAmbiguous[3];
 
-                if (current>next){console.log("current greater than next")}
-                if (current<next){console.log("current less than next")}
+                //if (current>next){console.log("current greater than next")}
+                //if (current<next){console.log("current less than next")}
 
                 if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
                     ref.atPeak = 1;
@@ -449,7 +449,7 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
 
         //if (current[2]!=0 || this.currentView == this.sineWaveEnd){ //At a peak or a peak formed by hint path and sine wave
         if (current[2]!=0 || this.atPeak != 0){ //At a peak or a peak formed by hint path and sine wave
-            console.log("infer");
+           // console.log("infer");
             newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,current);
         }else{
             this.moveBackward();
@@ -463,7 +463,7 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
 
        // if (next[2]!=0 || this.nextView == this.sineWaveStart){ //At a peak or a peak formed by hint path and sine wave
         if (next[2]!=0 || this.atPeak !=0){ //At a peak or a peak formed by hint path and sine wave
-            console.log("infer");
+          // console.log("infer");
             newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,next);
         }else{
             this.moveForward();
@@ -565,7 +565,7 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
          }
          newY=barY;
      }
-     //console.log(this.currentView+" "+this.nextView+" "+this.interpValue);
+     console.log(this.currentView+" "+this.nextView+" "+this.interpValue);
      this.redrawAnchor(barY,mouseX,mouseY,newY);
 }
 /**Computes the new height of a bar based on a new y-position
