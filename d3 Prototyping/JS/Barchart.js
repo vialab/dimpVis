@@ -51,7 +51,7 @@
    this.peakValue = null; //The y-value of the sine wave's peak (or trough)
    this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
 
-   this.atPeak = 0; //Special case where the end point of a sine wave is being approached along the hint path
+   this.atPeak = -1; //The view index of a peak on an end point of the sine wave
    this.sineWaveStart = -1; //Start and end views of the sine wave end points, only if they are peaks
    this.sineWaveEnd = -1;
 
@@ -270,7 +270,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 //if (current<next){console.log("current less than next")}
 
                 if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
-                    ref.atPeak = 1;
+                    //ref.atPeak = 1;
+                    ref.atPeak = ref.currentView;
                 }
                // ref.atPeak = 2;
                 //console.log(ref.pathDirection+" "+ref.timeDirection);
@@ -287,7 +288,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
 
                 if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
-                    ref.atPeak = 1;
+                    //ref.atPeak = 1;
+                    ref.atPeak = ref.nextView;
                 }
 
                 newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
@@ -308,7 +310,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 newValues = [current[0],current[1]];
             }else{ //No stationary case to handle right now
 
-                ref.atPeak = 0;
+                ref.atPeak = -1;
 
                 newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
             }
@@ -460,7 +462,8 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
     }else if (bounds == currentY ){ //Passing current
 
         //if (current[2]!=0 || this.currentView == this.sineWaveEnd){ //At a peak or a peak formed by hint path and sine wave
-        if (current[2]!=0 || this.atPeak != 0){ //At a peak or a peak formed by hint path and sine wave
+        //if (current[2]!=0 || this.atPeak != 0){ //At a peak or a peak formed by hint path and sine wave
+        if (current[2]!=0 || this.atPeak == this.currentView){ //At a peak or a peak formed by hint path and sine wave
            // console.log("infer");
             newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,current);
         }else{
@@ -474,7 +477,8 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
     }else{ //Passing next
 
        // if (next[2]!=0 || this.nextView == this.sineWaveStart){ //At a peak or a peak formed by hint path and sine wave
-        if (next[2]!=0 || this.atPeak !=0){ //At a peak or a peak formed by hint path and sine wave
+        //if (next[2]!=0 || this.atPeak !=0){ //At a peak or a peak formed by hint path and sine wave
+        if (next[2]!=0 || this.atPeak ==this.nextView){ //At a peak or a peak formed by hint path and sine wave
           // console.log("infer");
             newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,next);
         }else{
@@ -522,13 +526,17 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
 //TODO: jumping whenever the sine wave peak direction is opposite the hint path direction (probably confusing the directions)
 //TODO: When re-selecting the bar after it's been released in the middle of a sine wave, need to infer time direction based on dragged direction (if user drags up, move the hint path towards the peak on the sine wave)
  Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id,draggingDirection,isCurrentEndPt,isNextEndPt){
-    //console.log(this.peakValue+" "+mouseY+" "+this.atPeak+" "+draggingDirection);
-     //console.log(this.pathDirection+" "+this.peakValue+" "+this.interpValue);
-     //console.log(isCurrentEndPt+" "+isNextEndPt);
-    console.log(this.pathDirection+" "+draggingDirection+" "+this.peakValue);
+
+     //If the atPeak variable is set to and index, it means that the first or last point on the sine wave is forming
+     //A peak with the hint path
+     if (this.atPeak!=-1){ //At one end point on the sine wave
+         if (draggingDirection != this.previousDragDirection){ //Permit view updates when the dragging direction changes
+             this.atPeak = -1;
+         }
+     }
 
     var bounds = this.checkBounds(this.peakValue,barY,mouseY);
-	var newY; //To re-position the anchor
+    var newY; //To re-position the anchor
 
 	if (bounds == mouseY){
 		 this.findInterpolation(barY,this.peakValue, mouseY, 1);
@@ -545,20 +553,26 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
         newY = this.peakValue;
     }else{ //At base, update the view
          //console.log("peak"+this.atPeak);
-         if (this.atPeak!=0){
-             if (draggingDirection != this.previousDragDirection){
-                 this.atPeak = 0;
-             }
-         }else{
 
+         /**if (this.atPeak!=-1){
+             if (draggingDirection != this.previousDragDirection){
+                 this.atPeak = -1;
+                 console.log("flipped at peak");
+             }
+         }else{*/
+        if (this.atPeak==-1){
              if (this.timeDirection ==1){
+
                  //console.log(this.currentView+" "+this.sineWaveStart);
                  //if (this.currentView != this.sineWaveStart){
                      //console.log("current view is not sine wave start");
+                 console.log(this.currentView+" "+this.nextView+" "+this.atPeak);
+                 if (this.currentView != this.atPeak){
                      this.moveForward();
                      this.passedMiddle = 0;
                      this.pathDirection = (this.pathDirection==1)?-1:1;
                      this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
+                 }
                 // }
                 // if (isNextEndPt==0){
                      // this.moveForward();
@@ -568,14 +582,17 @@ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection
              }else{
                  //if (isCurrentEndPt ==0){
                     //console.log("at edge");
+                // if (this.currentView != this.atPeak){
                      this.moveBackward();
                      this.passedMiddle = 1;
                      this.pathDirection = (this.pathDirection==1)?-1:1;
                      this.peakValue = (this.pathDirection==1)?(barY-this.amplitude):(this.amplitude+barY);
                  //}
-             }
+                 //}
+            // }
 
-         }
+             }
+        }
          newY=barY;
      }
      //console.log(this.currentView+" "+this.nextView+" "+this.interpValue);
