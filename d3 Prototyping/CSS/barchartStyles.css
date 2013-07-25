@@ -7,11 +7,14 @@ body {
 
 /*Labels on the hint path */
 .hintLabels {
+  /**font-family: verdana;*/
   font-family: sans-serif;
-  font-size:11px;
+  font-size:12px;
   text-anchor:middle;
   fill:#666;
   cursor:pointer;
+  /**stroke-width:0.25; This effect looks strange..
+  stroke:#FFF;*/
 }
 /*The hint path*/
 #path{

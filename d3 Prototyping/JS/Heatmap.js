@@ -21,7 +21,6 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.currentView = 0;
    this.nextView = 1;
    this.lastView = hLabels.length-1;
-   this.previousPathDirection = 1; // 1: path going up, -1: path going downwards, this is not direction in time
    this.previousDragDirection = 1; //Dragging direction of the user: 1 if up, -1 if down
    this.timeDirection = 1 //Direction travelling over time, 1: forward, -1: backward
 
@@ -40,7 +39,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    //Display properties
    this.labels = hLabels;
    this.xSpacing = 50; //Spacing across x for hint path
-   this.ySpacing = 20; //Spacing for the y of hint path
+   this.ySpacing = 10; //Spacing for the y of hint path
 
    //Declare some interaction event functions
    this.dragEvent = {};
@@ -69,8 +68,8 @@ Heatmap.prototype.init = function() {
       .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");
 
    this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blur").append("svg:feGaussianBlur")
-        .attr("stdDeviation", 2);
+      .attr("id", "blur").append("svg:feGaussianBlur")
+      .attr("stdDeviation", 2);
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -128,7 +127,8 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
                 for (j=0;j<hintLengths.length;j++){
                     allValues[j].push((hintLengths[j]/hintLengthTotal).toFixed(2)*100);
                 }
-                return {id:i,values:allValues,x:xCoord,y:yCoord};
+                var newValues = ref.findPeaks(allValues);
+                return {id:i,values:newValues,x:xCoord,y:yCoord};
          })).enter().append("rect").attr("class", "cell")
             .attr("width", this.cellSize).attr("height", this.cellSize)
             .attr("id", function (d) {return "cell"+d.id;})
@@ -140,6 +140,30 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
     this.svg.append("g").attr("id","hintPath");
     //Draw the axes labels and title
     this.addAxisLabels(xLabels,yLabels);
+}
+/**Finds the peaks in a set of values (e.g., dragging direction is ambiguous at these parts)
+ * data: a multi-dimension array of all values, but only interested in the yOffset (at index 4)
+ * @return the same array with added values to each array entry: 0 or 1/-1 flag if it is a peak/trough respectively
+ * */
+Heatmap.prototype.findPeaks = function (data){
+    var newData = data;
+    var endIndex = data.length-1;
+    newData[0].push(0); //First view is not a peak
+
+    for (var j=0;j<data.length;j++){
+        var currentY = data[j][4];
+        if (j>0 && j < endIndex){
+            if (data[j-1][4] < currentY && data[j+1][4] < currentY){ //Upwards peak
+                newData[j].push(-1);
+            }else if (data[j-1][4] > currentY && data[j+1][4] > currentY){ //Downwards peak
+                newData[j].push(1);
+            }else{ //No peak
+                newData[j].push(0);
+            }
+        }
+    }
+    newData[endIndex].push(0); //Last view is not a peak
+    return newData;
 }
 /** Calculates the distance between two points
  * (x1,y1) is the first point
@@ -184,92 +208,83 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
  * */
  Heatmap.prototype.updateDraggedCell = function(id, mouseY){
    var ref = this;
+
    //Redraw the colours of all cells according to the dragging amount
    this.svg.select("#cell"+id).each(function (d){
 
-       var currentYOffset = d.values[ref.currentView][4];
-       var nextYOffset = d.values[ref.nextView][4];
+       //Find the current vertical dragging direction of the user
+       var draggingDirection;
+       if (mouseY>ref.mouseY){ draggingDirection = -1;}
+       else if (mouseY < ref.mouseY){ draggingDirection = 1;}
+       else{ draggingDirection = ref.previousDragDirection;}
+
+       var current = d.values[ref.currentView];
+       var next = d.values[ref.nextView];
        var currentY = ref.hintYValues[ref.currentView];
        var nextY = ref.hintYValues[ref.nextView];
 
-       //Determine the direction of the path
-       var pathDirection;
-       if (currentY < nextY){ pathDirection = -1;} //Dragging down
-       else if (currentY > nextY){pathDirection = 1;} //Dragging up
-       else{pathDirection = 0;} //Ambiguous?
+       //******Only for non-ambiguous cases!!
 
-       //Determine whether the path direction has stayed the same or has changed
-       if (pathDirection == ref.previousPathDirection){ //Same direction
-           currentY = (pathDirection==1)? (ref.draggedCellY - currentY/6):(ref.draggedCellY + currentY/6);
+       //Determine the slop of the line between views
+      /** var slope;
+       if (current[4]>next[4]){ //Upwards slope
+           slope = 1;
+       }else{ //Downwards
+           slope = -1;
+       }
+       var currentY,nextY;
+       if (current[6]==0){ //Non-peak
+           currentY = (slope==1)? (ref.draggedCellY - current[4]*4):(ref.draggedCellY + current[4]*4);
        }else{ //Changed direction, interaction ambiguity
            currentY = ref.draggedCellY; //Start boundary at the center of the dragged cell
        }
-       nextY = (pathDirection==1)? (ref.draggedCellY - nextY/6):(ref.draggedCellY + nextY/6);
-
-       // console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView);
-       // console.log(currentYOffset+" "+nextYOffset+" "+mouseY+" "+ref.currentView);
-
-       //Find the current vertical dragging direction
-       var draggingDirection = mouseY<ref.mouseY? 1:-1;
-       //console.log(pathDirection+" "+draggingDirection);
-       //console.log(ref.currentView+" "+ref.nextView);
+       nextY = (slope==1)? (ref.draggedCellY - next[4]*4):(ref.draggedCellY + next[4]*4);
+       //console.log(currentY+" "+nextY);*/
+      //console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView+" "+ref.nextView+" "+ref.interpValue);
+          console.log(ref.timeDirection);
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
-
+       //console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView+" "+ref.nextView);
        if (bounds == mouseY){
            ref.interpolateColours(ref.currentView, ref.nextView,ref.interpValue);
-           ref.animateHintPath(currentYOffset,ref.interpValue,draggingDirection);
-           ref.previousPathDirection = pathDirection;
+           ref.animateHintPath(current[4],ref.interpValue,draggingDirection);
        }else if (bounds == currentY){ //Passing current view
-           if (pathDirection != ref.previousPathDirection){
-              // console.log("changed direction");
-               ref.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,pathDirection);
+           if (current[6]!=0){ //At a peak
+               ref.inferTimeDirection(draggingDirection);
            }else{
                ref.moveBackward();
-               ref.previousPathDirection = pathDirection;
            }
        }else{ //Passing next view
-           if (pathDirection != ref.previousPathDirection){
-               //console.log("changed direction");
-               ref.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,pathDirection);
+           if (next[6]!=0){ //At a peak
+               ref.inferTimeDirection(draggingDirection);
            }else{
                ref.moveForward();
-               ref.previousPathDirection = pathDirection;
            }
        }
        ref.previousDragDirection = draggingDirection; //Save the current dragging direction
     });
-     //console.log(this.currentView+" "+this.nextView);
 
-    this.mouseY = mouseY; //Save the mouse coordinate
+     this.mouseY = mouseY; //Save the mouse coordinate
 }
-/**Infers the time direction when user arrives at corners, inference is based on previous direction
+/**Infers the time direction when user arrives at peaks, inference is based on previous direction
  * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
  * changes.
  * b1,b2: the boundary views (b1 should be the currently encountered corner)
- * mouseY: dragging position of the mouse
- * draggingDirection: of the user, 1 if dragging clockwise, -1 is counter-clockwise
- * pathDirection: vertical direction of the hint path (1: up, -1: down)
+ * mouseY: vertical dragging position of the mouse
+ * draggingDirection: of the user, 1 if dragging up, -1 is down
  * */
-Heatmap.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,pathDirection){
+//TODO: need to return any info here?? if not remove the extra parameters
+ Heatmap.prototype.inferTimeDirection = function (draggingDirection){
 
-    if (b1 > b2){ //Dragging needs to switch 1 -> -1 in order for view to change
-        if (mouseY>=b1 && draggingDirection==-1 && this.previousDragDirection==1){
-            if (this.timeDirection ==1){this.moveForward();}
-            else{this.moveBackward();}
-            this.previousPathDirection = pathDirection;
-        }
-    }else{//Dragging needs to switch -1 -> 1 in order for the view to change
-        if (mouseY<=b1 && draggingDirection==1 && this.previousDragDirection==-1){
-            if (this.timeDirection ==1){this.moveForward();}
-            else{this.moveBackward();}
-            this.previousPathDirection = pathDirection;
-        }
+    if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
+        if (this.timeDirection ==1){this.moveForward();}
+        else{this.moveBackward();}
     }
 }
 /** Updates the view variables to move the visualization forward
  * (passing the next view)
  * */
 Heatmap.prototype.moveForward = function (){
+
     if (this.nextView < this.lastView){ //Avoid index out of bounds
         this.currentView = this.nextView;
         this.nextView++;
@@ -279,6 +294,7 @@ Heatmap.prototype.moveForward = function (){
  * (passing the current view)
  * */
 Heatmap.prototype.moveBackward = function (){
+
     if (this.currentView > 0){ //Avoid index out of bounds
         this.nextView = this.currentView;
         this.currentView--;
@@ -287,10 +303,7 @@ Heatmap.prototype.moveBackward = function (){
 /** Checks if the mouse is in bounds defined by y1 and y2
  *  y1,y2: the bounds
  *  mouseY: the mouse position
- *  @return start,end: boundary values are returned if the given
- *                     mouse position is equal to or has crossed it
- *          distanceRatio: the percentage the mouse has travelled from
- *                         y1 to y2
+ *  @return the boundary value (start,end) reacher or the mouseY, if in between bounds
  * */
 Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
     //Resolve the boundaries
@@ -322,7 +335,7 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
     //Set the direction travelling over time based on changes in interpolation values
     if (distanceRatio > this.interpValue){ //Moving forward
         this.timeDirection = 1;
-    }else { //Going backward
+    }else if (distanceRatio < this.interpValue){ //Going backward
         this.timeDirection = -1;
     }
 
@@ -335,7 +348,7 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
  * interpAmount: amount travelled between the views
  * */
 Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount,draggingDirection){
-     var translateX = -(this.xSpacing*interpAmount + this.xSpacing*this.currentView);
+    var translateX = -(this.xSpacing*interpAmount + this.xSpacing*this.currentView);
     var translateY = -(this.ySpacing*currentOffset);
    /** if (draggingDirection == -1){
          var translateY = -(this.ySpacing*interpAmount + this.ySpacing*currentOffset);
@@ -344,16 +357,18 @@ Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount,draggin
      }*/
      //console.log(translateY);
 
-     this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+","+translateY+")");
-     this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+","+translateY+")");
+     //this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+","+translateY+")");
+    // this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+","+translateY+")");
+    this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+")");
+    this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+")");
 }
 /**Updates the colour of the cells by interpolating the colour between views
  * current, next: the views to interpolate between
  * interpAmount: the amount to interpolate by
  */
 Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
-    var ref = this;
-  //Re-colour all cells
+  var ref = this;
+
   this.svg.selectAll(".cell").attr("fill", function (d){
       return ref.interpolator(d.values[current][0],d.values[next][0],interpAmount);
   });
@@ -362,7 +377,7 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
  *  start,end: the bounding views
  *  id: of the most recently dragged cell
  * */
-//TODO: not priority to fix this function
+//TODO: This function is not working..not high priority to fix it
  Heatmap.prototype.animateColours = function (id,start,end){
     if (start== end){return;}
     var ref = this;
@@ -424,8 +439,9 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
  *  id: The id of the dragged cell
  *  points: An array of all points along the dragged cell's hint path (e.g., d.values)
  * */
+//TODO: this needs to be changed to coincide with the coordinates in updateDraggedCell()!!!!
 Heatmap.prototype.snapToView = function (id, points,y){
-    //!!TODO: this needs to be changed to coincide with the coordinates in updateDraggedCell()
+
     var current =  y+this.cellSize/2;
     var next = 	points[this.nextView][3]+y+this.cellSize/2-points[this.currentView][3];
     var currentDist = Math.abs(current - this.mouseY);
@@ -503,13 +519,13 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  var translateY = -this.ySpacing*pathData[this.currentView][4];
 
  //Draw the interaction path(s) (if any)
-  if (this.isAmbiguous ==1){
+  /**if (this.isAmbiguous ==1){
     this.svg.select("#hintPath").selectAll(".interactionPath")
         .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
         .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
         .attr("transform","translate("+translateX+","+translateY+")")
         .attr("class","interactionPath");
-  }
+  }*/
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
         .attr("x",x).attr("y",y).attr("id","draggedCell")
@@ -528,14 +544,16 @@ this.svg.append("linearGradient").attr("id", "line-gradient")
 this.svg.select("#hintPath").append("svg:path")
       .attr("d", this.lineGenerator(coords))
       .attr("id","pathUnderlayer")
-      .attr("transform","translate("+translateX+","+translateY+")")
+      //.attr("transform","translate("+translateX+","+translateY+")")
+      .attr("transform","translate("+translateX+")")
       .attr("filter", "url(#blur)");
 
 //Draw the main hint path line
  this.svg.select("#hintPath").append("svg:path")
       .attr("d",this.lineGenerator(coords))
       .style("stroke", "url(#line-gradient)")
-      .attr("transform","translate("+translateX+","+translateY+")")
+      .attr("transform","translate("+translateX+")")
+      //.attr("transform","translate("+translateX+","+translateY+")")
       .attr("id","path")
       .attr("filter", "url(#blur)");
 	
@@ -543,7 +561,8 @@ this.svg.select("#hintPath").append("svg:path")
 this.svg.select("#hintPath").selectAll("text")
        .data(coords).enter().append("text")
        .attr("x",function (d){return d[0]}).attr("y",function (d) {return d[1]})
-       .attr("transform","translate("+translateX+","+translateY+")")
+       .attr("transform","translate("+translateX+")")
+       //.attr("transform","translate("+translateX+","+translateY+")")
        .text(function (d,i){ return ref.labels[i];})
        .attr("class","hintLabels")
        .on("click",this.clickHintLabelFunction);

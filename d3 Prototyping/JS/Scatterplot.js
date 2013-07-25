@@ -500,8 +500,8 @@ Scatterplot.prototype.changeView = function( newView) {
         }
         return function(d) {
             //Ensure the animateView index is not out of bounds
-            if (direction == 1 && animateView>endView) {return};
-            if (direction ==-1 && animateView<endView) {return};
+            if (direction == 1 && animateView>=endView) {return};
+            if (direction ==-1 && animateView<=endView) {return};
             //Re-draw each point at the current view in the animation sequence
             d3.select(this).transition(400).ease("linear")
             .attr("cx",d.nodes[animateView][0])

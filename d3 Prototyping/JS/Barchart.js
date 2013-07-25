@@ -158,8 +158,6 @@ this.svg.selectAll("rect")
     this.svg.append("g").attr("id","hintPath");
  }
 /**Finds the peaks in a set of values (i.e., on either side of a point, the values are both increasing or decreasing)
- * Only need to call this function if, when dragging at a peak, there needs to be some tolerance (flexibility) when
- * passing views
  * data: a 2D array of [y-value,height]
  * @return the same array with added values to each array entry: 0 or 1/-1 flag if it is a peak/trough respectively
  * */
@@ -286,13 +284,14 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 if (ref.passedMiddle == -1){
                     ref.setSineWaveVariables(draggingDirection,current[0],0);
                     //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
-                    if (ref.pathDirection != currentAmbiguous[1]){
+                    if (ref.pathDirection != currentAmbiguous[1] && ref.currentView>0){
                         ref.passedMiddle = 1;
                         ref.moveBackward();
                     }
                 }
 
                 ref.handleDraggedBar_stationary(current[0],mouseY,mouseX,id,draggingDirection);
+
                 newValues = [current[0],current[1]];
 
             }else{ //No stationary case to handle right now
@@ -427,7 +426,7 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
         if (this.progressIndicator == 0 && interpAmount==0){ //Small progress paths, at the point of transitioning views
            this.svg.select("#progress").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
         }else if (this.progressIndicator==1){ //Large progress path, adjust the interpolation
-            var interpAmount = (this.currentView-1)/this.lastView + interpAmount/this.lastView;
+            interpAmount = (this.currentView-1)/this.lastView + interpAmount/this.lastView;
         }
 
         //Re-colour the progress path
@@ -437,8 +436,7 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
- *  bar to be drawn out of bounds and keeps track of time progression by updating the view variables
- *  when a view is switched.
+ *  bar to be drawn out of bounds and keeps track of time by updating the view variables.
  *  current, next: The nodes for each bar of current and next views (i.e., [y-pos,height])
  *  mouseY: the mouse's y-coordinate
  *  id: of the dragged bar
@@ -546,10 +544,10 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
 
         if (this.atPeak==-1){
              var newPathDirection = (this.pathDirection==1)?-1:1;
-             if (this.timeDirection ==1){
+             if (this.timeDirection ==1 && this.nextView < this.lastView){
                  this.moveForward();
                  this.setSineWaveVariables(newPathDirection,barY,0);
-             }else{
+             }else if (this.timeDirection==-1 && this.currentView >0){
                  this.moveBackward();
                  this.setSineWaveVariables(newPathDirection,barY,1);
              }
@@ -586,14 +584,14 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 
 	//Check if the mouse is between start and end values
 	if (mouseY <= start) {
-        if (this.timeDirection == -1) {this.interpValue = 1; }
-        else{this.interpValue = 0;}
-        //this.interpValue = 0;
+        //if (this.timeDirection == -1) {this.interpValue = 1; }
+        //else{this.interpValue = 0;}
+        this.interpValue = 0;
         return start;
     }else if (mouseY >=end) {
-        if (this.timeDirection == -1) {this.interpValue = 1; }
-        else{this.interpValue = 0;}
-        //this.interpValue = 0;
+        //if (this.timeDirection == -1) {this.interpValue = 1; }
+        //else{this.interpValue = 0;}
+        this.interpValue = 0;
         return end;
     }     
 	
@@ -713,6 +711,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
         if (direction == 1 && animateView>=endView) return;
         if (direction ==-1 && animateView<=endView) return;
         return function(d) {
+            console.log(animateView);
             //Animate the bar
             d3.select(this).transition(400).ease("linear")
                 .attr("height",d.nodes[animateView][1])
@@ -803,7 +802,7 @@ Barchart.prototype.findHintX = function (oldX,index){
  * */
 Barchart.prototype.snapToView = function (id, heights){  
    var currentDist, nextDist;
-   
+
    //Check if the views are an ambiguous case, set the distances
    if (this.isAmbiguous==1){   
         if (this.interpValue > 0.5){ //Snap to nextView
