@@ -15,15 +15,15 @@
    this.leftMargin = x;
    this.topMargin = y;
    this.id = id;
+   this.svg = null; //Reference to svg container
+
+   //Display properties
    this.padding = p;
    this.xLabel = xLabel;
    this.yLabel = yLabel;
    this.graphTitle = title;
    this.xLabels = []; //To store the labels along the x-axis
    this.hintLabels = hLabels;
-
-   //Set up some display properties
-   this.svg = null; //Reference to svg container
    this.barWidth = bw;
    this.numBars = 0; //Set later
    this.strokeWidth=5;
@@ -39,21 +39,21 @@
    this.nextView = 1; //Next view of the barchart
    this.lastView = hLabels.length-1; //Index of the last view on the hint path
 
+   //Variables for handling regular interaction
    this.interpValue=0; //For estimating the time direction and update the barchart view
    this.mouseY = 0;
    this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
+   this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
 
+   //Variables used for handling ambiguity
    this.ambiguousBars = [];
    this.interactionPaths = [];
    this.pathDirection = -1; //Directon travelling along an interaction path
    this.timeDirection = 1; //Keeps track of the direction travelling over time 
    this.passedMiddle = -1; //Passed the mid point of the peak of the sine wave
    this.peakValue = null; //The y-value of the sine wave's peak (or trough)
-   this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
-
-   this.atPeak = -1; //The view index of a peak on an end point of the sine wave
-   this.sineWaveStart = -1; //Start and end views of the sine wave end points, only if they are peaks
-   this.sineWaveEnd = -1;
+   this.atPeak = -1; //The view index of a peak formed by an end point of the sine wave and the hint path
+   this.heightThreshold = 2; //Pixel difference between bar heights, if less than this value, then the views are considered as stationary (draw interaction paths)
 
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
@@ -924,8 +924,8 @@ Barchart.prototype.checkAmbiguous = function (){
     for (j=0;j<=this.lastView;j++){
         currentBar= this.pathData[j][1];
         for (var k=j;k<=this.lastView;k++){
-            if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
-            //if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<1){ //An almost repeated bar, less than one pixel difference
+            //if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
+            if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<this.heightThreshold){ //An almost repeated bar, less than one pixel difference
                 if (Math.abs(k-j)==1){ //Stationary bar
                     this.isAmbiguous = 1;
                     //If the bar's index does not exist in the array of all stationary bars, add it
