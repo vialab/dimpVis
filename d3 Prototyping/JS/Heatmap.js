@@ -29,12 +29,15 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.draggedCell = -1; //Keeps track of the id of the dragged cell
    this.draggedCellX = -1; //Saved x coordinate of the dragged cell
    this.draggedCellY = -1; //Saved y coordinate of the dragged cell
-
    this.hintYValues = []; //Saves the hint y-values (at the first view)
+
    this.ambiguousCells = []; //Keeps track of which cells are part of an ambiguous case
    this.isAmbiguous = 0;  //A flag to quickly check whether or not there exists ambiguous cases in the data
    this.amplitude = 20; //Of the sine wave (interaction path)
    this.interactionPaths = [];
+   this.atPeak = -1;
+   this.peakValue = null;
+   this.pathDirection = -1;
 
    //Display properties
    this.labels = hLabels;
@@ -60,7 +63,6 @@ function Heatmap(x, y, cs, id,title,hLabels) {
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Heatmap.prototype.init = function() {
-
     this.svg = d3.select(this.id)
       .append("svg").attr("id","mainSvg")
       .on("click",this.clickSVG)
@@ -238,43 +240,135 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        }else{ //Changed direction, interaction ambiguity
            currentY = ref.draggedCellY; //Start boundary at the center of the dragged cell
        }
-       nextY = (slope==1)? (ref.draggedCellY - next[4]*4):(ref.draggedCellY + next[4]*4);
-       //console.log(currentY+" "+nextY);*/
-      //console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView+" "+ref.nextView+" "+ref.interpValue);
+       nextY = (slope==1)? (ref.draggedCellY - next[4]*4):(ref.draggedCellY + next[4]*4);*/
 
-       var bounds = ref.checkBounds(currentY,nextY,mouseY);
-       //console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView+" "+ref.nextView);
-       if (bounds == mouseY){
-           ref.findInterpolation(currentY,nextY,mouseY,0);
-           ref.interpolateColours(ref.currentView, ref.nextView,ref.interpValue);
-           ref.animateHintPath(current[4],ref.interpValue,draggingDirection);
-       }else if (bounds == currentY){ //Passing current view
-           if (current[6]!=0){ //At a peak
-               ref.inferTimeDirection(draggingDirection);
-           }else{
-               ref.moveBackward();
+       if (ref.isAmbiguous==1){ //At least one ambiguous region exists on the hint path
+
+           var currentAmbiguous = ref.ambiguousCells[ref.currentView];
+           var nextAmbiguous = ref.ambiguousCells[ref.nextView];
+
+           //Check where the mouse is w.r.t the sine wave (e.g., at an end point, in the middle of it etc.)
+           if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching sine wave from right (along hint path)
+               ref.setSineWaveVariables(currentAmbiguous[1],currentY,1);
+               ref.hideAnchor();
+
+               if((currentY>nextY && ref.pathDirection==1) || (currentY<nextY && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
+                   ref.atPeak = ref.currentView;
+               }
+
+               ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
+           }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching sine wave from the left
+               ref.setSineWaveVariables(nextAmbiguous[1],nextY,0);
+               ref.hideAnchor();
+
+               if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
+                   ref.atPeak = ref.nextView;
+               }
+
+               ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
+           }else if(currentAmbiguous[0]==1 && nextAmbiguous[0]==1){ //In middle of sine wave
+               ref.handleDraggedCell_stationary(currentY,mouseY,draggingDirection);
+           }else{ //Not encountering the sine wave
+               ref.atPeak = -1;
+               ref.hideAnchor();
+               ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
            }
-       }else{ //Passing next view
-           if (next[6]!=0){ //At a peak
-               ref.inferTimeDirection(draggingDirection);
-           }else{
-               ref.moveForward();
-           }
+       }else{
+          ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
        }
+
        //console.log(ref.currentView+" "+ref.nextView+" "+ref.interpValue+" "+ref.timeDirection);
        ref.previousDragDirection = draggingDirection; //Save the current dragging direction
     });
 
      this.mouseY = mouseY; //Save the mouse coordinate
 }
+/** Resolves a dragging interaction by comparing the current mouse position with the bounding
+ *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
+ *  bar to be drawn out of bounds and keeps track of time by updating the view variables.
+ *  current, next: The nodes for each cell of current and next views (i.e., [y-pos,height])
+ * */
+Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mouseY,draggingDirection){
+    var bounds = this.checkBounds(currentY,nextY,mouseY);
+    //console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView+" "+ref.nextView);
+    if (bounds == mouseY){
+        this.findInterpolation(currentY,nextY,mouseY,0);
+        this.interpolateColours(this.currentView, this.nextView,this.interpValue);
+        this.animateHintPath(current[4],this.interpValue,draggingDirection);
+    }else if (bounds == currentY){ //Passing current view
+        if (current[6]!=0 || this.atPeak == this.currentView){ //At a peak
+            this.inferTimeDirection(draggingDirection);
+        }else{
+            this.moveBackward();
+        }
+    }else{ //Passing next view
+        if (next[6]!=0 || this.atPeak == this.nextView){ //At a peak
+            this.inferTimeDirection(draggingDirection);
+        }else{
+            this.moveForward();
+        }
+    }
+}
+/** Resolves a dragging interaction in a similar method as handleDraggedCell, except
+ *  this function is only called when in the middle of a stationary sequence.
+ *  cellY: The y-position of the stationary bar
+ * */
+Heatmap.prototype.handleDraggedCell_stationary = function (cellY,mouseY,draggingDirection){
+    //If the atPeak variable is set to and index, it means that the first or last point on the sine wave is forming
+    //A peak with the hint path
+    if (this.atPeak!=-1){ //At one end point on the sine wave
+        if (draggingDirection != this.previousDragDirection){ //Permit view updates when the dragging direction changes
+            this.atPeak = -1;
+        }
+    }
+
+    var bounds = this.checkBounds(this.peakValue,cellY,mouseY);
+    var newY; //To re-position the anchor
+
+    if (bounds == mouseY){
+        this.findInterpolation(cellY,this.peakValue, mouseY, 1);
+        this.interpolateColours(this.currentView, this.nextView,this.interpValue);
+        this.animateHintPath(0,this.interpValue,draggingDirection);
+        newY = mouseY;
+    }else if (bounds == this.peakValue){ //At boundary
+        if (draggingDirection != this.previousDragDirection){
+            if (this.timeDirection ==1){this.passedMiddle = 1}
+            else {this.passedMiddle =0;}
+        }
+        this.interpValue = 0.5;
+        newY = this.peakValue;
+    }else{ //At base, update the view
+
+        if (this.atPeak==-1){
+            var newPathDirection = (this.pathDirection==1)?-1:1;
+            if (this.timeDirection ==1 && this.nextView < this.lastView){
+                this.moveForward();
+                this.setSineWaveVariables(newPathDirection,cellY,0);
+            }else if (this.timeDirection==-1 && this.currentView >0){
+                this.moveBackward();
+                this.setSineWaveVariables(newPathDirection,cellY,1);
+            }
+        }
+        newY=cellY;
+    }
+    this.redrawAnchor(newY);
+}
+/**Updates variables for dragging along the sine wave:
+ *  pathDirection: vertical direction of the approaching portion of the sine wave (e.g., at next view)
+ *  barHeight: height of the stationary bar, used to calculate the height of the upcoming peak/trough
+ *  passedMiddle: a flag to determine how to calculate the interpolation (0: interp is between 0 and <0.5,
+ *  1: interp is between 0.5 and < 1)
+ * */
+Heatmap.prototype.setSineWaveVariables = function (pathDirection,cellY,passedMiddle){
+    this.passedMiddle = passedMiddle;
+    this.pathDirection = pathDirection;
+    this.peakValue = (pathDirection==1)?(cellY-this.amplitude):(this.amplitude+cellY);
+}
 /**Infers the time direction when user arrives at peaks, inference is based on previous direction
  * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
  * changes.
- * b1,b2: the boundary views (b1 should be the currently encountered corner)
- * mouseY: vertical dragging position of the mouse
  * draggingDirection: of the user, 1 if dragging up, -1 is down
  * */
-//TODO: need to return any info here?? if not remove the extra parameters
  Heatmap.prototype.inferTimeDirection = function (draggingDirection){
 
     if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
@@ -340,39 +434,25 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
  */
 Heatmap.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
 
-   /** var distanceTravelled, currentInterpValue;
-    var total = Math.abs(b2 - b1);
+   //Find the amount travelled from current to next view (y1 is current and y2 is next)
+    var distanceTravelled, distanceRatio;
+    var totalDistance = Math.abs(b2 - b1);
 
-    //Calculate the new interpolation amount
-    if (ambiguity == 0){
-        distanceTravelled = Math.abs(mouseAngle-b1);
-        currentInterpValue = distanceTravelled/total;
+    if (ambiguity==0){
+        distanceTravelled = Math.abs(mouseY-b1);
+        distanceRatio = distanceTravelled/totalDistance;
     }else{
         if (this.passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
-            distanceTravelled = Math.abs(mouseAngle - b1);
-            currentInterpValue = distanceTravelled/(total*2);
+            distanceTravelled = Math.abs(mouseY - b1);
+            distanceRatio = distanceTravelled/(totalDistance*2);
         }else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
-            distanceTravelled = Math.abs(mouseAngle - b2);
-            currentInterpValue = (distanceTravelled+total)/(total*2);
+            distanceTravelled = Math.abs(mouseY - b2);
+            distanceRatio = (distanceTravelled+totalDistance)/(totalDistance*2);
         }
     }
 
-    //Set the direction travelling over time (1: forward, -1: backward)
-    this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
-
-    this.interpValue = currentInterpValue; //Save the current interpolation value*/
-
-   //Find the amount travelled from current to next view (y1 is current and y2 is next)
-    var distanceTravelled = Math.abs(mouseY-b1);
-    var totalDistance = Math.abs(b2 - b1);
-    var distanceRatio = distanceTravelled/totalDistance;
-
     //Set the direction travelling over time based on changes in interpolation values
-    if (distanceRatio > this.interpValue){ //Moving forward
-        this.timeDirection = 1;
-    }else if (distanceRatio < this.interpValue){ //Going backward
-        this.timeDirection = -1;
-    }
+    this.timeDirection = (distanceRatio > this.interpValue)?1:-1;
 
     this.interpValue = distanceRatio; //Save the current interpValue
 }
@@ -381,6 +461,7 @@ Heatmap.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
  * interpAmount: amount travelled between the views
  * */
 Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount,draggingDirection){
+    var ref = this;
     var translateX = -(this.xSpacing*interpAmount + this.xSpacing*this.currentView);
     var translateY = -(this.ySpacing*currentOffset);
    /** if (draggingDirection == -1){
@@ -392,8 +473,16 @@ Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount,draggin
 
      //this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+","+translateY+")");
     // this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+","+translateY+")");
-    this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+")");
     this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+")");
+    this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+")")
+        .attr("fill-opacity",function (d){
+            if (d.id == ref.currentView){
+                return d3.interpolate(1,0.3)(interpAmount);
+            }else if (d.id == ref.nextView){
+                return d3.interpolate(0.3,1)(interpAmount);
+            }
+            return 0.3;
+        });
 }
 /**Updates the colour of the cells by interpolating the colour between views
  * current, next: the views to interpolate between
@@ -523,8 +612,12 @@ Heatmap.prototype.redrawHintPath = function(offset,view){
     var translateX = -this.xSpacing*view;
     var translateY = -this.ySpacing*offset;
 
-    this.svg.select("#hintPath").selectAll("text").attr("transform", "translate("+translateX+","+translateY+")");
-    this.svg.select("#hintPath").selectAll("path").attr("transform", "translate("+translateX+","+translateY+")");
+    this.svg.select("#hintPath").selectAll("text")//.attr("transform", "translate("+translateX+","+translateY+")")
+        .attr("transform", "translate("+translateX+")")
+        .attr("fill-opacity",function (d){return (d.id==view)?1:0.3});
+
+    this.svg.select("#hintPath").selectAll("path")//.attr("transform", "translate("+translateX+","+translateY+")");
+        .attr("transform", "translate("+translateX+")");
 }
 /** Draws a hint path for the dragged cell on the heatmap
  * id: of the dragged cell
@@ -560,6 +653,7 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
         //.attr("transform","translate("+translateX+","+translateY+")")
         .attr("transform","translate("+translateX+")")
         .attr("class","interactionPath");
+     this.appendAnchor(this.draggedCellX,this.draggedCellY);
   }
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
@@ -593,11 +687,14 @@ this.svg.select("#hintPath").append("svg:path")
 	
 //Draw the hint path labels								  
 this.svg.select("#hintPath").selectAll("text")
-       .data(coords).enter().append("text")
-       .attr("x",function (d){return d[0]}).attr("y",function (d) {return d[1]})
+       .data(coords.map( function (d,i){
+           return {x:d[0],y:d[1],label:ref.labels[i],id:i}
+       })).enter().append("text")
+       .attr("x",function (d){return d.x}).attr("y",function (d) {return d.y})
        .attr("transform","translate("+translateX+")")
+       .attr("fill-opacity",function (d){ return ((d.id==this.currentView)?1:0.3)})
        //.attr("transform","translate("+translateX+","+translateY+")")
-       .text(function (d,i){ return ref.labels[i];})
+       .text(function (d,i){ return d.label;})
        .attr("class","hintLabels")
        .on("click",this.clickHintLabelFunction);
 
@@ -730,6 +827,32 @@ Heatmap.prototype.calculatePathPoints = function (offset,indices){
     return pathPoints;
 }
 
+/******Draw an anchor along the sine wave for debugging *****/
+
+/** Appends an anchor to the svg, if there isn't already one */
+Heatmap.prototype.appendAnchor = function (x,y){
+    if (this.svg.select("#anchor").empty()){
+        this.svg.select("#hintPath").append("circle").attr("cx",x).attr("cy",y)
+            .attr("r",4).attr("stroke","none").attr("id","anchor");
+    }
+}
+/** Re-draws the anchor along the sine wave
+ * */
+Heatmap.prototype.redrawAnchor = function (newY){
+    this.svg.select("#anchor").attr("cy",newY).attr("stroke","#c7c7c7");
+}
+/** Removes an anchor from the svg, if one is appended
+ * */
+Heatmap.prototype.removeAnchor = function (){
+    if (!this.svg.select("#anchor").empty()){
+        this.svg.select("#anchor").remove();
+    }
+}
+/**Hides the circle anchor by removing it's stroke colour
+ * */
+Heatmap.prototype.hideAnchor = function (){
+    this.svg.select("#anchor").select("circle").attr("stroke","none");
+}
 //Todo:ambiguous interaction along hint path (same colour, interaction path?)
 //Todo: non-existent data values in cell (white?), this would involve screening the dataset as well, similar to ambiguous cases
 

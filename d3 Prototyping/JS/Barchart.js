@@ -10,6 +10,7 @@
  * title: of the graph
  * hLabels: A list of labels for the hint path, indicating all the different views of the visualization
  */
+//TODO: When I have time, move all commonly used functions into a separate js file (e.g., util) because there is a lot of repetition across piechart, barchart and heatmap
  function Barchart(h,bw,x,y,id,p,xLabel,yLabel,title,hLabels){
    //Position and size attributes for drawing the svg
    this.leftMargin = x;
@@ -747,8 +748,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
 Barchart.prototype.redrawView = function (view,id){
    var ref = this;
    //Re-draw the  bars at the specified view
-   this.svg.selectAll(".displayBars")
-              .transition().duration(300)
+   this.svg.selectAll(".displayBars").transition().duration(300)
               .attr("height", function (d){return d.nodes[view][1];})
               .attr("y", function (d){return d.nodes[view][0];});
 
