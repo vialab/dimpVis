@@ -241,10 +241,11 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        nextY = (slope==1)? (ref.draggedCellY - next[4]*4):(ref.draggedCellY + next[4]*4);
        //console.log(currentY+" "+nextY);*/
       //console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView+" "+ref.nextView+" "+ref.interpValue);
-          console.log(ref.timeDirection);
+
        var bounds = ref.checkBounds(currentY,nextY,mouseY);
        //console.log(currentY+" "+nextY+" "+mouseY+" "+ref.currentView+" "+ref.nextView);
        if (bounds == mouseY){
+           ref.findInterpolation(currentY,nextY,mouseY,0);
            ref.interpolateColours(ref.currentView, ref.nextView,ref.interpValue);
            ref.animateHintPath(current[4],ref.interpValue,draggingDirection);
        }else if (bounds == currentY){ //Passing current view
@@ -260,6 +261,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
                ref.moveForward();
            }
        }
+      console.log(ref.currentView+" "+ref.nextView+" "+ref.interpValue+" "+ref.timeDirection);
        ref.previousDragDirection = draggingDirection; //Save the current dragging direction
     });
 
@@ -303,7 +305,7 @@ Heatmap.prototype.moveBackward = function (){
 /** Checks if the mouse is in bounds defined by y1 and y2
  *  y1,y2: the bounds
  *  mouseY: the mouse position
- *  @return the boundary value (start,end) reacher or the mouseY, if in between bounds
+ *  @return the boundary value (start,end) or mouseY, if in between bounds
  * */
 Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
     //Resolve the boundaries
@@ -327,9 +329,42 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
         return end;
     }
 
-    //Find the amount travelled from current to next view (y1 is current and y2 is next)
-    var distanceTravelled = Math.abs(mouseY-y1);
-    var totalDistance = Math.abs(y2 - y1);
+    return mouseY;
+}
+/** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
+ *   Uses the interpolation amount to find the direction travelling over time and save it
+ *   in the global variable.
+ *   b1,b2: boundary angles (mouse is currently in between)
+ *   ambiguity: a flag = 1, stationary case (interpolation split by the peak on the sine wave)
+ *                     = 0, normal case
+ */
+Heatmap.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
+
+   /** var distanceTravelled, currentInterpValue;
+    var total = Math.abs(b2 - b1);
+
+    //Calculate the new interpolation amount
+    if (ambiguity == 0){
+        distanceTravelled = Math.abs(mouseAngle-b1);
+        currentInterpValue = distanceTravelled/total;
+    }else{
+        if (this.passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
+            distanceTravelled = Math.abs(mouseAngle - b1);
+            currentInterpValue = distanceTravelled/(total*2);
+        }else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
+            distanceTravelled = Math.abs(mouseAngle - b2);
+            currentInterpValue = (distanceTravelled+total)/(total*2);
+        }
+    }
+
+    //Set the direction travelling over time (1: forward, -1: backward)
+    this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
+
+    this.interpValue = currentInterpValue; //Save the current interpolation value*/
+
+   //Find the amount travelled from current to next view (y1 is current and y2 is next)
+    var distanceTravelled = Math.abs(mouseY-b1);
+    var totalDistance = Math.abs(b2 - b1);
     var distanceRatio = distanceTravelled/totalDistance;
 
     //Set the direction travelling over time based on changes in interpolation values
@@ -340,8 +375,6 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
     }
 
     this.interpValue = distanceRatio; //Save the current interpValue
-
-    return mouseY;
 }
 /** Translates the hint path according to the amount dragged from current to next view
  * currentOffset,nextOffset: y-value offsets of the two bounding views

@@ -229,7 +229,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 
             if (currentAmbiguous[0] == 1 && nextAmbiguous[0] == 0){
                 ref.setSineWaveVariables(currentAmbiguous[2],current,1);
-                if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
+                if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==-1)){ //Detect if the sine wave and regular hint path form a peak at end point
                     ref.atCorner = ref.currentView;
                 }
                 newAngle = ref.handleDraggedSegment(id,current,next,angle, d.nodes,draggingDirection);
@@ -316,6 +316,7 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
     }else if (bounds == current) { //At current
         if (this.corners[this.currentView]==1 || this.atCorner == this.currentView){ //Current is a corner, or a corner formed by the sine wave and hint path
             this.inferTimeDirection(current,next,mouseAngle,draggingDirection);
+            console.log("infer");
         }else{
             this.moveBackward();
         }
@@ -1071,7 +1072,7 @@ Piechart.prototype.calculatePathPoints = function (indices){
 
     //Calculate the points (5 per gap between views)
     for (var j=0;j<totalPts;j++){
-        if (j%4 == 0){ //Crossing the axis of the sine wave (at a view point)
+        if (j%4 == 0 && j!==(totalPts-1)){ //Crossing the axis of the sine wave (at a view point)
           viewIndex = indices[k];
           xPos = this.hintArcInfo[viewIndex][0];
           yPos = this.hintArcInfo[viewIndex][1];
@@ -1089,6 +1090,6 @@ Piechart.prototype.calculatePathPoints = function (indices){
     //Insert the direction of the end point on the sine wave into ambiguousSegments array
     var endDirection = (indices.length % 2==0)?-1:1;
     this.ambiguousSegments[indices[indices.length-1]].push(endDirection);
-console.log(this.ambiguousSegments);
+
     return [pathPoints,indices[0]];
 }

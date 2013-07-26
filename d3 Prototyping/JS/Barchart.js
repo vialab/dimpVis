@@ -248,10 +248,10 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
         else{ draggingDirection = ref.previousDragDirection;}
 
        //Re-set the time direction and dragging direction if the dragging has just started
-       /** if (ref.timeDirection ==0){
+        if (ref.timeDirection ==0){
             ref.timeDirection = 1; //Forward in time by default
             ref.previousDragDirection = draggingDirection;
-        }*/
+        }
 
         var current = d.nodes[ref.currentView];
         var next = d.nodes[ref.nextView];
@@ -626,6 +626,7 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
 		}
 	}	
 	//Set the direction travelling over time (1: forward, -1: backward)
+    //TODO: potentially dangerous b/c interpvalue could stay the same (might need a current == interpValue case)
     this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
 
     //Save the current interpolation value
@@ -864,7 +865,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
     }
 
-   //this.timeDirection = 0;  //In case dragging starts at a peak..
+   this.timeDirection = 0;  //In case dragging starts at a peak..
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("svg:path")
