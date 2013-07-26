@@ -261,7 +261,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
                ref.moveForward();
            }
        }
-      console.log(ref.currentView+" "+ref.nextView+" "+ref.interpValue+" "+ref.timeDirection);
+       //console.log(ref.currentView+" "+ref.nextView+" "+ref.interpValue+" "+ref.timeDirection);
        ref.previousDragDirection = draggingDirection; //Save the current dragging direction
     });
 
@@ -549,16 +549,18 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  //TODO: if the colour does not change for the entire hint path the gradient is not drawn
  //Find the translation amounts, based on the current view
  var translateX = -this.xSpacing*this.currentView;
+
  var translateY = -this.ySpacing*pathData[this.currentView][4];
 
  //Draw the interaction path(s) (if any)
-  /**if (this.isAmbiguous ==1){
+  if (this.isAmbiguous ==1){
     this.svg.select("#hintPath").selectAll(".interactionPath")
         .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
         .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
-        .attr("transform","translate("+translateX+","+translateY+")")
+        //.attr("transform","translate("+translateX+","+translateY+")")
+        .attr("transform","translate("+translateX+")")
         .attr("class","interactionPath");
-  }*/
+  }
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
         .attr("x",x).attr("y",y).attr("id","draggedCell")
@@ -587,8 +589,7 @@ this.svg.select("#hintPath").append("svg:path")
       .style("stroke", "url(#line-gradient)")
       .attr("transform","translate("+translateX+")")
       //.attr("transform","translate("+translateX+","+translateY+")")
-      .attr("id","path")
-      .attr("filter", "url(#blur)");
+      .attr("id","path").attr("filter", "url(#blur)");
 	
 //Draw the hint path labels								  
 this.svg.select("#hintPath").selectAll("text")
@@ -699,6 +700,11 @@ Heatmap.prototype.findPaths = function (startIndex,offsets){
 Heatmap.prototype.calculatePathPoints = function (offset,indices){
     var angle = 0;
     var pathPoints = [];
+    var quarterPi = Math.PI/4;
+    var startX = indices[0]*this.xSpacing;
+
+    var sign = -1;
+    var indexCounter = 0;
 
     //Find the period of the sine function
     var length = indices.length;
@@ -706,14 +712,18 @@ Heatmap.prototype.calculatePathPoints = function (offset,indices){
 
     //Calculate the points (5 per gap between views)
     for (var j=0;j<totalPts;j++){
-        var theta = angle + (Math.PI/4)*j;
+        var theta = angle + quarterPi*j;
         var y = this.amplitude*Math.sin(theta) + this.ySpacing*offset +this.draggedCellY;
-        var x = (this.xSpacing/4)*j + this.draggedCellX;
+        var x = (this.xSpacing/4)*j + startX + this.draggedCellX;
+        if (j%4==0){ //Add the sign (+1 for peak, -1 for trough) to each ambiguous cell along the sine wave
+            this.ambiguousCells[indices[indexCounter]] = [1,sign];
+            indexCounter++;
+            sign = (sign==-1)?1:-1; //Flip the sign of the sine wave direction
+        }
         pathPoints.push([x,y]);
     }
 
-    //Insert the end direction (1=peak, -1=trough) of the sine wave into ambiguousBars array
-    // (first direction will always be -1)
+    //Insert the end direction of the sine wave
     var endDirection = (indices.length % 2==0)?-1:1;
     this.ambiguousCells[indices[indices.length-1]] = [1,endDirection];
 

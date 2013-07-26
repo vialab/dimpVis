@@ -978,6 +978,7 @@ Barchart.prototype.findPaths = function (startIndex){
 Barchart.prototype.calculatePathPoints = function (indices){
     var angle = 0;
     var pathPoints = [];
+    var quarterPi = Math.PI/4;
 
     //Save the x and y coordinates of the stationary bar
     var xPos = this.pathData[indices[0]][0];
@@ -992,7 +993,7 @@ Barchart.prototype.calculatePathPoints = function (indices){
 
     //Calculate the points (5 per gap between views)
     for (var j=0;j<totalPts;j++){
-        var theta = angle + (Math.PI/4)*j;
+        var theta = angle + quarterPi*j;
         var y = this.amplitude*Math.sin(theta)+yPos;
         var x = (this.hintPathSpacing/4)*j + xPos;
         if (j%4==0){ //Add the sign (+1 for peak, -1 for trough) to each ambiguous bar along the sine wave

@@ -60,7 +60,7 @@ body {
 .interactionPath{
     stroke-dasharray:3,3;
     fill: none;
-    stroke: #FFF;
+    stroke: #666;
 }
 
 /*The black border around the currently dragged cell */
