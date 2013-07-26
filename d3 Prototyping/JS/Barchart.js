@@ -240,16 +240,22 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
      var ref = this;
     //Re-draw the bars according to the dragging amount
     this.svg.select("#displayBars"+id).each(function (d) {
-        //Find the current vertical dragging direction of the user
+        //Set the current vertical dragging direction of the user
         var draggingDirection;
         //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
         if (mouseY>ref.mouseY){ draggingDirection = -1;}
         else if (mouseY < ref.mouseY){ draggingDirection = 1;}
         else{ draggingDirection = ref.previousDragDirection;}
 
-         var current = d.nodes[ref.currentView];
-         var next = d.nodes[ref.nextView];
-         var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
+       //Re-set the time direction and dragging direction if the dragging has just started
+       /** if (ref.timeDirection ==0){
+            ref.timeDirection = 1; //Forward in time by default
+            ref.previousDragDirection = draggingDirection;
+        }*/
+
+        var current = d.nodes[ref.currentView];
+        var next = d.nodes[ref.nextView];
+        var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
 
         if (ref.isAmbiguous ==1){ //At least one stationary sequence exists somewhere on the hint path
 
@@ -271,8 +277,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
             }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching the stationary points from left (along hint path)
                 ref.setSineWaveVariables(nextAmbiguous[1],next[0],0);
                 ref.hideAnchor();
-                //Detect if the sine wave and regular hint path form a peak at end point
-                if(current>next){
+
+                if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
                     ref.atPeak = ref.nextView;
                 }
 
@@ -443,7 +449,8 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
  *  draggingDirection: vertical dragging direction of mouse
  *  @return: [newY,newHeight], values used to update the drawing of the dragged bar
  * */
- Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingDirection){
+//TODO: start the dragging at a peak causes some jumping (might be a similar problem as the sine wave)
+Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingDirection){
     var newValues = [];
 
     //Resolve the bounds, find the appropriate y-coords (if at peak, the tolerance adjusted y-value is used instead of the original)
@@ -489,12 +496,9 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
  * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
  * changes.
  * b1,b2: the boundary views (b1 should be the currently encountered corner)
- * mouseY: dragging position of the mouse
- * draggingDirection: of the user, 1 if dragging up, -1 is down
  * @return the y-position the bar should be drawn at
  * */
 Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,orig){
-   //console.log(draggingDirection+" "+this.previousDragDirection+" "+this.timeDirection);
 
     if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
         if (this.timeDirection ==1){this.moveForward();}
@@ -857,8 +861,10 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
             .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
             .attr("transform","translate("+(-translate)+")")
             .attr("class","interactionPath");
+        this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
     }
-    this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
+
+   //this.timeDirection = 0;  //In case dragging starts at a peak..
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("svg:path")
@@ -999,8 +1005,6 @@ Barchart.prototype.calculatePathPoints = function (indices){
     //Insert the direction of the end point on the sine wave into ambiguousBars array
     var endDirection = (indices.length % 2==0)?-1:1;
     this.ambiguousBars[indices[indices.length-1]] = [1,endDirection];
-
-    //console.log(this.ambiguousBars);
 
     return pathPoints;
 }
