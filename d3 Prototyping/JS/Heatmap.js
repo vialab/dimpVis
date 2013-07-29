@@ -225,8 +225,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        var currentY = ref.hintYValues[ref.currentView];
        var nextY = ref.hintYValues[ref.nextView];
 
-       //******Only for non-ambiguous cases!!
-
+       //Old code for shrinking the dragging frame and then translating vertically as well as horizontally
        //Determine the slop of the line between views
       /** var slope;
        if (current[4]>next[4]){ //Upwards slope
@@ -303,6 +302,7 @@ Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mous
         }
     }else{ //Passing next view
         if (next[6]!=0 || this.atPeak == this.nextView){ //At a peak
+            console.log("infer");
             this.inferTimeDirection(draggingDirection);
         }else{
             this.moveForward();
@@ -839,7 +839,7 @@ Heatmap.prototype.appendAnchor = function (x,y){
 /** Re-draws the anchor along the sine wave
  * */
 Heatmap.prototype.redrawAnchor = function (newY){
-    this.svg.select("#anchor").attr("cy",newY).attr("stroke","#c7c7c7");
+    this.svg.select("#anchor").attr("cy",newY).attr("stroke","#000");
 }
 /** Removes an anchor from the svg, if one is appended
  * */

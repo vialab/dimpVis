@@ -236,7 +236,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
             }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0] == 1){
                 ref.setSineWaveVariables(-1,next,0);
                 //Detect if the sine wave and regular hint path form a peak at end point
-                if(current>next){
+                if(current>next /**&& this.timeDirection==1*/){
                     ref.atCorner = ref.nextView;
                 }
                 newAngle = ref.handleDraggedSegment(id,current,next,angle, d.nodes,draggingDirection);
@@ -262,6 +262,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
 
         d.endAngle = ref.dragStartAngle + newAngle; //Set the new end angle to re-draw the dragged angle
         ref.mouseAngle = angle; //Save the dragging angle
+        ref.previousDragDirection = draggingDirection; //Save the current dragging direction
 
         return ref.arcGenerator(d); //Re-draw the arc
     });
@@ -307,7 +308,7 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
 
    //Check to see if the mouse angle is in between current and next, or beyond one of them
     var bounds = this.checkBounds(current,next,mouseAngle);
-
+console.log("corner "+this.atCorner+" "+this.currentView+" "+this.nextView+" "+this.corners[this.nextView]);
     //Change views or update the view
     if (bounds == mouseAngle){
         this.findInterpolation(current,next,mouseAngle,0);
@@ -315,20 +316,21 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
         this.animateHintPath(nodes);
     }else if (bounds == current) { //At current
         if (this.corners[this.currentView]==1 || this.atCorner == this.currentView){ //Current is a corner, or a corner formed by the sine wave and hint path
-            this.inferTimeDirection(current,next,mouseAngle,draggingDirection);
-            console.log("infer");
+            this.inferTimeDirection(draggingDirection,1);
+
         }else{
+            console.log(" mouse angle: "+mouseAngle*180/Math.PI+" current: "+current*180/Math.PI+" next: "+next*180/Math.PI);
             this.moveBackward();
+            console.log("no infer"+this.currentView+" "+this.nextView);
         }
     }else{ //At next
         if (this.corners[this.nextView]==1 || this.atCorner == this.nextView){ //Next is a corner, or a corner formed by the sine wave and hint path
-            this.inferTimeDirection(next,current,mouseAngle,draggingDirection);
+            console.log("infer"+this.currentView+" "+this.nextView+" "+draggingDirection+" "+this.previousDragDirection);
+            this.inferTimeDirection(draggingDirection,0);
         }else{
             this.moveForward();
         }
     }
-
-    this.previousDragDirection = draggingDirection; //Save the current dragging direction
     return bounds;
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedSegment, except
@@ -368,8 +370,10 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
                 this.setSineWaveVariables(newPathDirection,angle,0);
             }
             else if (this.timeDirection ==-1 && this.currentView >0){
+
                 this.moveBackward();
                 this.setSineWaveVariables(newPathDirection,angle,1);
+                console.log("stationary "+this.currentView+" "+this.nextView);
             }
         }
     }
@@ -406,16 +410,25 @@ Piechart.prototype.removeAnchor = function (){
 /**Infers the time direction when user arrives at corners, inference is based on previous direction
  * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
  * changes.
- * b1,b2: the boundary views (b1 should be the currently encountered corner)
- * mouseAngle: dragging angle of the mouse
  * draggingDirection: 1 if dragging clockwise, -1 is counter-clockwise
+ * atCurrent: the view which user is currently at or passing (=0 if at next view, =1 if at current)
  * */
-Piechart.prototype.inferTimeDirection = function (b1,b2,mouseAngle,draggingDirection){
-
-    if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
+//TODO: remove extra parameters
+ Piechart.prototype.inferTimeDirection = function (draggingDirection,atCurrent){
+    //Old code
+   /** if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
         if (this.timeDirection ==1){this.moveForward();}
         else{this.moveBackward();}
-    }
+        console.log("inferring "+this.currentView+" "+this.nextView);
+    }*/
+    //New code: only move forward if the user is at next view, only move backward if user is at current view
+     if (this.previousDragDirection != draggingDirection){
+         if (atCurrent==0 && this.timeDirection ==1){
+             this.moveForward();
+         }else if (atCurrent ==1 && this.timeDirection ==-1){
+             this.moveBackward();
+         }
+     }
 }
 /** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
  *   Uses the interpolation amount to find the direction travelling over time and save it
@@ -465,7 +478,7 @@ Piechart.prototype.moveBackward = function (){
     if (this.currentView > 0){ //Avoid index out of bounds
         this.nextView = this.currentView;
         this.currentView--;
-    }    
+    }
 }
 /** Checks if the mouse's dragged angle is in the bounds defined by angle1, angle2
  *  angle1,angle2: the bounds
@@ -486,12 +499,14 @@ Piechart.prototype.checkBounds = function(angle1,angle2,mouseAngle){
     }
 
     if (mouseAngle <= start){
-        if (this.timeDirection == -1) {this.interpValue = 1; }
-        else{this.interpValue = 0;}
+       // if (this.timeDirection == -1) {this.interpValue = 1; }
+       // else{this.interpValue = 0;}
+        this.interpValue = 0;
         return start;
     }else if (mouseAngle >=end){
-        if (this.timeDirection == -1) {this.interpValue = 1; }
-        else{this.interpValue = 0;}
+       // if (this.timeDirection == -1) {this.interpValue = 1; }
+      //  else{this.interpValue = 0;}
+        this.interpValue = 0;
         return end;
     }
 
@@ -575,7 +590,6 @@ Piechart.prototype.changeLabelOpacity = function (d,view){
  * allAngles: of the dragged segment (across all views)
  * mouseAngle: the angle of the mouse
  * */
-//TODO: adjust this function for the stationary case
  Piechart.prototype.snapToView = function (id,allAngles){
     var currentDist, nextDist;
    //Check if the views are an ambiguous case, set the distances
@@ -588,17 +602,19 @@ Piechart.prototype.changeLabelOpacity = function (d,view){
              nextDist = 1;
          }
     }else{
-         currentDist = Math.abs(allAngles[this.currentView] - this.mouseY);
-         nextDist = Math.abs(allAngles[this.nextView] - this.mouseY);
+         currentDist = Math.abs(allAngles[this.currentView] - this.mouseAngle);
+         nextDist = Math.abs(allAngles[this.nextView] - this.mouseAngle);
     }
 
-   if (currentDist>nextDist && this.nextView <= this.lastView){ //Passed next, advance the variables forward
-        this.currentView = this.nextView;
-        this.nextView++;
-   }
-   this.redrawView(this.currentView,id);
-   this.redrawHintPath(this.currentView,allAngles);
-}
+    //Ensure the nextView wasn't the last one to avoid the index going out of bounds
+    if (currentDist > nextDist && this.nextView <= this.lastView){
+         this.currentView = this.nextView;
+         this.nextView++;
+    }
+
+    this.redrawView(this.currentView,id);
+    this.redrawHintPath(this.currentView,allAngles);
+ }
 /** Updates the view tracking variables when the view is being changed by an external
  * visualization (e.g., slider)
  * */

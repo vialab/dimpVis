@@ -241,6 +241,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
      var ref = this;
     //Re-draw the bars according to the dragging amount
     this.svg.select("#displayBars"+id).each(function (d) {
+
         //Set the current vertical dragging direction of the user
         var draggingDirection;
         //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
