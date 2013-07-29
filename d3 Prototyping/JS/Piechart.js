@@ -994,10 +994,10 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
     var direction = 1;
-    if (startView>endView) direction=-1;
+    if (startView>endView) {direction=-1};
 
     //Define some counter variables to keep track of the views passed during the transition
-    var totalViews = this.lastView+1;
+    var totalViews = this.numArcs;
     var viewCounter = -1; //Identifies when a new view is reached
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
 

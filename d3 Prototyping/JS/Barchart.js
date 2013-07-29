@@ -692,10 +692,9 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  *  id: the id of the dragged bar (if any), to animate it's hint path which is visible
  *  NOTE: This function does not update the view tracking variables
  * */
-//TODO: last and first view: animateView going out of bounds
-  Barchart.prototype.animateBars = function( id, startView, endView) {
+ Barchart.prototype.animateBars = function( id, startView, endView) {
 
-      if (startView == endView){return;}
+    if (startView == endView){return;}
     var ref = this;
 
     //Determine the travel direction (e.g., forward or backward in time)
@@ -730,16 +729,17 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                 .each("end", animate());
             //If the bar's hint path is visible, animate it
             if (d.id == id){
+
                 var translate = animateView*ref.hintPathSpacing;
 
                 //Re-draw the hint path and labels
                 d3.select("#path").attr("transform","translate("+(-translate)+")");
-                d3.select("#hintPath").selectAll(".hintLabels").attr("transform","translate("+(-translate)+")");
+                d3.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
+                    .attr("fill-opacity", function (b) {return (b.id==animateView)?1:0.3});
 
                 //Re-draw interaction paths (if any)
                 if (ref.interactionPaths.length>0){
-                    d3.select("#hintPath").selectAll(".interactionPath")
-                        .attr("transform","translate("+(-translate)+")");
+                    d3.selectAll(".interactionPath").attr("transform","translate("+(-translate)+")");
                 }
             }
         }

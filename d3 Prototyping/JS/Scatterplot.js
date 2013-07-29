@@ -23,8 +23,10 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.xLabel = xLabel;
    this.yLabel = yLabel;
    this.graphTitle = title;
+
    // Create a variable to reference the main svg
    this.svg = null;
+   this.numPoints = 0; //Set this later
 
    //Variables to track dragged point location within the hint path, all assigned values when the dataset is provided (in render())
    this.currentView = -1;
@@ -42,7 +44,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
 
    //Variables to track interaction events
-   this.dragged = -1;
+   this.draggedPoint = -1;
    this.isAmbiguous = 0;  //Whether or not the point being dragged has at least one ambiguous case, set to 0 if none, and 1 otherwise
 
    //Event functions, declared later in this file or in the init file (if visualization is
@@ -94,6 +96,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
    this.labels = labels;
    this.currentView = start;
    this.lastView = labels.length -1;
+   this.numPoints = data.length-1;
 
    //Resolve the index value for the next view (e.g., if currentView is 0, then nextView should be set to 1)
    if (this.currentView ==0){
@@ -466,16 +469,13 @@ Scatterplot.prototype.changeView = function( newView) {
 /** Animates all points in the scatterplot along their hint paths from
  *  startView to endView, this function is called when "fast-forwarding"
  *  is invoked (by clicking a year label on the hint path)
- *  startView: View index to start the animation at
- *  endView: View to end the animation at (need to update view variables
- *  according to this value)
+ *  id: of the dragged point (if any)
+ *  startView, endView: animation goes from start to end view
  *  Resources: http://bl.ocks.org/mbostock/1125997
  *            http://bost.ocks.org/mike/transition/
- *  NOTE: This function does not update the view tracking variables
  * */
-//TODO: Still pretty buggy might have to do with the view tracking, sometimes doesn't animate to the correct view, exact cause of this is unknown
 //TODO: Add toggling label colour for stationary/revisiting points
- Scatterplot.prototype.animatePoints = function( startView, endView) {
+ Scatterplot.prototype.animatePoints = function( id, startView, endView) {
      if (startView == endView){return;}
      var ref = this;
      //Determine the travel direction (e.g., forward or backward in time)
@@ -483,8 +483,8 @@ Scatterplot.prototype.changeView = function( newView) {
      if (startView>endView) direction=-1;
 
     //Define some counter variables to keep track of the views passed during the transition
-    var totalViews = ref.lastView+1;
-    var viewCounter = -1; //Identifies when a new view is reached
+    var totalObjects = this.numPoints;
+    var objectCounter = -1;
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
 
     //Apply multiple transitions to each display point by chaining them
@@ -493,20 +493,27 @@ Scatterplot.prototype.changeView = function( newView) {
     //Recursively invoke this function to chain transitions, a new transition is added once
     //the current one is finished
     function animate() {
-        viewCounter++;
-        if (viewCounter==totalViews) {
+        objectCounter++;
+        if (objectCounter==totalObjects) {
             animateView = animateView + direction;
-            viewCounter = 0;
+            objectCounter = 0;
         }
+
+        //Ensure the animateView index is not out of bounds
+        if (direction == 1 && animateView>=endView) {return};
+        if (direction ==-1 && animateView<=endView) {return};
+
         return function(d) {
-            //Ensure the animateView index is not out of bounds
-            if (direction == 1 && animateView>=endView) {return};
-            if (direction ==-1 && animateView<=endView) {return};
             //Re-draw each point at the current view in the animation sequence
             d3.select(this).transition(400).ease("linear")
             .attr("cx",d.nodes[animateView][0])
             .attr("cy",d.nodes[animateView][1])
             .each("end", animate());
+
+            //Re-colour the labels along the hint path (if a path is visible)
+            if (d.id == id){
+                d3.selectAll(".hintLabels").attr("fill-opacity",function (b){ return ((b.id==animateView)?1:0.3)});
+            }
         };
     }
 }

@@ -14,7 +14,7 @@ scatterplot.init();
 //Define the click interaction of the hint labels to invoke fast switching among views
 scatterplot.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation(); //Prevents the event from propagating down to the SVG
-    scatterplot.animatePoints(scatterplot.currentView, i);
+    scatterplot.animatePoints(scatterplot.draggedPoint,scatterplot.currentView, i);
     scatterplot.changeView(i);
     slider.updateSlider(i);
 };
