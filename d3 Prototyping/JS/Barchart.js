@@ -738,7 +738,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                     .attr("fill-opacity", function (b) {return (b.id==animateView)?1:0.3});
 
                 //Re-draw interaction paths (if any)
-                if (ref.interactionPaths.length>0){
+                if (ref.isAmbiguous==1){
                     d3.selectAll(".interactionPath").attr("transform","translate("+(-translate)+")");
                 }
             }

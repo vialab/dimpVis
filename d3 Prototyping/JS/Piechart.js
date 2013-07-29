@@ -78,19 +78,18 @@ function Piechart(x,y, r,id,title,hLabels){
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Piechart.prototype.init = function(){
+
    //Draw the main svg to contain the whole visualization
    this.svg = d3.select(this.id).append("svg")
       .attr("width", this.width).attr("height", this.height)
       .style("position", "absolute").style("left", this.xPos + "px")
       .style("top", this.yPos + "px")
-      .on("click",this.clickSVG)
-      .append("g");
+      .on("click",this.clickSVG).append("g");
+
    //Add the blur filter to the SVG so other elements can call it
-    this.svg.append("svg:defs")
-     .append("svg:filter")
-     .attr("id", "blur")
-     .append("svg:feGaussianBlur")
-     .attr("stdDeviation", 2);
+    this.svg.append("svg:defs").append("svg:filter")
+     .attr("id", "blur").append("svg:feGaussianBlur")
+     .attr("stdDeviation", 4);
  }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -533,8 +532,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
             return ref.arcGenerator(d);
         });
 }
-/** Animates the hint path by angular translating it inwards corresponding to the dragging
- *  amount
+/** Animates the hint path by angular translating it corresponding to the dragging amount
  * angles: an array of all angles to appear on the hint path
  * */
 //TODO: might need a better way of animating, should not have to re-calculate all points each time, should use transforms (e.g., translate x,y and scale the size of the arc)
@@ -1003,6 +1001,7 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
     var allAngles = this.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes});
     var savedNodes = this.svg.selectAll(".displayArcs").data().map(function (d){return d;});
     var newAngles = allAngles.map(function (k){return k[startView]});
+   // var hintArcInfo = ref.calculateHintAngles(newAngles,startView,0);
 
     //console.log(allAngles.map(function (k){return 180*k[0]/Math.PI}));
     //Apply multiple transitions to each display point by chaining them
@@ -1022,15 +1021,11 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
         if (direction == 1 && animateView>=endView) return;
         if (direction ==-1 && animateView<=endView) return;
 
+        //TODO:add tweening, movement is very rigid
+
         return function(d) {
             //Redraw the piechart at the new view
-            d3.select(this).transition().duration(500)//.ease("linear")
-                /**.attr("d", function (b){
-                    //console.log(b.id+" "+ref.startAngles[b.id]+" "+ref.endAngles[b.id]+" "+animateView);
-                    d.startAngle = ref.startAngles[b.id];
-                    d.endAngle = ref.endAngles[b.id];
-                    return ref.arcGenerator(b);
-                 })*/
+            d3.select(this).transition(400)//.duration(400)//.ease("linear")
                 .attrTween("d",function (a){
                     a.startAngle = ref.startAngles[a.id];
                     a.endAngle = ref.endAngles[a.id];
@@ -1040,21 +1035,33 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
                     }
                 })
                 .each("end", animate());
-            //TODO:animate hint path
+
             //If a hint path is visible, animate it
-            /**if (d.id == id){
-                //Re-draw the hint path
-                var hintArcInfo = ref.calculateHintAngles(newAngles,animateView,0);
-                console.log(hintArcInfo);
+            if (d.id == id){
+
+                var hintArcInfo = ref.calculateHintAngles(d.nodes,animateView,0);
                 var hintPathArcString = ref.createArcString(hintArcInfo,0);
+
                 //Redraw the hint path
                 d3.select("#path").attr("d", hintPathArcString);
+
                 //Re-draw the hint path labels
                 d3.selectAll(".hintLabels").attr("transform",function (a) {
                     console.log(a.id);
                     return "translate("+hintArcInfo[a.id][0]+","+hintArcInfo[a.id][1]+")";
-                });//.attr("fill-opacity",function (d){return ref.interpolateLabelOpacity(d)});
-            }*/
+                }).attr("fill-opacity",function (d){return ref.changeLabelOpacity(d,animateView)});
+
+                //Redraw the interaction path(s) if any
+                if (ref.isAmbiguous ==1){
+                    d3.selectAll(".interactionPath").attr("d",function (d) {
+                        var xTranslate = hintArcInfo[d.view][0];
+                        var yTranslate = hintArcInfo[d.view][1];
+                        var translatedPoints = d.points.map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
+                        d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")");
+                        return ref.interactionPathGenerator(translatedPoints);
+                    });
+                }
+            }
         };
     }
 }
