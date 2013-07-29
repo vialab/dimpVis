@@ -308,7 +308,7 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
 
    //Check to see if the mouse angle is in between current and next, or beyond one of them
     var bounds = this.checkBounds(current,next,mouseAngle);
-console.log("corner "+this.atCorner+" "+this.currentView+" "+this.nextView+" "+this.corners[this.nextView]);
+
     //Change views or update the view
     if (bounds == mouseAngle){
         this.findInterpolation(current,next,mouseAngle,0);
@@ -317,15 +317,11 @@ console.log("corner "+this.atCorner+" "+this.currentView+" "+this.nextView+" "+t
     }else if (bounds == current) { //At current
         if (this.corners[this.currentView]==1 || this.atCorner == this.currentView){ //Current is a corner, or a corner formed by the sine wave and hint path
             this.inferTimeDirection(draggingDirection,1);
-
         }else{
-            console.log(" mouse angle: "+mouseAngle*180/Math.PI+" current: "+current*180/Math.PI+" next: "+next*180/Math.PI);
             this.moveBackward();
-            console.log("no infer"+this.currentView+" "+this.nextView);
         }
     }else{ //At next
         if (this.corners[this.nextView]==1 || this.atCorner == this.nextView){ //Next is a corner, or a corner formed by the sine wave and hint path
-            console.log("infer"+this.currentView+" "+this.nextView+" "+draggingDirection+" "+this.previousDragDirection);
             this.inferTimeDirection(draggingDirection,0);
         }else{
             this.moveForward();
@@ -370,10 +366,8 @@ console.log("corner "+this.atCorner+" "+this.currentView+" "+this.nextView+" "+t
                 this.setSineWaveVariables(newPathDirection,angle,0);
             }
             else if (this.timeDirection ==-1 && this.currentView >0){
-
                 this.moveBackward();
                 this.setSineWaveVariables(newPathDirection,angle,1);
-                console.log("stationary "+this.currentView+" "+this.nextView);
             }
         }
     }

@@ -500,7 +500,8 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
  * b1,b2: the boundary views (b1 should be the currently encountered corner)
  * @return the y-position the bar should be drawn at
  * */
-Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,orig){
+//TODO: apply the same fix made in the Piechart?
+ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,orig){
 
     if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
         if (this.timeDirection ==1){this.moveForward();}
@@ -693,32 +694,35 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  * */
 //TODO: last and first view: animateView going out of bounds
   Barchart.prototype.animateBars = function( id, startView, endView) {
-    if (startView == endView){return;}
+
+      if (startView == endView){return;}
     var ref = this;
+
     //Determine the travel direction (e.g., forward or backward in time)
     var direction = 1;
     if (startView>endView) direction=-1;
 
     //Define some counter variables to keep track of the views passed during the transition
-    var totalViews = this.lastView+1;
-    var viewCounter = -1; //Identifies when a new view is reached
-    var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
-    
-    //Apply multiple transitions to each display point by chaining them
+    var totalBars = this.numBars -1; //Highest index of all bars
+    var barCounter = -1; //Identifies when all bars have been animated and the view should change
+    var animateView = startView; //+ direction; //Indicates when to switch the views (after all points are finished transitioning)
+
+    //Apply multiple chained transitions to each display point by chaining them
     this.svg.selectAll(".displayBars").each(animate());
 
     //Recursively invoke this function to chain transitions, a new transition is added once
     //the current one is finished
     function animate() {
-        viewCounter++;
-        if (viewCounter==totalViews) {
+        barCounter++;
+        if (barCounter==totalBars) {
             animateView = animateView + direction;
-            viewCounter = 0;
+            barCounter = 0;
         }
-        if (direction == 1 && animateView>=endView) return;
-        if (direction ==-1 && animateView<=endView) return;
+
+        if (direction == 1 && animateView>=endView) {return;}
+        if (direction ==-1 && animateView<=endView) {return;}
+
         return function(d) {
-            console.log(animateView);
             //Animate the bar
             d3.select(this).transition(400).ease("linear")
                 .attr("height",d.nodes[animateView][1])
@@ -738,7 +742,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                         .attr("transform","translate("+(-translate)+")");
                 }
             }
-        };
+        }
     }
 }
 /** Redraws the barchart at a specified view
