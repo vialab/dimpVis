@@ -544,11 +544,11 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
     var hintPathArcString = ref.createArcString(hintArcInfo,0);
 
     //Redraw the hint path
-    this.svg.select("#hintPath").selectAll("path").attr("d", hintPathArcString);
+    this.svg.select("#path").attr("d", hintPathArcString);
 
     //Update the hint labels
-   this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
-       return "translate("+hintArcInfo[i][0]+","+hintArcInfo[i][1]+")";
+   this.svg.selectAll(".hintLabels").attr("transform",function (d) {
+       return "translate("+hintArcInfo[d.id][0]+","+hintArcInfo[d.id][1]+")";
     }).attr("fill-opacity",function (d){return ref.interpolateLabelOpacity(d)});
 
     //Redraw interaction path(s) if any
@@ -650,7 +650,7 @@ Piechart.prototype.redrawHintPath = function (view,angles){
     var hintPathArcString = this.createArcString(hintArcInfo,0);
 
     //Redraw the hint path
-    this.svg.select("#hintPath").selectAll("path").attr("d", hintPathArcString);
+    this.svg.select("#path").attr("d", hintPathArcString);
 
     //Update the hint labels and change the opacity to show current view
     this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
@@ -981,15 +981,14 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
     newPoints.push([pathInfo[lastIndex][0],pathInfo[lastIndex][1]]);
     return newPoints;
 }
-//TODO: this function is not working (not high priority)
 /** Animates all segments on the piechart along the hint path of a selected segment
- *  startView to endView, this function is called when "fast-forwarding"
- *  is invoked (by clicking a year label on the hint path)
+ *  startView to endView, this function is called when a label on the hint path is clicked
  *  startView, endView: View indices bounding the animation
  *  id: of the dragged segment (if any)
- *  NOTE: This function does not update the view tracking variables
+ *  Tweening based on this example: http://bl.ocks.org/mbostock/1346410
  * */
 Piechart.prototype.animateSegments = function(id, startView, endView) {
+
     if (startView == endView){return;}
     var ref = this;
     //Determine the travel direction (e.g., forward or backward in time)
@@ -997,10 +996,15 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
     if (startView>endView) {direction=-1};
 
     //Define some counter variables to keep track of the views passed during the transition
-    var totalViews = this.numArcs;
+    var totalViews = this.numArcs+1;
     var viewCounter = -1; //Identifies when a new view is reached
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
 
+    var allAngles = this.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes});
+    var savedNodes = this.svg.selectAll(".displayArcs").data().map(function (d){return d;});
+    var newAngles = allAngles.map(function (k){return k[startView]});
+
+    //console.log(allAngles.map(function (k){return 180*k[0]/Math.PI}));
     //Apply multiple transitions to each display point by chaining them
     this.svg.selectAll(".displayArcs").each(animate());
 
@@ -1010,9 +1014,7 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
         viewCounter++;
         if (viewCounter==totalViews) {
             animateView = animateView + direction;
-            var newAngles = [];
-            newAngles = ref.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes[animateView]});
-
+            newAngles = allAngles.map(function (k){return k[animateView]});
             //Recalculate the piechart layout at the view
             ref.calculateLayout(newAngles,ref.dragStartAngle,id);
             viewCounter = 0;
@@ -1022,26 +1024,36 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
 
         return function(d) {
             //Redraw the piechart at the new view
-            d3.select(this).transition(400)//.ease("linear")
-                .attr("d", function (d){
-                    d.startAngle = ref.startAngles[d.id];
-                    d.endAngle = ref.endAngles[d.id];
-                    return ref.arcGenerator(d);
-                 })
+            d3.select(this).transition().duration(500)//.ease("linear")
+                /**.attr("d", function (b){
+                    //console.log(b.id+" "+ref.startAngles[b.id]+" "+ref.endAngles[b.id]+" "+animateView);
+                    d.startAngle = ref.startAngles[b.id];
+                    d.endAngle = ref.endAngles[b.id];
+                    return ref.arcGenerator(b);
+                 })*/
+                .attrTween("d",function (a){
+                    a.startAngle = ref.startAngles[a.id];
+                    a.endAngle = ref.endAngles[a.id];
+                    var interpolator = d3.interpolate(savedNodes[a.id],ref.arcGenerator(a));
+                    return function (t){
+                        return interpolator(t);
+                    }
+                })
                 .each("end", animate());
             //TODO:animate hint path
-            //If the bar's hint path is visible, animate it
-           /**  if (d.id == id){
+            //If a hint path is visible, animate it
+            /**if (d.id == id){
                 //Re-draw the hint path
-                /d3.select("#hintPath").selectAll("path").attr("d", function(d,i){
-                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
-                });
+                var hintArcInfo = ref.calculateHintAngles(newAngles,animateView,0);
+                console.log(hintArcInfo);
+                var hintPathArcString = ref.createArcString(hintArcInfo,0);
+                //Redraw the hint path
+                d3.select("#path").attr("d", hintPathArcString);
                 //Re-draw the hint path labels
-                d3.select("#hintPath").selectAll(".hintLabels").attr("transform",function (d,i) {
-                        //Don't rotate the label resting on top of the bar
-                        if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
-                        else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
-                });
+                d3.selectAll(".hintLabels").attr("transform",function (a) {
+                    console.log(a.id);
+                    return "translate("+hintArcInfo[a.id][0]+","+hintArcInfo[a.id][1]+")";
+                });//.attr("fill-opacity",function (d){return ref.interpolateLabelOpacity(d)});
             }*/
         };
     }

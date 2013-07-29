@@ -702,7 +702,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
     if (startView>endView) direction=-1;
 
     //Define some counter variables to keep track of the views passed during the transition
-    var totalBars = this.numBars -1; //Highest index of all bars
+    var totalBars = this.numBars; //Highest index of all bars
     var barCounter = -1; //Identifies when all bars have been animated and the view should change
     var animateView = startView; //+ direction; //Indicates when to switch the views (after all points are finished transitioning)
 

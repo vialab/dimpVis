@@ -26,7 +26,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
 
    // Create a variable to reference the main svg
    this.svg = null;
-   this.numPoints = 0; //Set this later
+   this.numPoints = -1; //Set this later
 
    //Variables to track dragged point location within the hint path, all assigned values when the dataset is provided (in render())
    this.currentView = -1;
@@ -96,7 +96,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
    this.labels = labels;
    this.currentView = start;
    this.lastView = labels.length -1;
-   this.numPoints = data.length-1;
+   this.numPoints = data.length;
 
    //Resolve the index value for the next view (e.g., if currentView is 0, then nextView should be set to 1)
    if (this.currentView ==0){

@@ -33,7 +33,6 @@ heatmap.dragEvent = d3.behavior.drag()
                   })
                   .on("dragend",function (d){
                        heatmap.snapToView(d.id, d.values, d.y);
-                       heatmap.previousMouseY = null;
                        slider.updateSlider(heatmap.currentView);
                   });
 

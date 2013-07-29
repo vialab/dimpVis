@@ -30,6 +30,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.draggedCellX = -1; //Saved x coordinate of the dragged cell
    this.draggedCellY = -1; //Saved y coordinate of the dragged cell
    this.hintYValues = []; //Saves the hint y-values (at the first view)
+   this.numCells = -1; //Set this later in render()
 
    this.ambiguousCells = []; //Keeps track of which cells are part of an ambiguous case
    this.isAmbiguous = 0;  //A flag to quickly check whether or not there exists ambiguous cases in the data
@@ -87,6 +88,8 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
     this.width = xLabels.length*this.cellSize+100;
     this.height = yLabels.length*this.cellSize+100;
     d3.select(this.id).select("#mainSvg").attr("width", this.width).attr("height", this.height);
+
+    this.numCells = data.length;
 
     //Find the max and min score in the dataset (used for the colour scale)
     var maxScore = d3.max(data.map(function (d){return d3.max(d.values); }));
@@ -497,9 +500,8 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
 }
 /** Animates the colours of the cells by interpolation within the given view boundaries
  *  start,end: the bounding views
- *  id: of the most recently dragged cell
+ *  id: of the dragged cell
  * */
-//TODO: This function is not working..not high priority to fix it
  Heatmap.prototype.animateColours = function (id,start,end){
     if (start== end){return;}
     var ref = this;
@@ -508,7 +510,7 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
     if (start>end) direction=-1;
 
     //Define some counter variables to keep track of the views passed during the transition
-    var totalViews = this.lastView+1;
+    var totalCells = this.numCells;
     var viewCounter = -1; //Identifies when a new view is reached
     var animateView = start; //Indicates when to switch the views (after all points are finished transitioning)
 
@@ -519,7 +521,7 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
     //the current one is finished
     function animate() {
         viewCounter++;
-        if (viewCounter==totalViews) {
+        if (viewCounter==totalCells) {
             animateView = animateView + direction;
             viewCounter = 0;
         }
@@ -530,15 +532,14 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
             d3.select(this).transition(400).ease("linear")
                 .attr("fill",d.values[animateView][0])
                 .each("end", animate());
-            //TODO: animate hint path If the cell's hint path is visible, animate it
-            /**if (d.id == id){
+            //TODO: animate hint path If the cell's hint path is visible, animate it, leave this until a method for translating the hint path is decided on
+           /** if (d.id == id){
                 //Re-draw the hint path
                 d3.select("#path").attr("d", function(d,i){
                     return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
                 });
-                //Re-draw the hint path labels
-                d3.select("#hintPath").selectAll(".hintLabels")
-                    .attr("transform",function (d,i) {
+                //Re-draw the hint path labels, add the label fading
+                d3.selectAll(".hintLabels").attr("transform",function (d,i) {
                         //Don't rotate the label resting on top of the bar
                         if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
                         else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
