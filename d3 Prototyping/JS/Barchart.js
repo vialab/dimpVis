@@ -446,12 +446,9 @@ Barchart.prototype.drawProgress = function (interpAmount,translateAmount){
  *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
  *  bar to be drawn out of bounds and keeps track of time by updating the view variables.
  *  current, next: The nodes for each bar of current and next views (i.e., [y-pos,height])
- *  mouseY: the mouse's y-coordinate
  *  id: of the dragged bar
- *  draggingDirection: vertical dragging direction of mouse
  *  @return: [newY,newHeight], values used to update the drawing of the dragged bar
  * */
-//TODO: start the dragging at a peak causes some jumping (might be a similar problem as the sine wave)
 Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingDirection){
     var newValues = [];
 
@@ -524,7 +521,6 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
  *  id: of the dragged bar
  *  draggingDirection: vertical dragging direction of the mouse
  * */
-//TODO: jumping is better, but still happens sometimes
 Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id,draggingDirection){
 
      //If the atPeak variable is set to and index, it means that the first or last point on the sine wave is forming

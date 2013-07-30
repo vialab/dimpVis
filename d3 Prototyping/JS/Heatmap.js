@@ -43,7 +43,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    //Display properties
    this.labels = hLabels;
    this.xSpacing = 50; //Spacing across x for hint path
-   this.ySpacing = 10; //Spacing for the y of hint path
+   this.ySpacing = 8; //Spacing for the y of hint path
 
    //Declare some interaction event functions
    this.dragEvent = {};
@@ -219,7 +219,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
 
        //Find the current vertical dragging direction of the user
        var draggingDirection;
-       if (mouseY>ref.mouseY){ draggingDirection = -1;}
+       if (mouseY > ref.mouseY){ draggingDirection = -1;}
        else if (mouseY < ref.mouseY){ draggingDirection = 1;}
        else{ draggingDirection = ref.previousDragDirection;}
 
@@ -228,21 +228,35 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        var currentY = ref.hintYValues[ref.currentView];
        var nextY = ref.hintYValues[ref.nextView];
 
+       /**var smallCurrentY = ref.draggedCellY; //Center of the dragged cell
+       var smallNextY;
+       var diff = Math.abs(ref.draggedCellY - nextY)/2;
+       if (nextY > ref.draggedCellY){
+           smallNextY = smallCurrentY + diff;
+       }else{
+           smallNextY = smallCurrentY - diff;
+       }
+
+       console.log(smallCurrentY+" "+smallNextY);
+       var translateFactor = Math.abs(smallCurrentY - smallNextY);
+       console.log(translateFactor);*/
+
        //Old code for shrinking the dragging frame and then translating vertically as well as horizontally
        //Determine the slop of the line between views
-      /** var slope;
+       /** var slope;
        if (current[4]>next[4]){ //Upwards slope
            slope = 1;
        }else{ //Downwards
            slope = -1;
        }
-       var currentY,nextY;
+       var smallCurrentY,smallNextY;
        if (current[6]==0){ //Non-peak
-           currentY = (slope==1)? (ref.draggedCellY - current[4]*4):(ref.draggedCellY + current[4]*4);
+           smallCurrentY = (slope==1)? (ref.draggedCellY - current[4]*4):(ref.draggedCellY + current[4]*4);
        }else{ //Changed direction, interaction ambiguity
-           currentY = ref.draggedCellY; //Start boundary at the center of the dragged cell
+           smallCurrentY = ref.draggedCellY; //Start boundary at the center of the dragged cell
        }
-       nextY = (slope==1)? (ref.draggedCellY - next[4]*4):(ref.draggedCellY + next[4]*4);*/
+       smallNextY = (slope==1)? (ref.draggedCellY - next[4]*4):(ref.draggedCellY + next[4]*4);*/
+       //console.log(smallCurrentY+" "+smallNextY);
 
        if (ref.isAmbiguous==1){ //At least one ambiguous region exists on the hint path
 
@@ -269,6 +283,17 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
 
                ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
            }else if(currentAmbiguous[0]==1 && nextAmbiguous[0]==1){ //In middle of sine wave
+
+               //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
+               if (ref.passedMiddle == -1){
+                   ref.setSineWaveVariables(draggingDirection,current[0],0);
+                   //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
+                   if (ref.pathDirection != currentAmbiguous[1] && ref.currentView>0){
+                       ref.passedMiddle = 1;
+                       ref.moveBackward();
+                   }
+               }
+
                ref.handleDraggedCell_stationary(currentY,mouseY,draggingDirection);
            }else{ //Not encountering the sine wave
                ref.atPeak = -1;
@@ -299,13 +324,13 @@ Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mous
         this.animateHintPath(current[4],this.interpValue,draggingDirection);
     }else if (bounds == currentY){ //Passing current view
         if (current[6]!=0 || this.atPeak == this.currentView){ //At a peak
-            this.inferTimeDirection(draggingDirection);
+            this.inferTimeDirection(draggingDirection,1);
         }else{
             this.moveBackward();
         }
     }else{ //Passing next view
         if (next[6]!=0 || this.atPeak == this.nextView){ //At a peak
-            this.inferTimeDirection(draggingDirection);
+            this.inferTimeDirection(draggingDirection,0);
         }else{
             this.moveForward();
         }
@@ -315,7 +340,8 @@ Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mous
  *  this function is only called when in the middle of a stationary sequence.
  *  cellY: The y-position of the stationary bar
  * */
-Heatmap.prototype.handleDraggedCell_stationary = function (cellY,mouseY,draggingDirection){
+Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggingDirection){
+
     //If the atPeak variable is set to and index, it means that the first or last point on the sine wave is forming
     //A peak with the hint path
     if (this.atPeak!=-1){ //At one end point on the sine wave
@@ -323,7 +349,6 @@ Heatmap.prototype.handleDraggedCell_stationary = function (cellY,mouseY,dragging
             this.atPeak = -1;
         }
     }
-
     var bounds = this.checkBounds(this.peakValue,cellY,mouseY);
     var newY; //To re-position the anchor
 
@@ -344,6 +369,7 @@ Heatmap.prototype.handleDraggedCell_stationary = function (cellY,mouseY,dragging
         if (this.atPeak==-1){
             var newPathDirection = (this.pathDirection==1)?-1:1;
             if (this.timeDirection ==1 && this.nextView < this.lastView){
+                console.log("forward");
                 this.moveForward();
                 this.setSineWaveVariables(newPathDirection,cellY,0);
             }else if (this.timeDirection==-1 && this.currentView >0){
@@ -370,13 +396,17 @@ Heatmap.prototype.setSineWaveVariables = function (pathDirection,cellY,passedMid
  * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
  * changes.
  * draggingDirection: of the user, 1 if dragging up, -1 is down
+ * atCurrent: the view which user is currently at or passing (=0 if at next view, =1 if at current)
  * */
- Heatmap.prototype.inferTimeDirection = function (draggingDirection){
+ Heatmap.prototype.inferTimeDirection = function (draggingDirection, atCurrent){
 
-    if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
-        if (this.timeDirection ==1){this.moveForward();}
-        else{this.moveBackward();}
-    }
+     if (this.previousDragDirection != draggingDirection){
+         if (atCurrent==0 && this.timeDirection ==1){
+             this.moveForward();
+         }else if (atCurrent ==1 && this.timeDirection ==-1){
+             this.moveBackward();
+         }
+     }
 }
 /** Updates the view variables to move the visualization forward
  * (passing the next view)
@@ -416,12 +446,14 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
 
     //Check if the mouse is between start and end values, re-set the interpValue
     if (mouseY <= start){
-        if (this.timeDirection == -1) {this.interpValue = 1; }
-        else{this.interpValue = 0;}
+        //if (this.timeDirection == -1) {this.interpValue = 1; }
+        //else{this.interpValue = 0;}
+        this.interpValue = 0;
         return start;
     } else if (mouseY >=end) {
-        if (this.timeDirection == -1) {this.interpValue = 1; }
-        else{this.interpValue = 0;}
+        //if (this.timeDirection == -1) {this.interpValue = 1; }
+        //else{this.interpValue = 0;}
+        this.interpValue = 0;
         return end;
     }
 
@@ -561,7 +593,7 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
  *  id: The id of the dragged cell
  *  points: An array of all points along the dragged cell's hint path (e.g., d.values)
  * */
-//TODO: this needs to be changed to coincide with the coordinates in updateDraggedCell()!!!!
+//TODO: this needs to be changed to coincide with the coordinates in updateDraggedCell()!
 Heatmap.prototype.snapToView = function (id, points,y){
 
     var current =  y+this.cellSize/2;
@@ -636,24 +668,28 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
 
  this.checkAmbiguous(pathData); //Check for ambiguous cases
 
+ var translateY = -this.ySpacing*pathData[this.currentView][4];
  //Create any array with the hint path coordinates
- var coords = pathData.map(function (d){return [d[2]+ref.draggedCellX,d[3]+ref.draggedCellY,d[4]];});
+ var coords = pathData.map(function (d){return [d[2]+ref.draggedCellX,d[3]+ref.draggedCellY+translateY,d[4]];});
 
  //TODO: if the colour does not change for the entire hint path the gradient is not drawn
  //Find the translation amounts, based on the current view
  var translateX = -this.xSpacing*this.currentView;
 
- var translateY = -this.ySpacing*pathData[this.currentView][4];
-
  //Draw the interaction path(s) (if any)
   if (this.isAmbiguous ==1){
     this.svg.select("#hintPath").selectAll(".interactionPath")
-        .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
+        .data(this.interactionPaths.map(function (d,i){
+             var adjustedPoints = d.map(function (b){return [b[0],b[1]+translateY]})
+             return {points:adjustedPoints,id:i}
+        }))
         .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
         //.attr("transform","translate("+translateX+","+translateY+")")
-        .attr("transform","translate("+translateX+")")
+        .attr("transform","translate("+translateX+","+translateY+")")
         .attr("class","interactionPath");
+
      this.appendAnchor(this.draggedCellX,this.draggedCellY);
+     this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
   }
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
@@ -694,7 +730,7 @@ this.svg.select("#hintPath").selectAll("text")
        .attr("transform","translate("+translateX+")")
        .attr("fill-opacity",function (d){ return ((d.id==this.currentView)?1:0.3)})
        //.attr("transform","translate("+translateX+","+translateY+")")
-       .text(function (d,i){ return d.label;})
+       .text(function (d){ return d.label;})
        .attr("class","hintLabels")
        .on("click",this.clickHintLabelFunction);
 
@@ -707,6 +743,7 @@ this.hintYValues = coords.map(function (d){return d[1]});
 Heatmap.prototype.clearHintPath = function(){
    this.isAmbiguous = 0;
    this.interactionPaths = [];
+   this.removeAnchor();
    this.svg.select("#hintPath").selectAll("rect").remove();
    this.svg.select("#hintPath").selectAll("path").remove();
    this.svg.select("#line-gradient").remove();
@@ -719,12 +756,11 @@ Heatmap.prototype.clearHintPath = function(){
 Heatmap.prototype.findHintX = function (index){
    return index*this.xSpacing;
 }
-/** Re-calculates the y-values for the moving hint path
- * (for both points comprising the path and labels)
- * origOffset: original y-offset of the point
+/** Calculates the y-values for the peaks along the hint path
+ * origOffset: y-offset of the colour
  * */
-Heatmap.prototype.findHintY = function (origOffset){
-    return this.ySpacing*origOffset;
+Heatmap.prototype.findHintY = function (yOffset){
+    return this.ySpacing*yOffset;
 }
 /** Search for stationary ambiguous cases in a list of yoffsets of colours (repeated colours).
  *  This information is stored in the ambiguousBars array, which gets re-populated each time a
@@ -740,7 +776,7 @@ Heatmap.prototype.checkAmbiguous = function (data){
 
     //Re-set the ambiguousCells array
     for (j=0;j<=this.lastView;j++){
-        this.ambiguousCells[j] = 0;
+        this.ambiguousCells[j] = [0];
     }
 
     //Populate the stationary cells array by searching for sequences of continuous equal y-offsets
@@ -753,10 +789,10 @@ Heatmap.prototype.checkAmbiguous = function (data){
                     //If the bar's index does not exist in the array of all stationary bars, add it
                     if (stationaryCells.indexOf(j)==-1){
                         stationaryCells.push(j);
-                        this.ambiguousCells[j] = 1;
+                        this.ambiguousCells[j] = [1];
                     }if (stationaryCells.indexOf(k)==-1){
                         stationaryCells.push(k);
-                        this.ambiguousCells[k] = 1;
+                        this.ambiguousCells[k] = [1];
                     }
                 }
             }

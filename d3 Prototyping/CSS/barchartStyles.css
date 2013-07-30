@@ -13,8 +13,8 @@ body {
   text-anchor:middle;
   fill:#666;
   cursor:pointer;
-  /**stroke-width:0.25; This effect looks strange..
-  stroke:#FFF;*/
+  stroke-width:0.25;
+  stroke:#FFF;
 }
 /*The hint path*/
 #path{
