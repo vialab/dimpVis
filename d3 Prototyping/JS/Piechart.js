@@ -406,7 +406,6 @@ Piechart.prototype.removeAnchor = function (){
  * draggingDirection: 1 if dragging clockwise, -1 is counter-clockwise
  * atCurrent: the view which user is currently at or passing (=0 if at next view, =1 if at current)
  * */
-//TODO: remove extra parameters
  Piechart.prototype.inferTimeDirection = function (draggingDirection,atCurrent){
     //Old code
    /** if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
@@ -539,7 +538,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  Piechart.prototype.animateHintPath = function (angles){
     var ref = this;
     var hintArcInfo = ref.calculateHintAngles(angles,null,1);
-    var hintPathArcString = ref.createArcString(hintArcInfo,0);
+    var hintPathArcString = ref.createArcString(hintArcInfo);
 
     //Redraw the hint path
     this.svg.select("#path").attr("d", hintPathArcString);
@@ -645,7 +644,7 @@ Piechart.prototype.changeView = function (newView){
 Piechart.prototype.redrawHintPath = function (view,angles){
     var ref = this;
     var hintArcInfo = this.calculateHintAngles(angles,view,0);
-    var hintPathArcString = this.createArcString(hintArcInfo,0);
+    var hintPathArcString = this.createArcString(hintArcInfo);
 
     //Redraw the hint path
     this.svg.select("#path").attr("d", hintPathArcString);
@@ -778,7 +777,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     this.interpValue = 0;
     this.hintArcInfo = this.processHintPathInfo(angles,drawingView);
 
-    var hintPathArcString = this.createArcString(this.hintArcInfo,1);
+    var hintPathArcString = this.createArcString(this.hintArcInfo);
 
     //NOTE: Angle has to be converted to match the svg rotate standard: (offset by 90 deg)
     //http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
@@ -881,13 +880,11 @@ Piechart.prototype.interpolateHintRadius = function (index,startView,endView){
  *  The format of the string is: M startX startY A rX rY 0 0 0 endX endY
  *  Where: startX,startY define the starting point, endX,endY is the ending point
  *         A is the rotation angle, rx,ry is the radius of the arc and the 0's are just unset flags
- *  findCorners: a flag to determine whether or not corners should be located
  *  Good resource: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
  * */
-Piechart.prototype.createArcString = function (pathInfo,findCorners){
+Piechart.prototype.createArcString = function (pathInfo){
     var dString = "";
     var x,y;
-    //var corners = [];
     var currentDirection = 1, previousDirection = 1;
     //TODO: doesn't draw properly when angle wraps around 360 deg
     for (var j=0;j<pathInfo.length;j++){
@@ -909,7 +906,6 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
             }
 
             if (currentDirection != previousDirection){ //Changing directions
-                //corners.push(1);
                 var radiusDiff = Math.abs(pathInfo[j][2] - pathInfo[j-1][2]);
                 x = this.cx + (pathInfo[j-1][2] + radiusDiff*0.35)*Math.cos(pathInfo[j-1][3] -this.halfPi);
                 y = this.cy + (pathInfo[j-1][2] + radiusDiff*0.35)*Math.sin(pathInfo[j-1][3] - this.halfPi);
@@ -922,19 +918,12 @@ Piechart.prototype.createArcString = function (pathInfo,findCorners){
                         +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
                 }
             } else {
-                //corners.push(0);
                 //Always written as bigger to smaller angle to get the correct drawing direction of arc
                 dString +="M "+x2+" "+y2+" A "+pathInfo[j][2]+" "+pathInfo[j][2]+" 0 0 0 "+x1+" "+y1;
             }
         }
         previousDirection = currentDirection;
     }
-
-    //TODO: not recognizing stationary sequences as a corner (if they lie on a corner), but this might not be a problem because ambiguous cases are handled differently
-    /**if (findCorners==1){
-        this.corners = corners;
-        this.corners.push(0); //For the last view
-    }*/
     return dString;
 }
 /** Might remove this function later (just an alternative method for drawing the hint path, but results are the same as drawing arcs)
@@ -1001,7 +990,6 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
     var allAngles = this.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes});
     var savedNodes = this.svg.selectAll(".displayArcs").data().map(function (d){return d;});
     var newAngles = allAngles.map(function (k){return k[startView]});
-   // var hintArcInfo = ref.calculateHintAngles(newAngles,startView,0);
 
     //console.log(allAngles.map(function (k){return 180*k[0]/Math.PI}));
     //Apply multiple transitions to each display point by chaining them
@@ -1040,7 +1028,7 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
             if (d.id == id){
 
                 var hintArcInfo = ref.calculateHintAngles(d.nodes,animateView,0);
-                var hintPathArcString = ref.createArcString(hintArcInfo,0);
+                var hintPathArcString = ref.createArcString(hintArcInfo);
 
                 //Redraw the hint path
                 d3.select("#path").attr("d", hintPathArcString);

@@ -62,9 +62,9 @@ var dragging = d3.behavior.drag()
             var centreX = cx + (radius/2)*Math.cos(centreAngle);
             var centreY =  cy + (radius/2)*Math.sin(centreAngle);
 
-            //Draw the draggable circle
+            //Find the angle of the mouse w.r.t the center of the loop
             var angle = Math.atan2(mouseX-centreX,mouseY-centreY);
-            //console.log(angle*180/Math.PI);
+
             var sign = (angle>0)?1:-1;
             //Convert negative angle into positive
             var mouseAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle;
@@ -82,24 +82,18 @@ var dragging = d3.behavior.drag()
                 }
             }
             // console.log(angle*180/Math.PI+" "+previousOrigAngle*180/Math.PI);
+
             //Save some important information
             previousAngle = mouseAngle;
             previousSign = sign;
 
             //Find the approximate percentage the mouse has travelled (angular) along a circle using the middle of the loop as the centre
             var distanceAlongCircle = mouseAngle/(Math.PI*2);
-            /**var adjust = (1-distanceAlongCircle+0.15);
-            if (adjust > 1){adjust = adjust - 1}*/
-
-            //console.log(distanceAlongCircle+" "+adjust);
             var path = d3.select("#mainPath").node();
             var total = path.getTotalLength();
-            //var currentLength = total*(1-distanceAlongCircle); //Better, but gets stuck at 100% because current length is > totalLength
-            var currentLength = total*0.5;
+            var currentLength = total*(1-distanceAlongCircle); //Better, but gets stuck at 100% because current length is > totalLength
+            //var currentLength = total*0.5;
             var newPoint = path.getPointAtLength(currentLength);
-
-            //Original Approach: counting the revolutions by summing the difference in angles, but is inaccurate
-            //when angle wraps around 360 deg...
 
             //Re-draw the circle according to the new estimated point along the spline
             d3.select("#draggableCircle").attr("cx",newPoint.x).attr("cy",newPoint.y);

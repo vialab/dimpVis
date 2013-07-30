@@ -473,7 +473,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
     }else if (bounds == currentY ){ //Passing current
 
         if (current[2]!=0 || this.atPeak == this.currentView){ //At a peak or a peak formed by hint path and sine wave
-            newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,current);
+            newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,current,1);
         }else{
             this.moveBackward();
             newValues = (current[2]!=0)? [currentY,this.findHeight(currentY)]:[currentY,current[1]];
@@ -483,7 +483,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
     }else{ //Passing next
 
         if (next[2]!=0 || this.atPeak ==this.nextView){ //At a peak or a peak formed by hint path and sine wave
-            newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,next);
+            newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,next,0);
         }else{
             this.moveForward();
             newValues = (next[2]!=0)?[nextY,this.findHeight(nextY)]:[nextY,next[1]];
@@ -498,15 +498,18 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
  * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
  * changes.
  * b1,b2: the boundary views (b1 should be the currently encountered corner)
+ * atCurrent: the view which user is currently at or passing (=0 if at next view, =1 if at current)
  * @return the y-position the bar should be drawn at
  * */
-//TODO: apply the same fix made in the Piechart?
- Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,orig){
+ Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,orig,atCurrent){
 
-    if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
-        if (this.timeDirection ==1){this.moveForward();}
-        else{this.moveBackward();}
-    }
+     if (this.previousDragDirection != draggingDirection){
+         if (atCurrent==0 && this.timeDirection ==1){
+             this.moveForward();
+         }else if (atCurrent ==1 && this.timeDirection ==-1){
+             this.moveBackward();
+         }
+     }
 
     if (b1 > b2){ //Return information for re-drawing the bar
         return (mouseY>=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
@@ -629,7 +632,6 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
 		}
 	}	
 	//Set the direction travelling over time (1: forward, -1: backward)
-    //TODO: potentially dangerous b/c interpvalue could stay the same (might need a current == interpValue case)
     this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
 
     //Save the current interpolation value
@@ -914,11 +916,13 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
         this.svg.select("#hintPath").selectAll("path").remove();
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
-//TODO: can use this to also detect really small changes in height to alleviate the interaction
 /** Search for ambiguous cases in a list of heights/y-coordinates.  Ambiguous cases are tagged by type, using a number.
  *  The scheme is: 0: not ambiguous, 1: stationary bar (bar which doesn't move for at least 2 consecutive years)
  *  This information is stored in the ambiguousBars array, which gets re-populated each time a
  *  new bar is dragged.  This array is in  the format: [[type, newY]...number of views]
+ *
+ *  To alleviate interaction in regions where the heights are very similar (within this.heightThreshold), we also consider
+ *  these bars to be stationary.
  * */
 Barchart.prototype.checkAmbiguous = function (){
     var j, currentBar;
@@ -1015,4 +1019,5 @@ Barchart.prototype.calculatePathPoints = function (indices){
 
     return pathPoints;
 }
-//TODO: does the code handle non-existent data values? also, does it handle zero values?
+//TODO: handling non-existent data values?
+//TODO: zero values? Right now bar disappears and is un-draggable, but would be nice to make the axis draggable or something so the user can still access it

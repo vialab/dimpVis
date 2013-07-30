@@ -305,7 +305,6 @@ Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mous
         }
     }else{ //Passing next view
         if (next[6]!=0 || this.atPeak == this.nextView){ //At a peak
-            console.log("infer");
             this.inferTimeDirection(draggingDirection);
         }else{
             this.moveForward();

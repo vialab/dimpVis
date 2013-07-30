@@ -474,7 +474,6 @@ Scatterplot.prototype.changeView = function( newView) {
  *  Resources: http://bl.ocks.org/mbostock/1125997
  *            http://bost.ocks.org/mike/transition/
  * */
-//TODO: Add toggling label colour for stationary/revisiting points
  Scatterplot.prototype.animatePoints = function( id, startView, endView) {
      if (startView == endView){return;}
      var ref = this;
@@ -521,7 +520,6 @@ Scatterplot.prototype.changeView = function( newView) {
  *  view: the view to draw
  *  NOTE: view tracking variables are not updated by this function
  * */
-//TODO: For later, Might want to add interpolation or use the interpolate function
 Scatterplot.prototype.redrawView = function(view) {
     //Re-draw position the anchor at the stationary point (if any)
     if (!this.svg.select("#anchor").empty()){
@@ -574,7 +572,7 @@ Scatterplot.prototype.redrawView = function(view) {
         .data(points.map(function (d,i) {
             var xPos = d[0] + ref.pointRadius*2;
             var yPos = d[1] + ref.pointRadius*2;
-            /**if (ref.closePoints[i][0]==1){ //TODO: trying to reduce overlap in labels
+            /**if (ref.closePoints[i][0]==1){ //Trying to reduce overlap in labels
                 xPos = xPos + 25;
                 yPos = yPos + 25;
             }*/
@@ -772,7 +770,7 @@ Scatterplot.prototype.findInArray = function (x,y,array)
    }
     return -1;
 }
-//TODO: non-existent data points (e.g missing from the data set), "hole" in hint path?
+//TODO: non-existent data points (e.g missing from the data set), interpolation is used and then hint path is coloured differently in that region
 //TODO: does the code handle zero values? (point goes off the axis)
 //TODO: how to visualize (distinguish( a revisiting point within a stationary point sequence (afghanistan example on scatterplot), in general, because of the thickness of the hint path
 //TODO: it's hard to see revisiting points
