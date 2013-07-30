@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<style>
+
+    path {
+        fill: none;
+        stroke: #000;
+        stroke-width: 3px;
+    }
+
+</style>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+    var cx = 80, cy = 40; //Position of the draggable point
+    var radius = 50;
+    var centreAngle = Math.PI; //An angle for how to translate the loop (how is the loop aligned w.r.t the stationary point)
+    var loopCx = cx + radius*Math.cos(centreAngle);
+    var loopCy = cy + radius*Math.sin(centreAngle);
+
+    var previousSign = 1;
+    var previousAngle = "start";
+
+    //Set up the main svg
+    var svg = d3.select("body").append("svg")
+            .attr("width", 960).attr("height", 500)
+            .style("position","absolute").attr("x",50).attr("y",50)
+            .append("g").attr("transform","translate(150,150)");
+
+    //Draw the "loop"
+    svg.append("circle").attr("cx",loopCx).attr("cy",loopCy).attr("r",radius).attr("fill","none")
+            .style("stroke","#000").attr("id","loop");
+
+    //Draw another circle which is the centre point of the circle
+    svg.append("circle").attr("cx",loopCx).attr("cy",loopCy).attr("fill","steelblue")
+            .attr("r",5).attr("id","centrePoint");
+
+    //Draw the draggable circle
+    svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",10).attr("fill","red").attr("id","draggableCircle");
+
+    //Create the dragging function
+    var dragging = d3.behavior.drag()
+            .on("dragstart", function (d){
+                previousAngle = "start";
+                return d;
+            }).on("drag", function(){
+                //Approach: Using the flipping of the angle sign (positive and negative) to know when the user has at least travelled 180 deg.
+                var mouseX = d3.event.x, mouseY = d3.event.y;
+                //Find the angle of the mouse w.r.t the center of the loop
+                var angle = Math.atan2(mouseX-loopCx,mouseY-loopCy);
+
+                var sign = (angle>0)?1:-1;
+                //Convert negative angle into positive
+                var mouseAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle;
+
+                //Convert mouse angle into the loop's coordinate system (in degrees)
+                var convertedAngle;
+                if (mouseAngle<Math.PI/2 && mouseAngle>=0){
+                    convertedAngle = Math.PI/2 - mouseAngle;
+                }else if (mouseAngle < Math.PI*2 && mouseAngle >= Math.PI*3/2){
+                    convertedAngle = Math.PI - (angle - Math.PI*3/2);
+                }else{
+                    convertedAngle = Math.PI + (Math.PI*3/2 - angle);
+                }
+                /**var draggingDirection = (mouseAngle>previousAngle)?-1:1;
+                if (sign!=previousSign && previousAngle !="start"){ //Switching Directions
+                    var angle_deg = Math.abs(angle)*180/Math.PI;
+                    console.log(angle_deg);
+                    if (!(angle_deg > 0 && angle_deg < 20)){ //Ignore sign switches within 20 deg from the zero/360 mark
+                        if (draggingDirection==1){
+                            console.log("view increased, clockwise");
+                        }else{
+                            console.log("view decreased, counter-clockwise");
+                        }
+                    }
+                }
+                // console.log(angle*180/Math.PI+" "+previousOrigAngle*180/Math.PI);
+
+                //Save some important information
+                previousAngle = mouseAngle;
+                previousSign = sign;*/
+                var newCoord_x = loopCx + radius*Math.cos(convertedAngle);
+                var newCoord_y = loopCy + radius*Math.sin(convertedAngle);
+                //Re-draw the circle according to the new estimated point along the spline
+                d3.select("#draggableCircle").attr("cx",newCoord_x).attr("cy",newCoord_y);
+
+            });
+
+    //Set the dragging function of the draggable circle
+    svg.select("#draggableCircle").call(dragging);
+
+</script>
