@@ -17,13 +17,14 @@
     var cx = 80, cy = 40; //Position of the draggable point
     var radius = 100;
     //Caution: do not use 360, always use 0!
-    var orientationAngle = Math.PI; //An angle for how to translate the loop (how is the loop aligned w.r.t the stationary point), opposite to the crossing angle
-
+    var orientationAngle = Math.PI/2; //An angle for how to translate the loop (how is the loop aligned w.r.t the stationary point), opposite to the crossing angle
     var loopCx = cx + (radius/2)*Math.cos(orientationAngle);
     var loopCy = cy + (radius/2)*Math.sin(orientationAngle);
+    var interpValue = 0;
+
+    //Not sure which one of these are needed...
     var crossingAngle = (orientationAngle > Math.PI)?(orientationAngle-Math.PI):(orientationAngle+Math.PI); //The angle to pass in order to count revolutions
     var points = generatePoints(cx,cy); //Generate a set of points for drawing the curve
-
     var previousDragDirection = 1;
     var previousAngle = "start";
     var crossed = 0; //Flag to tell whether the dragging has passed the crossingAngle on the loop
@@ -34,17 +35,8 @@
             .style("position","absolute").attr("x",50).attr("y",50)
             .append("g").attr("transform","translate(150,150)");
 
-    //Draw the "loop"
-   svg.append("circle").attr("cx",loopCx).attr("cy",loopCy).attr("r",radius/2).attr("fill","none")
-            .style("stroke","#000").attr("id","loop");
     //Draw the spline
     svg.append("path").attr("id","mainPath").attr("d", line(points));
-
-    //Draw the individual points (mainly for debugging)
-    /**svg.selectAll(".points").data(points).enter().append("circle")
-            .attr("class",".points").attr("r",5)
-            .attr("cx", function (d){return d[0]})
-            .attr("cy", function (d){return d[1]})*/
 
     //Draw another circle which is the centre point of the circle
     svg.append("circle").attr("cx",loopCx).attr("cy",loopCy).attr("fill","steelblue")
@@ -62,78 +54,28 @@
             }).on("drag", function(){
 
                 var mouseX = d3.event.x, mouseY = d3.event.y;
-                //Find the angle of the mouse w.r.t the center of the loop
 
-                var angle = calculateMouseAngle(mouseX,mouseY);
-                //Convert negative angle into positive
-                var mouseAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle;
-                var distanceAlongLoop = mouseAngle/(Math.PI*2);
-                //var convertedAngle = convertMouseToLoop_angle(mouseAngle);
-                //var convertedAngle = mouseAngle;
-                //var draggingDirection = findDraggingDirection(mouseAngle);
-                //var distanceAlongLoop = convertMouseToLoop_interp(convertedAngle/(Math.PI*2));
-                //var distanceAlongLoop = mouseAngle/(Math.PI*2);
-                /**if (previousAngle != "start"){ //At the start of dragging, don't want it to count as a revolution
-                    var currentHalf;
-                    //Tell which half of the loop the dragging is at (loop sliced in half by crossingAngle and centreAngle)
-                    if (crossingAngle < orientationAngle){
-                        if ((convertedAngle > orientationAngle && convertedAngle <= Math.PI*2)||(convertedAngle>=0 && convertedAngle < crossingAngle)){
-                            currentHalf = 1;
-                        }else{
-                            currentHalf = 0;
-                        }
-
-                    }else{
-                        if((convertedAngle > crossingAngle && convertedAngle <= Math.PI*2)||(convertedAngle>=0 && convertedAngle < orientationAngle)){
-                            currentHalf = 1;
-                        }else{
-                            currentHalf = 0;
-                        }
-
-                    }
-                    //console.log(currentHalf);
-
-                    if (currentHalf!=crossed){ //Has crossed either crossing or centre angle
-                        var distCrossing = Math.abs(convertedAngle - crossingAngle);
-                        var distCentre = Math.abs(convertedAngle - orientationAngle);
-                        if (distCentre < distCrossing){ //Closer to the 0.5 mark
-                            console.log("crossing centre");
-                        }else{ //Crossing the stationary point
-                            console.log("crossing stationary");
-                            if (draggingDirection == 1){ //Clockwise, 0->1 is a view change
-                               console.log("view increased");
-                            }else{ //Counter-clockwise, 1->0 is a view change
-                               console.log("view decreased");
-                            }
-                        }
-                        //console.log("crossed "+currentHalf);
-                    }
-                }  */
-
-                var convertedInterp = convertMouseToLoop_interp(distanceAlongLoop);
-                console.log(convertedInterp);
-                //Must cross over an angle in order for the view to change
-                //console.log(mouseAngle*180/Math.PI+" "+convertedAngle*180/Math.PI+" "+crossingAngle*180/Math.PI+" "+orientationAngle*180/Math.PI);
-
-                //Re-draw the anchor along the circle according to the adjusted angle
-                /**var newCoord_x = loopCx + (radius/2)*Math.cos(mouseAngle);
-                var newCoord_y = loopCy + (radius/2)*Math.sin(mouseAngle);
-                d3.select("#draggableCircle").attr("cx",newCoord_x).attr("cy",newCoord_y); */
-
-               //Find the approximate percentage the mouse has travelled (angular) along a circle using the middle of the loop as the centre
-               //var distanceAlongLoop = convertMouseToLoop_interp(mouseAngle/(Math.PI*2));
-               //var distanceAlongLoop = mouseAngle/(Math.abs(centreAngle-crossingAngle));
+                //Find the angle of the mouse w.r.t the center of the loop, also set the interpolation value
+                var mouseAngle = calculateMouseAngle(mouseX,mouseY);
+                //Re-map the interpolation value to draw properly on the loop
+                var loopInterp = convertMouseToLoop_interp(interpValue);
+                //console.log(interpValue);
 
                 //Re-draw the circle according to the new estimated point along the spline
                 var path = d3.select("#mainPath").node();
                 var total = path.getTotalLength();
-                var currentLength = total*convertedInterp;
+                var currentLength = total*loopInterp;
                 var newPoint = path.getPointAtLength(currentLength);
                 d3.select("#draggableCircle").attr("cx",newPoint.x).attr("cy",newPoint.y);
 
+                //Some how detect if one revolution has been reached
+                /**if (previousAngle != "start" && previousAngle <1 && mouseAngle >0) {
+                    console.log("crossed "+previousAngle*180/Math.PI+" "+mouseAngle*180/Math.PI);
+                } */
+
                 //Save some important information
-                /**previousAngle = mouseAngle;
-                previousDragDirection = draggingDirection;
+                previousAngle = mouseAngle;
+                /**previousDragDirection = draggingDirection;
                 crossed = currentHalf;   */
 
             });
@@ -141,21 +83,33 @@
     //Set the dragging function of the draggable circle
     svg.select("#draggableCircle").call(dragging);
 
+//TODO: Can still use old method of flipping of the angle sign to determine a view change
 function calculateMouseAngle (mouseX,mouseY){
-
+    var newAngle;
+    var subtractOne = 0;
     if (orientationAngle<Math.PI/2 && orientationAngle>=0){ //Between 0 (inclusive) and 90
-        console.log("0 inc and 90");
-        return Math.atan2(mouseY - loopCy, loopCx - mouseX) + orientationAngle; //0/360 deg
+        //console.log("0 inc and 90");
+        newAngle = Math.atan2(mouseY - loopCy, loopCx - mouseX) + orientationAngle; //0/360 deg
     }else if (orientationAngle < Math.PI*2 && orientationAngle >= Math.PI*3/2){ //Between 360/0 and 270 (inclusive)
-        console.log("0 and 270 inc");
-        return Math.atan2(loopCx - mouseX,mouseY - loopCy) - (orientationAngle - Math.PI*3/2);  //270 deg
+        //console.log("0 and 270 inc");
+        subtractOne = 1;
+        newAngle = Math.atan2(loopCx - mouseX,mouseY - loopCy) - (orientationAngle - Math.PI*3/2);  //270 deg
     }else if (orientationAngle < Math.PI*3/2 && orientationAngle >=Math.PI){ //Between 270 and 180 (inclusive)
-        console.log("270 and 180 inc");
-        return  Math.atan2(loopCy - mouseY, mouseX - loopCx) + (orientationAngle-Math.PI); //180 deg
+        //console.log("270 and 180 inc");
+        newAngle =  Math.atan2(loopCy - mouseY, mouseX - loopCx) + (orientationAngle-Math.PI); //180 deg
     }else{
-        console.log("180 and 90 inc");
-        return Math.atan2(mouseX - loopCx, loopCy - mouseY) -(orientationAngle - Math.PI/2); // 90 deg
+        //console.log("180 and 90 inc");
+        subtractOne = 1;
+        newAngle = Math.atan2(mouseX - loopCx, loopCy - mouseY) -(orientationAngle - Math.PI/2); // 90 deg
     }
+
+    var positiveAngle = (newAngle < 0)?((Math.PI - newAngle*(-1))+Math.PI):newAngle;
+    if (subtractOne ==1){
+        interpValue = 1 - positiveAngle/(Math.PI*2);
+    } else{
+        interpValue =  positiveAngle/(Math.PI*2);
+    }
+    return  positiveAngle;
 }
 //Convert mouse angle into the loop's coordinate system such that the anchor can be drawn at the correct position along the loop
 function convertMouseToLoop_angle (mouseAngle){

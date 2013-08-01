@@ -43,6 +43,12 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.previousLoopSign = 0; //Keeps track of the angle switching from positive to negative or vice versa when dragging along a loop
    this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
 
+   //Save some angle values
+   this.halfPi = Math.PI/2;
+   this.threePi_two = Math.PI*3/2;
+   this.twoPi = Math.PI*2;
+   this.pi = Math.PI;
+
    //Variables to track interaction events
    this.draggedPoint = -1;
    this.isAmbiguous = 0;  //Whether or not the point being dragged has at least one ambiguous case, set to 0 if none, and 1 otherwise
@@ -224,8 +230,10 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
         var newPoint = [];
 
         if (ref.isAmbiguous==1){ //Ambiguous cases exist on the hint path
+
             var currentPointInfo = ref.ambiguousPoints[ref.currentView];
             var nextPointInfo = ref.ambiguousPoints[ref.nextView];
+
             if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching stationary points from left side of hint path (not on loop yet)
                 ref.appendAnchor(pt1_x,pt1_y);
                 ref.previousLoopAngle = "start";
@@ -235,7 +243,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                 ref.previousLoopAngle = "start";
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
-                ref.dragAlongLoop(id,currentPointInfo[1]);
+                ref.dragAlongLoop(id,currentPointInfo[1],mouseX,mouseY);
                 return;
             }else{
                 ref.removeAnchor();
@@ -312,30 +320,19 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
  * id: of the dragged point
  * groupNumber: the group of repeated points this loop belongs to
  * */
- Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
+ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
      var ref = this;
      //TODO: if approaching loop from forward in time, can only drag clockwise (move forward in time around loop) if currentView is the first view on the stationary sequence
      //TODO: similarily, if approaching loop from other side, can only drag counter clockwise if view is the last view on the stationary sequence
-     //Get position (centre point) of the stationary point
      //TODO:These are constants and do not need to be computed each time the mouse drags
-     var points = this.svg.select("#displayPoints"+id).data().map(function (d) {return d.nodes[ref.currentView];});
-     var anchorAngle = Math.PI/6;
-     var loopCx = points[0][0]+this.loopRadius/2*Math.cos(anchorAngle);
-     var loopCy = points[0][1]+this.loopRadius/2*Math.sin(anchorAngle);
 
-     var angle = Math.atan2(this.mouseX-loopCx,this.mouseY-loopCy); //Calculate the angle of the mouse w.r.t the stationary point
-     //console.log(angle*180/Math.PI);
-     var sign = (angle>0)?1:-1;  //Determine the sign of the angle (positive or negative)
-     var positiveAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle; //Convert negative angles into positive
+     var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle]});
+     var angles = this.calculateMouseAngle(mouseX,mouseY,loopData[0][2],loopData[0][0],loopData[0][1]);
 
-     //console.log(positiveAngle*180/Math.PI);
+     var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (positive or negative)
 
-    //Find the approximate percentage amount travelled along the loop
-     var distanceTravelled = 1 - positiveAngle/(Math.PI*2);
-     //if (distanceTravelled > 1){distanceTravelled = distanceTravelled - 1}
-
-    //Check if the user has crossed the 180 deg mark, approximately where the stationary point lies (to switch views)
-    if (sign!=this.previousLoopSign && this.previousLoopAngle !="start"){ //Switching Directions, might be a view change
+    //Check if the angle has flipped signs (+/-)
+    /**if (sign!=this.previousLoopSign && this.previousLoopAngle !="start"){ //Switching Directions, might be a view change
 
         var draggingDirection = (positiveAngle>this.previousLoopAngle)?-1:1; //Find the angular dragging direction
         var angle_deg = Math.abs(angle)*180/Math.PI; //Convert to degrees for convenience
@@ -380,29 +377,67 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
         //console.log(newInterp+" "+draggingDirection+" "+distanceTravelled);
        // console.log(newInterp);
 
-        this.interpValue = newInterp;
+        //this.interpValue = newInterp;
         this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
-        //
-        // console.log("interpolate label colour "+this.currentView+" "+this.nextView);
         this.interpolateLabelColour(this.interpValue);
-    }
+    }*/
 
    // console.log(this.previousLoopAngle+" "+angle+" "+this.countRevolutions+" "+this.previousLoopDirection);
     //console.log(distanceTravelled);
 
     //TODO:These are constants and do not need to be computed each time the mouse drags
+
     //Re-draw the anchor along the loop
+    var loopInterp = this.convertMouseToLoop_interp(this.interpValue);
     var loopPath = d3.select("#loop"+groupNumber).node();
     var totalLength = loopPath.getTotalLength();
-    var newPoint = loopPath.getPointAtLength(totalLength*distanceTravelled);
+    var newPoint = loopPath.getPointAtLength(totalLength*loopInterp);
     ref.svg.select("#anchor").attr("cx",newPoint.x).attr("cy",newPoint.y);
 
     //Save the dragging angle and directions
-    this.previousLoopAngle = positiveAngle;
+    this.previousLoopAngle = angles[1];
     this.previousLoopSign = sign;
-    this.previousDraggingDirection = draggingDirection;
+    //this.previousDraggingDirection = draggingDirection;
 }
- /**"Animates" the rest of the points while one is being dragged
+/**Finds the angle of the mouse w.r.t the center of the loop
+ * @return [angle,positiveAngle] */
+Scatterplot.prototype.calculateMouseAngle = function (mouseX,mouseY,orientationAngle,loopCx,loopCy){
+
+    var newAngle;
+    var subtractOne = 0;
+
+    if (orientationAngle < this.halfPi && orientationAngle >= 0){ //Between 0 (inclusive) and 90
+       // console.log("0 inc and 90");
+        newAngle = Math.atan2(mouseY - loopCy, loopCx - mouseX) + orientationAngle; //0/360 deg
+    }else if (orientationAngle < this.twoPi && orientationAngle >= this.threePi_two){ //Between 360/0 and 270 (inclusive)
+        //console.log("0 and 270 inc");
+        subtractOne = 1;
+        newAngle = Math.atan2(loopCx - mouseX,mouseY - loopCy) - (orientationAngle - this.threePi_two);  //270 deg
+    }else if (orientationAngle < this.threePi_two && orientationAngle >= this.pi){ //Between 270 and 180 (inclusive)
+        //console.log("270 and 180 inc");
+        newAngle =  Math.atan2(loopCy - mouseY, mouseX - loopCx) + (orientationAngle- this.pi); //180 deg
+    }else{
+        //console.log("180 and 90 inc");
+        subtractOne = 1;
+        newAngle = Math.atan2(mouseX - loopCx, loopCy - mouseY) -(orientationAngle - this.halfPi); // 90 deg
+    }
+
+    var positiveAngle = (newAngle < 0)?((this.pi - newAngle*(-1))+this.pi):newAngle;
+    if (subtractOne ==1){
+        this.interpValue = 1-positiveAngle/this.twoPi;
+    } else{
+        this.interpValue = positiveAngle/this.twoPi;
+    }
+
+    return  [newAngle,positiveAngle];
+}
+/** Adjusts the interpolation value of the mouse angle (1/0 mark is at the stationary point) to draw correctly on
+ *  the loop (where 0.5 is at the stationary point)
+ * */
+Scatterplot.prototype.convertMouseToLoop_interp = function (mouseInterp){
+    return (mouseInterp >=0 && mouseInterp <0.5)?(mouseInterp+0.5):(mouseInterp-0.5);
+}
+/**"Animates" the rest of the points while one is being dragged
  * Uses the 't' parameter, which represents approximately how far along a line segment
  * the dragged point has travelled.  The positions of the rest of the points are interpolated
  * based on this t parameter and re-drawn at this interpolated position
@@ -613,8 +648,10 @@ Scatterplot.prototype.redrawView = function(view) {
     this.svg.select("#hintPath").selectAll(".loops")
         .data(points.map(function (d,i){
             var loopPoints = [];
-            loopPoints = ref.calculateLoopPoints(d[0],d[1]);
-            return {points:loopPoints,id:i};
+            loopPoints = ref.calculateLoopPoints(d[0],d[1],d[2]);
+            var x = d[0] + (ref.loopRadius/2)*Math.cos(d[2]);
+            var y = d[1] + (ref.loopRadius/2)*Math.sin(d[2]);
+            return {points:loopPoints,id:i,orientationAngle:d[2],cx:x,cy:y};
         }))
         .enter().append("path").attr("class","loops")
         .attr("d",function (d){return loopGenerator(d.points);})
@@ -669,18 +706,22 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
 /** Computes the points to lie along an interaction loop
  * Note: this function is only called in findLoops()
  * x,y: Define the center point of the loop (sort of)
+ * angle: the angle to orient the loop at
  * @return an array of all loop points and the year index in the format: [[x,y], etc.]
  * */
-Scatterplot.prototype.calculateLoopPoints = function (x,y){
-    var loopPoints = [];  
-    var interval = Math.PI/6;
+Scatterplot.prototype.calculateLoopPoints = function (x,y,angle){
+    var loopPoints = [];
+    var loopWidth = Math.PI/5; //Change this value to expand/shrink the width of the loop
+
     //The first point of the path should be the original point, as a reference for drawing the loop
     loopPoints.push([x,y]);
-    //Generate some polar coordinates for forming the loop around x,y using arbitrary angles
-    for (var j=0;j<=2;j++){
-        loopPoints.push([(x + this.loopRadius*Math.cos(interval*j)),(y+ this.loopRadius*Math.sin(interval*j))]);
-    }
-    //The last point of the path should be the original point, as a reference for drawing the loop
+
+    //Generate some polar coordinates to complete the round part of the loop
+    loopPoints.push([(x + this.loopRadius*Math.cos(angle+loopWidth)),(y+ this.loopRadius*Math.sin(angle+loopWidth))]);
+    loopPoints.push([(x + this.loopRadius*Math.cos(angle)),(y+ this.loopRadius*Math.sin(angle))]);
+    loopPoints.push([(x + this.loopRadius*Math.cos(angle-loopWidth)),(y+ this.loopRadius*Math.sin(angle-loopWidth))]);
+
+   //The last point of the path should be the original point, as a reference for drawing the loop
    loopPoints.push([x,y]);
    return loopPoints;
 }
@@ -750,6 +791,11 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
         if (foundStationary==1) this.loops.push([repeatedPoints[j][0],repeatedPoints[j][1],viewIndices.length]);
         foundStationary = 0;
     }*/
+
+    //TODO: automatically orient the loops such that they smoothly blend with the path
+    //Manually add the orientation angles to the repeatedPoints array (later change this)
+    repeatedPoints[0].push(Math.PI/6);
+    repeatedPoints[1].push(Math.PI/6);
 
     //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){
