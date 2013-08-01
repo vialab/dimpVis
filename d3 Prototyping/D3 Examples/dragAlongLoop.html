@@ -68,7 +68,7 @@ var dragging = d3.behavior.drag()
             var sign = (angle>0)?1:-1;
             //Convert negative angle into positive
             var mouseAngle = (angle < 0)?((Math.PI - angle*(-1))+Math.PI):angle;
-             console.log(mouseAngle*180/Math.PI);
+            // console.log(mouseAngle*180/Math.PI);
             var draggingDirection = (mouseAngle>previousAngle)?-1:1;
             if (sign!=previousSign && previousAngle !="start"){ //Switching Directions
                 var angle_deg = Math.abs(angle)*180/Math.PI;
@@ -87,11 +87,22 @@ var dragging = d3.behavior.drag()
             previousAngle = mouseAngle;
             previousSign = sign;
 
+            //Convert mouse angle into the loop's coordinate system (in degrees)
+            var convertedAngle;
+            if (mouseAngle<Math.PI/2 && mouseAngle>=0){
+                convertedAngle = Math.PI/2 - mouseAngle;
+            }else if (mouseAngle < Math.PI*2 && mouseAngle >= Math.PI*3/2){
+                convertedAngle = Math.PI - (mouseAngle - Math.PI*3/2);
+            }else{
+                convertedAngle = Math.PI + (Math.PI*3/2 - mouseAngle);
+            }
+            //TODO: now need to re-map the distance travelled to the proper position along the curve
             //Find the approximate percentage the mouse has travelled (angular) along a circle using the middle of the loop as the centre
-            var distanceAlongCircle = mouseAngle/(Math.PI*2);
+            var distanceAlongCircle = convertedAngle/(Math.PI*2);
+            console.log(distanceAlongCircle);
             var path = d3.select("#mainPath").node();
             var total = path.getTotalLength();
-            var currentLength = total*(1-distanceAlongCircle); //Better, but gets stuck at 100% because current length is > totalLength
+            var currentLength = total*(distanceAlongCircle-0.5); //Better, but gets stuck at 100% because current length is > totalLength
             //var currentLength = total*0.5;
             var newPoint = path.getPointAtLength(currentLength);
 
@@ -108,18 +119,21 @@ function generatePoints(cx,cy){
     var points = [];
     points.push([cx,cy]);
     var x,y;
+
+    points.push([(cx + radius*Math.cos(0)),(cy+ radius*Math.sin(0))]);
+
     //Oriented on the right hand side
     /**points.push([(cx + radius*Math.cos(-Math.PI/6)),(cy+ radius*Math.sin(-Math.PI/6))]);
     points.push([(cx + radius*Math.cos(0)),(cy+ radius*Math.sin(0))]);
     points.push([(cx + radius*Math.cos(Math.PI/6)),(cy+ radius*Math.sin(Math.PI/6))]);*/
     
     //Oriented left hand side
-    points.push([(cx + radius*Math.cos(-5*Math.PI/6)),(cy+ radius*Math.sin(-5*Math.PI/6))]);
+   /** points.push([(cx + radius*Math.cos(5*Math.PI/6)),(cy+ radius*Math.sin(5*Math.PI/6))]);
     points.push([(cx + radius*Math.cos(Math.PI)),(cy+ radius*Math.sin(Math.PI))]);
-    points.push([(cx + radius*Math.cos(5*Math.PI/6)),(cy+ radius*Math.sin(5*Math.PI/6))]);
+    points.push([(cx + radius*Math.cos(-5*Math.PI/6)),(cy+ radius*Math.sin(-5*Math.PI/6))]);*/
 
     //Oriented lower right, at 30 deg
-    /**var angle = Math.PI/6;
+    /**var angle = Math.PI/3;
     for (var j = 0; j <= 2;j++){
         points.push([(cx + radius*Math.cos(angle*j)),(cy+ radius*Math.sin(angle*j))]);
     }*/

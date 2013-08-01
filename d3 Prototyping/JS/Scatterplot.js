@@ -314,7 +314,8 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
  * */
  Scatterplot.prototype.dragAlongLoop = function (id,groupNumber){
      var ref = this;
-
+     //TODO: if approaching loop from forward in time, can only drag clockwise (move forward in time around loop) if currentView is the first view on the stationary sequence
+     //TODO: similarily, if approaching loop from other side, can only drag counter clockwise if view is the last view on the stationary sequence
      //Get position (centre point) of the stationary point
      //TODO:These are constants and do not need to be computed each time the mouse drags
      var points = this.svg.select("#displayPoints"+id).data().map(function (d) {return d.nodes[ref.currentView];});
