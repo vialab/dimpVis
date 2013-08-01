@@ -36,12 +36,14 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.mouseY = -1;
    this.interpValue = 0; //Stores the current interpolation value (percentage travelled) when a point is dragged between two views
    this.labels = []; //Stores the labels of the hint path
+
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
    this.closePoints = []; //Points which are near each other such that labels are probably overlapping
    this.loops = []; //Stores points to draw for interaction loops (if any)
    this.previousLoopAngle = "start"; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
    this.previousLoopSign = 0; //Keeps track of the angle switching from positive to negative or vice versa when dragging along a loop
    this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
+   this.endView = -1;  //The view at the end of a loop
 
    //Save some angle values
    this.halfPi = Math.PI/2;
@@ -192,13 +194,27 @@ Scatterplot.prototype.render = function( data, start, labels) {
         .text(this.yLabel);
 }
 /** Appends an anchor to the svg, if there isn't already one
- *  x,y: the position of the anchor
  * */
-Scatterplot.prototype.appendAnchor = function (x,y){
+Scatterplot.prototype.appendAnchor = function (){
     if (this.svg.select("#anchor").empty()){
-        this.svg.select("#hintPath").append("circle").datum([x,y])
-         .attr("id","anchor").attr("cx", x).attr("cy", y).attr("r",5);
+        this.svg.select("#hintPath").append("circle")
+         .attr("id","anchor").attr("r",5).style("stroke","none");
     }
+}
+/** Re-draws the anchor, based on the dragging along the loop
+ * interp: amount along the loop to draw the anchor at
+ * groupNumber: to select the id of the loop
+ * */
+Scatterplot.prototype.redrawAnchor = function (interp,groupNumber){
+    var loopPath = d3.select("#loop"+groupNumber).node();
+    var totalLength = loopPath.getTotalLength();
+    var newPoint = loopPath.getPointAtLength(totalLength*interp);
+    this.svg.select("#anchor").attr("cx",newPoint.x).attr("cy",newPoint.y).style("stroke","#c7c7c7");
+}
+/**Hides the circle anchor by removing it's stroke colour
+ * */
+Scatterplot.prototype.hideAnchor = function (){
+    this.svg.select("#anchor").style("stroke","none");
 }
 /** Removes an anchor from the svg, if one is appended
  * */
@@ -234,19 +250,17 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
             var currentPointInfo = ref.ambiguousPoints[ref.currentView];
             var nextPointInfo = ref.ambiguousPoints[ref.nextView];
 
-            if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching stationary points from left side of hint path (not on loop yet)
-                ref.appendAnchor(pt1_x,pt1_y);
+            if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
                 ref.previousLoopAngle = "start";
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
-            }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching stationary points from right side on hint path (not on loop yet)
-                ref.appendAnchor(pt2_x,pt2_y);
+            }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
                 ref.previousLoopAngle = "start";
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+                console.log("before loop "+ref.currentView+" "+ref.nextView);
             }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
                 ref.dragAlongLoop(id,currentPointInfo[1],mouseX,mouseY);
                 return;
             }else{
-                ref.removeAnchor();
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }
         }else{ //No ambiguous cases exist
@@ -268,6 +282,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
     var minDist = this.minDistancePoint(this.mouseX,this.mouseY,pt1_x,pt1_y,pt2_x,pt2_y);
     var newPoint = []; //The new point to draw on the line
     var t = minDist[2]; //To test whether or not the dragged point will pass pt1 or pt2
+
     //Update the position of the dragged point
     if (t<0){ //Passed current
         this.moveBackward();
@@ -321,113 +336,79 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
  * groupNumber: the group of repeated points this loop belongs to
  * */
  Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
-     var ref = this;
+
      //TODO: if approaching loop from forward in time, can only drag clockwise (move forward in time around loop) if currentView is the first view on the stationary sequence
      //TODO: similarily, if approaching loop from other side, can only drag counter clockwise if view is the last view on the stationary sequence
      //TODO:These are constants and do not need to be computed each time the mouse drags
 
      var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle]});
      var angles = this.calculateMouseAngle(mouseX,mouseY,loopData[0][2],loopData[0][0],loopData[0][1]);
+     var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (+/-)
 
-     var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (positive or negative)
+     //TODO:These values can be saved and do not need to be computed each time the mouse drags
+     //Re-draw the anchor along the loop
+     var loopInterp = this.convertMouseToLoop_interp(this.interpValue);
+     this.redrawAnchor(loopInterp,groupNumber);
 
-    //Check if the angle has flipped signs (+/-)
-    /**if (sign!=this.previousLoopSign && this.previousLoopAngle !="start"){ //Switching Directions, might be a view change
+     //Find the angular dragging direction
+     var draggingDirection;
+     if (angles[1] > this.previousLoopAngle){
+         draggingDirection = 1;
+     }else if (angles[1] < this.previousLoopAngle){
+         draggingDirection = -1;
+     }else{
+         draggingDirection = this.previousDraggingDirection;
+     }
 
-        var draggingDirection = (positiveAngle>this.previousLoopAngle)?-1:1; //Find the angular dragging direction
-        var angle_deg = Math.abs(angle)*180/Math.PI; //Convert to degrees for convenience
+     //Adjust the interpolation value based on the dragging direction
+    this.interpValue = 1-this.interpValue;
 
-        if (!(angle_deg > 0 && angle_deg < 20)){ //Ignore sign switches within 20 deg from the zero/360 mark
+    //Check if the angle has changed signs
+    if (sign != this.previousLoopSign && this.previousLoopAngle != "start"){ //Switching Directions, might be a view change
+        var angle_deg = angles[1]*180/Math.PI;
+        if ((angle_deg >= 350 && angle_deg <= 360)||(angle_deg>=0 && angle_deg <=10)){ //Check for sign switches within 10 degrees of the 360/0 mark
             if (draggingDirection==1){ //Dragging clockwise
                 this.moveForward();
             }else{ //Dragging counter-clockwise
                 this.moveBackward();
             }
+           // console.log(angle_deg+" "+draggingDirection);
             console.log("switch views"+this.currentView+" "+this.nextView);
             this.interpValue = 0;
         }
     }else{ //Dragging in the middle of the loop, animate the view
-        //TODO: Temporary solution to remove the flickering, could not find reason why the angle and previousAngle are sometimes equal
-        //Set the angular dragging direction
-        var draggingDirection;
-        if (positiveAngle==this.previousLoopAngle){
-            draggingDirection = this.previousDraggingDirection;
-        }else if (positiveAngle >this.previousLoopAngle){
-            draggingDirection = -1;
-        }else{
-            draggingDirection = 1;
-        }
-
-        //Need to adjust the distanceTravelled value, because the 1.0 (100% travelled, 360 deg)
-        //mark lies on the edge of the loop opposite to the where the stationary point is
-        var newInterp;
-        if (draggingDirection == 1){
-            if (distanceTravelled > 0.5 && distanceTravelled <=1){
-                newInterp = distanceTravelled/2;
-            }else { //Between 0 and 0.5
-                newInterp = distanceTravelled+0.5;
-            }
-        }else{ //Dragging counter-clockwise
-            if (distanceTravelled > 0.5 && distanceTravelled <=1){
-                newInterp = (1-distanceTravelled) + 0.5;
-            }else { //Between 0 and 0.5
-                newInterp = 0.5 - distanceTravelled;
-            }
-        }
-        //console.log(newInterp+" "+draggingDirection+" "+distanceTravelled);
-       // console.log(newInterp);
-
-        //this.interpValue = newInterp;
         this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
         this.interpolateLabelColour(this.interpValue);
-    }*/
-
-   // console.log(this.previousLoopAngle+" "+angle+" "+this.countRevolutions+" "+this.previousLoopDirection);
-    //console.log(distanceTravelled);
-
-    //TODO:These are constants and do not need to be computed each time the mouse drags
-
-    //Re-draw the anchor along the loop
-    var loopInterp = this.convertMouseToLoop_interp(this.interpValue);
-    var loopPath = d3.select("#loop"+groupNumber).node();
-    var totalLength = loopPath.getTotalLength();
-    var newPoint = loopPath.getPointAtLength(totalLength*loopInterp);
-    ref.svg.select("#anchor").attr("cx",newPoint.x).attr("cy",newPoint.y);
+    }
 
     //Save the dragging angle and directions
     this.previousLoopAngle = angles[1];
     this.previousLoopSign = sign;
-    //this.previousDraggingDirection = draggingDirection;
+    this.previousDraggingDirection = draggingDirection;
 }
 /**Finds the angle of the mouse w.r.t the center of the loop
- * @return [angle,positiveAngle] */
+ * @return [angle,positiveAngle]
+ * */
 Scatterplot.prototype.calculateMouseAngle = function (mouseX,mouseY,orientationAngle,loopCx,loopCy){
 
     var newAngle;
-    var subtractOne = 0;
+    var subtractOne = 0; //For adjusting the interpolation value
 
     if (orientationAngle < this.halfPi && orientationAngle >= 0){ //Between 0 (inclusive) and 90
-       // console.log("0 inc and 90");
         newAngle = Math.atan2(mouseY - loopCy, loopCx - mouseX) + orientationAngle; //0/360 deg
     }else if (orientationAngle < this.twoPi && orientationAngle >= this.threePi_two){ //Between 360/0 and 270 (inclusive)
-        //console.log("0 and 270 inc");
         subtractOne = 1;
         newAngle = Math.atan2(loopCx - mouseX,mouseY - loopCy) - (orientationAngle - this.threePi_two);  //270 deg
     }else if (orientationAngle < this.threePi_two && orientationAngle >= this.pi){ //Between 270 and 180 (inclusive)
-        //console.log("270 and 180 inc");
         newAngle =  Math.atan2(loopCy - mouseY, mouseX - loopCx) + (orientationAngle- this.pi); //180 deg
     }else{
-        //console.log("180 and 90 inc");
         subtractOne = 1;
         newAngle = Math.atan2(mouseX - loopCx, loopCy - mouseY) -(orientationAngle - this.halfPi); // 90 deg
     }
 
     var positiveAngle = (newAngle < 0)?((this.pi - newAngle*(-1))+this.pi):newAngle;
-    if (subtractOne ==1){
-        this.interpValue = 1-positiveAngle/this.twoPi;
-    } else{
-        this.interpValue = positiveAngle/this.twoPi;
-    }
+
+    this.interpValue = (subtractOne ==1)? (1-positiveAngle/this.twoPi) : (positiveAngle/this.twoPi);
 
     return  [newAngle,positiveAngle];
 }
@@ -466,7 +447,7 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
  *  points: An array of all point positions of the dragged point (e.g., d.nodes)
  * */
 Scatterplot.prototype.snapToView = function( id, points) {
-    //TODO: other case where one is stationary but the other is not
+    //TODO: other case where one is stationary but the other is not, probably why it's not snapping to the correct view sometimes..
     var distanceCurrent,distanceNext;
     if (this.ambiguousPoints[this.currentView][0] == 1 && this.ambiguousPoints[this.nextView][0] == 1){ //Current and next are stationary points
        distanceCurrent = this.interpValue;
@@ -557,10 +538,9 @@ Scatterplot.prototype.changeView = function( newView) {
  *  NOTE: view tracking variables are not updated by this function
  * */
 Scatterplot.prototype.redrawView = function(view) {
-    //Re-draw position the anchor at the stationary point (if any)
-    if (!this.svg.select("#anchor").empty()){
-        this.svg.select("#anchor").attr("cx",function (d){return d[0]}).attr("cy",function (d){return d[1]});
-    }
+
+    this.hideAnchor();
+
     //Re-colour the hint path labels
     this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
     this.svg.selectAll(".displayPoints").transition().duration(300)
@@ -584,34 +564,33 @@ Scatterplot.prototype.redrawView = function(view) {
      }
 
     //Function for drawing a linearly interpolated path between set of points
-    var line = d3.svg.line()
-        .x(function(d) { return d[0]; })
-        .y(function(d) { return d[1]; })
-        .interpolate("linear");
+    var line = d3.svg.line().interpolate("linear");
 
     //First check for ambiguous cases in the hint path of the dragged point, then draw loops (if any)
      ref.checkAmbiguous(id,points);
 
-    //Adjust the points array to include ambiguous points (if any), otherwise, just keep the original array
-    var adjustedPoints = points;
     if (ref.isAmbiguous==1){
-        //Re-map the points array to contain positions which correspond to ambiguous cases (at each ambiguous case, labels are
-        // presented as a horizontally oriented list)
-        /**adjustedPoints = points.map(function (d,i){
-            if (ref.ambiguousPoints[i][0]!=0) return [d[0]+25*ref.ambiguousPoints[i][1],d[1],ref.ambiguousPoints[i][2]];
-            return d;
-       });*/
+        ref.appendAnchor();
     }
 
-    //Draw the hint path labels
+    //Draw the hint path labels, reposition any which are in a stationary sequence
+    //TODO: label placement not working for revisiting
+    var offset = 0;
+    var indexCounter = 0;
     this.svg.select("#hintPath").selectAll("text")
         .data(points.map(function (d,i) {
             var xPos = d[0] + ref.pointRadius*2;
             var yPos = d[1] + ref.pointRadius*2;
-            /**if (ref.closePoints[i][0]==1){ //Trying to reduce overlap in labels
-                xPos = xPos + 25;
-                yPos = yPos + 25;
-            }*/
+            if (ref.isAmbiguous==1){ //May need to adjust how the labels are drawn if in stationary sequence
+                if (ref.ambiguousPoints[i][0] == 1){
+                    if (ref.ambiguousPoints[i][1] != offset){
+                        indexCounter = 0;
+                        offset = ref.ambiguousPoints[i][1];
+                    }
+                    xPos = xPos + 25*indexCounter;
+                    indexCounter++;
+                }
+            }
             return {x:xPos,y:yPos,id:i}
          }))
         .enter().append("svg:text")
@@ -660,8 +639,9 @@ Scatterplot.prototype.redrawView = function(view) {
 }
 /** Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
 Scatterplot.prototype.clearHintPath = function () {
-    //Re-set variables
+
     this.isAmbiguous = 0;
+    this.removeAnchor();
 
     //Remove the hint path svg elements
     this.svg.select("#hintPath").selectAll("text").remove();
@@ -743,10 +723,10 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
 
     //Clear and re-set the global arrays
     this.ambiguousPoints = [];
-    this.closePoints = [];
+    //this.closePoints = [];
     for (j=0;j<=this.lastView;j++){
         this.ambiguousPoints[j] = [0];
-        this.closePoints[j] = [0];
+        //this.closePoints[j] = [0];
     }
 
     //Populate the stationary and revisiting points array
@@ -765,16 +745,16 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
                             repeatedPoints.push([currentPoint[0],currentPoint[1]]);
                         }
                         this.ambiguousPoints[j] = [1,groupNum];
-                        this.closePoints[j] = [1];
+                       // this.closePoints[j] = [1];
                     }
-                }else{ //Possibly a point with overlapping labels
+                }/**else{ //Possibly a point with overlapping labels
                     var term1 = points[k][0] - currentPoint[0];
                     var term2 = points[k][1] - currentPoint[1];
                     var dist = Math.sqrt((term1*term1)+(term2*term2));
                     if (dist <= 10){
                         this.closePoints[j] = [1];
                     }
-                }
+                }*/
             }
         }
     }
@@ -792,13 +772,14 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
         foundStationary = 0;
     }*/
 
-    //TODO: automatically orient the loops such that they smoothly blend with the path
-    //Manually add the orientation angles to the repeatedPoints array (later change this)
-    repeatedPoints[0].push(Math.PI/6);
-    repeatedPoints[1].push(Math.PI/6);
-
     //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){
+        //TODO: automatically orient the loops such that they smoothly blend with the path
+        //Manually add the orientation angles to the repeatedPoints array (later change this)
+        //IMPORTANT: use the angle 0, instead of 360 (360 breaks the code..)
+        repeatedPoints[0].push(Math.PI/6);
+        repeatedPoints[1].push(Math.PI/6);
+
         this.drawLoops(id,repeatedPoints);
     }
 }

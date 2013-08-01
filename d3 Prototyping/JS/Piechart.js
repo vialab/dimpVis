@@ -809,18 +809,19 @@ Piechart.prototype.showHintPath = function (id,angles,start){
         .attr("filter", "url(#blur)");*/
 
     //Render the hint path
-    /**this.svg.select("#hintPath").append("path")
+    this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","path")
-        .attr("filter", "url(#blur)");*/
-    var drawLine = d3.svg.line().interpolate("cardinal");
+        .attr("filter", "url(#blur)");
+
+   /** var drawLine = d3.svg.line().interpolate("cardinal");
     var testPoints = this.calculateHintPathPoints(this.hintArcInfo);
 
     this.svg.select("#hintPath").append("path")
         //.attr("d", drawLine(this.hintArcInfo.map(function (d){return [d[0],d[1]]})))
         .attr("d", drawLine(testPoints))
         .attr("id","path")
-        .attr("filter", "url(#blur)");
+        .attr("filter", "url(#blur)");*/
 
 	//Render the hint labels
 	this.svg.select("#hintPath").selectAll("text")
@@ -832,8 +833,8 @@ Piechart.prototype.showHintPath = function (id,angles,start){
          .attr("id",function (d){return "hintLabel"+ d.id}).attr("class","hintLabels");
 
     //Fade out all the other segments
-	this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
-         .transition().duration(400).style("fill-opacity", 0.3);
+	/**this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
+         .transition().duration(400).style("fill-opacity", 0.3);*/
 
    this.hintArcInfo = [];
 }
@@ -928,7 +929,7 @@ Piechart.prototype.createArcString = function (pathInfo){
 }
 /** Might remove this function later (just an alternative method for drawing the hint path, but results are the same as drawing arcs)
  * */
- Piechart.prototype.calculateHintPathPoints = function (pathInfo){
+ /**Piechart.prototype.calculateHintPathPoints = function (pathInfo){
    var newPoints = [];
    var lastIndex = pathInfo.length-1;
    var startAngle,angleDiff,startRadius,radiusDiff;
@@ -967,7 +968,7 @@ Piechart.prototype.createArcString = function (pathInfo){
     }
     newPoints.push([pathInfo[lastIndex][0],pathInfo[lastIndex][1]]);
     return newPoints;
-}
+}*/
 /** Animates all segments on the piechart along the hint path of a selected segment
  *  startView to endView, this function is called when a label on the hint path is clicked
  *  startView, endView: View indices bounding the animation
@@ -988,8 +989,10 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
     var animateView = startView; //Indicates when to switch the views (after all points are finished transitioning)
 
     var allAngles = this.svg.selectAll(".displayArcs").data().map(function (d){return d.nodes});
-    var savedNodes = this.svg.selectAll(".displayArcs").data().map(function (d){return d;});
+    //var savedNodes = this.svg.selectAll(".displayArcs").data().map(function (d){return d;});
     var newAngles = allAngles.map(function (k){return k[startView]});
+    var savedNodes = [];
+    this.svg.selectAll(".displayArcs").each(function (d){savedNodes.push(d)});
 
     //console.log(allAngles.map(function (k){return 180*k[0]/Math.PI}));
     //Apply multiple transitions to each display point by chaining them
@@ -1013,13 +1016,14 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
 
         return function(d) {
             //Redraw the piechart at the new view
-            d3.select(this).transition(400)//.duration(400)//.ease("linear")
+            d3.select(this).transition().duration(400)
                 .attrTween("d",function (a){
                     a.startAngle = ref.startAngles[a.id];
                     a.endAngle = ref.endAngles[a.id];
-                    var interpolator = d3.interpolate(savedNodes[a.id],ref.arcGenerator(a));
+                    var interpolator = d3.interpolate(savedNodes[a.id],a);
+                    savedNodes[a.id] = interpolator(0);
                     return function (t){
-                        return interpolator(t);
+                        return ref.arcGenerator(interpolator(t));
                     }
                 })
                 .each("end", animate());

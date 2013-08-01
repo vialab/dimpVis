@@ -17,7 +17,7 @@
     var cx = 80, cy = 40; //Position of the draggable point
     var radius = 100;
     //Caution: do not use 360, always use 0!
-    var orientationAngle = Math.PI/2; //An angle for how to translate the loop (how is the loop aligned w.r.t the stationary point), opposite to the crossing angle
+    var orientationAngle = Math.PI; //An angle for how to translate the loop (how is the loop aligned w.r.t the stationary point), opposite to the crossing angle
     var loopCx = cx + (radius/2)*Math.cos(orientationAngle);
     var loopCy = cy + (radius/2)*Math.sin(orientationAngle);
     var interpValue = 0;
@@ -102,7 +102,7 @@ function calculateMouseAngle (mouseX,mouseY){
         subtractOne = 1;
         newAngle = Math.atan2(mouseX - loopCx, loopCy - mouseY) -(orientationAngle - Math.PI/2); // 90 deg
     }
-
+    console.log(newAngle*180/Math.PI);
     var positiveAngle = (newAngle < 0)?((Math.PI - newAngle*(-1))+Math.PI):newAngle;
     if (subtractOne ==1){
         interpValue = 1 - positiveAngle/(Math.PI*2);
