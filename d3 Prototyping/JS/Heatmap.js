@@ -113,12 +113,11 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
                 var yCoord = d.column*ref.cellSize;
                 var hintX,hintY,hintLength, j,yOffset;
                 var prevHintX = 0,prevHintY = 0, cumulativeLengthTotal=0;
-                var hintLengthTotal = 0, currentYOffset = 0;
+                var hintLengthTotal = 0;
 
                //Convert scores into colours and find hint path drawing information
                 for(j=0;j< d.values.length;j++){
                     yOffset = hintYOffset(d.values[j]);
-                    if (j==0){ currentYOffset = yOffset;}  //Visualization must start at currentview = 0 for this to work
                     hintX = ref.findHintX(j);
                     hintY = ref.findHintY(yOffset);
                     hintLength = ref.calculateDistance(prevHintX,prevHintY,hintX,hintY);
@@ -363,7 +362,7 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
             if (this.timeDirection ==1){this.passedMiddle = 1}
             else {this.passedMiddle =0;}
         }
-        console.log("passed mid "+this.passedMiddle+" time direction "+this.timeDirection);
+        //console.log("passed mid "+this.passedMiddle+" time direction "+this.timeDirection);
         this.interpValue = 0.5;
         newY = this.peakValue;
     }else{ //At base, update the view
@@ -380,7 +379,7 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
         }
         newY=cellY;
     }
-    console.log("interp "+this.interpValue);
+    //console.log("interp "+this.interpValue);
     this.redrawAnchor(newY);
 }
 /**Updates variables for dragging along the sine wave:
@@ -536,8 +535,10 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
  *  id: of the dragged cell
  * */
  Heatmap.prototype.animateColours = function (id,start,end){
-    if (start== end){return;}
     var ref = this;
+
+    if (start== end){return;}
+
     //Determine the travel direction (e.g., forward or backward in time)
     var direction = 1;
     if (start>end) direction=-1;
@@ -561,30 +562,20 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
         if (direction == 1 && animateView>=end) return;
         if (direction ==-1 && animateView<=end) return;
         return function(d) {
+
             //Animate the cell's colour
             d3.select(this).transition(400).ease("linear")
                 .attr("fill",d.values[animateView][0])
                 .each("end", animate());
-            //TODO: animate hint path If the cell's hint path is visible, animate it, leave this until a method for translating the hint path is decided on
-           /** if (d.id == id){
-                //Re-draw the hint path
-                d3.select("#path").attr("d", function(d,i){
-                    return ref.hintPathGenerator(ref.pathData.map(function (d,i){return {x:ref.findHintX(d[0],i,animateView),y:d[1]}}));
-                });
-                //Re-draw the hint path labels, add the label fading
-                d3.selectAll(".hintLabels").attr("transform",function (d,i) {
-                        //Don't rotate the label resting on top of the bar
-                        if (i==animateView) return "translate("+ref.findHintX(d.x,i,animateView)+","+ d.y+")";
-                        else return "translate("+(ref.findHintX(d.x,i,animateView)-10)+","+ d.y+")";
-                    });
-                //Re-draw interaction paths (if any)
-                if (ref.interactionPaths.length>0){
-                    d3.select("#hintPath").selectAll(".interactionPath")
-                        .attr("d",function (d){return ref.interactionPathGenerator(d.points.map(function (d){
-                            return {x:ref.findHintX(d[0],d[2],animateView),y:d[1]};
-                        }));});
-                }
-            }*/
+
+           //Animate hint path if it is visible
+            if (d.id == id){
+                var translate = -animateView*ref.xSpacing;
+                //Re-draw the hint path and labels
+                d3.selectAll("path").attr("transform","translate("+translate+")");
+                d3.selectAll(".hintLabels").attr("transform","translate("+translate+")")
+                    .attr("fill-opacity", function (b) {return (b.id==animateView)?1:0.3});
+            }
         };
     }
 }
@@ -689,7 +680,7 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  //Create any array with the hint path coordinates
  var translateY = -this.ySpacing*pathData[this.currentView][4];
  var coords = pathData.map(function (d){return [d[2]+ref.draggedCellX,d[3]+ref.draggedCellY+translateY,d[4]];});
-console.log(coords);
+
  //TODO: if the colour does not change for the entire hint path the gradient is not drawn
  //Find the translation amounts, based on the current view
  var translateX = -this.xSpacing*this.currentView;
@@ -703,7 +694,7 @@ console.log(coords);
         }))
         .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
         //.attr("transform","translate("+translateX+","+translateY+")")
-        .attr("transform","translate("+translateX+","+translateY+")")
+        .attr("transform","translate("+translateX+")")
         .attr("class","interactionPath");
 
      this.appendAnchor(this.draggedCellX,this.draggedCellY);
@@ -870,7 +861,7 @@ Heatmap.prototype.calculatePathPoints = function (offset,indices){
     //Calculate the points (5 per gap between views)
     for (var j=0;j<totalPts;j++){
         var theta = angle + quarterPi*j;
-        var y = this.amplitude*Math.sin(theta) + this.ySpacing*offset +this.draggedCellY;
+        var y = this.amplitude*Math.sin(theta) + this.ySpacing*offset + this.draggedCellY;
         var x = (this.xSpacing/4)*j + startX + this.draggedCellX;
         if (j%4==0){ //Add the sign (+1 for peak, -1 for trough) to each ambiguous cell along the sine wave
             this.ambiguousCells[indices[indexCounter]] = [1,sign];
