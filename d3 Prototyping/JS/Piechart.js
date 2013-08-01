@@ -583,8 +583,9 @@ Piechart.prototype.changeLabelOpacity = function (d,view){
  * */
  Piechart.prototype.snapToView = function (id,allAngles){
     var currentDist, nextDist;
+
    //Check if the views are an ambiguous case, set the distances
-    if (this.isAmbiguous==1){
+   if (this.ambiguousSegments[this.currentView][0]==1 && this.ambiguousSegments[this.nextView][0]==1){
          if (this.interpValue > 0.5){ //Snap to nextView
              currentDist = 1;
              nextDist = 0;

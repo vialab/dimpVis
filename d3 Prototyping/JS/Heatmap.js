@@ -525,7 +525,6 @@ Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount,draggin
  */
 Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
   var ref = this;
-
   this.svg.selectAll(".cell").attr("fill", function (d){
       return ref.interpolator(d.values[current][0],d.values[next][0],interpAmount);
   });
@@ -583,33 +582,25 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
  *  Nearest view is the closest point on the hint path (either current or next) to the
  *  most recent y-position of the mouse. View tracking variables are
  *  updated according to which view is "snapped" to.
- *  id: The id of the dragged cell
- *  points: An array of all points along the dragged cell's hint path (e.g., d.values)
- * */
-//TODO: this needs to be changed to coincide with the coordinates in updateDraggedCell()!
-Heatmap.prototype.snapToView = function (id, points,y){
+ **/
+//TODO: cannot snap to last view when in a sine wave
+Heatmap.prototype.snapToView = function (){
+
     var currentDist, nextDist;
 
-    //For now, using the interpvalue to decide which view to snap to
-    if (this.interpValue > 0.5){ //Snap to nextView
-         currentDist = 1;
-         nextDist = 0;
-     }else{ //Snap to current view
-         currentDist = 0;
-         nextDist = 1;
-      }
+    if (this.ambiguousCells[this.currentView][0]==1 && this.ambiguousCells[this.nextView][0]==1){
+        if (this.interpValue > 0.5){ //Snap to nextView
+            currentDist = 1;
+            nextDist = 0;
+        }else{ //Snap to current view
+            currentDist = 0;
+            nextDist = 1;
+        }
+    }else{
+        currentDist = Math.abs(this.hintYValues[this.currentView] - this.mouseY);
+        nextDist = Math.abs(this.hintYValues[this.nextView] - this.mouseY);
+    }
 
-    //Old code
-    /**var current =  y+this.cellSize/2;
-    var next = 	points[this.nextView][3]+y+this.cellSize/2-points[this.currentView][3];
-    var currentDist = Math.abs(current - this.mouseY);
-    var nextDist = Math.abs(next - this.mouseY);
-
-    //Ensure the nextView wasn't the last one to avoid the index going out of bounds
-    if (currentDist > nextDist && this.nextView != this.lastView){
-        this.currentView = this.nextView;
-        this.nextView++;
-    }*/
     //Ensure the nextView wasn't the last one to avoid the index going out of bounds
     if (currentDist > nextDist && this.nextView <= this.lastView){
         this.currentView = this.nextView;
@@ -617,8 +608,7 @@ Heatmap.prototype.snapToView = function (id, points,y){
     }
 
      this.redrawView(this.currentView);
-     this.redrawHintPath(points[this.currentView][4],this.currentView);
-
+     this.redrawHintPath(this.currentView);
 }
 /** Updates the view tracking variables when the view is being changed by an external
  * visualization (e.g., slider), then redraw the view at the new view.
@@ -644,10 +634,8 @@ Heatmap.prototype.redrawView = function(view){
 /**Redraws the hintpath at a specified view by translating it
  *  view: the view index to draw at
  * */
-Heatmap.prototype.redrawHintPath = function(offset,view){
-
+Heatmap.prototype.redrawHintPath = function(view){
     var translateX = -this.xSpacing*view;
-    var translateY = -this.ySpacing*offset;
 
     this.svg.select("#hintPath").selectAll("text")//.attr("transform", "translate("+translateX+","+translateY+")")
         .attr("transform", "translate("+translateX+")")
@@ -666,6 +654,14 @@ Heatmap.prototype.redrawHintPath = function(offset,view){
  * */
 Heatmap.prototype.showHintPath = function(id,pathData,x,y){
 
+  //In case next view went out of bounds (from snapping to view), re-adjust the view variables
+  var drawingView = this.currentView;
+  if (this.nextView>this.lastView){
+    this.nextView--;
+    this.currentView--;
+    drawingView = this.nextView;
+ }
+
  //Save some important information
  var ref = this;
  this.draggedCellX = x + this.cellSize/2; //Save the center coordinates of the dragged cell
@@ -678,12 +674,12 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  this.checkAmbiguous(pathData); //Check for ambiguous cases
 
  //Create any array with the hint path coordinates
- var translateY = -this.ySpacing*pathData[this.currentView][4];
+ var translateY = -this.ySpacing*pathData[drawingView][4];
  var coords = pathData.map(function (d){return [d[2]+ref.draggedCellX,d[3]+ref.draggedCellY+translateY,d[4]];});
 
- //TODO: if the colour does not change for the entire hint path the gradient is not drawn
+ //TODO: if the colour does not change for the entire hint path the gradient is not drawn, and not even a line is visible?
  //Find the translation amounts, based on the current view
- var translateX = -this.xSpacing*this.currentView;
+ var translateX = -this.xSpacing*drawingView;
 
  //Draw the interaction path(s) (if any)
   if (this.isAmbiguous ==1){
@@ -740,7 +736,7 @@ this.svg.select("#hintPath").selectAll("text")
        })).enter().append("text")
        .attr("x",function (d){return d.x}).attr("y",function (d) {return d.y})
        .attr("transform","translate("+translateX+")")
-       .attr("fill-opacity",function (d){ return ((d.id==this.currentView)?1:0.3)})
+       .attr("fill-opacity",function (d){ return ((d.id==drawingView)?1:0.3)})
        //.attr("transform","translate("+translateX+","+translateY+")")
        .text(function (d){ return d.label;})
        .attr("class","hintLabels")
@@ -904,7 +900,7 @@ Heatmap.prototype.removeAnchor = function (){
 Heatmap.prototype.hideAnchor = function (){
     this.svg.select("#anchor").select("circle").attr("stroke","none");
 }
-//Todo:ambiguous interaction along hint path (same colour, interaction path?)
+
 //Todo: non-existent data values in cell (white?), this would involve screening the dataset as well, similar to ambiguous cases
 
 //TODO: draw colour scale legend next to heatmap?

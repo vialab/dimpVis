@@ -812,7 +812,7 @@ Barchart.prototype.snapToView = function (id, heights){
    var currentDist, nextDist;
 
    //Check if the views are an ambiguous case, set the distances
-   if (this.isAmbiguous==1){   
+    if (this.ambiguousBars[this.currentView][0]==1 && this.ambiguousBars[this.nextView][0]==1){
         if (this.interpValue > 0.5){ //Snap to nextView
 		   currentDist = 1;
 		   nextDist = 0;
