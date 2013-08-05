@@ -256,7 +256,6 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
             }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
                 ref.previousLoopAngle = "start";
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
-                console.log("before loop "+ref.currentView+" "+ref.nextView);
             }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
                 ref.dragAlongLoop(id,currentPointInfo[1],mouseX,mouseY);
                 return;
@@ -348,7 +347,7 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
      //TODO:These values can be saved and do not need to be computed each time the mouse drags
      //Re-draw the anchor along the loop
      var loopInterp = this.convertMouseToLoop_interp(this.interpValue);
-     this.redrawAnchor(loopInterp,groupNumber);
+
 
      //Find the angular dragging direction
      var draggingDirection;
@@ -368,18 +367,31 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
         var angle_deg = angles[1]*180/Math.PI;
         if ((angle_deg >= 350 && angle_deg <= 360)||(angle_deg>=0 && angle_deg <=10)){ //Check for sign switches within 10 degrees of the 360/0 mark
             if (draggingDirection==1){ //Dragging clockwise
+                if (this.nextView != this.lastView){
+                   if (this.ambiguousPoints[this.nextView+1][0]==0) {
+                      // if()
+                       console.log("end point next");
+                   }
+                }
                 this.moveForward();
             }else{ //Dragging counter-clockwise
+                if (this.currentView > 0){
+                    if (this.ambiguousPoints[this.currentView-1][0]==0) {
+                        console.log("end point current");
+                    }
+                }
                 this.moveBackward();
             }
            // console.log(angle_deg+" "+draggingDirection);
-            console.log("switch views"+this.currentView+" "+this.nextView);
+            //console.log("switch views"+this.currentView+" "+this.nextView);
             this.interpValue = 0;
         }
     }else{ //Dragging in the middle of the loop, animate the view
         this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
         this.interpolateLabelColour(this.interpValue);
     }
+
+     this.redrawAnchor(loopInterp,groupNumber);
 
     //Save the dragging angle and directions
     this.previousLoopAngle = angles[1];
@@ -575,7 +587,8 @@ Scatterplot.prototype.redrawView = function(view) {
 
     //Draw the hint path labels, reposition any which are in a stationary sequence
     //TODO: label placement not working for revisiting
-    var offset = 0;
+     //TODO: move this label placement stuff to a separate function
+    var offset = -1;
     var indexCounter = 0;
     this.svg.select("#hintPath").selectAll("text")
         .data(points.map(function (d,i) {

@@ -18,7 +18,12 @@ heatmap.clickHintLabelFunction = function (d, i){
     slider.updateSlider(i);
 };
 
-heatmap.render(data,xLabels,yLabels);
+var colours = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
+var colourLabels = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
+heatmap.render(data,xLabels,yLabels,colours);
+
+heatmap.showColourScale(colours,colourLabels,220,10);
+
 //Define the function to respond to the dragging behaviour of the cells
 heatmap.dragEvent = d3.behavior.drag()
                    .origin(function(d){ return {x:d.x+heatmap.cellSize/2,y:d.y+heatmap.cellSize/2};})

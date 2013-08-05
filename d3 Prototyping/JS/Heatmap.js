@@ -44,7 +44,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    //Display properties
    this.labels = hLabels;
    this.xSpacing = 50; //Spacing across x for hint path
-   this.ySpacing = 8; //Spacing for the y of hint path
+   this.ySpacing = 10; //Spacing for the y of hint path
 
    //Declare some interaction event functions
    this.dragEvent = {};
@@ -74,17 +74,23 @@ Heatmap.prototype.init = function() {
    this.svg.append("svg:defs").append("svg:filter")
       .attr("id", "blur").append("svg:feGaussianBlur")
       .attr("stdDeviation", 2);
+
+   this.svg.append("svg:defs").append("svg:filter")
+       .attr("id", "blur2").append("svg:feGaussianBlur")
+       .attr("stdDeviation", 1);
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
  * xLabels: an array of labels to appear on the x-axis
  * yLabels: an array of labels to appear on the y-axis
+ * colours: 1D array of colours to map the values to
  *
  * Data MUST be provided in the following array format:
  * data = [{"row","column",[colour values for all views]}...number of cells]
  * */
-Heatmap.prototype.render = function(data,xLabels,yLabels) {
+Heatmap.prototype.render = function(data,xLabels,yLabels,colours) {
     var ref = this;
+
     //Set the width and height of the svg, now that the dimensions are known
     this.width = xLabels.length*this.cellSize+100;
     this.height = yLabels.length*this.cellSize+100;
@@ -96,8 +102,8 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
     var maxScore = d3.max(data.map(function (d){return d3.max(d.values); }));
     var minScore = d3.min(data.map(function (d){return d3.min(d.values); }));
 
-    var colours = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
     var generateColour = d3.scale.quantize().domain([minScore,maxScore]).range(colours);
+
     //Find the hint y value (of the colour along the colour scale)
     var hintYOffset = d3.scale.quantize().domain([minScore,maxScore])
         .range(colours.map(function(d,i){return i;}).reverse());//Lower colours on scale have lower offsets
@@ -447,14 +453,14 @@ Heatmap.prototype.checkBounds = function(y1,y2,mouseY){
 
     //Check if the mouse is between start and end values, re-set the interpValue
     if (mouseY <= start){
-        if (this.timeDirection == -1) {this.interpValue = 1; }
-        else{this.interpValue = 0;}
-        //this.interpValue = 0;
+        //if (this.timeDirection == -1) {this.interpValue = 1; }
+        //else{this.interpValue = 0;}
+        this.interpValue = 0;
         return start;
     } else if (mouseY >=end) {
-        if (this.timeDirection == -1) {this.interpValue = 1; }
-        else{this.interpValue = 0;}
-        //this.interpValue = 0;
+       // if (this.timeDirection == -1) {this.interpValue = 1; }
+       // else{this.interpValue = 0;}
+        this.interpValue = 0;
         return end;
     }
 
@@ -717,7 +723,7 @@ this.svg.select("#hintPath").append("svg:path")
       .attr("id","pathUnderlayer")
       //.attr("transform","translate("+translateX+","+translateY+")")
       .attr("transform","translate("+translateX+")")
-      .attr("filter", "url(#blur)");
+      .attr("filter", "url(#blur2)");
 
 //Draw the main hint path line
  this.svg.select("#hintPath").append("svg:path")
@@ -900,7 +906,30 @@ Heatmap.prototype.removeAnchor = function (){
 Heatmap.prototype.hideAnchor = function (){
     this.svg.select("#anchor").select("circle").attr("stroke","none");
 }
+/**Draws a colour scale showing the values assigned to each colour
+ * colours: the different colours to map the values to
+ * labels: the labels to identify each colour
+ * x,y: left and top margins of the scale
+ * */
+//TODO: draw colour scale legend next to heatmap?
+Heatmap.prototype.showColourScale = function (colours,labels,x,y){
+    var ref = this;
 
+    //Prepare the data for drawing the scale
+    this.svg.selectAll(".colourScale").data(colours.map(function (d,i) {
+        return {colour:d,id:i,label:labels[i]};
+    })).enter().append("g").attr("class","colourScale");
+
+   //Draw the colours as rectangles
+    this.svg.selectAll(".colourScale").append("rect")
+        .attr("x",x).attr("y",function(d){return (d.id*ref.cellSize/3 + y)})
+        .attr("width",this.cellSize/3).attr("height",this.cellSize/3)
+        .style("fill",function (d){return d.colour});//.style("stroke","#FFF");
+
+    //Draw the labels for each colour
+    this.svg.selectAll(".colourScale").append("text").attr("x",x+this.cellSize/3+5)
+        .attr("y",function(d){return (d.id*ref.cellSize/3 + y + ref.cellSize/6)})
+        .text(function (d){return d.label})
+}
 //Todo: non-existent data values in cell (white?), this would involve screening the dataset as well, similar to ambiguous cases
 
-//TODO: draw colour scale legend next to heatmap?

@@ -75,8 +75,7 @@ Slider.prototype.render = function() {
 	  .attr("class","ticks");
 
    //Draw the labels for each tick
-   this.widget.selectAll("g")
-      .append("svg:text")
+   this.widget.selectAll("g").append("svg:text")
       .text(function(d) { return d.label; })
 	  .attr("x", function(d) {return d.value}).attr("y", 37)
 	  .style("font-family", "sans-serif").style("font-size", "12px")

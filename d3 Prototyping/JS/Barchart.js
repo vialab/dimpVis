@@ -92,9 +92,8 @@ Barchart.prototype.init = function(){
 
      //Add the blur filter to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blur")
-        .append("svg:feGaussianBlur")
-        .attr("stdDeviation", 5);
+        .attr("id", "blur").append("svg:feGaussianBlur")
+        .attr("stdDeviation", 4);
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -643,7 +642,7 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
   var translateAmount = this.hintPathSpacing*interpAmount + this.hintPathSpacing*this.currentView;
 
     //Translate the hint path and labels and interpolate the label colour opacity to show the transition from current to next view
-   this.svg.select("#path").attr("transform","translate(" + (-translateAmount) + ")");
+   this.svg.select("#hintPath").selectAll("path").attr("transform","translate(" + (-translateAmount) + ")");
    this.svg.select("#hintPath").selectAll(".hintLabels").attr("transform","translate(" + (-translateAmount) + ")")
        .attr("fill-opacity",function (d) {
            if (d.id ==ref.currentView){ //Dark to light
@@ -653,12 +652,6 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
            }
            return 0.3;
        });
-
-    //Translate interaction paths (if any)
-    if (this.interactionPaths.length >0) {
-        this.svg.select("#hintPath").selectAll(".interactionPath")
-                .attr("transform","translate(" + (-translateAmount) + ")");
-    }
 
     if (this.progressIndicator!=2){
        this.drawProgress(interpAmount,translateAmount);
@@ -731,14 +724,9 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                 var translate = animateView*ref.hintPathSpacing;
 
                 //Re-draw the hint path and labels
-                d3.select("#path").attr("transform","translate("+(-translate)+")");
+                d3.select("#hintPath").selectAll("path").attr("transform","translate("+(-translate)+")");
                 d3.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
                     .attr("fill-opacity", function (b) {return (b.id==animateView)?1:0.3});
-
-                //Re-draw interaction paths (if any)
-                if (ref.isAmbiguous==1){
-                    d3.selectAll(".interactionPath").attr("transform","translate("+(-translate)+")");
-                }
             }
         }
     }
@@ -760,16 +748,12 @@ Barchart.prototype.redrawView = function (view,id){
         var translate = view*this.hintPathSpacing;
 
         //Re-draw the hint path and labels
-        this.svg.select("#path").attr("transform","translate("+(-translate)+")");
+        this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+(-translate)+")");
         this.svg.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
              .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
 
-        //Re-draw interaction paths (if any)
-        if (this.interactionPaths.length>0){
-            this.svg.select("#hintPath").selectAll(".interactionPath")
-                .attr("transform","translate("+(-translate)+")");
-            this.removeIndicator("#anchor"); //Anchor will be re-appended in showHintPath()
-        }
+
+        this.removeIndicator("#anchor"); //Anchor will be re-appended in showHintPath()
 
         //Re-draw progress paths (if any)
         if (this.progressIndicator != 2){
@@ -870,6 +854,13 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 
    this.timeDirection = 0;  //In case dragging starts at a peak..
 
+   //Draw a white underlayer
+   this.svg.select("#hintPath").append("svg:path")
+        .attr("d", this.hintPathGenerator(ref.pathData))
+        .attr("filter", "url(#blur)")
+        .attr("transform","translate("+(-translate)+")")
+        .attr("id","underLayer");
+
 	//Draw the hint path line
    this.svg.select("#hintPath").append("svg:path")
        .attr("d", this.hintPathGenerator(ref.pathData))
@@ -894,7 +885,7 @@ Barchart.prototype.showHintPath = function (id,heights,xPos){
 
     //Fade out the other bars
    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
-        /**.transition().duration(300)*/.style("fill-opacity", 0.4);
+        /**.transition().duration(300)*/.style("fill-opacity", 0.5);
 
     //Draw a progress indicator (if specified)
     if (this.progressIndicator != 2){

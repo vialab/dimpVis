@@ -16,7 +16,8 @@ body {
 #path{
     stroke-width:2;
     fill:none;
-    stroke:#1f77b4;
+    /**stroke:#1f77b4;  */
+    stroke: #aec7e8;
 }
 
 /*The points */
@@ -32,7 +33,7 @@ body {
 .loops {
     fill:none;
     stroke-dasharray:3,3;
-    stroke:#666;
+    stroke:#969696;
 }
 
 /*The anchor along the interaction path */

@@ -3,7 +3,8 @@
 
 //Create a new piechart visualization
 var piechart   = new Piechart(50, 50 , 180,"#piegraph","Random",labels);
-var colours = ["#74c476", "#31a354","#a1d99b","#c7e9c0",  "#3182bd", "#6baed6", "#9ecae1","#c6dbef"];
+//var colours = ["#74c476", "#31a354","#a1d99b","#c7e9c0",  "#3182bd", "#6baed6", "#9ecae1","#c6dbef"];
+var colours = ["#1B9E77", "#D95F02", "#E7298A", "#7570B3" ];
 
 //Define the function when the SVG (background) is clicked, should clear the hint path displayed
 piechart.clickSVG = function (){

@@ -22,7 +22,7 @@ body {
     font-size: 10px;
     stroke-width:1;
     fill:none;
-    stroke:#1f77b4;
+    stroke:#666;
 }
 
 /*Labels on the hint path */
@@ -34,21 +34,21 @@ body {
     cursor:pointer;
 }
 
-/**.gDisplayArcs{
-    stroke:#FFFFFF;
-    stroke-width:2;
-}*/
+.gDisplayArcs{
+    stroke:none;
+    stroke-width:1;
+}
 
 
 /*The interaction path (sine wave)*/
 .interactionPath{
     stroke-dasharray:3,3;
     fill: none;
-    stroke: #c7c7c7;
+    stroke:#969696;
 }
 
 /*The anchor along the interaction path */
 #anchor{
     fill: none;
-    stroke:#c7c7c7;
+    stroke-width:3;
 }

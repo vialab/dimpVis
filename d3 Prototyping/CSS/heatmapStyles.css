@@ -36,13 +36,13 @@ body {
 #path{
     font-family: sans-serif;
     font-size: 10px;
-    stroke-width:4;
+    stroke-width:3;
     fill:none;
 }
 
 /*White layer underneath the main hint path*/
 #pathUnderlayer{
-   stroke-width:10;
+   stroke-width:7;
    stroke:#FFF;
    fill:none;
 }
@@ -76,4 +76,9 @@ body {
     stroke:#000;
 }
 
-
+/** Styles for the colour scale display */
+.colourScale text {
+    fill:#bdbdbd;
+    font-family: sans-serif;
+    font-size:10px;
+}

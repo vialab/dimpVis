@@ -71,6 +71,8 @@ function Piechart(x,y, r,id,title,hLabels){
 					   .endAngle(function (d) {return d.endAngle;});
    //Function for drawing a sine wave
    this.interactionPathGenerator = d3.svg.line().interpolate("monotone");
+  //Function for drawing a straight line
+   this.lineGenerator = d3.svg.line().interpolate("linear");
   //Interpolate function between two values, at the specified amount
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
@@ -263,7 +265,10 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
         ref.mouseAngle = angle; //Save the dragging angle
         ref.previousDragDirection = draggingDirection; //Save the current dragging direction
 
+        ref.redrawAnchor(newAngle);
+
         return ref.arcGenerator(d); //Re-draw the arc
+
     });
 
 }
@@ -371,15 +376,23 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
         }
     }
     //console.log(" mouse angle: "+mouseAngle*180/Math.PI+" base angle: "+angle*180/Math.PI+" peak angle: "+this.peakValue*180/Math.PI);
-    this.redrawAnchor(bounds);
+    //this.redrawAnchor(bounds);
 }
 
 /******Draw an anchor along the sine wave for debugging *****/
 
 /** Appends an anchor to the svg, if there isn't already one */
-Piechart.prototype.appendAnchor = function (){
+Piechart.prototype.appendAnchor = function (angle){
+
     if (this.svg.select("#anchor").empty()){
-       this.svg.select("#hintPath").append("circle").attr("r",4).attr("id","anchor").attr("stroke","none");
+
+        var newAngle = this.convertAngle(angle);
+        var cx = this.cx + (this.radius+10)*Math.cos(newAngle);
+        var cy = this.cy + (this.radius+10)*Math.sin(newAngle);
+
+       //this.svg.select("#hintPath").append("circle").attr("r",4).attr("id","anchor").attr("stroke","none");
+        this.svg.select("#hintPath").append("path").attr("d",this.lineGenerator([[this.cx,this.cy],[cx,cy]])).attr("id","anchor")
+            .attr("stroke","#2ca02c");
     }
 }
 /** Re-draws the anchor along the sine wave
@@ -387,10 +400,11 @@ Piechart.prototype.appendAnchor = function (){
 Piechart.prototype.redrawAnchor = function (angle){
     var newAngle = this.convertAngle(angle+this.dragStartAngle);
 
-    var cx = this.cx + this.radius*Math.cos(newAngle);
-    var cy = this.cy + this.radius*Math.sin(newAngle);
+    var cx = this.cx + (this.radius+10)*Math.cos(newAngle);
+    var cy = this.cy + (this.radius+10)*Math.sin(newAngle);
 
-    this.svg.select("#anchor").attr("cy",cy).attr("cx",cx).attr("stroke","#c7c7c7");
+    this.svg.select("#anchor").attr("d",this.lineGenerator([[this.cx,this.cy],[cx,cy]]));
+    //this.svg.select("#anchor").attr("cy",cy).attr("cx",cx).attr("stroke","#c7c7c7");
 }
 /** Removes an anchor from the svg, if one is appended
  * */
@@ -541,7 +555,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
     var hintPathArcString = ref.createArcString(hintArcInfo);
 
     //Redraw the hint path
-    this.svg.select("#path").attr("d", hintPathArcString);
+    this.svg.selectAll(".path").attr("d", hintPathArcString);
 
     //Update the hint labels
    this.svg.selectAll(".hintLabels").attr("transform",function (d) {
@@ -648,7 +662,7 @@ Piechart.prototype.redrawHintPath = function (view,angles){
     var hintPathArcString = this.createArcString(hintArcInfo);
 
     //Redraw the hint path
-    this.svg.select("#path").attr("d", hintPathArcString);
+    this.svg.selectAll(".path").attr("d", hintPathArcString);
 
     //Update the hint labels and change the opacity to show current view
     this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
@@ -777,13 +791,14 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     this.dragStartAngle = start; //Important: save the start angle and re-set interpolation
     this.interpValue = 0;
     this.hintArcInfo = this.processHintPathInfo(angles,drawingView);
+    this.appendAnchor((this.dragStartAngle+angles[drawingView]));
 
     var hintPathArcString = this.createArcString(this.hintArcInfo);
 
     //NOTE: Angle has to be converted to match the svg rotate standard: (offset by 90 deg)
     //http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
     if (this.isAmbiguous ==1 ){ //Draw interaction paths (if any)
-        this.appendAnchor();
+        //this.appendAnchor();
         this.findPaths(); //Generate points for drawing an interaction path
         this.svg.select("#hintPath").selectAll(".interactionPath")
             .data(this.interactionPaths.map(function (d,i) {
@@ -804,15 +819,15 @@ Piechart.prototype.showHintPath = function (id,angles,start){
         this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
     }
     //Render white path under the main hint path
-   /** this.svg.select("#hintPath").append("path")
+    this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
-        .attr("id","pathUnderlayer")
-        .attr("filter", "url(#blur)");*/
+        .attr("id","pathUnderlayer").attr("class","path")
+        .attr("filter", "url(#blur)");
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
-        .attr("id","path")
+        .attr("id","path").attr("class","path")
         .attr("filter", "url(#blur)");
 
    /** var drawLine = d3.svg.line().interpolate("cardinal");
@@ -834,8 +849,8 @@ Piechart.prototype.showHintPath = function (id,angles,start){
          .attr("id",function (d){return "hintLabel"+ d.id}).attr("class","hintLabels");
 
     //Fade out all the other segments
-	/**this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
-         .transition().duration(400).style("fill-opacity", 0.3);*/
+	this.svg.selectAll(".displayArcs")//.filter(function (d){return d.id!=id})
+         .transition().duration(400).style("fill-opacity", 0.9);
 
    this.hintArcInfo = [];
 }
@@ -1036,7 +1051,7 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
                 var hintPathArcString = ref.createArcString(hintArcInfo);
 
                 //Redraw the hint path
-                d3.select("#path").attr("d", hintPathArcString);
+                d3.selectAll(".path").attr("d", hintPathArcString);
 
                 //Re-draw the hint path labels
                 d3.selectAll(".hintLabels").attr("transform",function (a) {
