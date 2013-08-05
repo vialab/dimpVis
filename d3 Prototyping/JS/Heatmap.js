@@ -911,7 +911,7 @@ Heatmap.prototype.hideAnchor = function (){
  * labels: the labels to identify each colour
  * x,y: left and top margins of the scale
  * */
-//TODO: draw colour scale legend next to heatmap?
+//TODO: use the real numerical ranges?
 Heatmap.prototype.showColourScale = function (colours,labels,x,y){
     var ref = this;
 
