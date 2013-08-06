@@ -99,9 +99,7 @@ Piechart.prototype.init = function(){
  * colours: an array of colours for the piechart, if none is specified (empty array), use a default
  * Data MUST be provided in the following array format:
  * Object{"values":{v1,v2...vn},
- *        "label":"name of pie segment"
- *       }
- *       ..... number of pie segments
+ *        "label":"name of pie segment" } ..... number of pie segments
  * */
  Piechart.prototype.render = function(data,colours){
       var ref = this;
@@ -125,14 +123,13 @@ Piechart.prototype.init = function(){
                 }
                 return {nodes:angles,label:d.label,id:i,startAngle:0,endAngle:0,colour:colourScale(i)};
           }))
-         .enter().append("g")
-         .attr("class","gDisplayArcs");
+         .enter().append("g").attr("class","gDisplayArcs");
 
  //Find the start and end angles for the current view
  this.calculateLayout(this.svg.selectAll(".gDisplayArcs").data().map(function (d){return d.nodes[ref.currentView]}),0,0);
 
  //Render the pie segments
-this.svg.selectAll(".gDisplayArcs").append("path")
+ this.svg.selectAll(".gDisplayArcs").append("path")
          .attr("fill",function (d){return d.colour;})
          .attr("transform", "translate(" + this.cx + "," + this.cy + ")")
          .attr("id", function (d) {return "displayArcs"+d.id;})
@@ -142,20 +139,29 @@ this.svg.selectAll(".gDisplayArcs").append("path")
                 d.endAngle = ref.endAngles[d.id];
                return ref.arcGenerator(d);
          })
-//TODO: labels on the piechart? Or a legend? (not high priority)
-        /** .append("text")
-         .attr("transform", function (d,i){
-                return "translate(" + arc.centroid(d) + ")";
-        })
-         .attr("fill", ref.hintLabelColour)
-         .text("Test")*/
-         .append("title").text(function(d){return d.label;});
+         //.append("title").text(function(d){return d.label;});
+
+ //Add labels to each segment
+ //this.addLabels(); Not working
+
  // Add the title of the chart
  this.svg.append("text").attr("id", "graphTitle").text(this.graphTitle).attr("x",10).attr("y",13);
 
  //Add a g element to contain the hint info
  this.svg.append("g").attr("id","hintPath");
  }
+/**Adds labels to the piechart segments (but does not size the font based on the width of the segment)
+  */
+Piechart.prototype.addLabels = function (){
+    var ref = this;
+
+    this.svg.selectAll(".gDisplayArcs").append("text")
+     .attr("transform", function (d,i){
+          return "translate(" + ref.arcGenerator.centroid(d) + ")";
+     })
+     .attr("fill", "#000")
+     .text("Test");
+}
 /** Re-calculates layout of the piechart for a list of angles
  *  The angles are saved in the global arrays startAngles, and endAngles
  *  angles: a 1D array containing the angle values of each segment for one view
@@ -391,8 +397,8 @@ Piechart.prototype.appendAnchor = function (angle){
         var cy = this.cy + (this.radius+10)*Math.sin(newAngle);
 
        //this.svg.select("#hintPath").append("circle").attr("r",4).attr("id","anchor").attr("stroke","none");
-        this.svg.select("#hintPath").append("path").attr("d",this.lineGenerator([[this.cx,this.cy],[cx,cy]])).attr("id","anchor")
-            .attr("stroke","#2ca02c");
+        this.svg.select("#hintPath").append("path").attr("d",this.lineGenerator([[this.cx,this.cy],[cx,cy]]))
+            .attr("id","anchor").attr("stroke","#2ca02c");
     }
 }
 /** Re-draws the anchor along the sine wave
@@ -421,13 +427,8 @@ Piechart.prototype.removeAnchor = function (){
  * atCurrent: the view which user is currently at or passing (=0 if at next view, =1 if at current)
  * */
  Piechart.prototype.inferTimeDirection = function (draggingDirection,atCurrent){
-    //Old code
-   /** if (this.previousDragDirection!=draggingDirection){ //Switched directions, update the time
-        if (this.timeDirection ==1){this.moveForward();}
-        else{this.moveBackward();}
-        console.log("inferring "+this.currentView+" "+this.nextView);
-    }*/
-    //New code: only move forward if the user is at next view, only move backward if user is at current view
+
+    //New approach: only move forward if the user is at next view, only move backward if user is at current view
      if (this.previousDragDirection != draggingDirection){
          if (atCurrent==0 && this.timeDirection ==1){
              this.moveForward();

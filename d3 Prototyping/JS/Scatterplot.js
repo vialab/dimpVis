@@ -459,7 +459,7 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
  *  points: An array of all point positions of the dragged point (e.g., d.nodes)
  * */
 Scatterplot.prototype.snapToView = function( id, points) {
-    //TODO: other case where one is stationary but the other is not, probably why it's not snapping to the correct view sometimes..
+
     var distanceCurrent,distanceNext;
     if (this.ambiguousPoints[this.currentView][0] == 1 && this.ambiguousPoints[this.nextView][0] == 1){ //Current and next are stationary points
        distanceCurrent = this.interpValue;
@@ -586,27 +586,14 @@ Scatterplot.prototype.redrawView = function(view) {
     }
 
     //Draw the hint path labels, reposition any which are in a stationary sequence
-    //TODO: label placement not working for revisiting
-     //TODO: move this label placement stuff to a separate function
-    var offset = -1;
-    var indexCounter = 0;
-    this.svg.select("#hintPath").selectAll("text")
-        .data(points.map(function (d,i) {
+    var adjustedPoints = this.placeLabels(points);
+
+     this.svg.select("#hintPath").selectAll("text")
+       .data(adjustedPoints.map(function (d,i) {
             var xPos = d[0] + ref.pointRadius*2;
             var yPos = d[1] + ref.pointRadius*2;
-            if (ref.isAmbiguous==1){ //May need to adjust how the labels are drawn if in stationary sequence
-                if (ref.ambiguousPoints[i][0] == 1){
-                    if (ref.ambiguousPoints[i][1] != offset){
-                        indexCounter = 0;
-                        offset = ref.ambiguousPoints[i][1];
-                    }
-                    xPos = xPos + 25*indexCounter;
-                    indexCounter++;
-                }
-            }
             return {x:xPos,y:yPos,id:i}
-         }))
-        .enter().append("svg:text")
+        })).enter().append("svg:text")
         .text(function(d) { return ref.labels[d.id]; })
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
@@ -625,6 +612,33 @@ Scatterplot.prototype.redrawView = function(view) {
     this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
 	           .transition().duration(300)
 	           .style("fill-opacity", 0.3);
+}
+/**This function places labels in ambiguous cases such that they do not overlap
+ * points: a 2D array of positions of each label [x,y]...
+ * */
+ //TODO: label placement not working for revisiting
+Scatterplot.prototype.placeLabels = function (points){
+
+  if (this.isAmbiguous == 0){return points}
+
+  var ref = this;
+  var offset = -1;
+  var indexCounter = 0;
+
+  var adjustedPoints = points.map(function (d,i){
+      var x = d[0];
+      if (ref.ambiguousPoints[i][0] == 1){
+          if (ref.ambiguousPoints[i][1] != offset){
+              indexCounter = 0;
+              offset = ref.ambiguousPoints[i][1];
+          }
+          x = x + 25*indexCounter;
+          indexCounter++;
+      }
+      return [x,d[1]];
+  });
+
+  return adjustedPoints;
 }
 /** Draws interaction loops as svg paths onto the hint path (if point has stationary cases)
  *  id: of the dragged point

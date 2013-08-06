@@ -16,8 +16,7 @@ body {
 #path{
     stroke-width:2;
     fill:none;
-    /**stroke:#1f77b4;  */
-    stroke: #aec7e8;
+    stroke:#1f77b4;
 }
 
 /*The points */
