@@ -5,13 +5,9 @@
  * bw: width of the bars
  * id: id of the div tag to append the svg container
  * p: a padding value, to format the axes
- * xLabel: label for the x-axis
- * yLabel: label for the y-axis
- * title: of the graph
- * hLabels: A list of labels for the hint path, indicating all the different views of the visualization
  */
 //TODO: When I have time, move all commonly used functions into a separate js file (e.g., util) because there is a lot of repetition across piechart, barchart and heatmap
- function Barchart(h,bw,x,y,id,p,xLabel,yLabel,title,hLabels){
+ function Barchart(h,bw,x,y,id,p){
    //Position and size attributes for drawing the svg
    this.leftMargin = x;
    this.topMargin = y;
@@ -20,25 +16,27 @@
 
    //Display properties
    this.padding = p;
-   this.xLabel = xLabel;
-   this.yLabel = yLabel;
-   this.graphTitle = title;
-   this.xLabels = []; //To store the labels along the x-axis
-   this.hintLabels = hLabels;
    this.barWidth = bw;
-   this.numBars = 0; //Set later
    this.strokeWidth=5;
-   this.width = 0; //Set later
    this.height = h;
    this.hintPathSpacing = 40; //Amount of horizontal distance between labels on hint path
    this.amplitude = 15; //Of the interaction path sine wave
    this.base = h-5; //Starting y-position of all bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
 
+   //Variables set later (in render or init)
+   this.numBars = 0;
+   this.width = 0;
+   this.hintLabels = [];
+   this.lastView = -1; //Index of the last view on the hint path
+   this.xLabels = []; //To store the labels along the x-axis
+   this.graphTitle = "";
+   this.xLabel = "";
+   this.yLabel = "";
+
    //View index tracker variables
    this.currentView = 0; //Starting view of the bars (first year)  
    this.nextView = 1; //Next view of the barchart
-   this.lastView = hLabels.length-1; //Index of the last view on the hint path
 
    //Variables for handling regular interaction
    this.interpValue=0; //For estimating the time direction and update the barchart view
@@ -101,7 +99,9 @@ Barchart.prototype.init = function(){
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
- * start: The starting view of the visualization, as an index into the labels array
+ * hLabels: 1D array of hint labels to appear along the hint path
+ * title: of the dataset
+ * xLabel, yLabel: of the axes
  *
  * Data MUST be provided in the following array format:
  * n is the number of views (or number of labels on the hint path)
@@ -110,14 +110,18 @@ Barchart.prototype.init = function(){
  *       }
  *       ..... number of bars
  * */
- Barchart.prototype.render = function(data){
-      var ref = this;
+ Barchart.prototype.render = function(data,hLabels,title,xLabel,yLabel){
+     var ref = this;
 
-     //Clear all elements in the main svg - only needed if changing the dataset
-    // this.svg.select("#mainG").selectAll("g").remove();
+    //Save some global variables
+    this.numBars = data.length;
+    this.hintLabels = hLabels;
+    this.lastView = hLabels.length-1;
+    this.graphTitle = title;
+    this.xLabel = xLabel;
+    this.yLabel = yLabel;
 
-    //Save some values and set the width of the svg (based on number of bars)
-     this.numBars = data.length;
+    //Set the width of the svg (based on number of bars)
      this.width = (this.barWidth+this.strokeWidth)*this.numBars;
      d3.select(this.id).select("#mainSvg").attr("width",this.width+(this.padding*2));
 
@@ -125,7 +129,7 @@ Barchart.prototype.init = function(){
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
      //Create the scales
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
-     var yScale =  d3.scale.linear().domain([0, max_h]).range([0,ref.height]);
+     var yScale =  d3.scale.linear().domain([0,max_h]).range([0,ref.height]);
 
 //Assign data values to a set of rectangles representing the bars of the chart
 this.svg.selectAll("rect")
@@ -145,12 +149,13 @@ this.svg.selectAll("rect")
 
    //Save the labels for the x-axis
    this.xLabels = this.svg.selectAll(".gDisplayBars").data().map(function (d){return d.label});
+
    //Draw the axes
+   yScale =  d3.scale.linear().domain([max_h,0]).range([0,ref.height]); //Reverse the scale to get the corect axis display
    this.drawAxes(xScale,yScale);
 
   //Draw the bars
-   this.svg.selectAll(".gDisplayBars")
-     .append("rect")
+   this.svg.selectAll(".gDisplayBars").append("rect")
      .attr("x", function(d){return d.xPos;})
      .attr("y", function(d){ return d.nodes[ref.currentView][0];})
      .attr("width", this.barWidth)
@@ -197,37 +202,30 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
     // Add the title of the graph
-    this.svg.append("text")
-        .attr("id", "graphTitle")
-        .text(this.graphTitle)
+    this.svg.append("text").text(this.graphTitle)
+        .attr("id", "graphTitle").attr("class","axis")
         .attr("x",1).attr("y",-15);
 
     // Add the x-axis label
-    this.svg.append("text")
-        .attr("class", "axisLabel")
+    this.svg.append("text").attr("class", "axisLabel")
         .attr("x", this.width+this.padding)
         .attr("y", this.height+this.padding-3)
         .text(this.xLabel);
 
     // Add the y-axis label
-    this.svg.append("text")
-        .attr("class", "axisLabel")
-        .attr("x", 6)
-        .attr("transform", "rotate(-90)")
+    this.svg.append("text").attr("class", "axisLabel")
+        .attr("x", 6).attr("transform", "rotate(-90)")
         .text(this.yLabel);
 
     // Add the y-axis
-    this.svg.append("g")
-        .attr("class", "axis")
+    this.svg.append("g").attr("class", "axis")
         .attr("transform", "translate("+ this.padding+ ",0)")
         .call(yAxis);
 
     //Add the x-axis
-    this.svg.append("g")
-        .attr("class", "axis")
+    this.svg.append("g").attr("class", "axis")
         .attr("transform", "translate("+this.padding+"," + this.height + ")")
-        .call(xAxis)
-        .selectAll("text")
+        .call(xAxis).selectAll("text")
         .text(function (d) {return ref.xLabels[d];})
         .style("text-anchor", "end")
         .attr("transform", "rotate(-65)");

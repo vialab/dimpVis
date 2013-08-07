@@ -2,7 +2,7 @@
  * */
 
 //Create new barchart visualization
-var barchart   = new Barchart(400, 50, 30, 100 , "#bargraph",80,"g8+5 countries","CO2 emissions per person (metric tons)","CO2 Emissions of the G8+5 Countries",labels);
+var barchart   = new Barchart(400, 50, 30, 100 , "#bargraph",80);
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 barchart.clickSVG = function (){
@@ -29,7 +29,7 @@ barchart.clickHintLabelFunction = function (d, i){
     barchart.changeView(i);
     slider.updateSlider(i);
 };
-barchart.render(dataset);
+barchart.render(dataset,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
@@ -39,7 +39,7 @@ barchart.dragEvent = d3.behavior.drag()
     .on("dragstart", function(d){
         barchart.clearHintPath();
         barchart.draggedBar = d.id;
-        barchart.showHintPath(d.id, d.nodes, d.xPos);
+        barchart.selectBar(d.id, d.nodes, d.xPos);
     })
     .on("drag", function(d){
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
