@@ -125,7 +125,7 @@ Barchart.prototype.init = function(){
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
      //Create the scales
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
-     var yScale =  d3.scale.linear().domain([0, max_h]).range([0,ref.height]);
+     var yScale =  d3.scale.linear().domain([0,max_h]).range([0,ref.height]);
 
 //Assign data values to a set of rectangles representing the bars of the chart
 this.svg.selectAll("rect")
@@ -145,7 +145,9 @@ this.svg.selectAll("rect")
 
    //Save the labels for the x-axis
    this.xLabels = this.svg.selectAll(".gDisplayBars").data().map(function (d){return d.label});
+
    //Draw the axes
+   yScale =  d3.scale.linear().domain([max_h,0]).range([0,ref.height]); //Reverse the scale to get the corect axis display
    this.drawAxes(xScale,yScale);
 
   //Draw the bars

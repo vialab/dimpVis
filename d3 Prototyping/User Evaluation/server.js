@@ -5,15 +5,18 @@ var static = require('node-static'),
     exec = require("child_process").exec;
 
 //
-// Create a node-static server instance to serve the './page' folder
+// Create a node-static server instance to serve the './client' folder, will automatically load index.html
 //
 var file = new(static.Server)('./client/'),
     app  = express();
 
-
 var WEBSTER_URL = "http://www.dictionaryapi.com/api/v1/references/";
 
+//Trying to set a cookie
+app.post('/', function(req, res){
+    console.log(req);
 
+});
 ////////////////////////////////////////////////////////////////////////////////
 // this request will still be handled by the static file server,
 // but nothing is gonna happen, cause dict is not the name of a file
