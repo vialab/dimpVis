@@ -1,5 +1,7 @@
 /** This file is a test run of a barchart experiment trial
  * */
+var techniqueID = 0; //0 - dimpVis, 1 - slider
+var taskCounter = 1;
 
 /* Code for creating a barchart visualization
  * */
@@ -32,6 +34,9 @@ barchart.dragEvent = d3.behavior.drag()
         barchart.clearHintPath();
         barchart.draggedBar = d.id;
         barchart.selectBar(d.id, d.nodes, d.xPos);
+
+        //Log the interaction
+        d3.xhr("http://localhost:8080/log?content=dragStart"+ d.id, function(d) { });
     })
     .on("drag", function(d){
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
@@ -40,6 +45,9 @@ barchart.dragEvent = d3.behavior.drag()
     .on("dragend",function (d){
         barchart.snapToView(d.id,d.nodes);
         slider.updateSlider(barchart.currentView);
+
+        //Log the interaction
+        d3.xhr("http://localhost:8080/log?content=dragEnd"+ d.id, function(d) { });
     });
 
 //Apply the dragging function to each bar
@@ -67,23 +75,29 @@ slider.dragEvent = d3.behavior.drag()
 slider.widget.select("#slidingTick")
     .call(slider.dragEvent);
 
-/**Declare additional functions required to run the experiment here */
+/**Declare additional functions required to run the experiment here
+ * */
 
 //Move to the next task, with confirmation.  Collect the solution (if any) provided for the task
 d3.select("#nextButton").on("click", function () {
     var result = confirm("Proceed to the next task?");
 
     if (result ==true){
+
         //Grab the solution (if any)
         var solution = d3.select("#taskSolution").node().value;
         //Log the solution
-        d3.xhr("http://localhost:8080/log?solution="+solution, function(d) { });
+        d3.xhr("http://localhost:8080/log?content="+solution, function(d) { });
         //Clear the text box
         d3.select("#taskSolution").node().value = "";
-
+        taskCounter++;
+        d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
+        d3.select("#taskDescription").node().innerHTML = "Description #"+taskCounter;
         /**barchart.render(dataset,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
         barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);*/
     }
 });
+
+
 
 				   

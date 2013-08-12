@@ -327,7 +327,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
         //Re-draw the dragged bar
         ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
-
+console.log(ref.timeDirection);
         //Save the dragging direction
         ref.previousDragDirection = draggingDirection;
 
@@ -355,6 +355,7 @@ Barchart.prototype.moveForward = function (){
         this.currentView = this.nextView;
         this.nextView++;
     }
+    this.timeDirection = 1;
 }
 /** Updates the view variables to move the visualization backward
  * (passing the current view)
@@ -364,6 +365,7 @@ Barchart.prototype.moveBackward = function (){
         this.nextView = this.currentView;
         this.currentView--;
     }
+    this.timeDirection = -1;
 }
 /** Appends an anchor to the svg, if there isn't already one
  *  x,y: the position of the anchor
@@ -474,7 +476,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
     //Update the view based on where the mouse is w.r.t the view boundaries
     if (bounds == mouseY){	    
 
-	    this.findInterpolation(currentY,nextY,mouseY,0);
+	    this.findInterpolation(currentY,nextY,mouseY,0,draggingDirection);
         this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
         this.animateHintPath(this.interpValue);
         newValues = [mouseY,this.findHeight(mouseY)];
@@ -547,7 +549,7 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
     var newY; //To re-position the anchor
 
 	if (bounds == mouseY){
-		 this.findInterpolation(barY,this.peakValue, mouseY, 1);
+		 this.findInterpolation(barY,this.peakValue, mouseY, 1, draggingDirection);
 		 this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
          this.animateHintPath(this.interpValue);
 		 newY = mouseY;               
@@ -623,7 +625,7 @@ Barchart.prototype.checkBounds = function(h1,h2,mouseY){
 *   ambiguity: a flag, = 1, stationary case (interpolation split by the peak on the sine wave)
 *                      = 0, normal case
 */
-Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
+Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity,draggingDirection){
    var distanceTravelled, currentInterpValue;
    var total = Math.abs(b2 - b1);
    //Calculate the new interpolation amount
@@ -640,7 +642,10 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
 		}
 	}	
 	//Set the direction travelling over time (1: forward, -1: backward)
-    this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
+    //this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
+    if (draggingDirection != this.previousDragDirection){
+        this.timeDirection = (this.timeDirection==-1) ? 1:-1;
+    }
 
     //Save the current interpolation value
     this.interpValue = currentInterpValue;
