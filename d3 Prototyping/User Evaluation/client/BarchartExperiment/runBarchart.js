@@ -1,7 +1,6 @@
 /** This file is a test run of a barchart experiment trial
  * */
-var techniqueID = 0; //0 - dimpVis, 1 - slider
-var taskCounter = 1;
+
 
 /* Code for creating a barchart visualization
  * */
@@ -77,27 +76,75 @@ slider.widget.select("#slidingTick")
 
 /**Declare additional functions required to run the experiment here
  * */
+var techniqueID = 0; //0 - dimpVis, 1 - slider
+var taskCounter = 1;
+var secondCounter = 0;
+var timerVar;
 
+//Function that will be executed every 1 second to check the time
+var timerFunc = function (){
+    secondCounter++;
+    if (secondCounter > 5){ //Exceeded maximum time provided for a task
+       alert("Maximum time to complete the task has been exceeded.  You will now begin the next task.");
+        //Grab the solution (if any), submit whatever solution is currently in the text box?
+        /**var solution = d3.select("#taskSolution").node().value;
+        var result;
+        if (solution.length >0){
+            result = confirm("You have entered: "+solution+".  Would you like to submit this answer?");
+        }
+
+        if (result ==true){
+            updateView(solution);
+        }else{
+            updateView("");
+        }*/
+    }else{ //Display the timer counts for debugging
+        d3.select("#timer").node().innerHTML=secondCounter;
+    }
+};
+
+//Set the timer when the page loads
+window.onload = function (){
+   startTimer();
+}
+
+function startTimer(){
+    timerVar = setInterval(timerFunc,1000);
+}
+function stopTimer(){
+    clearInterval(timerVar);
+}
 //Move to the next task, with confirmation.  Collect the solution (if any) provided for the task
-d3.select("#nextButton").on("click", function () {
-    var result = confirm("Proceed to the next task?");
+d3.select("#nextButton").on("click", nextTask);
+
+//Moves to the next task
+function nextTask (){
+    //Grab the solution (if any)
+    var solution = d3.select("#taskSolution").node().value;
+    var result;
+    if (solution.length >0){
+        result = confirm("You have entered: "+solution+".  Proceed to the next task?");
+    }else{
+        result = confirm("You have not entered a solution.  Proceed to the next task?");
+    }
 
     if (result ==true){
-
-        //Grab the solution (if any)
-        var solution = d3.select("#taskSolution").node().value;
-        //Log the solution
-        d3.xhr("http://localhost:8080/log?content="+solution, function(d) { });
-        //Clear the text box
-        d3.select("#taskSolution").node().value = "";
-        taskCounter++;
-        d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
-        d3.select("#taskDescription").node().innerHTML = "Description #"+taskCounter;
-        /**barchart.render(dataset,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
-        barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);*/
+       updateView(solution);
     }
-});
+}
 
+//Updates the html page when a new task begins and saves the solution entered in the text box
+function updateView (solution){
+    //Log the solution
+    d3.xhr("http://localhost:8080/log?content="+solution, function(d) { });
+    //Clear the text box
+    d3.select("#taskSolution").node().value = "";
+    taskCounter++;
+    d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
+    d3.select("#taskDescription").node().innerHTML = "Description #"+taskCounter;
+
+    stopTimer();
+}
 
 
 				   

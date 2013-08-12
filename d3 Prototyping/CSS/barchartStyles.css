@@ -22,17 +22,19 @@ body {
     /**stroke:#9ecae1; */
     stroke:#1f77b4;
 }
+
 /*For the short hint path */
-#nextPath{
+#forwardPath, #backwardPath{
     stroke-width:2;
     fill:none;
-    stroke:#1f77b4;
 }
 #underLayer{
     stroke-width:4;
     fill:none;
     stroke:#FFFFFF;
 }
+
+
 /*The interaction path (sine wave)*/
 .interactionPath{
  stroke-dasharray:3,3;
@@ -50,6 +52,9 @@ body {
     fill:#74c476;
     cursor:pointer;
 }
+
+/**Styles for selecting indicators on html page */
+
 /**Radio button form for changing the type of indicator drawn along the sine wave*/
 #indicatorForm {
     position:absolute;

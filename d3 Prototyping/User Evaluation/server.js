@@ -4,9 +4,9 @@ var static = require('node-static'),
     fs = require("fs"),
     exec = require("child_process").exec;
 
-//
-// Create a node-static server instance to serve the './client' folder, will automatically load index.html
-//
+/**
+* Create a node-static server instance to serve the './client' folder, will automatically load index.html
+*/
 var file = new(static.Server)('./client/'),
     app  = express();
 
@@ -19,7 +19,7 @@ app.get('/startExperiment', function(req, res){
     res.end();
 
 });
-/** Log an event occurring on the client side
+/** Log an event occurring on the client side (See word document for logging format and codes)
  * */
 app.get("/log", function(req, res) {
     var content = req.query["content"];
@@ -27,6 +27,8 @@ app.get("/log", function(req, res) {
     var now = new Date();
 
     log.write( new Date().toString() + "|" + content + "\n");
+
+    console.log("Event logged");
 
     log.end();
     res.end();
