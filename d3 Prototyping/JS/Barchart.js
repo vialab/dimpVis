@@ -281,7 +281,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
             //Check for stationary bar sequences
             if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching the stationary points from right (along hint path)
 
-                ref.setSineWaveVariables(currentAmbiguous[1],current[0],1);
+                ref.setSineWaveVariables(currentAmbiguous[2],current[0],1);
                 ref.hideAnchor();
 
                 if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
@@ -291,7 +291,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
 
             }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching the stationary points from left (along hint path)
-                ref.setSineWaveVariables(nextAmbiguous[1],next[0],0);
+                ref.setSineWaveVariables(nextAmbiguous[2],next[0],0);
                 ref.hideAnchor();
 
                 if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
@@ -306,7 +306,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 if (ref.passedMiddle == -1){
                     ref.setSineWaveVariables(draggingDirection,current[0],0);
                     //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
-                    if (ref.pathDirection != currentAmbiguous[1] && ref.currentView>0){
+                    if (ref.pathDirection != currentAmbiguous[2] && ref.currentView>0){
                         ref.passedMiddle = 1;
                         ref.moveBackward();
                     }
@@ -327,7 +327,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
         //Re-draw the dragged bar
         ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
-console.log(ref.timeDirection);
+
         //Save the dragging direction
         ref.previousDragDirection = draggingDirection;
 
@@ -642,7 +642,6 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity,draggin
 		}
 	}	
 	//Set the direction travelling over time (1: forward, -1: backward)
-    //this.timeDirection = (currentInterpValue > this.interpValue) ? 1:-1;
     if (draggingDirection != this.previousDragDirection){
         this.timeDirection = (this.timeDirection==-1) ? 1:-1;
     }
@@ -943,9 +942,13 @@ Barchart.prototype.drawSmallHintPath = function (xPos,translate){
         .attr("transform","translate("+(-translate)+")").attr("id","path")
         .attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
 
-    //Draw the next hint path line segment to show dragging direction
+    //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     this.svg.select("#hintPath").append("path").datum(ref.pathData)
-        .attr("transform","translate("+(-translate)+")").attr("id","nextPath").style("stroke","none");
+        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath").style("stroke","none");
+
+    //Draw the current hint path line segment to show dragging direction (shown when travelling backwards)
+    this.svg.select("#hintPath").append("path").datum(ref.pathData)
+        .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
 
    if (this.nextView != this.lastView){ //Assume when the hint path is first draw, user is moving forward in time
        this.svg.select("#nextPath").attr("d", function (d) {return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]])});
@@ -961,50 +964,57 @@ Barchart.prototype.drawSmallHintPath = function (xPos,translate){
          this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
      }
 }
-/**Fill comments in !!!!!!!!!!!!!!!!!!!!*/
-//TODO: animating using the stroke dash array property won't work for the interaction paths
-//TODO: this code is highly inefficient, but save refactoring for later once it is working
+/**Redraws the shortened hint path, where the full path segment is always displayed between next and current view.
+ * Depending on the time direction, the next path segment the user is approaching is partially visible.
+ * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
+ * */
+//TODO: this code is highly inefficient, but save refactoring for later
 Barchart.prototype.redrawSmallHintPath = function(){
     var ref = this;
 
-    /**if (this.isAmbiguous ==1){ //OR maybe it makes more sense to show the entire sine wave?
-     if (this.ambiguousBars[this.nextView][0]==1){
-     var groupNum = this.ambiguousBars[this.nextView][1]; //Not keeping track of the path number?
-
-     var length = d3.select("#interactionPath0").node().getTotalLength();
-     var interpStr = d3.interpolateString("0," + length, length + "," + length);
-     this.svg.select("#interactionPath0").attr("stroke-dasharray",interpStr(ref.interpValue)).style("stroke","#1f77b4");
-     }
-     }*/
-
-
     //Limit the visibility of the next time interval sub-path
-   // if (this.timeDirection == 1){ //Moving forward
+   if (this.timeDirection == 1){ //Moving forward
+
+       if (this.ambiguousBars[this.nextView][0]==1){
+           this.svg.select("#interactionPath"+this.ambiguousBars[this.nextView][1]).style("stroke","#969696");
+       }else{
+           this.svg.selectAll(".interactionPath").style("stroke","none");
+       }
+
+        //Clear the backward path
+        this.svg.select("#backwardPath").style("stroke","none");
         //Create the interpolation function and get the total length of the path
-        var length = d3.select("#nextPath").node().getTotalLength();
+        var length = d3.select("#forwardPath").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
         //Full sub-path of current time interval is always visible
         this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
 
         if (this.nextView < this.lastView){
-            this.svg.select("#nextPath").attr("stroke-dasharray",interpStr(ref.interpValue)).style("stroke","#1f77b4")
+            this.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(ref.interpValue)).style("stroke","#1f77b4")
                 .attr("d", function (d) {return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]])});
         }
 
-    /**}else{ //Moving backward, #nextPath and #path switch (#path has limited visibility)
+    }else{ //Moving backward
 
-        //Create the interpolation function and get the total length of the path
-        var length = d3.select("#path").node().getTotalLength();
-        var interpStr = d3.interpolateString("0," + length, length + "," + length);
-        //Full sub-path of current time interval is always visible
-        this.svg.select("#nextPath").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
+       if (this.ambiguousBars[this.currentView][0]==1){
+           this.svg.select("#interactionPath"+this.ambiguousBars[this.currentView][1]).style("stroke","#969696");
+       }else{
+           this.svg.selectAll(".interactionPath").style("stroke","none");
+       }
 
-        if (this.currentView >0){
-            //Full sub-path of current time interval is always visible
-            this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.currentView-1]])})
-                .attr("stroke-dasharray",interpStr(ref.interpValue));
-        }
-   }*/
+       //Clear the forward path
+       this.svg.select("#forwardPath").style("stroke","none");
+       //Create the interpolation function and get the total length of the path
+       var length = d3.select("#backwardPath").node().getTotalLength();
+       var interpStr = d3.interpolateString("0," + length, length + "," + length);
+       //Full sub-path of current time interval is always visible
+       this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
+
+       if (this.currentView > 0){
+           this.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-ref.interpValue)).style("stroke","#1f77b4")
+               .attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.currentView-1]])});
+       }
+   }
 }
 /** Clears the hint path by removing its components from the svg
  * */
@@ -1032,7 +1042,7 @@ Barchart.prototype.checkAmbiguous = function (){
 
     //Re-set the ambiguousPoints array
     for (j=0;j<=this.lastView;j++){
-        this.ambiguousBars[j] = [0,0];
+        this.ambiguousBars[j] = [0];
     }
     //Populate the stationary and revisiting bars array
     //Search for heights that are equal (called "repeated bars")
@@ -1046,10 +1056,10 @@ Barchart.prototype.checkAmbiguous = function (){
                     //If the bar's index does not exist in the array of all stationary bars, add it
                     if (stationaryBars.indexOf(j)==-1){
                         stationaryBars.push(j);
-                        this.ambiguousBars[j] = [1,0];
+                        this.ambiguousBars[j] = [1];
                     }if (stationaryBars.indexOf(k)==-1){
                         stationaryBars.push(k);
-                        this.ambiguousBars[k] = [1,0];
+                        this.ambiguousBars[k] = [1];
                     }
                 }
             }
@@ -1069,15 +1079,20 @@ Barchart.prototype.checkAmbiguous = function (){
  * */
 Barchart.prototype.findPaths = function (startIndex){
     var pathInfo = [];
+    var pathNumber = 0;
+
     for (var j=startIndex; j<=this.lastView;j++){
         if (this.ambiguousBars[j][0]==1){
             if (j!=startIndex && this.ambiguousBars[j-1][0]!=1){ //Starting a new path
                 this.interactionPaths.push(this.calculatePathPoints(pathInfo));
                 pathInfo = [];
+                pathNumber++;
             }
+            this.ambiguousBars[j].push(pathNumber);
             pathInfo.push(j);
         }
     }
+
     this.interactionPaths.push(this.calculatePathPoints(pathInfo));
 }
 /** Calculates a set of points to compose a sine wave (for an interaction path)
@@ -1106,7 +1121,7 @@ Barchart.prototype.calculatePathPoints = function (indices){
         var y = this.amplitude*Math.sin(theta)+yPos;
         var x = (this.hintPathSpacing/4)*j + xPos;
         if (j%4==0){ //Add the sign (+1 for peak, -1 for trough) to each ambiguous bar along the sine wave
-           this.ambiguousBars[indices[indexCounter]] = [1,sign];
+           this.ambiguousBars[indices[indexCounter]].push(sign);
             indexCounter++;
             sign = (sign==-1)?1:-1; //Flip the sign of the sine wave direction
         }
@@ -1115,7 +1130,7 @@ Barchart.prototype.calculatePathPoints = function (indices){
 
     //Insert the direction of the end point on the sine wave into ambiguousBars array
     var endDirection = (indices.length % 2==0)?-1:1;
-    this.ambiguousBars[indices[indices.length-1]] = [1,endDirection];
+    this.ambiguousBars[indices[indices.length-1]][2] = endDirection;
 
     return pathPoints;
 }
