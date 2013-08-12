@@ -151,7 +151,8 @@ Piechart.prototype.init = function(){
  this.svg.append("g").attr("id","hintPath");
  }
 /**Adds labels to the piechart segments (but does not size the font based on the width of the segment)
-  */
+ * Not being used right now..
+
 Piechart.prototype.addLabels = function (){
     var ref = this;
 
@@ -161,7 +162,7 @@ Piechart.prototype.addLabels = function (){
      })
      .attr("fill", "#000")
      .text("Test");
-}
+}*/
 /** Re-calculates layout of the piechart for a list of angles
  *  The angles are saved in the global arrays startAngles, and endAngles
  *  angles: a 1D array containing the angle values of each segment for one view
@@ -1028,8 +1029,6 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
         }
         if (direction == 1 && animateView>=endView) return;
         if (direction ==-1 && animateView<=endView) return;
-
-        //TODO:add tweening, movement is very rigid
 
         return function(d) {
             //Redraw the piechart at the new view

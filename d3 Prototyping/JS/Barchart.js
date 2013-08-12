@@ -470,8 +470,6 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
     var currentY = (current[2]!=0)?(current[0] + current[2]*this.peakTolerance):current[0];
     var nextY = (next[2]!=0)?(next[0] + next[2]*this.peakTolerance):next[0];
     var bounds = this.checkBounds(currentY,nextY,mouseY);
-   // var currentY = current[0];
-   // var nextY = next[0];
 
     //Update the view based on where the mouse is w.r.t the view boundaries
     if (bounds == mouseY){	    
@@ -671,6 +669,8 @@ Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity){
     if (this.progressIndicator!=2){
        this.drawProgress(interpAmount,translateAmount);
     }
+
+     this.redrawSmallHintPath();
 }
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
@@ -915,10 +915,10 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
 
     //Draw a progress indicator (if specified)
-   /** if (this.progressIndicator != 2){
+    if (this.progressIndicator != 2){
         this.appendProgress(this.pathData);
         this.drawProgress(0,0);
-    }*/
+    }
 }
 /** Displays small hint path by appending its svg components to the main svg
  *  translate: the amount to horizontally translate the path by
@@ -928,10 +928,23 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
 Barchart.prototype.drawSmallHintPath = function (xPos,translate){
     var ref = this;
 
+   //Try out clipping..
+    //http://stackoverflow.com/questions/10486896/svg-clip-path-within-rectangle-does-not-work
+   /**this.svg.select("#hintPath").append("svg:defs").append("svg:clipPath").attr("id","clip")
+       .append("rect").attr("id","clip-rect").attr("width",100).attr("height",100);*/
+
     //Draw the hint path line segment at current and next view
-    this.svg.select("#hintPath").append("path").datum(ref.pathData)//.attr("filter", "url(#blur)")
+    this.svg.select("#hintPath").append("path").datum(ref.pathData)//.attr("clip-path", "url(#clip)")
         .attr("transform","translate("+(-translate)+")").attr("id","path")
         .attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
+
+    //Draw the next hint path line segment to show dragging direction
+    this.svg.select("#hintPath").append("path").datum(ref.pathData)
+        .attr("transform","translate("+(-translate)+")").attr("id","nextPath").style("stroke","none");
+
+   if (this.nextView != this.lastView){ //Assume when the hint path is first draw, user is moving forward in time
+       this.svg.select("#nextPath").attr("d", function (d) {return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]])});
+    }
 
     //Draw the interaction path(s) (if any)
    if (this.isAmbiguous ==1){
@@ -939,9 +952,54 @@ Barchart.prototype.drawSmallHintPath = function (xPos,translate){
                  .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
                  .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
                  .attr("transform","translate("+(-translate)+")").style("stroke","none")
-                 .attr("class","interactionPath");
+                 .attr("class","interactionPath").attr("id",function (d){return "interactionPath"+ d.id;});
          this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
      }
+}
+/**Fill comments in !!!!!!!!!!!!!!!!!!!!*/
+//TODO: animating using the stroke dash array property won't work for the interaction paths
+//TODO: this code is highly inefficient, but save refactoring for later once it is working
+Barchart.prototype.redrawSmallHintPath = function(){
+    var ref = this;
+
+    /**if (this.isAmbiguous ==1){ //OR maybe it makes more sense to show the entire sine wave?
+     if (this.ambiguousBars[this.nextView][0]==1){
+     var groupNum = this.ambiguousBars[this.nextView][1]; //Not keeping track of the path number?
+
+     var length = d3.select("#interactionPath0").node().getTotalLength();
+     var interpStr = d3.interpolateString("0," + length, length + "," + length);
+     this.svg.select("#interactionPath0").attr("stroke-dasharray",interpStr(ref.interpValue)).style("stroke","#1f77b4");
+     }
+     }*/
+
+
+    //Limit the visibility of the next time interval sub-path
+   // if (this.timeDirection == 1){ //Moving forward
+        //Create the interpolation function and get the total length of the path
+        var length = d3.select("#nextPath").node().getTotalLength();
+        var interpStr = d3.interpolateString("0," + length, length + "," + length);
+        //Full sub-path of current time interval is always visible
+        this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
+
+        if (this.nextView < this.lastView){
+            this.svg.select("#nextPath").attr("stroke-dasharray",interpStr(ref.interpValue)).style("stroke","#1f77b4")
+                .attr("d", function (d) {return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]])});
+        }
+
+    /**}else{ //Moving backward, #nextPath and #path switch (#path has limited visibility)
+
+        //Create the interpolation function and get the total length of the path
+        var length = d3.select("#path").node().getTotalLength();
+        var interpStr = d3.interpolateString("0," + length, length + "," + length);
+        //Full sub-path of current time interval is always visible
+        this.svg.select("#nextPath").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
+
+        if (this.currentView >0){
+            //Full sub-path of current time interval is always visible
+            this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.currentView-1]])})
+                .attr("stroke-dasharray",interpStr(ref.interpValue));
+        }
+   }*/
 }
 /** Clears the hint path by removing its components from the svg
  * */

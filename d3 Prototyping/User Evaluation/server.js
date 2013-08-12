@@ -12,12 +12,28 @@ var file = new(static.Server)('./client/'),
 
 var WEBSTER_URL = "http://www.dictionaryapi.com/api/v1/references/";
 
-//Trying to set a cookie
-app.post('/', function(req, res){
-    console.log(req);
+
+/** Called at the first (start) page, indicates a new experiment has started
+ * */
+app.get('/startExperiment', function(req, res){
+    console.log('Received request to start experiment');
+    res.end();
 
 });
-////////////////////////////////////////////////////////////////////////////////
+/** Log an event occurring on the client side
+ * */
+app.get("/log", function(req, res) {
+    var solution = req.query["solution"];
+    var log = fs.createWriteStream("log.txt", {"flags" : "a"});
+    var now = new Date();
+
+    log.write( new Date().toString() + "|" + solution + "\n");
+
+    log.end();
+    res.end();
+
+});
+ ////////////////////////////////////////////////////////////////////////////////
 // this request will still be handled by the static file server,
 // but nothing is gonna happen, cause dict is not the name of a file
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,20 +75,7 @@ app.get("/syn", function(req, res) {
 });
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Log the word
-////////////////////////////////////////////////////////////////////////////////
-app.get("/log", function(req, res) {
-   var word = req.query["word"];
-   var log = fs.createWriteStream("log.txt", {"flags" : "a"});
-   var now = new Date();
 
-   log.write( new Date().toString() + "|" + word + "\n");
-
-   log.end();
-    res.end();
-
-});
 
 
 

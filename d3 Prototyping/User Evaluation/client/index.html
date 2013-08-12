@@ -3,19 +3,21 @@
 <html>
 <head>
     <title>User Evaluation</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <script type="text/javascript" src="Shared Files/d3.js"></script>
     <script>
-        function runExperiment()
+        function startExperiment()
         {
-            window.location = '/BarchartExperiment/Barchart.html';
+           console.log("starting experiment...");
+           /**d3.xhr("http://localhost:8080/startExperiment", function(d) {
+           });*/// Currently a blank request to server..
+
+           window.location = "BarchartExperiment/Barchart.html";
         }
     </script>
 </head>
 <body>
     <h1 style="margin-left:50px;font-family:georgia;color:#666">Welcome</h1>
-    <!--<form style="margin-left:50px;font-family:georgia;color:#666" action="/" method="post">
-        <input type="text" name="participantId"><br><br><br>
-        <input type="submit" value="Start">
-    </form>-->
-    <button style="margin-left:50px;font-family:georgia;color:#666" onclick="runExperiment()">start</button>
+    <button style="margin-left:50px;font-family:georgia;color:#666" onclick="startExperiment()">start</button>
 </body>
 </html>
