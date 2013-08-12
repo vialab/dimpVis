@@ -5,6 +5,7 @@
     <title>Barchart</title>
 	<link rel="stylesheet" type="text/css" href="../CSS/axes.css" />
     <link rel="stylesheet" type="text/css" href="../CSS/barchartStyles.css" />
+    <link rel="stylesheet" type="text/css" href="../CSS/taskPanel.css" />
     <script type="text/javascript" src="../Shared Files/d3.js"></script>
 	<script type="text/javascript" src="Barchart.js"></script>
 	<script type="text/javascript" src="../Shared Files/Slider.js"></script>
@@ -14,9 +15,13 @@
     <div id="bargraph"></div>
     <div id="time"></div>
     <!-- Collect the answers to the tasks -->
-    <button id="nextButton">Submit</button>
-    <input id="taskSolution" type="text">
-
+    <div id="taskPanel">
+        <div id="counter">Task #1</div>
+        <div id="taskDescription"></div>
+        <div id="solutionEntry"> Solution: <input id="taskSolution" type="text"></div>
+        <br><br>
+        <center><button id="nextButton">Submit</button></center>
+    </div>
     <script type="text/javascript" src="runBarchart.js"></script>
   </body>
 </html>
