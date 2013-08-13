@@ -5,11 +5,8 @@
  * bw: width of the bars
  * id: id of the div tag to append the svg container
  * p: a padding value, to format the axes
- * xLabel: label for the x-axis
- * yLabel: label for the y-axis
  */
-//TODO: When I have time, move all commonly used functions into a separate js file (e.g., util) because there is a lot of repetition across piechart, barchart and heatmap
- function Barchart(h,bw,x,y,id,p,xLabel,yLabel){
+ function Barchart(h,bw,x,y,id,p){
    //Position and size attributes for drawing the svg
    this.leftMargin = x;
    this.topMargin = y;
@@ -281,7 +278,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
             //Check for stationary bar sequences
             if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching the stationary points from right (along hint path)
 
-                ref.setSineWaveVariables(currentAmbiguous[2],current[0],1);
+                setSineWaveVariables(ref,currentAmbiguous[2],current[0],1);
 
                 if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
                     ref.atPeak = ref.currentView;
@@ -290,7 +287,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
 
             }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching the stationary points from left (along hint path)
-                ref.setSineWaveVariables(nextAmbiguous[2],next[0],0);
+                setSineWaveVariables(ref,nextAmbiguous[2],next[0],0);
 
                 if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
                     ref.atPeak = ref.nextView;
@@ -302,7 +299,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
                 //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
                 if (ref.passedMiddle == -1){
-                    ref.setSineWaveVariables(draggingDirection,current[0],0);
+                    setSineWaveVariables(ref,draggingDirection,current[0],0);
                     //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
                     if (ref.pathDirection != currentAmbiguous[2] && ref.currentView>0){
                         ref.passedMiddle = 1;
@@ -333,17 +330,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     //Save the mouse y-coordinate
     this.mouseY = mouseY;
 }
-/**Updates variables for dragging along the sine wave:
- *  pathDirection: vertical direction of the approaching portion of the sine wave (e.g., at next view)
- *  barHeight: height of the stationary bar, used to calculate the height of the upcoming peak/trough
- *  passedMiddle: a flag to determine how to calculate the interpolation (0: interp is between 0 and <0.5,
- *  1: interp is between 0.5 and < 1)
- * */
-Barchart.prototype.setSineWaveVariables = function (pathDirection,barHeight,passedMiddle){
-    this.passedMiddle = passedMiddle;
-    this.pathDirection = pathDirection;
-    this.peakValue = (pathDirection==1)?(barHeight-this.amplitude):(this.amplitude+barHeight);
-}
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
  *  bar to be drawn out of bounds and keeps track of time by updating the view variables.
@@ -362,7 +348,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
     //Update the view based on where the mouse is w.r.t the view boundaries
     if (bounds == mouseY){	    
 
-	    this.findInterpolation(currentY,nextY,mouseY,0,draggingDirection);
+	    findInterpolation(this,currentY,nextY,mouseY,0,draggingDirection);
         this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
         this.animateHintPath(this.interpValue);
         newValues = [mouseY,this.findHeight(mouseY)];
@@ -370,7 +356,8 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
     }else if (bounds == currentY ){ //Passing current
 
         if (current[2]!=0 || this.atPeak == this.currentView){ //At a peak or a peak formed by hint path and sine wave
-            newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,current,1);
+            inferTimeDirection(this,draggingDirection,1);
+            newValues = this.findNewY(currentY,nextY,mouseY,current);
         }else{
             moveBackward(this,draggingDirection);
             newValues = (current[2]!=0)? [currentY,this.findHeight(currentY)]:[currentY,current[1]];
@@ -378,7 +365,8 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
     }else{ //Passing next
 
         if (next[2]!=0 || this.atPeak ==this.nextView){ //At a peak or a peak formed by hint path and sine wave
-            newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,next,0);
+            inferTimeDirection(this,draggingDirection,0);
+            newValues = this.findNewY(nextY,currentY,mouseY,next);
         }else{
             moveForward(this,draggingDirection);
             newValues = (next[2]!=0)?[nextY,this.findHeight(nextY)]:[nextY,next[1]];
@@ -387,24 +375,13 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
 
      return newValues;
 }
-/**Infers the time direction when user arrives at corners, inference is based on previous direction
- * travelling over time.  The views are updated (forward or backward) whenever the dragging direction
- * changes.
- * b1,b2: the boundary views (b1 should be the currently encountered corner)
- * atCurrent: the view which user is currently at or passing (=0 if at next view, =1 if at current)
- * @return the y-position the bar should be drawn at
+/**Finds the new y-value to draw the dragged bar at (this function is needed because a tolerance value is used)
+ * b1,b2: the boundary view values (b1 should be the current view)
+ * @return the y-position the bar should be drawn at and the corresponding height
  * */
- Barchart.prototype.inferTimeDirection = function (b1,b2,mouseY,draggingDirection,orig,atCurrent){
+ Barchart.prototype.findNewY = function (b1,b2,mouseY,orig){
 
-     if (this.previousDragDirection != draggingDirection){
-         if (atCurrent==0 && this.timeDirection ==1){
-             moveForward(this,draggingDirection);
-         }else if (atCurrent ==1 && this.timeDirection ==-1){
-             moveBackward(this,draggingDirection);
-         }
-     }
-
-    if (b1 > b2){ //Return information for re-drawing the bar
+    if (b1 > b2){
         return (mouseY>=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
     }else{
         return (mouseY<=orig[0])?[orig[0],orig[1]]:[mouseY,this.findHeight(mouseY)];
@@ -428,33 +405,33 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
      }
 
     var bounds = checkBounds(this,this.peakValue,barY,mouseY);
-    var newY; //To re-position the anchor
+    //var newY; //To re-position the anchor
 
 	if (bounds == mouseY){
-		 this.findInterpolation(barY,this.peakValue, mouseY, 1, draggingDirection);
+		 findInterpolation(this,barY,this.peakValue, mouseY, 1, draggingDirection);
 		 this.interpolateBars(id,this.interpValue,this.currentView,this.nextView);
          this.animateHintPath(this.interpValue);
-		 newY = mouseY;               
+		 //newY = mouseY;
     }else if (bounds == this.peakValue){ //At boundary
         if (draggingDirection != this.previousDragDirection){
             if (this.timeDirection ==1){this.passedMiddle = 1}
             else {this.passedMiddle =0;}
         }
         this.interpValue = 0.5;
-        newY = this.peakValue;
+        //newY = this.peakValue;
     }else{ //At base, update the view
 
         if (this.atPeak==-1){
              var newPathDirection = (this.pathDirection==1)?-1:1;
              if (this.timeDirection ==1 && this.nextView < this.lastView){
                  moveForward(this,draggingDirection);
-                 this.setSineWaveVariables(newPathDirection,barY,0);
+                 setSineWaveVariables(this,newPathDirection,barY,0);
              }else if (this.timeDirection==-1 && this.currentView >0){
                  moveBackward(this,draggingDirection);
-                 this.setSineWaveVariables(newPathDirection,barY,1);
+                 setSineWaveVariables(this,newPathDirection,barY,1);
              }
         }
-         newY=barY;
+         //newY=barY;
      }
 }
 /**Computes the new height of a bar based on a new y-position
@@ -463,38 +440,6 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
  * */
 Barchart.prototype.findHeight = function (yPos){   
     return Math.abs(yPos - this.base);
-}
-/** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
-*   Uses the interpolation amount to find the direction travelling over time and saves it
-*   in the global variable.
-*   b1,b2: y-position of boundary values (mouse is currently in between)
-*   mouse: y-position of the mouse
-*   ambiguity: a flag, = 1, stationary case (interpolation split by the peak on the sine wave)
-*                      = 0, normal case
-*/
-Barchart.prototype.findInterpolation  = function (b1,b2,mouseY,ambiguity,draggingDirection){
-   var distanceTravelled, currentInterpValue;
-   var total = Math.abs(b2 - b1);
-   //Calculate the new interpolation amount
-   if (ambiguity == 0){
-		distanceTravelled = Math.abs(mouseY-b1);		
-		currentInterpValue = distanceTravelled/total;
-	}else{
-	    if (this.passedMiddle ==0 ){ //Needs to be re-mapped to lie between [0,0.5] (towards the peak/trough)
-         distanceTravelled = Math.abs(mouseY - b1);
-         currentInterpValue = distanceTravelled/(total*2);
-		}else{ //Needs to be re-mapped to lie between [0.5,1] (passed the peak/trough)
-	      distanceTravelled = Math.abs(mouseY - b2);
-		  currentInterpValue = (distanceTravelled+total)/(total*2);
-		}
-	}	
-	//Set the direction travelling over time (1: forward, -1: backward)
-    if (draggingDirection != this.previousDragDirection){
-        this.timeDirection = (this.timeDirection==-1) ? 1:-1;
-    }
-
-    //Save the current interpolation value
-    this.interpValue = currentInterpValue;
 }
 /** Animates the hint path by horizontally translating it according to the vertical
  *  dragging amount.
@@ -697,13 +642,28 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     this.timeDirection = 0;  //In case dragging starts at a peak..
 
     //Draw the hint path
+    if (this.isAmbiguous ==1){
+        this.drawInteractionPaths(translate);
+    }
     //this.drawHintPath(xPos,translate,drawingView);
-    this.drawSmallHintPath(xPos,translate);
+    this.drawSmallHintPath(translate);
 
     //Fade out the other bars
     this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
     /**.transition().duration(300)*/.style("fill-opacity", 0.5);
 
+}
+/** Draws interaction paths as sine waves with a dashed line, also sets the passedMiddle variable
+ *  translate: the amount to translate the path such that it corresponds with the dragged bar
+ * */
+Barchart.prototype.drawInteractionPaths = function(translate){
+    var ref = this;
+    this.svg.select("#hintPath").selectAll(".interactionPath")
+        .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
+        .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
+        .attr("transform","translate("+(-translate)+")")
+        .attr("class","interactionPath").attr("id",function (d){return "interactionPath"+ d.id;});
+    this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
 }
 /** Displays the hint path by appending its svg components to the main svg
  *  translate: the amount to horizontally translate the path by
@@ -712,16 +672,6 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
  * */
 Barchart.prototype.drawHintPath = function (xPos,translate,view){
     var ref = this;
-
-    //Draw the interaction path(s) (if any)
-    if (this.isAmbiguous ==1){
-        this.svg.select("#hintPath").selectAll(".interactionPath")
-            .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
-            .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
-            .attr("transform","translate("+(-translate)+")")
-            .attr("class","interactionPath");
-        this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
-    }
 
    //Draw a white underlayer
    this.svg.select("#hintPath").append("svg:path")
@@ -753,11 +703,9 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
 }
 /** Displays small hint path by appending its svg components to the main svg
- *  translate: the amount to horizontally translate the path by
- *  view: view to draw at
- *  xPos: of the dragged bar
+ *  translate:
  * */
-Barchart.prototype.drawSmallHintPath = function (xPos,translate){
+Barchart.prototype.drawSmallHintPath = function (translate){
     var ref = this;
 
    //Try out clipping..
@@ -767,7 +715,7 @@ Barchart.prototype.drawSmallHintPath = function (xPos,translate){
 
     //Draw the hint path line segment at current and next view
     this.svg.select("#hintPath").append("path").datum(ref.pathData)//.attr("clip-path", "url(#clip)")
-        .attr("transform","translate("+(-translate)+")").attr("id","path")
+        .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#666")
         .attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
@@ -778,29 +726,23 @@ Barchart.prototype.drawSmallHintPath = function (xPos,translate){
     this.svg.select("#hintPath").append("path").datum(ref.pathData)
         .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
 
-   if (this.nextView != this.lastView){ //Assume when the hint path is first draw, user is moving forward in time
+   if (this.nextView != this.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
        this.svg.select("#nextPath").attr("d", function (d) {return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]])});
     }
 
-    //Draw the interaction path(s) (if any)
+    //Make the interaction paths (if any) invisible
    if (this.isAmbiguous ==1){
-         this.svg.select("#hintPath").selectAll(".interactionPath")
-                 .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
-                 .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
-                 .attr("transform","translate("+(-translate)+")").style("stroke","none")
-                 .attr("class","interactionPath").attr("id",function (d){return "interactionPath"+ d.id;});
-         this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
-     }
+         this.svg.select("#hintPath").selectAll(".interactionPath").style("stroke","none");
+   }
 }
 /**Redraws the shortened hint path, where the full path segment is always displayed between next and current view.
  * Depending on the time direction, the next path segment the user is approaching is partially visible.
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
-//TODO: this code is highly inefficient, but save refactoring for later
-//TODO: doesn't always draw the next path segment when at current view moving forwards (time direction is wrong)
+//TODO: this code is slightly inefficient, but save refactoring for later
 Barchart.prototype.redrawSmallHintPath = function(){
     var ref = this;
-console.log(this.timeDirection);
+
     //Limit the visibility of the next time interval sub-path
    if (this.timeDirection == 1){ //Moving forward
 
@@ -819,7 +761,7 @@ console.log(this.timeDirection);
         this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
 
         if (this.nextView < this.lastView){
-            this.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(ref.interpValue)).style("stroke","#1f77b4")
+            this.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(ref.interpValue)).style("stroke","#666")
                 .attr("d", function (d) {return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]])});
         }
 
@@ -840,7 +782,7 @@ console.log(this.timeDirection);
        this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
 
        if (this.currentView > 0){
-           this.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-ref.interpValue)).style("stroke","#1f77b4")
+           this.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-ref.interpValue)).style("stroke","#666")
                .attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.currentView-1]])});
        }
    }
