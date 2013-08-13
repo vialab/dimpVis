@@ -10,6 +10,7 @@
  * yLabel: label for the y-axis
  * title: of the graph
 */
+//TODO: will need to add dragging and time direction for logging purposes
 function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    // Position and size attributes for drawing the svg
    this.xpos = x;
