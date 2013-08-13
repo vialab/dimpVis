@@ -308,7 +308,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                     //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
                     if (ref.pathDirection != currentAmbiguous[2] && ref.currentView>0){
                         ref.passedMiddle = 1;
-                        ref.moveBackward();
+                        ref.moveBackward(draggingDirection);
                     }
                 }
 
@@ -350,22 +350,31 @@ Barchart.prototype.setSineWaveVariables = function (pathDirection,barHeight,pass
  /** Updates the view variables to move the visualization forward
  * (passing the next view)
  * */
-Barchart.prototype.moveForward = function (){
+Barchart.prototype.moveForward = function (draggingDirection){
     if (this.nextView < this.lastView){ //Avoid index out of bounds
         this.currentView = this.nextView;
         this.nextView++;
+        this.timeDirection = 1;
+    }else{
+        if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
+            this.timeDirection = (this.timeDirection==1)?-1:1;
+        }
     }
-    this.timeDirection = 1;
 }
 /** Updates the view variables to move the visualization backward
- * (passing the current view)
+ * (passing the current view), also sets the direction travelling
+ *  over time
  * */
-Barchart.prototype.moveBackward = function (){
+Barchart.prototype.moveBackward = function (draggingDirection){
     if (this.currentView > 0){ //Avoid index out of bounds
         this.nextView = this.currentView;
         this.currentView--;
+        this.timeDirection = -1;
+    }else{
+       if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
+           this.timeDirection = (this.timeDirection==1)?-1:1;
+       }
     }
-    this.timeDirection = -1;
 }
 /** Appends an anchor to the svg, if there isn't already one
  *  x,y: the position of the anchor
@@ -486,7 +495,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
         if (current[2]!=0 || this.atPeak == this.currentView){ //At a peak or a peak formed by hint path and sine wave
             newValues = this.inferTimeDirection(currentY,nextY,mouseY,draggingDirection,current,1);
         }else{
-            this.moveBackward();
+            this.moveBackward(draggingDirection);
             newValues = (current[2]!=0)? [currentY,this.findHeight(currentY)]:[currentY,current[1]];
         }
 
@@ -496,7 +505,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
         if (next[2]!=0 || this.atPeak ==this.nextView){ //At a peak or a peak formed by hint path and sine wave
             newValues = this.inferTimeDirection(nextY,currentY,mouseY,draggingDirection,next,0);
         }else{
-            this.moveForward();
+            this.moveForward(draggingDirection);
             newValues = (next[2]!=0)?[nextY,this.findHeight(nextY)]:[nextY,next[1]];
         }
 
@@ -516,9 +525,9 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
 
      if (this.previousDragDirection != draggingDirection){
          if (atCurrent==0 && this.timeDirection ==1){
-             this.moveForward();
+             this.moveForward(draggingDirection);
          }else if (atCurrent ==1 && this.timeDirection ==-1){
-             this.moveBackward();
+             this.moveBackward(draggingDirection);
          }
      }
 
@@ -565,10 +574,10 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
         if (this.atPeak==-1){
              var newPathDirection = (this.pathDirection==1)?-1:1;
              if (this.timeDirection ==1 && this.nextView < this.lastView){
-                 this.moveForward();
+                 this.moveForward(draggingDirection);
                  this.setSineWaveVariables(newPathDirection,barY,0);
              }else if (this.timeDirection==-1 && this.currentView >0){
-                 this.moveBackward();
+                 this.moveBackward(draggingDirection);
                  this.setSineWaveVariables(newPathDirection,barY,1);
              }
         }
@@ -969,9 +978,10 @@ Barchart.prototype.drawSmallHintPath = function (xPos,translate){
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
 //TODO: this code is highly inefficient, but save refactoring for later
+//TODO: doesn't always draw the next path segment when at current view moving forwards (time direction is wrong)
 Barchart.prototype.redrawSmallHintPath = function(){
     var ref = this;
-
+console.log(this.timeDirection);
     //Limit the visibility of the next time interval sub-path
    if (this.timeDirection == 1){ //Moving forward
 
