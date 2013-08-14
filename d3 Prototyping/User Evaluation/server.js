@@ -2,15 +2,20 @@ var static = require('node-static'),
     express = require('express'),
     request = require('request'),
     fs = require("fs"),
-    exec = require("child_process").exec;
+    exec = require("child_process").exec,
+    phaseURLs = ["BarchartExperiment/Barchart.html","ScatterplotExperiment/Scatterplot.html","PiechartExperiment/Piechart.html"];
+
+//Some variables specific to each participant
+//TODO: might want to log these or record them somewhere (since they will be randomized)
+var phaseOrder = [0,1,2,3]; //This should be randomized eventually (list of indices pointing to the phaseURL arrays
+var phaseNumber = 0; //The current phase (will eventually reach 3, the end of the phaseOrder array), this always starts at 0 (regardless of order)
+var startTechnique = 0; //This should be randomized as well , the interaction technique to start the phase with
 
 /**
 * Create a node-static server instance to serve the './client' folder, will automatically load index.html
 */
 var file = new(static.Server)('./client/'),
     app  = express();
-
-var WEBSTER_URL = "http://www.dictionaryapi.com/api/v1/references/";
 
 /** Called at the first (start) page, indicates a new experiment has started
  * */
@@ -34,9 +39,34 @@ app.get("/log", function(req, res) {
     res.end();
 
 });
+/** Change phases (move to the next prototype)
+ * */
+app.get("/nextPhase", function(req, res) {
+    //TODO: need to re-set the start interaction technique variable here
+    phaseNumber++;
+    var nextPhase = phaseOrder[phaseNumber];
+    var jsonStr = JSON.stringify(phaseURLs[nextPhase]);
 
+    console.log("Changing to phase "+nextPhase+" to url "+jsonStr);
 
+    res.set('Content-Type', 'application/json');
+    res.send( jsonStr );
+    res.end();
 
+});
+/** Sends the interaction technique to begin the phase with
+ * */
+app.get("/getInteractionTechnique", function(req, res) {
+
+    var jsonStr = JSON.stringify(startTechnique);
+
+    console.log("Sending the start interaction technique "+startTechnique);
+
+    res.set('Content-Type', 'application/json');
+    res.send( jsonStr );
+    res.end();
+
+});
 
 
 
@@ -88,7 +118,7 @@ app.get("/syn", function(req, res) {
 
 
 
-
+var WEBSTER_URL = "http://www.dictionaryapi.com/api/v1/references/";
 ////////////////////////////////////////////////////////////////////////////////
 // Fetch closest ngrams
 ////////////////////////////////////////////////////////////////////////////////

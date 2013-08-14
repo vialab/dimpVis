@@ -15,3 +15,7 @@ Mon Aug 12 2013 17:15:34 GMT-0400 (Eastern Daylight Time)|
 Mon Aug 12 2013 17:33:14 GMT-0400 (Eastern Daylight Time)|2
 Mon Aug 12 2013 17:37:12 GMT-0400 (Eastern Daylight Time)|s
 Mon Aug 12 2013 17:39:06 GMT-0400 (Eastern Daylight Time)|
+Tue Aug 13 2013 20:13:07 GMT-0400 (Eastern Daylight Time)|dragStart4
+Tue Aug 13 2013 20:13:09 GMT-0400 (Eastern Daylight Time)|dragEnd4
+Tue Aug 13 2013 20:18:16 GMT-0400 (Eastern Daylight Time)|dragStart4
+Tue Aug 13 2013 20:18:18 GMT-0400 (Eastern Daylight Time)|dragEnd4

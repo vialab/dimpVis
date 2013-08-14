@@ -184,7 +184,90 @@ function drawProgress (objectRef,interpAmount,translateAmount,type){
             .attr("transform","translate(" + (-translateAmount) + ")");
     }
 }
+/** Displays small hint path by appending its svg components to the main svg
+ *  translate: amount the path should be translated by in order to align with the
+ *  dragged data object
+ *  pathData: an array of points to appear along the entire hint path
+ * */
+function drawSmallHintPath (objectRef,translate,pathData){
+    //Try out clipping..
+    //http://stackoverflow.com/questions/10486896/svg-clip-path-within-rectangle-does-not-work
+    /**this.svg.select("#hintPath").append("svg:defs").append("svg:clipPath").attr("id","clip")
+     .append("rect").attr("id","clip-rect").attr("width",100).attr("height",100);*/
 
+     //Draw the hint path line segment at current and next view
+     objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
+        .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#666")
+        .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+
+    //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
+    objectRef.svg.select("#hintPath").append("path").datum(pathData)
+        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath").style("stroke","none");
+
+    //Draw the current hint path line segment to show dragging direction (shown when travelling backwards)
+    objectRef.svg.select("#hintPath").append("path").datum(pathData)
+        .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
+
+    if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
+        objectRef.svg.select("#nextPath").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]])});
+    }
+
+    //Make the interaction paths (if any) invisible
+    if (objectRef.isAmbiguous ==1){
+        objectRef.svg.select("#hintPath").selectAll(".interactionPath").style("stroke","none");
+    }
+}
+/**Redraws the shortened hint path, where the full path segment is always displayed between next and current view.
+ * Depending on the time direction, the next path segment the user is approaching is partially visible.
+ * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
+ * */
+//TODO: this code is slightly inefficient, but save refactoring for later
+redrawSmallHintPath = function(objectRef,ambiguousObjects){
+
+    //Limit the visibility of the next time interval sub-path
+    if (objectRef.timeDirection == 1){ //Moving forward
+
+        if (ambiguousObjects[objectRef.nextView][0]==1){
+            objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
+        }else{
+            objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+        }
+
+        //Clear the backward path
+        objectRef.svg.select("#backwardPath").style("stroke","none");
+        //Create the interpolation function and get the total length of the path
+        var length = d3.select("#forwardPath").node().getTotalLength();
+        var interpStr = d3.interpolateString("0," + length, length + "," + length);
+        //Full sub-path of current time interval is always visible
+        objectRef.svg.select("#path").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+
+        if (objectRef.nextView < objectRef.lastView){
+            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue)).style("stroke","#666")
+                .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]])});
+        }
+
+    }else{ //Moving backward
+
+        if (ambiguousObjects[objectRef.currentView][0]==1){
+            objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
+        }else{
+            objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+        }
+
+        //Clear the forward path
+        objectRef.svg.select("#forwardPath").style("stroke","none");
+        //Create the interpolation function and get the total length of the path
+        var length = d3.select("#backwardPath").node().getTotalLength();
+        var interpStr = d3.interpolateString("0," + length, length + "," + length);
+        //Full sub-path of current time interval is always visible
+        objectRef.svg.select("#path").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+
+        if (objectRef.currentView > 0){
+            objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-objectRef.interpValue)).style("stroke","#666")
+                .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]])});
+        }
+    }
+}
 //////////////////////Indicators along a sine wave (interaction path)//////////////////////
 
 /** Appends an anchor to the svg (with id 'anchor), if there isn't already one
@@ -195,14 +278,14 @@ function appendAnchor (objectRef,x,y,type){
     var myRef = objectRef;
     if (objectRef.svg.select("#anchor").empty()){
         if (type ==0 || type ==1){ //Inner or outer elastic
-            objectRef.svg.select("#hintPath").append("path").datum([[x,y]])
+            objectRef.svg.select("#hintPath").append("path").datum([[x,y]]).style("stroke","none")
                 .attr("d", myRef.hintPathGenerator).attr("id","anchor");
         }else if (type == 2){ //Circle
-            objectRef.svg.select("#hintPath").append("circle").attr("cx", x).attr("cy", y).attr("r",4).attr("stroke","none").attr("id","anchor");
+            objectRef.svg.select("#hintPath").append("circle").attr("cx", x).attr("cy", y).attr("r",4).style("stroke","none").attr("id","anchor");
         }else if (type==3){ //Circle + elastic
             objectRef.svg.select("#hintPath").append("g").attr("id","anchor");
-            objectRef.svg.select("#anchor").append("circle").attr("cx", x).attr("cy", y).attr("r",4).attr("stroke","none");
-            objectRef.svg.select("#anchor").append("path").datum([[x,y]])
+            objectRef.svg.select("#anchor").append("circle").attr("cx", x).attr("cy", y).attr("r",4).style("stroke","none");
+            objectRef.svg.select("#anchor").append("path").datum([[x,y]]).style("stroke","none")
                 .attr("d", objectRef.hintPathGenerator);
         }
     }
@@ -216,14 +299,17 @@ function appendAnchor (objectRef,x,y,type){
 function redrawAnchor (objectRef,objY,mouseX,mouseY,newY,type){
     var myRef = objectRef;
     if (type ==0){ //Outer elastic
-        objectRef.svg.select("#anchor").attr("d",function (d) {return myRef.hintPathGenerator([[mouseX,mouseY],[d[0][0],newY]]);});
+        objectRef.svg.select("#anchor").attr("d",function (d) {return myRef.hintPathGenerator([[mouseX,mouseY],[d[0][0],newY]]);})
+            .style("stroke","#c7c7c7");
     }else if (type == 1){ //Inner Elastic
-        objectRef.svg.select("#anchor").attr("d",function (d) {return myRef.hintPathGenerator([[d[0][0],objY],[d[0][0],newY]]);});
+        objectRef.svg.select("#anchor").attr("d",function (d) {return myRef.hintPathGenerator([[d[0][0],objY],[d[0][0],newY]]);})
+            .style("stroke","#c7c7c7");
     }else if (type ==2){ //Circle
-        objectRef.svg.select("#anchor").attr("cy",newY).attr("stroke","#c7c7c7");
+        objectRef.svg.select("#anchor").attr("cy",newY).style("stroke","#c7c7c7");
     }else if (type==3){ //Circle and elastic
-        objectRef.svg.select("#anchor").select("path").attr("d",function (d) {return myRef.hintPathGenerator([[d[0][0],objY],[d[0][0],newY]]);});
-        objectRef.svg.select("#anchor").select("circle").attr("cy",newY).attr("stroke","#c7c7c7");
+        objectRef.svg.select("#anchor").select("path").attr("d",function (d) {return myRef.hintPathGenerator([[d[0][0],objY],[d[0][0],newY]]);})
+            .style("stroke","#c7c7c7");
+        objectRef.svg.select("#anchor").select("circle").attr("cy",newY).style("stroke","#c7c7c7");
     }
 }
 
@@ -231,12 +317,11 @@ function redrawAnchor (objectRef,objY,mouseX,mouseY,newY,type){
  * */
 function hideAnchor (objectRef,type){
     if (type == 0 || type == 1 || type ==2){
-        objectRef.svg.select("#anchor").attr("stroke","none");
+        objectRef.svg.select("#anchor").style("stroke","none");
     }else if (type ==3){
-        objectRef.svg.select("#anchor").select("circle").attr("stroke","none");
-        objectRef.svg.select("#anchor").select("path").attr("stroke","none");
+        objectRef.svg.select("#anchor").select("circle").style("stroke","none");
+        objectRef.svg.select("#anchor").select("path").style("stroke","none");
     }
-
 }
 /** Removes an anchor from the svg
  * */

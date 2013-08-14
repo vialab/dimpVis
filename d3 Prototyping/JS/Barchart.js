@@ -169,6 +169,7 @@ this.svg.selectAll("rect")
     this.svg.append("g").attr("id","hintPath");
  }
 /** Clears elements on the svg required to change the dataset */
+//TODO: this needs to eventually exist in all prototype js files
 Barchart.prototype.clearSvg = function (){
     d3.selectAll(".gDisplayBars").remove();
     d3.selectAll(".axisLabel").remove();
@@ -462,7 +463,7 @@ Barchart.prototype.findHeight = function (yPos){
            return 0.3;
        });
 
-     this.redrawSmallHintPath();
+     redrawSmallHintPath(this,this.ambiguousBars);
 }
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
@@ -646,7 +647,7 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
         this.drawInteractionPaths(translate);
     }
     //this.drawHintPath(xPos,translate,drawingView);
-    this.drawSmallHintPath(translate);
+    drawSmallHintPath(this,translate,this.pathData);
 
     //Fade out the other bars
     this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
@@ -701,91 +702,6 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("transform", "translate("+(-translate)+")")
         .attr("id",function (d) {return "hintLabel"+ d.id})
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
-}
-/** Displays small hint path by appending its svg components to the main svg
- *  translate:
- * */
-Barchart.prototype.drawSmallHintPath = function (translate){
-    var ref = this;
-
-   //Try out clipping..
-    //http://stackoverflow.com/questions/10486896/svg-clip-path-within-rectangle-does-not-work
-   /**this.svg.select("#hintPath").append("svg:defs").append("svg:clipPath").attr("id","clip")
-       .append("rect").attr("id","clip-rect").attr("width",100).attr("height",100);*/
-
-    //Draw the hint path line segment at current and next view
-    this.svg.select("#hintPath").append("path").datum(ref.pathData)//.attr("clip-path", "url(#clip)")
-        .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#666")
-        .attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
-
-    //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
-    this.svg.select("#hintPath").append("path").datum(ref.pathData)
-        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath").style("stroke","none");
-
-    //Draw the current hint path line segment to show dragging direction (shown when travelling backwards)
-    this.svg.select("#hintPath").append("path").datum(ref.pathData)
-        .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
-
-   if (this.nextView != this.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
-       this.svg.select("#nextPath").attr("d", function (d) {return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]])});
-    }
-
-    //Make the interaction paths (if any) invisible
-   if (this.isAmbiguous ==1){
-         this.svg.select("#hintPath").selectAll(".interactionPath").style("stroke","none");
-   }
-}
-/**Redraws the shortened hint path, where the full path segment is always displayed between next and current view.
- * Depending on the time direction, the next path segment the user is approaching is partially visible.
- * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
- * */
-//TODO: this code is slightly inefficient, but save refactoring for later
-Barchart.prototype.redrawSmallHintPath = function(){
-    var ref = this;
-
-    //Limit the visibility of the next time interval sub-path
-   if (this.timeDirection == 1){ //Moving forward
-
-       if (this.ambiguousBars[this.nextView][0]==1){
-           this.svg.select("#interactionPath"+this.ambiguousBars[this.nextView][1]).style("stroke","#969696");
-       }else{
-           this.svg.selectAll(".interactionPath").style("stroke","none");
-       }
-
-        //Clear the backward path
-        this.svg.select("#backwardPath").style("stroke","none");
-        //Create the interpolation function and get the total length of the path
-        var length = d3.select("#forwardPath").node().getTotalLength();
-        var interpStr = d3.interpolateString("0," + length, length + "," + length);
-        //Full sub-path of current time interval is always visible
-        this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
-
-        if (this.nextView < this.lastView){
-            this.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(ref.interpValue)).style("stroke","#666")
-                .attr("d", function (d) {return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]])});
-        }
-
-    }else{ //Moving backward
-
-       if (this.ambiguousBars[this.currentView][0]==1){
-           this.svg.select("#interactionPath"+this.ambiguousBars[this.currentView][1]).style("stroke","#969696");
-       }else{
-           this.svg.selectAll(".interactionPath").style("stroke","none");
-       }
-
-       //Clear the forward path
-       this.svg.select("#forwardPath").style("stroke","none");
-       //Create the interpolation function and get the total length of the path
-       var length = d3.select("#backwardPath").node().getTotalLength();
-       var interpStr = d3.interpolateString("0," + length, length + "," + length);
-       //Full sub-path of current time interval is always visible
-       this.svg.select("#path").attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]])});
-
-       if (this.currentView > 0){
-           this.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-ref.interpValue)).style("stroke","#666")
-               .attr("d", function (d) {return ref.hintPathGenerator([d[ref.currentView],d[ref.currentView-1]])});
-       }
-   }
 }
 /** Clears the hint path by removing its components from the svg
  * */

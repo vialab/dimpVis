@@ -1,9 +1,12 @@
 /** This file is a test run of a barchart experiment trial
  * */
 
+//To disable the drag function
+var doNothing = d3.behavior.drag().on("dragstart", null)
+    .on("drag", null).on("dragend",null);
+var interactionTechnique; //Set on window load
 
-/* Code for creating a barchart visualization
- * */
+//////////////////////Code for creating a barchart visualization//////////////////////
 var barchart   = new Barchart(400, 50, 30, 100 , "#bargraph",80);
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
@@ -50,10 +53,9 @@ barchart.dragEvent = d3.behavior.drag()
     });
 
 //Apply the dragging function to each bar
-barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
+//barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 
-/**Code for creating the slider widget
- * */
+//////////////////////Code for creating the slider widget//////////////////////
 var slider   = new Slider(50, 700, "#time",labels, "Time","#666",40);
 slider.init();
 slider.render();
@@ -71,11 +73,9 @@ slider.dragEvent = d3.behavior.drag()
         barchart.redrawView(slider.currentTick,-1);
     });
 //Apply the dragging function to the movable tick
-slider.widget.select("#slidingTick")
-    .call(slider.dragEvent);
+//slider.widget.select("#slidingTick").call(slider.dragEvent);
 
-/**Declare additional functions required to run the experiment here
- * */
+//////////////////////Declare additional functions required to run the experiment here//////////////////////
 var techniqueID = 0; //0 - dimpVis, 1 - slider
 var taskCounter = 1;
 var secondCounter = 0;
@@ -103,9 +103,15 @@ var timerFunc = function (){
     }
 };
 
-//Set the timer when the page loads
+//Called when the html page is loaded
 window.onload = function (){
-   startTimer();
+   //startTimer();
+    //Get the starting technique
+    d3.json("http://localhost:8080/getInteractionTechnique?", function(error,response) {
+        console.log(response);
+        interactionTechnique = response;
+        updateInteractionTechnique();
+    });
 }
 
 function startTimer(){
@@ -129,12 +135,14 @@ function nextTask (){
     }
 
     if (result ==true){
-       updateView(solution);
+       updateTaskPanel(solution);
+       //switchInteractionTechnique();
+       //changePhase();
     }
 }
 
 //Updates the html page when a new task begins and saves the solution entered in the text box
-function updateView (solution){
+function updateTaskPanel (solution){
     //Log the solution
     d3.xhr("http://localhost:8080/log?content="+solution, function(d) { });
     //Clear the text box
@@ -143,8 +151,34 @@ function updateView (solution){
     d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
     d3.select("#taskDescription").node().innerHTML = "Description #"+taskCounter;
 
-    stopTimer();
+    //stopTimer();
 }
+//Sets the current interaction technique, and disables the other (dimp vs. slider)
+function switchInteractionTechnique(){
+   //TODO:Log this event
+   interactionTechnique = (interactionTechnique==0)?1:0;
+   updateInteractionTechnique();
+}
+//Updates the view to enable and disable the appropriate interaction technique
+//0: dimp, 1: time slider
+function updateInteractionTechnique(){
+    if (interactionTechnique == 0) {  //Enable dimp technique, disable time slider dragging
+        slider.widget.select("#slidingTick").call(doNothing);
+        barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
+    }else{ //Enable time slider, disable dimp interaction
+        slider.widget.select("#slidingTick").call(slider.dragEvent);
+        barchart.svg.selectAll(".displayBars").call(doNothing);
+    }
+}
+//Move to the next phase (after all tasks for both techniques), changes the visualization
+//Goes to a new html page returned from the server in "response"
+function changePhase (){
+    d3.json("http://localhost:8080/nextPhase?", function(error,response) {
+        window.location = response;
+    });
+}
+
+
 
 
 				   
