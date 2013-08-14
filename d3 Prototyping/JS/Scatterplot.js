@@ -10,7 +10,6 @@
  * yLabel: label for the y-axis
  * title: of the graph
 */
-//TODO: will need to add dragging and time direction for logging purposes
 function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    // Position and size attributes for drawing the svg
    this.xpos = x;
@@ -45,6 +44,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.previousLoopSign = 0; //Keeps track of the angle switching from positive to negative or vice versa when dragging along a loop
    this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
    this.endView = -1;  //The view at the end of a loop
+   this.timeDirection = 1; //Tracks the direction travelling over time
 
    //Save some angle values
    this.halfPi = Math.PI/2;
@@ -67,24 +67,22 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Scatterplot.prototype.init = function() {
-   this.svg = d3.select(this.id).append("svg")
+
+    this.svg = d3.select(this.id).append("svg")
       .attr("width", this.width+(this.padding*2.5))
       .attr("height", this.height+(this.padding*2))
-       .attr("x",this.xpos).attr("y",this.ypos)
-       .on("click",this.clickSVG)//TODO: Want to be able to click the background of the graph (not a point) as a way of clearing the hint path, right now events are interfering
-       .append("g")
-       .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+      .attr("x",this.xpos).attr("y",this.ypos)
+      .on("click",this.clickSVG)
+      .append("g").attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+
     //Add the blur filter used for the hint path to the SVG so other elements can call it
-    this.svg.append("svg:defs")
-        .append("svg:filter")
-        .attr("id", "blur")
-        .append("svg:feGaussianBlur")
+    this.svg.append("svg:defs").append("svg:filter")
+        .attr("id", "blur").append("svg:feGaussianBlur")
         .attr("stdDeviation", 4);
+
     //Add the blur filter for interaction loops
-    this.svg.append("svg:defs")
-        .append("svg:filter")
-        .attr("id", "blurLoop")
-        .append("svg:feGaussianBlur")
+    this.svg.append("svg:defs").append("svg:filter")
+        .attr("id", "blurLoop").append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
 }
 /** Render the visualization onto the svg
@@ -163,35 +161,29 @@ Scatterplot.prototype.render = function( data, start, labels) {
     var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
     // Add the title of the graph
-     this.svg.append("text")
-         .attr("id", "graphTitle")
+     this.svg.append("text").attr("id", "graphTitle")
          .text(this.graphTitle)
          .attr("x",1).attr("y",-15);
 
     // Add the x-axis
-    this.svg.append("g")
-        .attr("class", "axis")
+    this.svg.append("g").attr("class", "axis")
         .attr("transform", "translate("+this.padding+"," + this.height + ")")
         .call(xAxis);
 
     // Add the y-axis
-    this.svg.append("g")
-        .attr("class", "axis")
+    this.svg.append("g").attr("class", "axis")
         .attr("transform", "translate("+ this.padding+ ",0)")
         .call(yAxis);
 
     // Add an x-axis label
-    this.svg.append("text")
-        .attr("class", "axisLabel")
+    this.svg.append("text").attr("class", "axisLabel")
         .attr("x", this.width)
         .attr("y", this.height+this.padding-10)
         .text(this.xLabel);
 
     // Add a y-axis label
-    this.svg.append("text")
-        .attr("class", "axisLabel")
-        .attr("x", -15)
-        .attr("transform", "rotate(-90)")
+    this.svg.append("text").attr("class", "axisLabel")
+        .attr("x", -15).attr("transform", "rotate(-90)")
         .text(this.yLabel);
 }
 /** Appends an anchor to the svg, if there isn't already one
@@ -292,10 +284,30 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
         newPoint= [pt2_x,pt2_y];
     }else{ //Some in between the views (pt1 and pt2)
         this.interpolatePoints(id,t,this.currentView,this.nextView);
-        this.interpolateLabelColour(this.interpValue);
+        this.interpolateLabelColour(t);
         newPoint= [minDist[0],minDist[1]];
+        //Save the values
+        this.timeDirection = this.findTimeDirection(t);
+        this.interpValue = t; //Save the interpolation amount
     }
     return newPoint;
+}
+/** Sets the time direction based on the interpolation amount
+ * @return: the new direction travelling in time
+ * */
+Scatterplot.prototype.findTimeDirection = function (interpAmount){
+    var direction;
+    if (interpAmount > this.interpValue){ //Forwards in time
+        direction = 1;
+    }else if (interpAmount < this.interpValue){ //Backwards in time
+        direction = -1;
+    }else{ //Did not change
+        direction = this.timeDirection
+    }
+    if (this.timeDirection != direction){ //Switched directions
+        console.log("switched directions "+direction);
+    }
+    return direction;
 }
 /** Updates the view variables to move the visualization forward
  * (passing the next view)
@@ -304,6 +316,8 @@ Scatterplot.prototype.moveForward = function (){
     if (this.nextView < this.lastView){ //Avoid index out of bounds
         this.currentView = this.nextView;
         this.nextView++;
+        this.timeDirection = 1;
+        this.interpValue = 0;
     }
 }
 /** Updates the view variables to move the visualization backward
@@ -313,6 +327,8 @@ Scatterplot.prototype.moveBackward = function (){
     if (this.currentView > 0){ //Avoid index out of bounds
         this.nextView = this.currentView;
         this.currentView--;
+        this.timeDirection = -1;
+        this.interpValue = 1;
     }
 }
 /**Interpolates the label transparency between start and end view, this fading effect is used for
@@ -341,14 +357,15 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
      //TODO: similarily, if approaching loop from other side, can only drag counter clockwise if view is the last view on the stationary sequence
      //TODO:These are constants and do not need to be computed each time the mouse drags
 
+     //TODO: dragging direction is toggling..
+
+     //TODO:These values can be saved and do not need to be computed each time the mouse drags
      var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle]});
      var angles = this.calculateMouseAngle(mouseX,mouseY,loopData[0][2],loopData[0][0],loopData[0][1]);
      var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (+/-)
 
-     //TODO:These values can be saved and do not need to be computed each time the mouse drags
      //Re-draw the anchor along the loop
      var loopInterp = this.convertMouseToLoop_interp(this.interpValue);
-
 
      //Find the angular dragging direction
      var draggingDirection;
@@ -359,7 +376,7 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
      }else{
          draggingDirection = this.previousDraggingDirection;
      }
-
+     console.log(draggingDirection);
      //Adjust the interpolation value based on the dragging direction
     this.interpValue = 1-this.interpValue;
 
@@ -369,17 +386,16 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
         if ((angle_deg >= 350 && angle_deg <= 360)||(angle_deg>=0 && angle_deg <=10)){ //Check for sign switches within 10 degrees of the 360/0 mark
             if (draggingDirection==1){ //Dragging clockwise
                 if (this.nextView != this.lastView){
-                   if (this.ambiguousPoints[this.nextView+1][0]==0) {
-                      // if()
+                   /**if (this.ambiguousPoints[this.nextView+1][0]==0) { //Trying to detect end points to fix jumping
                        console.log("end point next");
-                   }
+                   }*/
                 }
                 this.moveForward();
             }else{ //Dragging counter-clockwise
                 if (this.currentView > 0){
-                    if (this.ambiguousPoints[this.currentView-1][0]==0) {
+                    /**if (this.ambiguousPoints[this.currentView-1][0]==0) {
                         console.log("end point current");
-                    }
+                    }*/
                 }
                 this.moveBackward();
             }
@@ -391,6 +407,11 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
         this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
         this.interpolateLabelColour(this.interpValue);
     }
+
+     //TODO: Check if direction travelling in time has changed
+     if (draggingDirection != this.previousDraggingDirection){
+         console.log("switching directions"+draggingDirection);
+     }
 
      this.redrawAnchor(loopInterp,groupNumber);
 
@@ -440,9 +461,7 @@ Scatterplot.prototype.convertMouseToLoop_interp = function (mouseInterp){
  * startView,endView: Define the range to interpolate across
  * */
 Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,endView){
-  var ref = this;
-  ref.interpValue = interpAmount; //Save the interpolation value, for animating other visualizations
-  //Redraw all points, excluding the dragging one, to their new position according to the interpolation amount
+
   this.svg.selectAll(".displayPoints").filter(function (d){return d.id!=id;})
       .each(function (d){
           var interpolator = d3.interpolate({x:d.nodes[startView][0],y:d.nodes[startView][1]},

@@ -6,7 +6,7 @@ var static = require('node-static'),
     phaseURLs = ["BarchartExperiment/Barchart.html","ScatterplotExperiment/Scatterplot.html","PiechartExperiment/Piechart.html"];
 
 //Some variables specific to each participant
-//TODO: might want to log these or record them somewhere (since they will be randomized)
+//TODO: might want to log these or record them somewhere (since the order is random)
 var phaseOrder = [0,1,2,3]; //This should be randomized eventually (list of indices pointing to the phaseURL arrays
 var phaseNumber = 0; //The current phase (will eventually reach 3, the end of the phaseOrder array), this always starts at 0 (regardless of order)
 var startTechnique = 0; //This should be randomized as well , the interaction technique to start the phase with
@@ -42,8 +42,10 @@ app.get("/log", function(req, res) {
 /** Change phases (move to the next prototype)
  * */
 app.get("/nextPhase", function(req, res) {
-    //TODO: need to re-set the start interaction technique variable here
+
+    startTechnique = (startTechnique==0)?1:0;
     phaseNumber++;
+
     var nextPhase = phaseOrder[phaseNumber];
     var jsonStr = JSON.stringify(phaseURLs[nextPhase]);
 
