@@ -304,8 +304,9 @@ Scatterplot.prototype.findTimeDirection = function (interpAmount){
     }else{ //Did not change
         direction = this.timeDirection
     }
+    //console.log(this.interpValue+" "+interpAmount);
     if (this.timeDirection != direction){ //Switched directions
-        console.log("switched directions "+direction);
+        console.log("switched directions "+direction+" currentInterp "+this.interpValue+" newInterp "+interpAmount+" "+this.currentView+" "+this.nextView);
     }
     return direction;
 }
@@ -365,7 +366,7 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
      var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (+/-)
 
      //Re-draw the anchor along the loop
-     var loopInterp = this.convertMouseToLoop_interp(this.interpValue);
+     var loopInterp = this.convertMouseToLoop_interp(angles[2]);
 
      //Find the angular dragging direction
      var draggingDirection;
@@ -376,42 +377,39 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
      }else{
          draggingDirection = this.previousDraggingDirection;
      }
-     console.log(draggingDirection);
+
      //Adjust the interpolation value based on the dragging direction
-    this.interpValue = 1-this.interpValue;
+    var interpAmount = 1-angles[2];
 
     //Check if the angle has changed signs
     if (sign != this.previousLoopSign && this.previousLoopAngle != "start"){ //Switching Directions, might be a view change
         var angle_deg = angles[1]*180/Math.PI;
         if ((angle_deg >= 350 && angle_deg <= 360)||(angle_deg>=0 && angle_deg <=10)){ //Check for sign switches within 10 degrees of the 360/0 mark
             if (draggingDirection==1){ //Dragging clockwise
-                if (this.nextView != this.lastView){
-                   /**if (this.ambiguousPoints[this.nextView+1][0]==0) { //Trying to detect end points to fix jumping
+                /**if (this.nextView != this.lastView){
+                   if (this.ambiguousPoints[this.nextView+1][0]==0) { //Trying to detect end points to fix jumping
                        console.log("end point next");
-                   }*/
-                }
+                   }
+                }*/
                 this.moveForward();
             }else{ //Dragging counter-clockwise
-                if (this.currentView > 0){
-                    /**if (this.ambiguousPoints[this.currentView-1][0]==0) {
+                /**if (this.currentView > 0){
+                    if (this.ambiguousPoints[this.currentView-1][0]==0) {
                         console.log("end point current");
-                    }*/
-                }
+                    }
+                }*/
                 this.moveBackward();
             }
-           // console.log(angle_deg+" "+draggingDirection);
-            //console.log("switch views"+this.currentView+" "+this.nextView);
-            this.interpValue = 0;
+        }else{ //Halfway around the loop
+            this.interpValue = interpAmount;
+            this.timeDirection = this.findTimeDirection(interpAmount);
         }
     }else{ //Dragging in the middle of the loop, animate the view
-        this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
-        this.interpolateLabelColour(this.interpValue);
+        this.timeDirection = this.findTimeDirection(interpAmount);
+        this.interpolatePoints(id,interpAmount,this.currentView,this.nextView);
+        this.interpolateLabelColour(interpAmount);
+        this.interpValue = interpAmount;
     }
-
-     //TODO: Check if direction travelling in time has changed
-     if (draggingDirection != this.previousDraggingDirection){
-         console.log("switching directions"+draggingDirection);
-     }
 
      this.redrawAnchor(loopInterp,groupNumber);
 
@@ -419,9 +417,10 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
     this.previousLoopAngle = angles[1];
     this.previousLoopSign = sign;
     this.previousDraggingDirection = draggingDirection;
+
 }
 /**Finds the angle of the mouse w.r.t the center of the loop
- * @return [angle,positiveAngle]
+ * @return [angle,positiveAngle,interpAmount]
  * */
 Scatterplot.prototype.calculateMouseAngle = function (mouseX,mouseY,orientationAngle,loopCx,loopCy){
 
@@ -442,9 +441,9 @@ Scatterplot.prototype.calculateMouseAngle = function (mouseX,mouseY,orientationA
 
     var positiveAngle = (newAngle < 0)?((this.pi - newAngle*(-1))+this.pi):newAngle;
 
-    this.interpValue = (subtractOne ==1)? (1-positiveAngle/this.twoPi) : (positiveAngle/this.twoPi);
+    var interpAmount = (subtractOne ==1)? (1-positiveAngle/this.twoPi) : (positiveAngle/this.twoPi);
 
-    return  [newAngle,positiveAngle];
+    return  [newAngle,positiveAngle,interpAmount];
 }
 /** Adjusts the interpolation value of the mouse angle (1/0 mark is at the stationary point) to draw correctly on
  *  the loop (where 0.5 is at the stationary point)

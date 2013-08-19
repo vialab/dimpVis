@@ -62,7 +62,7 @@ app.get("/getInteractionTechnique", function(req, res) {
 
     var jsonStr = JSON.stringify(startTechnique);
 
-    console.log("Sending the start interaction technique "+startTechnique);
+    console.log("Sending the start interaction technique :)"+startTechnique);
 
     res.set('Content-Type', 'application/json');
     res.send( jsonStr );
