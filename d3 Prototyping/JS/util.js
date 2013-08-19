@@ -184,7 +184,13 @@ function drawProgress (objectRef,interpAmount,translateAmount,type){
             .attr("transform","translate(" + (-translateAmount) + ")");
     }
 }
-/** Displays small hint path by appending its svg components to the main svg
+/** Sets the type of hint path to be drawn
+ *  Type: Full hint path = 0, partial hint path (removed labels) = 1
+ * */
+function setHintPathType (objectRef,type){
+    objectRef.hintPathType = type;
+}
+ /** Displays small hint path by appending its svg components to the main svg
  *  translate: amount the path should be translated by in order to align with the
  *  dragged data object
  *  pathData: an array of points to appear along the entire hint path

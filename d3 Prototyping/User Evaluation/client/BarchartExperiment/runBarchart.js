@@ -4,7 +4,6 @@
 //To disable the drag function
 var doNothing = d3.behavior.drag().on("dragstart", null)
     .on("drag", null).on("dragend",null);
-var interactionTechnique; //Set on window load
 
 //////////////////////Code for creating a barchart visualization//////////////////////
 var barchart   = new Barchart(400, 50, 30, 100 , "#bargraph",80);
@@ -15,6 +14,7 @@ barchart.clickSVG = function (){
 };
 
 barchart.init();
+setHintPathType(barchart,1); //Make sure set to partial hint path initially
 
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
@@ -25,7 +25,7 @@ barchart.clickHintLabelFunction = function (d, i){
     slider.updateSlider(i);
 };
 
-barchart.render(dataset,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
+barchart.render(dataset,labels,"","","");
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
@@ -76,15 +76,17 @@ slider.dragEvent = d3.behavior.drag()
 //slider.widget.select("#slidingTick").call(slider.dragEvent);
 
 //////////////////////Declare additional functions required to run the experiment here//////////////////////
-var techniqueID = 0; //0 - dimpVis, 1 - slider
 var taskCounter = 1;
-var secondCounter = 0;
+var techniqueCounter = 0;
+var timeCounter = 0;
 var timerVar;
+var totalTasks = 2; //For each interaction technique
+var techniqueOrder = []; //Randomized order of interaction techniques
 
 //Function that will be executed every 1 second to check the time
 var timerFunc = function (){
-    secondCounter++;
-    if (secondCounter > 5){ //Exceeded maximum time provided for a task
+    timeCounter++;
+    if (timeCounter > 5){ //Exceeded maximum time provided for a task
        alert("Maximum time to complete the task has been exceeded.  You will now begin the next task.");
         //Grab the solution (if any), submit whatever solution is currently in the text box?
         /**var solution = d3.select("#taskSolution").node().value;
@@ -99,7 +101,7 @@ var timerFunc = function (){
             updateView("");
         }*/
     }else{ //Display the timer counts for debugging
-        d3.select("#timer").node().innerHTML=secondCounter;
+        d3.select("#timer").node().innerHTML=timeCounter;
     }
 };
 
@@ -107,10 +109,10 @@ var timerFunc = function (){
 window.onload = function (){
    //startTimer();
     //Get the starting technique
-    d3.json("http://localhost:8080/getInteractionTechnique?", function(error,response) {
+    d3.json("http://localhost:8080/getInteractionTechniqueOrder?", function(error,response) {
         console.log(response);
-        interactionTechnique = response;
-        updateInteractionTechnique();
+        techniqueOrder = response;
+        updateInteractionTechnique(techniqueOrder[techniqueCounter]);
     });
 }
 
@@ -135,19 +137,26 @@ function nextTask (){
     }
 
     if (result ==true){
-       updateTaskPanel(solution);
-       //switchInteractionTechnique();
-       //changePhase();
+       switchTask(solution);
     }
 }
-
+//Switches the task, and checks if max tasks has been reached
+//If max tasks reached, switches interaction technique, otherwise:
 //Updates the html page when a new task begins and saves the solution entered in the text box
-function updateTaskPanel (solution){
+//Logs the solution
+function switchTask (solution){
     //Log the solution
     d3.xhr("http://localhost:8080/log?content="+solution, function(d) { });
-    //Clear the text box
-    d3.select("#taskSolution").node().value = "";
+
     taskCounter++;
+
+    if (taskCounter>totalTasks){
+        taskCounter = 1;
+        switchInteractionTechnique();
+    }
+
+    //Clear the text box, update the task panel display
+    d3.select("#taskSolution").node().value = "";
     d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
     d3.select("#taskDescription").node().innerHTML = "Description #"+taskCounter;
 
@@ -156,13 +165,17 @@ function updateTaskPanel (solution){
 //Sets the current interaction technique, and disables the other (dimp vs. slider)
 function switchInteractionTechnique(){
    //TODO:Log this event
-   interactionTechnique = (interactionTechnique==0)?1:0;
-   updateInteractionTechnique();
+   techniqueCounter++;
+   if (techniqueCounter > 0){ //Finished all tasks, enter exploratory period
+       startExploratory();
+   }else{
+       updateInteractionTechnique(techniqueOrder[techniqueCounter]);
+   }
 }
 //Updates the view to enable and disable the appropriate interaction technique
-//0: dimp, 1: time slider
-function updateInteractionTechnique(){
-    if (interactionTechnique == 0) {  //Enable dimp technique, disable time slider dragging
+//Technique ID's: Dimp=0, Time slider=1, Small multiples=2 (not implemented yet)
+function updateInteractionTechnique(techniqueID){
+    if (techniqueID == 0) {  //Enable dimp technique, disable time slider dragging
         slider.widget.select("#slidingTick").call(doNothing);
         barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
     }else{ //Enable time slider, disable dimp interaction
@@ -173,9 +186,33 @@ function updateInteractionTechnique(){
 //Move to the next phase (after all tasks for both techniques), changes the visualization
 //Goes to a new html page returned from the server in "response"
 function changePhase (){
-    d3.json("http://localhost:8080/nextPhase?", function(error,response) {
-        window.location = response;
-    });
+    //Confirmation window
+    var result = confirm("Is the questionnaire complete?");
+
+    if (result ==true){
+        d3.json("http://localhost:8080/nextPhase?", function(error,response) {
+            window.location = response;
+        });
+    }
+}
+//When all tasks are done, start the exploratory period:
+//Add full hint path and fast forwarding feature, use real dataset and clear the task panel
+function startExploratory(){
+   //TODO: log this
+   //Update the visualization
+   setHintPathType(barchart,0);
+   barchart.render(dataset2,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
+   barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);  //TODO: should time slider be active? Since slider is a competitor technique, maybe it should be removed entirely
+
+   //Update the task panel
+    d3.select("#solutionEntry").remove();
+    d3.select("#taskDescription").remove();
+    d3.select("#counter").node().innerHTML = "Exploratory Period..";
+    d3.select("#nextButton").node().innerHTML = "Begin Next Phase";
+
+    d3.select("#nextButton").on("click", changePhase);
+   //TODO: add a timer to this
+
 }
 
 

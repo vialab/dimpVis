@@ -9,7 +9,7 @@ var static = require('node-static'),
 //TODO: might want to log these or record them somewhere (since the order is random)
 var phaseOrder = [0,1,2,3]; //This should be randomized eventually (list of indices pointing to the phaseURL arrays
 var phaseNumber = 0; //The current phase (will eventually reach 3, the end of the phaseOrder array), this always starts at 0 (regardless of order)
-var startTechnique = 0; //This should be randomized as well , the interaction technique to start the phase with
+var techniqueOrder = [0,1,2]; //This should be randomized as well , the interaction technique order within phases
 
 /**
 * Create a node-static server instance to serve the './client' folder, will automatically load index.html
@@ -43,7 +43,7 @@ app.get("/log", function(req, res) {
  * */
 app.get("/nextPhase", function(req, res) {
 
-    startTechnique = (startTechnique==0)?1:0;
+    techniqueOrder = [2,1,0];
     phaseNumber++;
 
     var nextPhase = phaseOrder[phaseNumber];
@@ -58,11 +58,11 @@ app.get("/nextPhase", function(req, res) {
 });
 /** Sends the interaction technique to begin the phase with
  * */
-app.get("/getInteractionTechnique", function(req, res) {
+app.get("/getInteractionTechniqueOrder", function(req, res) {
 
-    var jsonStr = JSON.stringify(startTechnique);
+    var jsonStr = JSON.stringify(techniqueOrder);
 
-    console.log("Sending the start interaction technique :)"+startTechnique);
+    console.log("Sending the interaction technique order");
 
     res.set('Content-Type', 'application/json');
     res.send( jsonStr );

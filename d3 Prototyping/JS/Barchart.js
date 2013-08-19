@@ -22,6 +22,7 @@
    this.amplitude = 15; //Of the interaction path sine wave
    this.base = h-5; //Starting y-position of all bars (the base)
    this.pathData = [];  //Stores the x,y values for drawing the hint path
+   this.hintPathType = 0; //Full hint path displayed
 
    //Variables set later (in render or init)
    this.numBars = 0;
@@ -176,6 +177,8 @@ Barchart.prototype.clearSvg = function (){
     d3.selectAll(".axis").remove();
     this.clearHintPath();
 }
+/**Sets the type of hint path to be drawn, if not set, default is the full hint path */
+
 /**Finds the peaks in a set of values (i.e., on either side of a point, the values are both increasing or decreasing)
  * data: a 2D array of [y-value,height]
  * @return the same array with added values to each array entry: 0 or 1/-1 flag if it is a peak/trough respectively
@@ -462,8 +465,9 @@ Barchart.prototype.findHeight = function (yPos){
            }
            return 0.3;
        });
-
-     redrawSmallHintPath(this,this.ambiguousBars);
+    if (this.hintPathType ==1){
+        redrawSmallHintPath(this,this.ambiguousBars);
+    }
 }
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
@@ -646,8 +650,11 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     if (this.isAmbiguous ==1){
         this.drawInteractionPaths(translate);
     }
-    //this.drawHintPath(xPos,translate,drawingView);
-    drawSmallHintPath(this,translate,this.pathData);
+    if (this.hintPathType ==0){
+        this.drawHintPath(xPos,translate,drawingView);
+    }else{
+        drawSmallHintPath(this,translate,this.pathData);
+    }
 
     //Fade out the other bars
     this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})

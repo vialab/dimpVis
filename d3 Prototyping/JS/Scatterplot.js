@@ -292,7 +292,8 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
     }
     return newPoint;
 }
-/** Sets the time direction based on the interpolation amount
+/** Sets the time direction based on the interpolation amount, currently not needed for the interaction
+ *  But can be used to log events.
  * @return: the new direction travelling in time
  * */
 Scatterplot.prototype.findTimeDirection = function (interpAmount){
@@ -304,7 +305,7 @@ Scatterplot.prototype.findTimeDirection = function (interpAmount){
     }else{ //Did not change
         direction = this.timeDirection
     }
-    //console.log(this.interpValue+" "+interpAmount);
+
     if (this.timeDirection != direction){ //Switched directions
         console.log("switched directions "+direction+" currentInterp "+this.interpValue+" newInterp "+interpAmount+" "+this.currentView+" "+this.nextView);
     }
