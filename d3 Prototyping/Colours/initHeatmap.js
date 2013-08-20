@@ -18,7 +18,7 @@ heatmap.clickHintLabelFunction = function (d, i){
     slider.updateSlider(i);
 };
 
-var colours = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
+var colours = colorbrewer.YlOrRd[5];
 var colourLabels = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
 heatmap.render(data,xLabels,yLabels,colours);
 

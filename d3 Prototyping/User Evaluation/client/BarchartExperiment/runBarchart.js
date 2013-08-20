@@ -198,7 +198,7 @@ function changePhase (){
 //When all tasks are done, start the exploratory period:
 //Add full hint path and fast forwarding feature, use real dataset and clear the task panel
 function startExploratory(){
-   //TODO: log this
+   //TODO: log this event
    //Update the visualization
    setHintPathType(barchart,0);
    barchart.render(dataset2,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
@@ -208,7 +208,8 @@ function startExploratory(){
     d3.select("#solutionEntry").remove();
     d3.select("#taskDescription").remove();
     d3.select("#counter").node().innerHTML = "Exploratory Period..";
-    d3.select("#nextButton").node().innerHTML = "Begin Next Phase";
+    d3.select("#nextButton").node().innerHTML = "Begin Next Phase?";
+    slider.widget.remove();
 
     d3.select("#nextButton").on("click", changePhase);
    //TODO: add a timer to this

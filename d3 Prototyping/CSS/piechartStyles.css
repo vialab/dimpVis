@@ -11,7 +11,7 @@ body {
 
 /*White layer underneath the main hint path*/
 #pathUnderlayer{
-    stroke-width:4;
+    stroke-width:7;
     stroke:#FFF;
     fill:none;
 }
@@ -20,9 +20,9 @@ body {
 #path{
     font-family: sans-serif;
     font-size: 10px;
-    stroke-width:1;
+    stroke-width:3;
     fill:none;
-    stroke:#666;
+    stroke:#c7c7c7;
 }
 
 /*Labels on the hint path */
