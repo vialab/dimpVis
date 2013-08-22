@@ -192,7 +192,7 @@ Heatmap.prototype.calculateDistance = function(x1,y1,x2,y2){
  * */
 Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
     var ref = this;
-    this.svg.append("text").attr("id","chartTitle")
+    this.svg.append("text").attr("id","chartTitle").attr("class","axis")
         .attr("x",-10).attr("y",-10).text(this.chartTitle);
 
     this.svg.selectAll(".axisVertical").data(yLabels)
@@ -200,7 +200,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
         .text(function(d) {return d;})
         .attr("x",this.xpos+this.width-100)
         .attr("y",function (d,i){return ref.cellSize*i+ref.cellSize/2;})
-        .attr("class","axisVertical");
+        .attr("class","axisVertical").attr("class","axis");
 
     this.svg.selectAll(".axisHorizontal").data(xLabels)
         .enter().append("svg:text")
@@ -208,7 +208,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
         .attr("transform",function (d,i) {
             return "translate("+(ref.cellSize*i+ref.cellSize/2)+
                 ","+(ref.ypos+ref.height-100)+") rotate(-65)";
-        }).attr("class","axisHorizontal");
+        }).attr("class","axisHorizontal").attr("class","axis");
 }
 /** Compares the vertical distance of the mouse with the two bounding views (using the
  *  y-position along the hint path).  From this comparison, the views are resolved and
@@ -327,7 +327,7 @@ Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mous
     if (bounds == mouseY){
         findInterpolation(this,currentY,nextY,mouseY,0,draggingDirection);
         this.interpolateColours(this.currentView, this.nextView,this.interpValue);
-        this.animateHintPath(current[4],this.interpValue,draggingDirection);
+        this.animateHintPath(current[4],this.interpValue);
     }else if (bounds == currentY){ //Passing current view
         if (current[6]!=0 || this.atPeak == this.currentView){ //At a peak
             inferTimeDirection(this,draggingDirection,1);
@@ -356,13 +356,13 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
         }
     }
     var bounds = checkBounds(this,this.peakValue,cellY,mouseY);
-    var newY; //To re-position the anchor
+    //var newY; //To re-position the anchor
 
     if (bounds == mouseY){
         findInterpolation(this,cellY,this.peakValue, mouseY, 1,draggingDirection);
         this.interpolateColours(this.currentView, this.nextView,this.interpValue);
-        this.animateHintPath(0,this.interpValue,draggingDirection);
-        newY = mouseY;
+        this.animateHintPath(0,this.interpValue);
+        //newY = mouseY;
     }else if (bounds == this.peakValue){ //At boundary
         if (draggingDirection != this.previousDragDirection){
             if (this.timeDirection ==1){this.passedMiddle = 1}
@@ -370,7 +370,7 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
         }
         //console.log("passed mid "+this.passedMiddle+" time direction "+this.timeDirection);
         this.interpValue = 0.5;
-        newY = this.peakValue;
+        //newY = this.peakValue;
     }else{ //At base, update the view
 
         if (this.atPeak==-1){
@@ -383,10 +383,10 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
                 this.setSineWaveVariables(newPathDirection,cellY,1);
             }
         }
-        newY=cellY;
+        //newY=cellY;
     }
     //console.log("interp "+this.interpValue);
-    redrawAnchor(this,-1,-1,-1,newY,2);
+   // redrawAnchor(this,-1,-1,-1,newY,2);
 }
 /**Updates variables for dragging along the sine wave:
  *  pathDirection: vertical direction of the approaching portion of the sine wave (e.g., at next view)
@@ -403,19 +403,10 @@ Heatmap.prototype.setSineWaveVariables = function (pathDirection,cellY,passedMid
  * currentOffset,nextOffset: y-value offsets of the two bounding views
  * interpAmount: amount travelled between the views
  * */
-Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount,draggingDirection){
+Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount){
     var ref = this;
     var translateX = -(this.xSpacing*interpAmount + this.xSpacing*this.currentView);
-    var translateY = -(this.ySpacing*currentOffset);
-   /** if (draggingDirection == -1){
-         var translateY = -(this.ySpacing*interpAmount + this.ySpacing*currentOffset);
-     }else{
-         var translateY = ( this.ySpacing*interpAmount - this.ySpacing*currentOffset);
-     }*/
-     //console.log(translateY);
 
-     //this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+","+translateY+")");
-    // this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+","+translateY+")");
     this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+")");
     this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+")")
         .attr("fill-opacity",function (d){
@@ -545,12 +536,10 @@ Heatmap.prototype.redrawView = function(view){
 Heatmap.prototype.redrawHintPath = function(view){
     var translateX = -this.xSpacing*view;
 
-    this.svg.select("#hintPath").selectAll("text")//.attr("transform", "translate("+translateX+","+translateY+")")
-        .attr("transform", "translate("+translateX+")")
+    this.svg.select("#hintPath").selectAll("text").attr("transform", "translate("+translateX+")")
         .attr("fill-opacity",function (d){return (d.id==view)?1:0.3});
 
-    this.svg.select("#hintPath").selectAll("path")//.attr("transform", "translate("+translateX+","+translateY+")");
-        .attr("transform", "translate("+translateX+")");
+    this.svg.select("#hintPath").selectAll("path").attr("transform", "translate("+translateX+")");
 }
 /** Draws a hint path for the dragged cell on the heatmap
  * id: of the dragged cell
@@ -585,7 +574,6 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  var translateY = -this.ySpacing*pathData[drawingView][4];
  var coords = pathData.map(function (d){return [d[2]+ref.draggedCellX,d[3]+ref.draggedCellY+translateY,d[4]];});
 
- //TODO: if the colour does not change for the entire hint path the gradient is not drawn, and not even a line is visible?
  //Find the translation amounts, based on the current view
  var translateX = -this.xSpacing*drawingView;
 
@@ -597,11 +585,10 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
              return {points:adjustedPoints,id:i}
         }))
         .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
-        //.attr("transform","translate("+translateX+","+translateY+")")
         .attr("transform","translate("+translateX+")")
         .attr("class","interactionPath");
 
-     appendAnchor(this,this.draggedCellX,this.draggedCellY,2);
+     //appendAnchor(this,this.draggedCellX,this.draggedCellY,2);
      this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
   }
 //Append a clear cell with a black border to show which cell is currently selected and dragged
@@ -623,7 +610,6 @@ if (this.allStationary == 0){
 this.svg.select("#hintPath").append("svg:path")
       .attr("d", this.lineGenerator(coords))
       .attr("id","pathUnderlayer")
-      //.attr("transform","translate("+translateX+","+translateY+")")
       .attr("transform","translate("+translateX+")")
       .attr("filter", "url(#blur2)");
 
@@ -634,7 +620,6 @@ this.svg.select("#hintPath").append("svg:path")
          return ((ref.allStationary==0)?"url(#line-gradient)":pathData[0][0]);
        })
       .attr("transform","translate("+translateX+")")
-      //.attr("transform","translate("+translateX+","+translateY+")")
       .attr("id","path").attr("filter", "url(#blur)");
 	
 //Draw the hint path labels								  
@@ -645,7 +630,6 @@ this.svg.select("#hintPath").selectAll("text")
        .attr("x",function (d){return d.x}).attr("y",function (d) {return d.y})
        .attr("transform","translate("+translateX+")")
        .attr("fill-opacity",function (d){ return ((d.id==drawingView)?1:0.3)})
-       //.attr("transform","translate("+translateX+","+translateY+")")
        .text(function (d){ return d.label;})
        .attr("class","hintLabels")
        .on("click",this.clickHintLabelFunction);
@@ -658,7 +642,7 @@ this.hintYValues = coords.map(function (d){return d[1]});
  * */
 Heatmap.prototype.clearHintPath = function(){
    this.interactionPaths = [];
-   removeAnchor(this);
+  // removeAnchor(this);
    this.svg.select("#hintPath").selectAll("rect").remove();
    this.svg.select("#hintPath").selectAll("path").remove();
    this.svg.select("#line-gradient").remove();
@@ -791,18 +775,18 @@ Heatmap.prototype.showColourScale = function (colours,labels,x,y){
     var ref = this;
 
     //Prepare the data for drawing the scale
-    this.svg.selectAll(".colourScale").data(colours.map(function (d,i) {
+    this.svg.selectAll(".legend").data(colours.map(function (d,i) {
         return {colour:d,id:i,label:labels[i]};
-    })).enter().append("g").attr("class","colourScale");
+    })).enter().append("g").attr("class","legend");
 
    //Draw the colours as rectangles
-    this.svg.selectAll(".colourScale").append("rect")
+    this.svg.selectAll(".legend").append("rect")
         .attr("x",x).attr("y",function(d){return (d.id*ref.cellSize/3 + y)})
         .attr("width",this.cellSize/3).attr("height",this.cellSize/3)
         .style("fill",function (d){return d.colour});//.style("stroke","#FFF");
 
     //Draw the labels for each colour
-    this.svg.selectAll(".colourScale").append("text").attr("x",x+this.cellSize/3+5)
+    this.svg.selectAll(".legend").append("text").attr("x",x+this.cellSize/3+5)
         .attr("y",function(d){return (d.id*ref.cellSize/3 + y + ref.cellSize/6)})
         .text(function (d){return d.label})
 }

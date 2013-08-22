@@ -77,7 +77,7 @@ body {
 }
 
 /** Styles for the colour scale display */
-.colourScale text {
+.legend text {
     fill:#bdbdbd;
     font-family: sans-serif;
     font-size:10px;

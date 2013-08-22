@@ -91,11 +91,11 @@ Piechart.prototype.init = function(){
    //Add blur filters to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
      .attr("id", "blur").append("svg:feGaussianBlur")
-     .attr("stdDeviation", 2);
+     .attr("stdDeviation", 5);
 
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blur2").append("svg:feGaussianBlur")
-        .attr("stdDeviation", 1);
+        .attr("stdDeviation", 2);
  }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -142,14 +142,14 @@ Piechart.prototype.init = function(){
                 d.startAngle = ref.startAngles[d.id];
                 d.endAngle = ref.endAngles[d.id];
                return ref.arcGenerator(d);
-         })
+         });
          //.append("title").text(function(d){return d.label;});
 
  //Add labels to each segment
  //this.addLabels(); Not working
 
  // Add the title of the chart
- this.svg.append("text").attr("id", "graphTitle").text(this.graphTitle).attr("x",10).attr("y",13);
+ this.svg.append("text").attr("id", "graphTitle").text(this.graphTitle).attr("x",10).attr("y",13).attr("class","axis");
 
  //Add a g element to contain the hint info
  this.svg.append("g").attr("id","hintPath");
@@ -185,6 +185,7 @@ Piechart.prototype.calculateLayout = function (angles,start,id){
     this.startAngles[newId] = start;
     this.endAngles[newId] = endAngle;
     angleSum = endAngle;
+    var totalAngles = angles[newId];
 
     //Then, assign start/end angles to all segments whose indices occur after id (> id)
     for (var j=(newId+1);j<angles.length;j++){
@@ -192,6 +193,7 @@ Piechart.prototype.calculateLayout = function (angles,start,id){
         this.startAngles[j] = angleSum;
         this.endAngles[j] = angleSum + currentAngle;
         angleSum += currentAngle;
+        totalAngles+=currentAngle;
     }
     //Now assign start/end angles to all segments with indices before id (0 to <id)
     for (var j=0;j<newId;j++){
@@ -199,8 +201,11 @@ Piechart.prototype.calculateLayout = function (angles,start,id){
         this.startAngles[j] = angleSum;
         this.endAngles[j] = angleSum + currentAngle;
         angleSum += currentAngle;
+        totalAngles+=currentAngle;
     }
+    //console.log("sum "+totalAngles*180/Math.PI);
     //console.log("ends "+this.endAngles.map(function (d){return d*180/Math.PI})+" starts "+this.startAngles.map(function (d){return d*180/Math.PI}));
+    //console.log("angles "+angles.map(function (d){return d*180/Math.PI}));
 }
 /** Compares the dragging angle of the mouse with the two bounding views (using the
  *  endAngles along the hint path).  From this comparison, the views are resolved and
@@ -276,7 +281,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
         ref.mouseAngle = angle; //Save the dragging angle
         ref.previousDragDirection = draggingDirection; //Save the current dragging direction
 
-        ref.redrawAnchor(newAngle);
+       // ref.redrawAnchor(newAngle);
 
         return ref.arcGenerator(d); //Re-draw the arc
 
@@ -695,7 +700,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     this.dragStartAngle = start; //Important: save the start angle and re-set interpolation
     this.interpValue = 0;
     this.hintArcInfo = this.processHintPathInfo(angles,drawingView);
-    this.appendAnchor((this.dragStartAngle+angles[drawingView]));
+    //this.appendAnchor((this.dragStartAngle+angles[drawingView]));
 
     var hintPathArcString = this.createArcString(this.hintArcInfo);
 
@@ -752,8 +757,8 @@ Piechart.prototype.showHintPath = function (id,angles,start){
          .attr("id",function (d){return "hintLabel"+ d.id}).attr("class","hintLabels");
 
     //Fade out all the other segments
-	this.svg.selectAll(".displayArcs")//.filter(function (d){return d.id!=id})
-         .transition().duration(400).style("fill-opacity", 0.9);
+	/**this.svg.selectAll(".displayArcs")//.filter(function (d){return d.id!=id})
+         .transition().duration(400).style("fill-opacity", 0.9);*/
 
    this.hintArcInfo = [];
 }
@@ -771,7 +776,7 @@ Piechart.prototype.convertAngle = function (angle){
      this.isAmbiguous = 0;
 
      //Clear contents of #hintPath
-     this.removeAnchor();
+     //this.removeAnchor();
      this.svg.select("#hintPath").selectAll("text").remove();
      this.svg.select("#hintPath").selectAll("path").remove();
      this.svg.selectAll(".displayArcs").style("fill-opacity", 1);

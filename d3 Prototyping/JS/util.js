@@ -6,6 +6,17 @@
  * in order to access object variables and/or functions
  */
 
+/**Clears the visualization elements appended to the SVG (used when the dataset is changed
+ * objectClass: is the class name e.g., ".bars", assigned to all data objects
+ * */
+function clearVis (objectClass){
+    d3.selectAll(objectClass).remove();
+    d3.selectAll(".axisLabel").remove();
+    d3.selectAll(".axis").remove();
+    d3.select("#hintPath").remove();
+    d3.select("#legend").remove();
+}
+
 //////////////////////Updating important object variables//////////////////////
 
 /** Updates the view variables to move the visualization forward
@@ -228,7 +239,7 @@ function drawSmallHintPath (objectRef,translate,pathData){
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
 //TODO: this code is slightly inefficient, but save refactoring for later
-redrawSmallHintPath = function(objectRef,ambiguousObjects){
+function redrawSmallHintPath (objectRef,ambiguousObjects){
 
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward
@@ -336,117 +347,31 @@ function removeAnchor (objectRef){
         objectRef.svg.select("#anchor").remove();
     }
 }
+/**Draws a colour scale showing what is assigned to each colour
+ * colours: the different colours to map the values to
+ * labels: the labels to identify each colour
+ * x,y: left and top margins of the scale
+ * w,h: of the colour blocks in the legend
+ * spacing: between the colour blocks (optional, but must be 1 if none is desired)
+ * */
+function drawColourLegend (objectRef,colours,labels,x,y,w,h,spacing){
 
+    //Prepare the data for drawing the scale
+    objectRef.svg.selectAll(".legend").data(colours.map(function (d,i) {
+        var yCoord = i*h*spacing + y;
+        return {colour:d,id:i,label:labels[i],y:yCoord};
+    })).enter().append("g").attr("class","legend");
+
+    //Draw the colours as rectangles
+    objectRef.svg.selectAll(".legend").append("rect")
+        .attr("x", x).attr("y",function(d){return d.y})
+        .attr("width",w).attr("height",h)
+        .style("fill",function (d){return d.colour});
+
+    //Draw the labels for each colour
+    objectRef.svg.selectAll(".legend").append("text").attr("x",x+w+5)
+        .attr("y",function(d){return (d.y + h/2)})
+        .text(function (d){return d.label})
+}
 //TODO: still deciding if these functions should be in this file?
 //////////////////////Detecting Ambiguity (stationary sequences) in the dataset //////////////////////
-
-/** Search for ambiguous cases in a list of data values.  Ambiguous cases are tagged by type.
- *  ambiguousFlag: 0: not ambiguous, 1: stationary data object (which doesn't move for at least 2 consecutive years)
- *  This information is stored in the ambiguousObjects array, which gets re-populated each time a
- *  new object is dragged.
- *  This array is in  the format: [[ambiguousFlag,groupNum,sineWaveDirection]...all years along the hint path]
- *
- *  To alleviate interaction in regions where values are very similar (within threshold), we also consider
- *  these objects to be stationary.
- *
- *  values: array of values to deem two objects "equal"
- * */
-function checkAmbiguous (objectRef,values,threshold){
-    var j, currentObj;
-    var stationaryObjects = [];
-    objectRef.isAmbiguous = 0;
-    objectRef.ambiguousObjects = [];
-
-    //Re-set the ambiguousPoints array
-    for (j=0;j<=objectRef.lastView;j++){
-        objectRef.ambiguousObjects[j] = [0];
-    }
-
-    //Search for values that are equal
-    for (j=0;j<=objectRef.lastView;j++){
-        currentObj= values[j];
-        for (var k=j;k<=objectRef.lastView;k++){
-            if (j!=k && (Math.abs(this.pathData[k][1]- currentObj))< threshold){ //An almost repeated bar, less than one pixel difference
-                if (Math.abs(k-j)==1){ //Stationary bar
-                    objectRef.isAmbiguous = 1;
-                    //If the bar's index does not exist in the array of all stationary bars, add it
-                    if (stationaryObjects.indexOf(j)==-1){
-                        stationaryObjects.push(j);
-                        objectRef.ambiguousObjects[j] = [1];
-                    }if (stationaryObjects.indexOf(k)==-1){
-                        stationaryObjects.push(k);
-                        objectRef.ambiguousObjects[k] = [1];
-                    }
-                }
-            }
-        }
-
-    }
-    //First check if there exists any stationary bars in the dataset
-    if (stationaryObjects.length>0){
-        //Then, generate points for drawing an interaction path
-         findPaths(objectRef,d3.min(stationaryObjects));
-    }
-}
-/** Populates interactionPaths array (of the object) which contains data for drawing a sine wave.
- * Format: interactionPaths[] = [[points for the sine wave]..number of paths]
- * startIndex: the index of the first stationary bar (only for reducing the search, can just
- * set this to 0)
- * */
-function findPaths (objectRef,startIndex){
-    var pathInfo = [];
-    var pathNumber = 0;
-
-    for (var j=startIndex; j<=objectRef.lastView;j++){
-        if (objectRef.ambiguousObjects[j][0]==1){
-            if (j!=startIndex && objectRef.ambiguousObjects[j-1][0]!=1){ //Starting a new path
-                objectRef.interactionPaths.push(calculatePathPoints(objectRef,pathInfo));
-                pathInfo = [];
-                pathNumber++;
-            }
-            objectRef.ambiguousObjects[j].push(pathNumber);
-            pathInfo.push(j);
-        }
-    }
-
-    objectRef.interactionPaths.push(calculatePathPoints(pathInfo));
-}
-/** Calculates a set of points to compose a sine wave (for an interaction path)
- * indices: the corresponding year indices, this array's length is the number of peaks needed on the path
- * @return an array of points for drawing the sine wave: [[x,y], etc.]
- * */
-function calculatePathPoints (objectRef,indices){
-    var angle = 0;
-    var pathPoints = [];
-    var quarterPi = Math.PI/4;
-
-    //Save the x and y coordinates of the stationary bar
-    var xPos = this.pathData[indices[0]][0];
-    var yPos = this.pathData[indices[0]][1];
-
-    //Find the period of the sine function
-    var length = indices.length;
-    var totalPts = 3*length + (length-3);
-
-    var indexCounter = 0;
-    var sign = -1;
-
-    //Calculate the points (5 per gap between views)
-    for (var j=0;j<totalPts;j++){
-        var theta = angle + quarterPi*j;
-        var y = objectRef.amplitude*Math.sin(theta)+yPos;
-        var x = (this.hintPathSpacing/4)*j + xPos;
-        if (j%4==0){ //Add the sign (+1 for peak, -1 for trough) to each ambiguous bar along the sine wave
-            this.ambiguousBars[indices[indexCounter]].push(sign);
-            indexCounter++;
-            sign = (sign==-1)?1:-1; //Flip the sign of the sine wave direction
-        }
-        pathPoints.push([x,y]);
-    }
-
-    //Insert the direction of the end point on the sine wave into ambiguousBars array
-    var endDirection = (indices.length % 2==0)?-1:1;
-    this.ambiguousBars[indices[indices.length-1]][2] = endDirection;
-
-    return pathPoints;
-}

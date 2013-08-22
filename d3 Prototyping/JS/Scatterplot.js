@@ -162,7 +162,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
 
     // Add the title of the graph
      this.svg.append("text").attr("id", "graphTitle")
-         .text(this.graphTitle)
+         .attr("class","axis").text(this.graphTitle)
          .attr("x",1).attr("y",-15);
 
     // Add the x-axis

@@ -22,7 +22,7 @@ body {
     font-size: 10px;
     stroke-width:3;
     fill:none;
-    stroke:#c7c7c7;
+    stroke:#969696;
 }
 
 /*Labels on the hint path */
@@ -51,4 +51,11 @@ body {
 #anchor{
     fill: none;
     stroke-width:3;
+}
+
+/** Styles for the colour scale display */
+.legend text {
+    fill:#bdbdbd;
+    font-family: sans-serif;
+    font-size:10px;
 }

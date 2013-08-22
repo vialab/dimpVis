@@ -84,9 +84,8 @@ Barchart.prototype.init = function(){
        .attr("height", this.height+(this.padding*2))
        .style("left", this.leftMargin + "px")
        .style("top", this.topMargin + "px")
-       .on("click",this.clickSVG)
-       .append("g").attr("id","mainG")
-	   .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+       .on("click",this.clickSVG).append("g").attr("id","mainG")
+       .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
      //Add the blur filter to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
@@ -114,7 +113,7 @@ Barchart.prototype.init = function(){
       var ref = this;
 
     //Clear all elements in the main svg - only needed if changing the dataset
-    this.clearSvg();
+    clearVis(".gDisplayBars");
 
     //Save some global variables
     this.numBars = data.length;
@@ -126,7 +125,7 @@ Barchart.prototype.init = function(){
 
     //Set the width of the svg (based on number of bars)
      this.width = (this.barWidth+this.strokeWidth)*this.numBars;
-     d3.select(this.id).select("#mainSvg").attr("width",this.width+(this.padding*2));
+     d3.select("#mainSvg").attr("width",this.width+(this.padding*2));
 
      //Find the max value of the heights, used to scale the axes and the dataset
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
@@ -169,16 +168,6 @@ this.svg.selectAll("rect")
 	//Add a blank g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
  }
-/** Clears elements on the svg required to change the dataset */
-//TODO: this needs to eventually exist in all prototype js files
-Barchart.prototype.clearSvg = function (){
-    d3.selectAll(".gDisplayBars").remove();
-    d3.selectAll(".axisLabel").remove();
-    d3.selectAll(".axis").remove();
-    this.clearHintPath();
-}
-/**Sets the type of hint path to be drawn, if not set, default is the full hint path */
-
 /**Finds the peaks in a set of values (i.e., on either side of a point, the values are both increasing or decreasing)
  * data: a 2D array of [y-value,height]
  * @return the same array with added values to each array entry: 0 or 1/-1 flag if it is a peak/trough respectively

@@ -7,10 +7,11 @@ var static = require('node-static'),
 
 //Some variables specific to each participant
 //TODO: might want to log these or record them somewhere (since the order is random)
+//TODO: change phaseOrder to only two phases (between subjects)
 var phaseOrder = [0,1,2,3]; //This should be randomized eventually (list of indices pointing to the phaseURL arrays
 var phaseNumber = 0; //The current phase (will eventually reach 3, the end of the phaseOrder array), this always starts at 0 (regardless of order)
 var techniqueOrder = [0,1,2]; //This should be randomized as well , the interaction technique order within phases
-
+var logFileName = "logTasks";
 /**
 * Create a node-static server instance to serve the './client' folder, will automatically load index.html
 */
@@ -25,13 +26,21 @@ app.get('/startExperiment', function(req, res){
 
 });
 /** Log an event occurring on the client side (See word document for logging format and codes)
+ *  Need to send the following appended parameters:
+ *  content: specific to each logged event
+ *  task number: the current task
+ *  interaction technique id: 0 - dimpVis, 1 - slider, 2 - small multiples
  * */
 app.get("/log", function(req, res) {
     var content = req.query["content"];
-    var log = fs.createWriteStream("log.txt", {"flags" : "a"});
+    var taskNumber = req.query["task"];
+    var techniqueId = req.query["interaction"];
+    var phaseId = phaseOrder[phaseNumber];
+
+    var log = fs.createWriteStream(logFileName+".txt", {"flags" : "a"});
     var now = new Date();
 
-    log.write( new Date().toString() + "|" + content + "\n");
+    log.write( phaseId+ "|" + techniqueId + "|" + taskNumber + "|" + new Date().toString() + "|" + content + "\n");
 
     console.log("Event logged");
 
@@ -69,88 +78,14 @@ app.get("/getInteractionTechniqueOrder", function(req, res) {
     res.end();
 
 });
-
-
-
-
-
- ////////////////////////////////////////////////////////////////////////////////
-// this request will still be handled by the static file server,
-// but nothing is gonna happen, cause dict is not the name of a file
-////////////////////////////////////////////////////////////////////////////////
-app.get('/dict', function(req, res){
-    var word = req.query['word'],
-        url  = 'http://www.dictionaryapi.com/api/v1/references/learners/xml/'
-               + word.toLowerCase() + '?key=2706fe54-fc4e-4ccd-9109-515178da172a'
-
-    console.log('Received request for word: '+word);
-
-    request(url, function(error, response, body){
-         if (!error && response.statusCode == 200) {
-             res.set('Content-Type', 'application/xml');
-             res.send(body);
-             console.log('Sent xml for word: '+word);
-         }
-    });
-
-    console.log('Requested xml for word: '+word);
-});
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Get synonyms
-////////////////////////////////////////////////////////////////////////////////
-app.get("/syn", function(req, res) {
-   var word = req.query["word"];
-   var url = WEBSTER_URL + "thesaurus/xml/" + word 
-           + "?key=fa968a41-c147-4c4f-8f39-7b6ec0c7dc7a";
-   
-   request(url, function(error, response, body){
-      if (!error && response.statusCode == 200) {
-          res.set('Content-Type', 'application/xml');
-          res.send(body);
-      }
-   });
+/** Called when the exploratory period has started (change the log file)
+ * */
+app.get('/startExploratory', function(req, res){
+    console.log('Received request to start exploratory period');
+    logFileName = "logExploratory";
+    res.end();
 
 });
-
-
-
-
-
-
-var WEBSTER_URL = "http://www.dictionaryapi.com/api/v1/references/";
-////////////////////////////////////////////////////////////////////////////////
-// Fetch closest ngrams
-////////////////////////////////////////////////////////////////////////////////
-app.get("/ngram", function(req, res) {
-   var key = req.query["word"];
-
-console.log("key : " + key);
-
-   var result = ngramTable[ key ];
-   var jsonStr;
-   if (typeof result === "undefined") jsonStr = JSON.stringify( "" );
-   else jsonStr = JSON.stringify( result );
-
-   res.set('Content-Type', 'application/json');
-   res.send( jsonStr );
-
-
-});
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Test calling child process on server system
-////////////////////////////////////////////////////////////////////////////////
-app.get("/testDir", function(req, res) {
-   exec("dir", function(err, stdout, stderr) {
-      res.set('Content-Type', 'application/json');
-      res.send( JSON.stringify(stdout));
-   });
-});
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,30 +95,6 @@ app.get(/\w*/, function(req, res){
     file.serve(req, res);
 });
 
-
-var ngramTable = {};
-function slurpNGram() {
-   var giantArray = fs.readFileSync("./client/data/w2.txt").toString().split("\n");
-   for (var i=0; i < giantArray.length; i++) {
-      var line = giantArray[i];
-      line = line.replace("\n", "");
-      line = line.replace("\r", "");
-
-      var tokens = line.split("\t");
-      var freq = tokens[0];
-      var w1 = tokens[1];
-      var w2 = tokens[2];
-
-      var hash = w1;
-      if ( ngramTable.hasOwnProperty(hash) ) {
-         ngramTable[ hash ].push( w2 );
-      } else {
-         var tmp = new Array();
-         tmp.push( w2 );
-         ngramTable[ hash ] = tmp;
-      }
-   } // end for
-}
 
 app.listen(8080);
 console.log('Listening on port 8080. Cheers!...');

@@ -6,6 +6,17 @@
  * in order to access object variables and/or functions
  */
 
+/**Clears the visualization elements appended to the SVG (used when the dataset is changed
+ * objectClass: is the class name e.g., ".bars", assigned to all data objects
+ * */
+function clearVis (objectRef,objectClass){
+    d3.selectAll(objectClass).remove();
+    d3.selectAll(".axisLabel").remove();
+    d3.selectAll(".axis").remove();
+    d3.select("#hintPath").remove();
+    //objectRef.clearHintPath();
+}
+
 //////////////////////Updating important object variables//////////////////////
 
 /** Updates the view variables to move the visualization forward
@@ -190,10 +201,6 @@ function drawProgress (objectRef,interpAmount,translateAmount,type){
 function setHintPathType (objectRef,type){
     objectRef.hintPathType = type;
 }
-/** Removes an entire visualization (stored in objectRef) from the DOM */
-function removeSVG(objectRef){
-    objectRef.remove();
-}
  /** Displays small hint path by appending its svg components to the main svg
  *  translate: amount the path should be translated by in order to align with the
  *  dragged data object
@@ -232,7 +239,7 @@ function drawSmallHintPath (objectRef,translate,pathData){
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
 //TODO: this code is slightly inefficient, but save refactoring for later
-redrawSmallHintPath = function(objectRef,ambiguousObjects){
+function redrawSmallHintPath (objectRef,ambiguousObjects){
 
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward

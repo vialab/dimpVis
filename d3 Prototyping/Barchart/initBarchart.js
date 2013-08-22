@@ -21,7 +21,7 @@ d3.select("#progressForm").selectAll("input").on("change", function change() {
 });*/
 
 barchart.init();
-setHintPathType(barchart,1);
+//setHintPathType(barchart,1);
 
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
@@ -65,7 +65,7 @@ slider.render();
  slider.dragEvent = d3.behavior.drag()  
 					  .on("dragstart", function(){ barchart.clearHintPath();})
                       .on("drag", function(){
-						   slider.updateDraggedSlider(d3.mouse(this)[0]);
+						   slider.updateDraggedSlider(d3.event.x);
                            barchart.interpolateBars(-1,slider.interpValue,slider.currentTick,slider.nextTick);
 					  })
 					  .on("dragend",function (){
@@ -74,8 +74,7 @@ slider.render();
                           barchart.redrawView(slider.currentTick,-1);
                      });
 //Apply the dragging function to the movable tick
-slider.widget.select("#slidingTick")				                 			  
-                   .call(slider.dragEvent);	   
+slider.widget.select("#slidingTick").call(slider.dragEvent);
 				   
 				   
 

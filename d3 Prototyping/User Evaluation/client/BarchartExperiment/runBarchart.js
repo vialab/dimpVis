@@ -1,12 +1,59 @@
 /** This file is a test run of a barchart experiment trial
  * */
 
+ var taskCounter = 1;
+var techniqueCounter = 0;
+var timeCounter = 0;
+var timerVar;
+var totalTasks = 2; //For each interaction technique
+var techniqueOrder = []; //Randomized order of interaction techniques
+
+//Function that will be executed every 1 second to check the time
+var timerFunc = function (){
+    timeCounter++;
+    if (timeCounter > 5){ //Exceeded maximum time provided for a task
+        alert("Maximum time to complete the task has been exceeded.  You will now begin the next task.");
+        //Grab the solution (if any), submit whatever solution is currently in the text box?
+        /**var solution = d3.select("#taskSolution").node().value;
+         var result;
+         if (solution.length >0){
+         result = confirm("You have entered: "+solution+".  Would you like to submit this answer?");
+         }
+
+         if (result ==true){
+         updateView(solution);
+         }else{
+         updateView("");
+         }*/
+    }else{ //Display the timer counts for debugging
+        d3.select("#timer").node().innerHTML=timeCounter;
+    }
+};
+
+//Called when the html page is loaded
+window.onload = function (){
+    //startTimer();
+    //Get the starting technique
+    d3.json("http://localhost:8080/getInteractionTechniqueOrder?", function(error,response) {
+        console.log(response);
+        techniqueOrder = response;
+        updateInteractionTechnique(techniqueOrder[techniqueCounter]);
+    });
+}
+
+function startTimer(){
+    timerVar = setInterval(timerFunc,1000);
+}
+function stopTimer(){
+    clearInterval(timerVar);
+}
+
 //To disable the drag function
 var doNothing = d3.behavior.drag().on("dragstart", null)
     .on("drag", null).on("dragend",null);
 
 //////////////////////Code for creating a barchart visualization//////////////////////
-var barchart   = new Barchart(400, 50, 30, 100 , "#bargraph",80);
+var barchart   = new Barchart(700, 90, 10, 10 , "#bargraph",40);
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 barchart.clickSVG = function (){
@@ -38,7 +85,7 @@ barchart.dragEvent = d3.behavior.drag()
         barchart.selectBar(d.id, d.nodes, d.xPos);
 
         //Log the interaction
-        d3.xhr("http://localhost:8080/log?content=dragStart"+ d.id, function(d) { });
+        d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content=dragStart"+ d.id, function(d) { });
     })
     .on("drag", function(d){
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
@@ -49,14 +96,11 @@ barchart.dragEvent = d3.behavior.drag()
         slider.updateSlider(barchart.currentView);
 
         //Log the interaction
-        d3.xhr("http://localhost:8080/log?content=dragEnd"+ d.id, function(d) { });
+        d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content=dragEnd"+ d.id, function(d) { });
     });
 
-//Apply the dragging function to each bar
-//barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
-
 //////////////////////Code for creating the slider widget//////////////////////
-var slider   = new Slider(50, 700, "#time",labels, "Time","#666",40);
+var slider   = new Slider(50, 800, "#time",labels, "Time","#666",80);
 slider.init();
 slider.render();
 
@@ -72,56 +116,9 @@ slider.dragEvent = d3.behavior.drag()
         barchart.changeView(slider.currentTick);
         barchart.redrawView(slider.currentTick,-1);
     });
-//Apply the dragging function to the movable tick
-//slider.widget.select("#slidingTick").call(slider.dragEvent);
 
-//////////////////////Declare additional functions required to run the experiment here//////////////////////
-var taskCounter = 1;
-var techniqueCounter = 0;
-var timeCounter = 0;
-var timerVar;
-var totalTasks = 2; //For each interaction technique
-var techniqueOrder = []; //Randomized order of interaction techniques
+//////////////////////Declare functions required to run the experiment here//////////////////////
 
-//Function that will be executed every 1 second to check the time
-var timerFunc = function (){
-    timeCounter++;
-    if (timeCounter > 5){ //Exceeded maximum time provided for a task
-       alert("Maximum time to complete the task has been exceeded.  You will now begin the next task.");
-        //Grab the solution (if any), submit whatever solution is currently in the text box?
-        /**var solution = d3.select("#taskSolution").node().value;
-        var result;
-        if (solution.length >0){
-            result = confirm("You have entered: "+solution+".  Would you like to submit this answer?");
-        }
-
-        if (result ==true){
-            updateView(solution);
-        }else{
-            updateView("");
-        }*/
-    }else{ //Display the timer counts for debugging
-        d3.select("#timer").node().innerHTML=timeCounter;
-    }
-};
-
-//Called when the html page is loaded
-window.onload = function (){
-   //startTimer();
-    //Get the starting technique
-    d3.json("http://localhost:8080/getInteractionTechniqueOrder?", function(error,response) {
-        console.log(response);
-        techniqueOrder = response;
-        updateInteractionTechnique(techniqueOrder[techniqueCounter]);
-    });
-}
-
-function startTimer(){
-    timerVar = setInterval(timerFunc,1000);
-}
-function stopTimer(){
-    clearInterval(timerVar);
-}
 //Move to the next task, with confirmation.  Collect the solution (if any) provided for the task
 d3.select("#nextButton").on("click", nextTask);
 
@@ -144,9 +141,9 @@ function nextTask (){
 //If max tasks reached, switches interaction technique, otherwise:
 //Updates the html page when a new task begins and saves the solution entered in the text box
 //Logs the solution
-function switchTask (solution){
+function switchTask (solution){ //TODO: add timer to tasks
     //Log the solution
-    d3.xhr("http://localhost:8080/log?content="+solution, function(d) { });
+    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content="+solution, function(d) { });
 
     taskCounter++;
 
@@ -163,8 +160,7 @@ function switchTask (solution){
     //stopTimer();
 }
 //Sets the current interaction technique, and disables the other (dimp vs. slider)
-function switchInteractionTechnique(){
-   //TODO:Log this event
+function switchInteractionTechnique(){ //TODO: change the data set
    techniqueCounter++;
    if (techniqueCounter > 0){ //Finished all tasks, enter exploratory period
        startExploratory();
@@ -198,7 +194,9 @@ function changePhase (){
 //When all tasks are done, start the exploratory period:
 //Add full hint path and fast forwarding feature, use real dataset and clear the task panel
 function startExploratory(){
-   //TODO: log this event
+    //Tell the server that exploratory period is starting
+    d3.xhr("http://localhost:8080/startExploratory?", function(d) { });
+
    //Update the visualization
    setHintPathType(barchart,0);
    barchart.render(dataset2,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
@@ -208,12 +206,11 @@ function startExploratory(){
     d3.select("#solutionEntry").remove();
     d3.select("#taskDescription").remove();
     d3.select("#counter").node().innerHTML = "Exploratory Period..";
-    d3.select("#nextButton").node().innerHTML = "Begin Next Phase?";
+    d3.select("#nextButton").node().innerHTML = "Next Phase";
     slider.widget.remove();
 
     d3.select("#nextButton").on("click", changePhase);
    //TODO: add a timer to this
-
 }
 
 
