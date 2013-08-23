@@ -347,7 +347,7 @@ Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mous
  *  cellY: The y-position of the stationary bar
  * */
 Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggingDirection){
-     console.log(this.interpValue);
+
     //If the atPeak variable is set to and index, it means that the first or last point on the sine wave is forming
     //A peak with the hint path
     if (this.atPeak!=-1){ //At one end point on the sine wave
@@ -368,7 +368,7 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
             if (this.timeDirection ==1){this.passedMiddle = 1}
             else {this.passedMiddle =0;}
         }
-        //console.log("passed mid "+this.passedMiddle+" time direction "+this.timeDirection);
+        console.log("passed mid "+this.passedMiddle+" time direction "+this.timeDirection);
         this.interpValue = 0.5;
         //newY = this.peakValue;
     }else{ //At base, update the view
@@ -381,6 +381,16 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
             }else if (this.timeDirection==-1 && this.currentView >0){
                 moveBackward(this,draggingDirection);
                 this.setSineWaveVariables(newPathDirection,cellY,1);
+            }else if (this.nextView == this.lastView){ //Kind of a redundant solution (because the code in util already does this) figure out a better way
+                if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
+                    this.timeDirection = (this.timeDirection==1)?-1:1;
+                    this.atPeak= this.nextView;
+                }
+            }else if (this.currentView ==0){
+                if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
+                    this.timeDirection = (this.timeDirection==1)?-1:1;
+                    this.atPeak= this.currentView;
+                }
             }
         }
         //newY=cellY;

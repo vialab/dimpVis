@@ -1,12 +1,12 @@
 /** This file is a test run of a barchart experiment trial
  * */
-
- var taskCounter = 1;
+var taskCounter = 1;
 var techniqueCounter = 0;
 var timeCounter = 0;
 var timerVar;
 var totalTasks = 2; //For each interaction technique
 var techniqueOrder = []; //Randomized order of interaction techniques
+var maxTaskTime = 5;
 
 //To disable the drag function
 var doNothing = d3.behavior.drag().on("dragstart", null)
@@ -82,7 +82,7 @@ slider.dragEvent = d3.behavior.drag()
 //Function that will be executed every 1 second to check the time
 var timerFunc = function (){
     timeCounter++;
-    if (timeCounter > 5){ //Exceeded maximum time provided for a task
+    if (timeCounter > maxTaskTime){ //Exceeded maximum time provided for a task
         alert("Maximum time to complete the task has been exceeded.  You will now begin the next task.");
         //Grab the solution (if any), submit whatever solution is currently in the text box?
         var solution = d3.select("#taskSolution").node().value;
@@ -97,7 +97,7 @@ var timerFunc = function (){
             switchTask("");
         }
     }else if (timeCounter > 2){ //Display the timer counts for debugging
-        d3.select("#timer").node().innerHTML="Time Remaining: "+timeCounter;
+        d3.select("#timer").node().innerHTML="Time Remaining: "+(maxTaskTime-timeCounter);
     }
 };
 
