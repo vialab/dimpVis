@@ -70,3 +70,15 @@
 #solutionEntry{
     margin-left:20px;
 }
+
+#timer{
+    float:right;
+    height:800px;
+    width:400px;
+    color:#d62728;
+    font-family:Verdana;
+    font-size:18px;
+    font-weight:bold;
+    margin-left:900px;
+    margin-top:25px;
+}

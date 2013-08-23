@@ -5,10 +5,11 @@
 var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries");
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
-scatterplot.clickSVG = function (){
+/**scatterplot.clickSVG = function (){
     d3.event.preventDefault();
     scatterplot.clearHintPath();
-};
+};*/
+
 scatterplot.init();
 
 //Define the click interaction of the hint labels to invoke fast switching among views
@@ -35,7 +36,7 @@ var dragBar = d3.behavior.drag()
 					  })
                       .on("drag", function(d){
                            slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
+                           scatterplot.updateDraggedPoint(d.id,d3.touches(this)[0][0],d3.touches(this)[0][1]);
 					  })
 					  .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
                                                   //coordinates of the scatterplot object
@@ -45,6 +46,19 @@ var dragBar = d3.behavior.drag()
 
 //Apply the dragging function to all points of the scatterplot, making them all draggable
 scatterplot.svg.selectAll(".displayPoints").call(dragBar);
+
+//Add dragging function for the interaction slider for ambiguous regions
+var dragInteractionSlider = d3.behavior.drag()
+    .on("dragstart", function(d){
+        console.log("start");
+    })
+    .on("drag", function(d){
+         alert(d3.touches(this));
+    })
+    .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
+        alert("end");
+    });
+scatterplot.svg.select("#interactionSlider").call(dragInteractionSlider);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
 var slider   = new Slider(15, 700, "#time",labels, "Time","#666",50);

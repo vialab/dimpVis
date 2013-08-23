@@ -36,14 +36,13 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.mouseY = -1;
    this.interpValue = 0; //Stores the current interpolation value (percentage travelled) when a point is dragged between two views
    this.labels = []; //Stores the labels of the hint path
-
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
-   this.closePoints = []; //Points which are near each other such that labels are probably overlapping
+   //this.closePoints = []; //Points which are near each other such that labels are probably overlapping
    this.loops = []; //Stores points to draw for interaction loops (if any)
    this.previousLoopAngle = "start"; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
    this.previousLoopSign = 0; //Keeps track of the angle switching from positive to negative or vice versa when dragging along a loop
    this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
-   this.endView = -1;  //The view at the end of a loop
+   //this.endView = -1;  //The view at the end of a loop
    this.timeDirection = 1; //Tracks the direction travelling over time
 
    //Save some angle values
@@ -61,7 +60,6 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
    this.clickSVG = this.placeholder;
-   this.dragEvent = null;
 }
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -147,8 +145,14 @@ Scatterplot.prototype.render = function( data, start, labels) {
           .attr("title", function (d) {return d.label;});
 
     //Append an empty g element to contain the hint path
-    this.svg.append("g")
-        .attr("id","hintPath");
+    this.svg.append("g").attr("id","hintPath");
+
+    //Render an interaction slider (alternative method for navigating ambiguous regions)
+    /**this.svg.select("#hintPath").append("rect")
+        .attr("id","interactionSlider")
+        .attr("width",20).attr("height",50)
+        .attr("x",100).attr("y",100)
+        .style("fill","#666");*/
 }
 /** Draws the axes  and the graph title on the SVG
  *  xScale: a function defining the scale of the x-axis

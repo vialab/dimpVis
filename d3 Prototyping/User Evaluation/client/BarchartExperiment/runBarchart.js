@@ -8,46 +8,6 @@ var timerVar;
 var totalTasks = 2; //For each interaction technique
 var techniqueOrder = []; //Randomized order of interaction techniques
 
-//Function that will be executed every 1 second to check the time
-var timerFunc = function (){
-    timeCounter++;
-    if (timeCounter > 5){ //Exceeded maximum time provided for a task
-        alert("Maximum time to complete the task has been exceeded.  You will now begin the next task.");
-        //Grab the solution (if any), submit whatever solution is currently in the text box?
-        /**var solution = d3.select("#taskSolution").node().value;
-         var result;
-         if (solution.length >0){
-         result = confirm("You have entered: "+solution+".  Would you like to submit this answer?");
-         }
-
-         if (result ==true){
-         updateView(solution);
-         }else{
-         updateView("");
-         }*/
-    }else{ //Display the timer counts for debugging
-        d3.select("#timer").node().innerHTML=timeCounter;
-    }
-};
-
-//Called when the html page is loaded
-window.onload = function (){
-    //startTimer();
-    //Get the starting technique
-    d3.json("http://localhost:8080/getInteractionTechniqueOrder?", function(error,response) {
-        console.log(response);
-        techniqueOrder = response;
-        updateInteractionTechnique(techniqueOrder[techniqueCounter]);
-    });
-}
-
-function startTimer(){
-    timerVar = setInterval(timerFunc,1000);
-}
-function stopTimer(){
-    clearInterval(timerVar);
-}
-
 //To disable the drag function
 var doNothing = d3.behavior.drag().on("dragstart", null)
     .on("drag", null).on("dragend",null);
@@ -119,6 +79,48 @@ slider.dragEvent = d3.behavior.drag()
 
 //////////////////////Declare functions required to run the experiment here//////////////////////
 
+//Function that will be executed every 1 second to check the time
+var timerFunc = function (){
+    timeCounter++;
+    if (timeCounter > 5){ //Exceeded maximum time provided for a task
+        alert("Maximum time to complete the task has been exceeded.  You will now begin the next task.");
+        //Grab the solution (if any), submit whatever solution is currently in the text box?
+        var solution = d3.select("#taskSolution").node().value;
+        var result;
+        if (solution.length >0){
+            result = confirm("You have entered: "+solution+".  Would you like to submit this answer?");
+        }
+
+        if (result ==true){
+            switchTask(solution);
+        }else{
+            switchTask("");
+        }
+    }else if (timeCounter > 2){ //Display the timer counts for debugging
+        d3.select("#timer").node().innerHTML="Time Remaining: "+timeCounter;
+    }
+};
+
+//Called when the html page is loaded
+window.onload = function (){
+    //Get the starting technique
+    d3.json("http://localhost:8080/getInteractionTechniqueOrder?", function(error,response) {
+        console.log(response);
+        techniqueOrder = response;
+        updateInteractionTechnique(techniqueOrder[techniqueCounter]);
+        //startTimer();
+    });
+}
+
+function startTimer(){
+    timerVar = setInterval(timerFunc,1000);
+}
+function stopTimer(){
+    clearInterval(timerVar);
+    timeCounter = 0;
+    d3.select("#timer").node().innerHTML="";
+}
+
 //Move to the next task, with confirmation.  Collect the solution (if any) provided for the task
 d3.select("#nextButton").on("click", nextTask);
 
@@ -141,7 +143,7 @@ function nextTask (){
 //If max tasks reached, switches interaction technique, otherwise:
 //Updates the html page when a new task begins and saves the solution entered in the text box
 //Logs the solution
-function switchTask (solution){ //TODO: add timer to tasks
+function switchTask (solution){
     //Log the solution
     d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content="+solution, function(d) { });
 
@@ -157,7 +159,8 @@ function switchTask (solution){ //TODO: add timer to tasks
     d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
     d3.select("#taskDescription").node().innerHTML = "Description #"+taskCounter;
 
-    //stopTimer();
+   // stopTimer();
+   // startTimer();
 }
 //Sets the current interaction technique, and disables the other (dimp vs. slider)
 function switchInteractionTechnique(){ //TODO: change the data set
@@ -194,6 +197,8 @@ function changePhase (){
 //When all tasks are done, start the exploratory period:
 //Add full hint path and fast forwarding feature, use real dataset and clear the task panel
 function startExploratory(){
+
+    //stopTimer();
     //Tell the server that exploratory period is starting
     d3.xhr("http://localhost:8080/startExploratory?", function(d) { });
 
