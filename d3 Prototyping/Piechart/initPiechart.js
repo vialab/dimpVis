@@ -3,9 +3,8 @@
 
 //Create a new piechart visualization
 var piechart   = new Piechart(50, 50 , 180,"#piegraph","Random",labels);
-//var colours = ["#74c476", "#31a354","#a1d99b","#c7e9c0",  "#3182bd", "#6baed6", "#9ecae1","#c6dbef"]; //Old D3 colour scale
 var colours = colorbrewer.Set2[3]; //Use scale from color brewer
-var colourLabels = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
+var colourLabels = ["Segment A","Segment B","Segment C"];
 
 //Define the function when the SVG (background) is clicked, should clear the hint path displayed
 piechart.clickSVG = function (){

@@ -25,6 +25,7 @@ function clearVis (objectClass){
  *                    set to 0, if unknown
  * */
 function moveForward(objectRef,draggingDirection){
+
     if (objectRef.nextView < objectRef.lastView){ //Avoid index out of bounds
         objectRef.currentView = objectRef.nextView;
         objectRef.nextView++;
@@ -53,7 +54,6 @@ function moveBackward (objectRef,draggingDirection){
         }
     }
 }
-
 /** Checks if the mouse is in bounds defined by a and b, updates the interpolation amount
  *  mouse: the mouse position
  *  @return start,end: boundary values are returned if the given
@@ -73,17 +73,16 @@ function checkBounds (objectRef,a,b,mouse){
 
     //Check if the mouse is between start and end values
     if (mouse <= start) {
-        //if (this.timeDirection == -1) {this.interpValue = 1; }
-        //else{this.interpValue = 0;}
+        //if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
+        //else{objectRef.interpValue = 0;}
         objectRef.interpValue = 0;
         return start;
-    }else if (mouse >=end) {
-        //if (this.timeDirection == -1) {this.interpValue = 1; }
-        //else{this.interpValue = 0;}
+    }else if (mouse >= end) {
+        //if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
+        //else{objectRef.interpValue = 0;}
         objectRef.interpValue = 0;
         return end;
     }
-
     return mouse;
 }
 /** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
@@ -373,5 +372,3 @@ function drawColourLegend (objectRef,colours,labels,x,y,w,h,spacing){
         .attr("y",function(d){return (d.y + h/2)})
         .text(function (d){return d.label})
 }
-//TODO: still deciding if these functions should be in this file?
-//////////////////////Detecting Ambiguity (stationary sequences) in the dataset //////////////////////

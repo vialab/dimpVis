@@ -58,6 +58,10 @@
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
    this.clickSVG = this.placeholder();
+   this.touchEndFunction = this.placeholder;
+   this.touchStartFunction = this.placeholder;
+   this.touchMoveFunction = this.placeholder;
+   this.touchLabel = this.placeholder;
    this.dragEvent = null;
    this.draggedBar = -1;
 
@@ -164,6 +168,7 @@ this.svg.selectAll("rect")
      .attr("height", function(d) {return d.nodes[ref.currentView][1]; })
 	 .attr("class", "displayBars")
 	 .attr("id", function (d){return "displayBars"+d.id;});
+     //.on("touchend",this.touchEndFunction).on("touchmove",this.touchMoveFunction).on("touchstart",this.touchStartFunction);
 
 	//Add a blank g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -698,6 +703,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("transform", "translate("+(-translate)+")")
         .attr("id",function (d) {return "hintLabel"+ d.id})
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
+        //.on("touchend",this.touchLabel);
 }
 /** Clears the hint path by removing its components from the svg
  * */

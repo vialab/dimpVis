@@ -347,7 +347,7 @@ Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mous
  *  cellY: The y-position of the stationary bar
  * */
 Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggingDirection){
-
+     console.log(this.interpValue);
     //If the atPeak variable is set to and index, it means that the first or last point on the sine wave is forming
     //A peak with the hint path
     if (this.atPeak!=-1){ //At one end point on the sine wave
@@ -764,31 +764,6 @@ Heatmap.prototype.calculatePathPoints = function (offset,indices){
     this.ambiguousCells[indices[indices.length-1]] = [1,endDirection];
 
     return pathPoints;
-}
-/**Draws a colour scale showing the values assigned to each colour
- * colours: the different colours to map the values to
- * labels: the labels to identify each colour
- * x,y: left and top margins of the scale
- * */
-//TODO: use the real numerical ranges?
-Heatmap.prototype.showColourScale = function (colours,labels,x,y){
-    var ref = this;
-
-    //Prepare the data for drawing the scale
-    this.svg.selectAll(".legend").data(colours.map(function (d,i) {
-        return {colour:d,id:i,label:labels[i]};
-    })).enter().append("g").attr("class","legend");
-
-   //Draw the colours as rectangles
-    this.svg.selectAll(".legend").append("rect")
-        .attr("x",x).attr("y",function(d){return (d.id*ref.cellSize/3 + y)})
-        .attr("width",this.cellSize/3).attr("height",this.cellSize/3)
-        .style("fill",function (d){return d.colour});//.style("stroke","#FFF");
-
-    //Draw the labels for each colour
-    this.svg.selectAll(".legend").append("text").attr("x",x+this.cellSize/3+5)
-        .attr("y",function(d){return (d.id*ref.cellSize/3 + y + ref.cellSize/6)})
-        .text(function (d){return d.label})
 }
 //Todo: non-existent data values in cell (white?), this would involve screening the dataset as well, similar to ambiguous cases
 

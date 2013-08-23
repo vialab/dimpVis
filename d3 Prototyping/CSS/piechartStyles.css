@@ -2,6 +2,7 @@
 body {
     /**Disables default selections (text, svg elements) of the browser*/
     -webkit-user-select: none;
+    overflow:hidden;
 }
 #graphTitle{
     font-family: sans-serif;

@@ -3,7 +3,7 @@ body {
   shape-rendering: crispEdges;
   /**Disables default selections (text, svg elements) of the browser*/
   -webkit-user-select: none;
-
+  overflow:hidden;
 }
 
 .axisVertical {

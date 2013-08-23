@@ -253,7 +253,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
             }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0] == 1){
                 ref.setSineWaveVariables(-1,next,0);
                 //Detect if the sine wave and regular hint path form a peak at end point
-                if(current>next /**&& this.timeDirection==1*/){
+                if(current>next){
                     ref.atCorner = ref.nextView;
                 }
                 newAngle = ref.handleDraggedSegment(id,current,next,angle, d.nodes,draggingDirection);
@@ -323,7 +323,6 @@ Piechart.prototype.setSineWaveVariables = function (pathDirection,angle,passedMi
  *  draggingDirection: angular direction
  *  @return new end angle of the dragged segment
  * */
-//TODO: problem if either current or next is part of stationary sequence
 Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,nodes,draggingDirection){
 
    //Check to see if the mouse angle is in between current and next, or beyond one of them
