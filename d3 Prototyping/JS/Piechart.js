@@ -91,11 +91,11 @@ Piechart.prototype.init = function(){
    //Add blur filters to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
      .attr("id", "blur").append("svg:feGaussianBlur")
-     .attr("stdDeviation", 5);
+     .attr("stdDeviation", 3);
 
-    this.svg.append("svg:defs").append("svg:filter")
+    /**this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blur2").append("svg:feGaussianBlur")
-        .attr("stdDeviation", 2);
+        .attr("stdDeviation", 3);*/
  }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -729,7 +729,8 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","pathUnderlayer").attr("class","path")
-        .attr("filter", "url(#blur2)");
+       // .attr("filter", "url(#blur2)");
+        .attr("filter", "url(#blur)");
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")

@@ -21,7 +21,7 @@ body {
 #path{
     font-family: sans-serif;
     font-size: 10px;
-    stroke-width:3;
+    stroke-width:1;
     fill:none;
     stroke:#969696;
 }

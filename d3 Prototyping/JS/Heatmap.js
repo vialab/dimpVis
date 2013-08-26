@@ -381,15 +381,11 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
             }else if (this.timeDirection==-1 && this.currentView >0){
                 moveBackward(this,draggingDirection);
                 this.setSineWaveVariables(newPathDirection,cellY,1);
-            }else if (this.nextView == this.lastView){ //Kind of a redundant solution (because the code in util already does this) figure out a better way
+            }else if (this.nextView == this.lastView){ //TODO:Kind of a redundant solution (because the code in util already does this) figure out a better way
+                //TODO: apply this solution to other prototypes
                 if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
                     this.timeDirection = (this.timeDirection==1)?-1:1;
                     this.atPeak= this.nextView;
-                }
-            }else if (this.currentView ==0){
-                if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
-                    this.timeDirection = (this.timeDirection==1)?-1:1;
-                    this.atPeak= this.currentView;
                 }
             }
         }

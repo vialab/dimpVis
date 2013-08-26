@@ -94,10 +94,6 @@ Barchart.prototype.init = function(){
      //Add the blur filter to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blur").append("svg:feGaussianBlur")
-        .attr("stdDeviation", 5);
-
-    this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blur2").append("svg:feGaussianBlur")
         .attr("stdDeviation", 3);
 }
 /** Render the visualization onto the svg
@@ -678,7 +674,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
    //Draw a white underlayer
    this.svg.select("#hintPath").append("svg:path")
         .attr("d", this.hintPathGenerator(ref.pathData))
-        .attr("filter", "url(#blur2)")
+        .attr("filter", "url(#blur)")
         .attr("transform","translate("+(-translate)+")")
         .attr("id","underLayer");
 

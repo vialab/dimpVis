@@ -36,7 +36,8 @@ var dragBar = d3.behavior.drag()
 					  })
                       .on("drag", function(d){
                            slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
-                           scatterplot.updateDraggedPoint(d.id,d3.touches(this)[0][0],d3.touches(this)[0][1]);
+                           //scatterplot.updateDraggedPoint(d.id,d3.touches(this)[0][0],d3.touches(this)[0][1]);
+                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
 					  })
 					  .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
                                                   //coordinates of the scatterplot object
@@ -48,17 +49,17 @@ var dragBar = d3.behavior.drag()
 scatterplot.svg.selectAll(".displayPoints").call(dragBar);
 
 //Add dragging function for the interaction slider for ambiguous regions
-var dragInteractionSlider = d3.behavior.drag()
+/**var dragInteractionSlider = d3.behavior.drag()
     .on("dragstart", function(d){
         console.log("start");
     })
     .on("drag", function(d){
-         alert(d3.touches(this));
+         console.log("dragged");
     })
     .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
         alert("end");
     });
-scatterplot.svg.select("#interactionSlider").call(dragInteractionSlider);
+scatterplot.svg.selectAll(".interactionSliders").call(dragInteractionSlider);*/
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
 var slider   = new Slider(15, 700, "#time",labels, "Time","#666",50);
