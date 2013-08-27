@@ -45,6 +45,12 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    //this.endView = -1;  //The view at the end of a loop
    this.timeDirection = 1; //Tracks the direction travelling over time
 
+    //For the interaction sliders
+    this.sliderCurrentView = -1;
+    this.sliderNextView = -1;
+    this.sliderLastView = -1;
+    this.draggedSlider = -1;
+
    //Save some angle values
    this.halfPi = Math.PI/2;
    this.threePi_two = Math.PI*3/2;
@@ -60,6 +66,9 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
    this.clickSVG = this.placeholder;
+   /**this.dragStartSlider = this.placeholder;
+   this.draggingSlider = this.placeholder;
+   this.dragEndSlider = this.placeholder;*/
 }
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -70,8 +79,8 @@ Scatterplot.prototype.init = function() {
       .attr("width", this.width+(this.padding*2.5))
       .attr("height", this.height+(this.padding*2))
       .attr("x",this.xpos).attr("y",this.ypos)
-      .on("click",this.clickSVG)
-      .append("g").attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+      .on("click",this.clickSVG).append("g")
+      .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
     //Add the blur filter used for the hint path to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
@@ -132,8 +141,7 @@ Scatterplot.prototype.render = function( data, start, labels) {
                d[1] = yScale(d[1]);
            });
 	        return {nodes:d.points,id:i,label:d.label};
-	  }))	
-      .enter().append("g")
+	  })).enter().append("g")
 	  .attr("class","gDisplayPoints");
      
 	 //Draw the data points
@@ -143,6 +151,21 @@ Scatterplot.prototype.render = function( data, start, labels) {
           .attr("r", this.pointRadius).attr("class", "displayPoints")
           .attr("id", function (d){return "displayPoints"+d.id;})
           .attr("title", function (d) {return d.label;});
+         /**.on("mousedown", function (d){
+             ref.draggedPoint = d.id;
+             ref.showHintPath(d.id, d.nodes);
+             console.log("down");
+         })
+         .on("mousemove",function (d){
+             if (ref.draggedPoint != -1){
+                 ref.updateDraggedPoint(d.id,d3.mouse(this)[0],d3.mouse(this)[1]);
+                 console.log("move");
+             }
+         })
+         .on("mouseup", function (d){
+             ref.draggedPoint = -1;
+             console.log("up");
+         });*/
 
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -240,12 +263,35 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
             var currentPointInfo = ref.ambiguousPoints[ref.currentView];
             var nextPointInfo = ref.ambiguousPoints[ref.nextView];
 
-            if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
+            /**if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
+                console.log("next is ambiguous");
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
-                ref.dragAlongSlider(mouseY);
+                return;
+            }else{
+                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+            }*/
+            /***/
+            if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
+                ref.deactivateSlider(currentPointInfo[1]);
+                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+            }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
+                ref.deactivateSlider(nextPointInfo[1]);
+                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+            }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
+                /**if (ref.draggedSlider == -1){ //No slider is being dragged
+                    if (ref.sliderCurrentView == 0){
+
+                    }else if (ref.sliderNextView == ref.sliderLastView){
+                        newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+                        ref.currentView = ref.nextView;
+                        ref.nextView++;
+                    }
+
+                }*/
+                ref.activateSlider(currentPointInfo[1]);
                 return;
             }else{
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
@@ -343,86 +389,32 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
             return 0.3;
         });
 }
-/**Handles a dragging interaction along an interaction loop (really a circular dragging motion)
- * used to advance forward or backward along the hint path in the stationary point case
+/**Handles a dragging interaction along an interaction slider (vertical dragging motion)
+ * used to advance forward or backward along the hint path in the stationary point case.
+ * Updates the main view variables as well as the variables corresponding to each interval along the slider.
  * id: of the dragged point
- * groupNumber: the group of repeated points this loop belongs to
+ * yValues: along the slider
  * */
-/** Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
+//Replaced dragalongloop function
+Scatterplot.prototype.dragAlongSlider = function(id,mouseY,yValues) {
 
-     var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle]});
-     var angles = this.calculateMouseAngle(mouseX,mouseY,loopData[0][2],loopData[0][0],loopData[0][1]);
-     var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (+/-)
-
-     //Re-draw the anchor along the loop
-     var loopInterp = this.convertMouseToLoop_interp(angles[2]);
-
-     //Find the angular dragging direction
-     var draggingDirection;
-     if (angles[1] > this.previousLoopAngle){
-         draggingDirection = 1;
-     }else if (angles[1] < this.previousLoopAngle){
-         draggingDirection = -1;
-     }else{
-         draggingDirection = this.previousDraggingDirection;
-     }
-
-     //Adjust the interpolation value based on the dragging direction
-    var interpAmount = 1-angles[2];
-
-    //Check if the angle has changed signs
-    if (sign != this.previousLoopSign && this.previousLoopAngle != "start"){ //Switching Directions, might be a view change
-        var angle_deg = angles[1]*180/Math.PI;
-        if ((angle_deg >= 350 && angle_deg <= 360)||(angle_deg>=0 && angle_deg <=10)){ //Check for sign switches within 10 degrees of the 360/0 mark
-            if (draggingDirection==1){ //Dragging clockwise
-                if (this.nextView != this.lastView){
-                   if (this.ambiguousPoints[this.nextView+1][0]==0) { //Trying to detect end points to fix jumping
-                       console.log("end point next");
-                   }
-                }
-                this.moveForward();
-            }else{ //Dragging counter-clockwise
-                if (this.currentView > 0){
-                    if (this.ambiguousPoints[this.currentView-1][0]==0) {
-                        console.log("end point current");
-                    }
-                }
-                this.moveBackward();
-            }
-        }else{ //Halfway around the loop
-            this.interpValue = interpAmount;
-            this.timeDirection = this.findTimeDirection(interpAmount);
-        }
-    }else{ //Dragging in the middle of the loop, animate the view
-        this.timeDirection = this.findTimeDirection(interpAmount);
-        this.interpolatePoints(id,interpAmount,this.currentView,this.nextView);
-        this.interpolateLabelColour(interpAmount);
-        this.interpValue = interpAmount;
-    }
-
-     this.redrawAnchor(loopInterp,groupNumber);
-
-    //Save the dragging angle and directions
-    this.previousLoopAngle = angles[1];
-    this.previousLoopSign = sign;
-    this.previousDraggingDirection = draggingDirection;
-
-}*/
-
-Scatterplot.prototype.dragAlongSlider = function(mouseY ) {
-    var ref = this;
-    //TODO: inefficient way of finding the yvalues
-    var yValues = this.svg.selectAll(".hintLabels").filter(function (d){return (d.id==ref.currentView || d.id==ref.nextView)})
-        .data().map(function (d){return d.y});
-   var current = yValues[0];
-   var next = yValues[1];
+   var current = yValues[this.sliderCurrentView];
+   var next = yValues[this.sliderNextView];
    var bounds = checkBounds(this,current,next,mouseY);
    var draggingDirection = 1;
 
     if (bounds ==  current){ //Passing current view
-        moveBackward(this,draggingDirection);
+        if (this.sliderCurrentView >0){
+            moveBackward(this,draggingDirection);
+            this.sliderNextView = this.sliderCurrentView;
+            this.sliderCurrentView--;
+        }
    }else if (bounds == next){ //Passing next view
-        moveForward(this,draggingDirection);
+        if (this.sliderNextView < this.sliderLastView){
+            moveForward(this,draggingDirection);
+            this.sliderCurrentView = this.sliderNextView;
+            this.sliderNextView++;
+        }
    }else{ //Somewhere in between views
         findInterpolation(this,current,next,mouseY,0,draggingDirection);
         this.interpolatePoints(id,this.interpValue,this.currentView,this.nextView);
@@ -627,20 +619,31 @@ Scatterplot.prototype.redrawView = function(view) {
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
         .attr("class","hintLabels")
-        .attr("fill-opacity",function (d){ return ((d.id==drawingView)?1:0.3)})
-        .attr("id",function (d){return "hintLabels"+ d.id})
-        .on("click", this.clickHintLabelFunction);
+        .attr("fill-opacity",function (d){
+             //if (ref.ambiguousPoints[d.id][0] ==1) return 0;
+             return ((d.id==drawingView)?1:0.3)
+         }).attr("id",function (d){return "hintLabels"+ d.id})
+         .on("touchstart", function (){
+             d3.event.stopPropagation();
+         }).on("touchend", function (d){
+
+             if (!d3.select(d3.event.target).classed("hintLabels"))
+                 return;
+             d3.event.stopPropagation();
+             ref.animatePoints(ref.draggedPoint,ref.currentView, d.id);
+             ref.changeView(d.id);
+             ref.clearHintPath();
+         })
+        //.on("click", this.clickHintLabelFunction);
 
     //Render the hint path line
     this.svg.select("#hintPath").append("svg:path")
-        .attr("d",  line(points))
-        .attr("id","path")
+        .attr("d",  line(points)).attr("id","path")
         .attr("filter", "url(#blur)");
 
     //Fade out the other points using a transition
     this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
-	           .transition().duration(300)
-	           .style("fill-opacity", 0.3);
+	           .transition().duration(300).style("fill-opacity", 0.3);
 }
 /**This function places labels in ambiguous cases such that they do not overlap
  * points: a 2D array of positions of each label [x,y]...
@@ -655,13 +658,14 @@ Scatterplot.prototype.redrawView = function(view) {
   var indexCounter = 0;
   var index = -1;
 
-     for (var j= 0;j<repeatedPoints.length;j++){ //TODO: really inefficient change later!
-        repeatedPoints[j][3] = 0;
-     }
+ for (var j= 0;j<repeatedPoints.length;j++){ //TODO: really inefficient change later!
+    repeatedPoints[j][3] = 0;
+ }
 
   var adjustedPoints = points.map(function (d,i){
       var y = d[1];
       var x = d[0];
+
       if (ref.ambiguousPoints[i][0] == 1){
           if (ref.ambiguousPoints[i][1] != offset){
               indexCounter = 0;
@@ -669,7 +673,7 @@ Scatterplot.prototype.redrawView = function(view) {
               index++;
           }
           y = y + 25*indexCounter;
-          x = x + 50;
+          x = x + 20;
           indexCounter++;
           repeatedPoints[index][3] = indexCounter;
       }
@@ -685,18 +689,155 @@ Scatterplot.prototype.redrawView = function(view) {
  * */
 //Replaced the drawLoops function
 Scatterplot.prototype.drawSliders = function (points){
-
+   var ref = this;
    //Draw all sliders at their respective stationary points
     this.svg.select("#hintPath").selectAll(".interactionSliders")
         .data(points.map(function (d,i){
-            return {id:i,x:d[0]+25,y:d[1],numYears:d[3]};
+            var n = []; //Y-values of the years along the slider, can use this to draw ticks later
+
+            for (var j=0;j<d[3];j++){
+                n.push(d[1] + 25*j);
+            }
+
+            return {id:i,x:d[0]+45,y:d[1],numYears:d[3],nodes:n};
         }))
         .enter().append("rect").attr("class","interactionSliders")
         .attr("id",function (d,i){return "interactionSlider"+i;})
-        .style("fill","#666").attr("width",15).attr("height",function (d){return 25* d.numYears})
-        .attr("x", function (d){return d.x}).attr("y", function (d){return d.y})
-        .on("touchstart", function (){alert("start");}).on("touchmove", function (){alert("moving")})
-        .on("touchend",function (){alert("ending")});
+        .style("fill","#c7c7c7").attr("width",15).attr("height",function (d){return 25* d.numYears})
+        .attr("x", function (d){return d.x}).attr("y", function (d){return d.y});
+        /**.on("mousedown", this.placeholder)
+        .on("mousemove",this.placeholder)
+        .on ("mouseup", this.placeholder);
+        .on("touchstart", this.placeholder).on("touchmove",this.placeholder)
+        .on("touchend",this.placeholder);*/
+}
+/** Makes a slider (with id) active (interactive)*/
+Scatterplot.prototype.activateSlider = function (id){
+    var ref = this;
+   /** this.svg.select("#interactionSlider"+id).on("mousedown", function (d){
+        d3.event.preventDefault();
+        ref.sliderLastView = d.nodes.length -1;
+        ref.draggedSlider = d.id;
+
+        if (ref.timeDirection == 1){
+            ref.sliderCurrentView = 0;
+            ref.sliderNextView = 1;
+        }else{
+            ref.sliderCurrentView = ref.sliderLastView - 1;
+            ref.sliderNextView = ref.sliderLastView;
+        }
+    }).on("mousemove",function (d){
+            d3.event.preventDefault();
+            if (ref.draggedSlider != -1){
+                ref.dragAlongSlider(ref.draggedPoint,d3.mouse(this)[1],d.nodes);
+            }
+        }).on("mouseup",function (d){
+            d3.event.preventDefault();
+            d3.event.stopPropagation();
+
+            ref.draggedSlider = -1;
+            if (ref.sliderCurrentView == 0){
+                ref.nextView = ref.currentView;
+                ref.currentView--;
+            }else if (ref.sliderNextView == ref.sliderLastView){
+                ref.currentView = ref.nextView;
+                ref.nextView++;
+            }
+        });*/
+    /**this.svg.select("#interactionSlider"+id).on("touchstart", function (d){
+
+        d3.event.preventDefault();
+        ref.sliderLastView = d.nodes.length -1;
+        ref.draggedSlider = d.id;
+
+        if (ref.timeDirection == 1){
+            ref.sliderCurrentView = 0;
+            ref.sliderNextView = 1;
+        }else{
+            ref.sliderCurrentView = ref.sliderLastView - 1;
+            ref.sliderNextView = ref.sliderLastView;
+        }
+    }).on("touchmove",function (d){
+
+            d3.event.preventDefault();
+            if (ref.draggedSlider != -1){
+                var touchY;
+                 if (d3.touches(this).length>1){
+                 touchY = d3.touches(this)[1][1];
+                 }else{
+                 touchY = d3.touches(this)[0][1];
+                 }
+                ref.dragAlongSlider(ref.draggedPoint,touchY,d.nodes);
+            }
+        }).on("touchend",function (d){
+
+            d3.event.preventDefault();
+            d3.event.stopPropagation();
+
+            ref.draggedSlider = -1;
+            if (ref.sliderCurrentView == 0){
+                ref.nextView = ref.currentView;
+                ref.currentView--;
+            }else if (ref.sliderNextView == ref.sliderLastView){
+                ref.currentView = ref.nextView;
+                ref.nextView++;
+            }
+        });*/
+
+//Add dragging function for the interaction slider for ambiguous regions
+    var dragInteractionSlider = d3.behavior.drag()
+        .on("dragstart", function(d){
+            d3.event.sourceEvent.preventDefault();
+            ref.sliderLastView = d.nodes.length -1;
+            ref.draggedSlider = d.id;
+
+            if (ref.timeDirection == 1){
+                ref.sliderCurrentView = 0;
+                ref.sliderNextView = 1;
+            }else{
+                ref.sliderCurrentView = ref.sliderLastView - 1;
+                ref.sliderNextView = ref.sliderLastView;
+            }
+        })
+        .on("drag", function(d){
+            d3.event.sourceEvent.preventDefault();
+            if (ref.draggedSlider != -1){
+                var touchY;
+                if (d3.touches(this).length>1){
+                    touchY = d3.touches(this)[1][1];
+                }else{
+                    touchY = d3.touches(this)[0][1];
+                }
+                ref.dragAlongSlider(ref.draggedPoint,touchY,d.nodes);
+            }
+        })
+        .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
+            d3.event.sourceEvent.preventDefault();
+            d3.event.sourceEvent.stopPropagation();
+
+            ref.draggedSlider = -1;
+            if (ref.sliderCurrentView == 0){
+                ref.nextView = ref.currentView;
+                ref.currentView--;
+            }else if (ref.sliderNextView == ref.sliderLastView){
+                ref.currentView = ref.nextView;
+                ref.nextView++;
+            }
+        });
+    this.svg.select("#interactionSlider"+id).call(dragInteractionSlider);
+}
+/**De-activates a slider (with id) */
+Scatterplot.prototype.deactivateSlider = function (id){
+   /** this.svg.select("#interactionSlider"+id)
+        .on("mousedown", this.placeholder)
+        .on("mousemove",this.placeholder)
+        .on ("mouseup", this.placeholder);*/
+  /** this.svg.select("#interactionSlider"+id)
+       .on("touchstart", this.placeholder)
+       .on("touchmove",this.placeholder)
+       .on ("touchend", this.placeholder);*/
+  var ref = this;
+  this.svg.select("#interactionSlider"+id).call(ref.placeholder());
 }
 /** Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
 Scatterplot.prototype.clearHintPath = function () {

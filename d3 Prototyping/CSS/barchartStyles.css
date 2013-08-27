@@ -21,6 +21,8 @@ body {
     stroke-width:1;
     fill:none;
     stroke:#1f77b4;
+    /**-webkit-filter:blur(3px);
+    -moz-filter:blur(3px); this didn't work..*/
 }
 
 /*For the short hint path */
@@ -29,7 +31,7 @@ body {
     fill:none;
 }
 #underLayer{
-    stroke-width:7;
+    stroke-width:9;
     fill:none;
     stroke:#FFFFFF;
 }

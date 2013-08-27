@@ -164,7 +164,6 @@ this.svg.selectAll("rect")
      .attr("height", function(d) {return d.nodes[ref.currentView][1]; })
 	 .attr("class", "displayBars")
 	 .attr("id", function (d){return "displayBars"+d.id;});
-     //.on("touchend",this.touchEndFunction).on("touchmove",this.touchMoveFunction).on("touchstart",this.touchStartFunction);
 
 	//Add a blank g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -672,14 +671,14 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
     var ref = this;
 
    //Draw a white underlayer
-   this.svg.select("#hintPath").append("svg:path")
+   this.svg.select("#hintPath").append("path")
         .attr("d", this.hintPathGenerator(ref.pathData))
-        .attr("filter", "url(#blur)")
+        //.attr("filter", "url(#blur)")
         .attr("transform","translate("+(-translate)+")")
         .attr("id","underLayer");
 
 	//Draw the hint path line
-   this.svg.select("#hintPath").append("svg:path")
+   this.svg.select("#hintPath").append("path")
        .attr("d", this.hintPathGenerator(ref.pathData))
        .attr("filter", "url(#blur)")
        .attr("transform","translate("+(-translate)+")")

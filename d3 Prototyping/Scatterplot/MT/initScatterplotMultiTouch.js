@@ -13,53 +13,60 @@ var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility r
 scatterplot.init();
 
 //Define the click interaction of the hint labels to invoke fast switching among views
-scatterplot.clickHintLabelFunction = function (d, i){
+/**scatterplot.clickHintLabelFunction = function (d, i){
+    d3.event.preventDefault();
     d3.event.stopPropagation(); //Prevents the event from propagating down to the SVG
     scatterplot.animatePoints(scatterplot.draggedPoint,scatterplot.currentView, i);
     scatterplot.changeView(i);
     slider.updateSlider(i);
-};
+};*/
 
 scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an array created in a separate js file containing the json data,
                                         // and labels is an array representing the different views of the dataset
 
 //Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot
-var dragBar = d3.behavior.drag()
+var dragPoint = d3.behavior.drag()
                        .origin(function(d){ //Set the starting point of the drag interaction
 							return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
 	                   })
 					   .on("dragstart", function(d){
 						    scatterplot.clearHintPath();
+                            d3.event.sourceEvent.preventDefault();
 						    scatterplot.draggedPoint = d.id;
                             scatterplot.previousDragAngle = 0; //To be safe, re-set this
                             scatterplot.showHintPath(d.id,d.nodes);
 					  })
                       .on("drag", function(d){
+                           document.title = "drag1";
+                           d3.event.sourceEvent.preventDefault();
                            slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
-                           //scatterplot.updateDraggedPoint(d.id,d3.touches(this)[0][0],d3.touches(this)[0][1]);
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
+                           var userX,userY;
+                           if (d3.touches(this).length > 0){
+                               userX = d3.touches(this)[0][0];
+                               userY = d3.touches(this)[0][1];
+                           }else{
+                               userX = d3.event.x;
+                               userY = d3.event.y;
+                           }
+                           scatterplot.updateDraggedPoint(d.id,userX,userY);
+                           document.title = "drags2";
 					  })
 					  .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
                                                   //coordinates of the scatterplot object
+                            if (!d3.select(d3.event.sourceEvent.target).classed("displayPoints"))
+                                return;
+
+
+                            d3.event.sourceEvent.preventDefault();
 					        scatterplot.snapToView(d.id,d.nodes);
 							slider.updateSlider(scatterplot.currentView);
+                            scatterplot.clearHintPath();
+                           document.title = "drag end points";
 					  });	
 
 //Apply the dragging function to all points of the scatterplot, making them all draggable
-scatterplot.svg.selectAll(".displayPoints").call(dragBar);
+scatterplot.svg.selectAll(".displayPoints").call(dragPoint);
 
-//Add dragging function for the interaction slider for ambiguous regions
-/**var dragInteractionSlider = d3.behavior.drag()
-    .on("dragstart", function(d){
-        console.log("start");
-    })
-    .on("drag", function(d){
-         console.log("dragged");
-    })
-    .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
-        alert("end");
-    });
-scatterplot.svg.selectAll(".interactionSliders").call(dragInteractionSlider);*/
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
 var slider   = new Slider(15, 700, "#time",labels, "Time","#666",50);
