@@ -281,6 +281,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
                 ref.deactivateSlider(nextPointInfo[1]);
                 newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
             }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
+
                 /**if (ref.draggedSlider == -1){ //No slider is being dragged
                     if (ref.sliderCurrentView == 0){
 
@@ -613,7 +614,7 @@ Scatterplot.prototype.redrawView = function(view) {
        .data(adjustedPoints.map(function (d,i) {
             var xPos = d[0] + ref.pointRadius*2;
             var yPos = d[1] + ref.pointRadius*2;
-            return {x:xPos,y:yPos,id:i}
+            return {x:xPos,y:yPos,id:i,groupNum:d[2]}
         })).enter().append("svg:text")
         .text(function(d) { return ref.labels[d.id]; })
         .attr("x", function(d) {return d.x;})
@@ -623,6 +624,7 @@ Scatterplot.prototype.redrawView = function(view) {
              //if (ref.ambiguousPoints[d.id][0] ==1) return 0;
              return ((d.id==drawingView)?1:0.3)
          }).attr("id",function (d){return "hintLabels"+ d.id})
+         //Replaced the click function defined in init
          .on("touchstart", function (){
              d3.event.stopPropagation();
          }).on("touchend", function (d){
@@ -632,8 +634,8 @@ Scatterplot.prototype.redrawView = function(view) {
              d3.event.stopPropagation();
              ref.animatePoints(ref.draggedPoint,ref.currentView, d.id);
              ref.changeView(d.id);
-             ref.clearHintPath();
-         })
+            // ref.clearHintPath();
+         });
         //.on("click", this.clickHintLabelFunction);
 
     //Render the hint path line
@@ -672,12 +674,11 @@ Scatterplot.prototype.redrawView = function(view) {
               offset = ref.ambiguousPoints[i][1];
               index++;
           }
-          y = y + 25*indexCounter;
-          x = x + 20;
+          x = x + 25*indexCounter;
           indexCounter++;
           repeatedPoints[index][3] = indexCounter;
       }
-      return [x,y];
+      return [x,y,indexCounter-1];
   });
 
   this.drawSliders(repeatedPoints);
@@ -703,7 +704,7 @@ Scatterplot.prototype.drawSliders = function (points){
         }))
         .enter().append("rect").attr("class","interactionSliders")
         .attr("id",function (d,i){return "interactionSlider"+i;})
-        .style("fill","#c7c7c7").attr("width",15).attr("height",function (d){return 25* d.numYears})
+        .style("fill","none").attr("width",15).attr("height",function (d){return 20*d.numYears})
         .attr("x", function (d){return d.x}).attr("y", function (d){return d.y});
         /**.on("mousedown", this.placeholder)
         .on("mousemove",this.placeholder)
@@ -714,36 +715,7 @@ Scatterplot.prototype.drawSliders = function (points){
 /** Makes a slider (with id) active (interactive)*/
 Scatterplot.prototype.activateSlider = function (id){
     var ref = this;
-   /** this.svg.select("#interactionSlider"+id).on("mousedown", function (d){
-        d3.event.preventDefault();
-        ref.sliderLastView = d.nodes.length -1;
-        ref.draggedSlider = d.id;
-
-        if (ref.timeDirection == 1){
-            ref.sliderCurrentView = 0;
-            ref.sliderNextView = 1;
-        }else{
-            ref.sliderCurrentView = ref.sliderLastView - 1;
-            ref.sliderNextView = ref.sliderLastView;
-        }
-    }).on("mousemove",function (d){
-            d3.event.preventDefault();
-            if (ref.draggedSlider != -1){
-                ref.dragAlongSlider(ref.draggedPoint,d3.mouse(this)[1],d.nodes);
-            }
-        }).on("mouseup",function (d){
-            d3.event.preventDefault();
-            d3.event.stopPropagation();
-
-            ref.draggedSlider = -1;
-            if (ref.sliderCurrentView == 0){
-                ref.nextView = ref.currentView;
-                ref.currentView--;
-            }else if (ref.sliderNextView == ref.sliderLastView){
-                ref.currentView = ref.nextView;
-                ref.nextView++;
-            }
-        });*/
+   //Using the touch interactions
     /**this.svg.select("#interactionSlider"+id).on("touchstart", function (d){
 
         d3.event.preventDefault();
@@ -785,6 +757,7 @@ Scatterplot.prototype.activateSlider = function (id){
         });*/
 
 //Add dragging function for the interaction slider for ambiguous regions
+//TODO: slider widget does not get updated..
     var dragInteractionSlider = d3.behavior.drag()
         .on("dragstart", function(d){
             d3.event.sourceEvent.preventDefault();
@@ -802,16 +775,21 @@ Scatterplot.prototype.activateSlider = function (id){
         .on("drag", function(d){
             d3.event.sourceEvent.preventDefault();
             if (ref.draggedSlider != -1){
-                var touchY;
-                if (d3.touches(this).length>1){
-                    touchY = d3.touches(this)[1][1];
+                var userY;
+                var touchesArray = d3.touches(this);
+                if (touchesArray.length>0){
+                    if (touchesArray.length>1){
+                        userY = touchesArray[1][1];
+                    }else{
+                        userY = touchesArray[0][1];
+                    }
                 }else{
-                    touchY = d3.touches(this)[0][1];
+                    userY = d3.event.y;
                 }
-                ref.dragAlongSlider(ref.draggedPoint,touchY,d.nodes);
+                ref.dragAlongSlider(ref.draggedPoint,userY,d.nodes);
             }
         })
-        .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
+        .on("dragend",function (){ //In this event, mouse coordinates are undefined, need to use the saved
             d3.event.sourceEvent.preventDefault();
             d3.event.sourceEvent.stopPropagation();
 
@@ -823,21 +801,27 @@ Scatterplot.prototype.activateSlider = function (id){
                 ref.currentView = ref.nextView;
                 ref.nextView++;
             }
+            document.title = "ending dragged slider";
         });
-    this.svg.select("#interactionSlider"+id).call(dragInteractionSlider);
+
+    //Update the display (labels + slider)
+    this.svg.select("#interactionSlider"+id).call(dragInteractionSlider).style("fill","#c7c7c7");
+
+    this.svg.selectAll(".hintLabels").filter(function (d){return (ref.ambiguousPoints[d.id][1]==id)})
+        .transition(200).attr("x",function (d){return ((d.x - 25*d.groupNum)+65)}).attr("y",function (d){return (d.y + 25* d.groupNum)});
 }
 /**De-activates a slider (with id) */
 Scatterplot.prototype.deactivateSlider = function (id){
-   /** this.svg.select("#interactionSlider"+id)
-        .on("mousedown", this.placeholder)
-        .on("mousemove",this.placeholder)
-        .on ("mouseup", this.placeholder);*/
+
   /** this.svg.select("#interactionSlider"+id)
        .on("touchstart", this.placeholder)
        .on("touchmove",this.placeholder)
        .on ("touchend", this.placeholder);*/
   var ref = this;
-  this.svg.select("#interactionSlider"+id).call(ref.placeholder());
+  //Re-set the display (labels + slider)
+  this.svg.select("#interactionSlider"+id).style("fill","none").call(ref.placeholder);
+  this.svg.selectAll(".hintLabels").filter(function (d){return (ref.ambiguousPoints[d.id][1]==id)})
+      .transition(300).attr("x",function (d){return d.x}).attr("y",function (d){return d.y});
 }
 /** Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
 Scatterplot.prototype.clearHintPath = function () {
@@ -852,6 +836,8 @@ Scatterplot.prototype.clearHintPath = function () {
 
 	//Re-set the transparency of faded out points
     this.svg.selectAll(".displayPoints").style("fill-opacity", 1);
+
+    this.svg.selectAll(".interactionSliders").remove();
 }
 /** Calculates the distance between two points
  * (x1,y1) is the first point

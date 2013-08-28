@@ -12,15 +12,6 @@ var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility r
 
 scatterplot.init();
 
-//Define the click interaction of the hint labels to invoke fast switching among views
-/**scatterplot.clickHintLabelFunction = function (d, i){
-    d3.event.preventDefault();
-    d3.event.stopPropagation(); //Prevents the event from propagating down to the SVG
-    scatterplot.animatePoints(scatterplot.draggedPoint,scatterplot.currentView, i);
-    scatterplot.changeView(i);
-    slider.updateSlider(i);
-};*/
-
 scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an array created in a separate js file containing the json data,
                                         // and labels is an array representing the different views of the dataset
 
@@ -30,8 +21,8 @@ var dragPoint = d3.behavior.drag()
 							return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
 	                   })
 					   .on("dragstart", function(d){
-						    scatterplot.clearHintPath();
                             d3.event.sourceEvent.preventDefault();
+                            scatterplot.clearHintPath();
 						    scatterplot.draggedPoint = d.id;
                             scatterplot.previousDragAngle = 0; //To be safe, re-set this
                             scatterplot.showHintPath(d.id,d.nodes);
@@ -39,7 +30,6 @@ var dragPoint = d3.behavior.drag()
                       .on("drag", function(d){
                            document.title = "drag1";
                            d3.event.sourceEvent.preventDefault();
-                           slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
                            var userX,userY;
                            if (d3.touches(this).length > 0){
                                userX = d3.touches(this)[0][0];
@@ -48,20 +38,20 @@ var dragPoint = d3.behavior.drag()
                                userX = d3.event.x;
                                userY = d3.event.y;
                            }
+                           slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
                            scatterplot.updateDraggedPoint(d.id,userX,userY);
-                           document.title = "drags2";
+                           document.title = "drags2"+d3.touches(this);
 					  })
 					  .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
                                                   //coordinates of the scatterplot object
-                            if (!d3.select(d3.event.sourceEvent.target).classed("displayPoints"))
+                            if (!d3.select(d3.event.sourceEvent.target).classed("displayPoints")) //Hack: checks if the event is targeting a point or some other class
                                 return;
-
 
                             d3.event.sourceEvent.preventDefault();
 					        scatterplot.snapToView(d.id,d.nodes);
 							slider.updateSlider(scatterplot.currentView);
                             scatterplot.clearHintPath();
-                           document.title = "drag end points";
+                            document.title = "drag end points";
 					  });	
 
 //Apply the dragging function to all points of the scatterplot, making them all draggable
