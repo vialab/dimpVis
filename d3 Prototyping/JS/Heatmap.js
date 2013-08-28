@@ -413,7 +413,10 @@ Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount){
     var ref = this;
     var translateX = -(this.xSpacing*interpAmount + this.xSpacing*this.currentView);
 
-    this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+")");
+    this.svg.select("#path").attr("transform","translate("+translateX+")");
+    this.svg.select("#pathUnderlayer").attr("transform","translate("+translateX+")");
+    this.svg.selectAll(".interactionPath").attr("transform","translate("+translateX+")");
+
     this.svg.select("#hintPath").selectAll("text").attr("transform","translate("+translateX+")")
         .attr("fill-opacity",function (d){
             if (d.id == ref.currentView){
@@ -476,7 +479,10 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
             if (d.id == id){
                 var translate = -animateView*ref.xSpacing;
                 //Re-draw the hint path and labels
-                d3.selectAll("path").attr("transform","translate("+translate+")");
+                d3.select("#path").attr("transform","translate("+translate+")");
+                d3.select("#pathUnderlayer").attr("transform","translate("+translate+")");
+                d3.selectAll(".interactionPath").attr("transform","translate("+translate+")");
+
                 d3.selectAll(".hintLabels").attr("transform","translate("+translate+")")
                     .attr("fill-opacity", function (b) {return (b.id==animateView)?1:0.3});
             }
@@ -545,7 +551,9 @@ Heatmap.prototype.redrawHintPath = function(view){
     this.svg.select("#hintPath").selectAll("text").attr("transform", "translate("+translateX+")")
         .attr("fill-opacity",function (d){return (d.id==view)?1:0.3});
 
-    this.svg.select("#hintPath").selectAll("path").attr("transform", "translate("+translateX+")");
+    this.svg.select("#path").attr("transform", "translate("+translateX+")");
+    this.svg.select("#pathUnderlayer").attr("transform", "translate("+translateX+")");
+    this.svg.selectAll(".interactionPath").attr("transform", "translate("+translateX+")");
 }
 /** Draws a hint path for the dragged cell on the heatmap
  * id: of the dragged cell
@@ -611,22 +619,28 @@ if (this.allStationary == 0){
         .attr("offset", function(d) { return d[5]+"%"; })
         .attr("stop-color", function(d) { return d[0]; })
         .attr("stop-opacity",1);
-}
-//Draw the white underlayer of the hint path
-this.svg.select("#hintPath").append("svg:path")
-      .attr("d", this.lineGenerator(coords))
-      .attr("id","pathUnderlayer")
-      .attr("transform","translate("+translateX+")")
-      .attr("filter", "url(#blur2)");
 
-//Draw the main hint path line
- this.svg.select("#hintPath").append("svg:path")
-      .attr("d",this.lineGenerator(coords))
-      .style("stroke", function (){
-         return ((ref.allStationary==0)?"url(#line-gradient)":pathData[0][0]);
-       })
-      .attr("transform","translate("+translateX+")")
-      .attr("id","path").attr("filter", "url(#blur)");
+    //Draw the white underlayer of the hint path
+    this.svg.select("#hintPath").append("svg:path")
+        .attr("d", this.lineGenerator(coords))
+        .attr("id","pathUnderlayer")
+        .attr("transform","translate("+translateX+")")
+        .attr("filter", "url(#blur2)");
+
+    //Draw the main hint path line
+    this.svg.select("#hintPath").append("svg:path")
+        .attr("d",this.lineGenerator(coords))
+        .style("stroke", "url(#line-gradient)")
+        .attr("transform","translate("+translateX+")")
+        .attr("id","path").attr("filter", "url(#blur)");
+
+//TODO: this solution should be applied to the barchart as well, even though the scenario seems unlikely..
+}else{ //All points on the hint path are stationary, can't use blur on svg path..
+
+    //Current solution: draw the hint path as a rectangle (not very elegant, find the real problem later..)
+    var pathWidth = Math.abs(coords[0][0] - coords[coords.length-1][0]);
+    this.drawHintRect(coords[0][0],coords[0][1],pathWidth,translateX,pathData[0][0]);
+}
 	
 //Draw the hint path labels								  
 this.svg.select("#hintPath").selectAll("text")
@@ -643,6 +657,15 @@ this.svg.select("#hintPath").selectAll("text")
 //Save the y-coordinates for finding dragging boundaries
 this.hintYValues = coords.map(function (d){return d[1]});
 }
+/**Draws the hint path as a rectangle (in the case where all colours are the same along the hint path) */
+Heatmap.prototype.drawHintRect = function (startX,startY,width,translateAmount,colour){
+
+    this.svg.select("#hintPath").append("rect")
+        .attr("x",startX).attr("y",startY).attr("height",6).attr("width",width)
+        .style("fill",colour).style("stroke","#FFF").style("stroke-width",1)
+        .attr("transform","translate("+translateAmount+")")
+        .attr("id","path").attr("filter", "url(#blur)");
+}
 /** Clears the hint path for a dragged cell by removing all of
  * it's svg components
  * */
@@ -650,7 +673,9 @@ Heatmap.prototype.clearHintPath = function(){
    this.interactionPaths = [];
   // removeAnchor(this);
    this.svg.select("#hintPath").selectAll("rect").remove();
-   this.svg.select("#hintPath").selectAll("path").remove();
+   this.svg.select("#path").remove();
+   this.svg.select("#pathUnderlayer").remove();
+   this.svg.selectAll(".interactionPath").remove();
    this.svg.select("#line-gradient").remove();
    this.svg.select("#hintPath").selectAll("text").remove();
 }
