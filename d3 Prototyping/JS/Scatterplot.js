@@ -550,7 +550,6 @@ Scatterplot.prototype.redrawView = function(view) {
  * id: The id of the dragged point, to determine which hint path to draw
  * points: An array of all points of the dragged point (e.g., d.nodes)
  * */
-//TODO: For Later, find a better way for label placement to minimize overlap (detect really close points and shift the label positions)
  Scatterplot.prototype.showHintPath = function (id,points){
     var ref = this;
 
@@ -598,10 +597,9 @@ Scatterplot.prototype.redrawView = function(view) {
 /**This function places labels in ambiguous cases such that they do not overlap
  * points: a 2D array of positions of each label [x,y]...
  * */
- //TODO: label placement not working for revisiting
 Scatterplot.prototype.placeLabels = function (points){
 
-  if (this.isAmbiguous == 0){return points}
+  //if (this.isAmbiguous == 0){return points}
 
   var ref = this;
   var offset = -1;
@@ -609,7 +607,7 @@ Scatterplot.prototype.placeLabels = function (points){
 
   var adjustedPoints = points.map(function (d,i){
       var x = d[0];
-      if (ref.ambiguousPoints[i][0] == 1){
+      if (ref.ambiguousPoints[i][0] == 1 || ref.ambiguousPoints[i][0] == 2){
           if (ref.ambiguousPoints[i][1] != offset){
               indexCounter = 0;
               offset = ref.ambiguousPoints[i][1];
@@ -625,8 +623,6 @@ Scatterplot.prototype.placeLabels = function (points){
 /** Draws interaction loops as svg paths onto the hint path (if point has stationary cases)
  *  id: of the dragged point
  * */
-//TODO: orient loops according to the hint path layout (minimize the amount it crosses over the actual path),
-//TODO:need to determine if it's closer to having a horizontal or vertical structure
  Scatterplot.prototype.drawLoops = function (id,points){
     //Create a function for drawing a loop around a stationary point, as an interaction path
     var loopGenerator = d3.svg.line().tension(0).interpolate("basis-closed"); //Closed B-spline
@@ -714,7 +710,6 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,angle){
    loopPoints.push([x,y]);
    return loopPoints;
 }
-//TODO: Could use this function to detect really close points to optimize label display
 /** Search for ambiguous cases in a list of points.  Ambiguous cases are tagged as '1' and non-ambiguous are '0'.
  *  If ambiguous cases are found, draws loops.
  *  This function populates the following global array:
@@ -745,6 +740,7 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
         for (var k=0;k<=this.lastView;k++){
             if (j!=k){
                 if (points[k][0] == currentPoint[0] && points[k][1] == currentPoint[1]){ //A repeated point is found
+
                     if (Math.abs(k-j)==1){ //Stationary point
                         this.isAmbiguous = 1;
                         //Add this stationary point to repeatedPoints, according to it's x and y value
@@ -755,6 +751,10 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
                         }
                         this.ambiguousPoints[j] = [1,groupNum];
                        // this.closePoints[j] = [1];
+                    }else{ //Found a revisiting point
+                        if (this.ambiguousPoints[j][0] ==0){ //Don't want to overwrite a stationary point
+                            this.ambiguousPoints[j] = [2,groupNum];
+                        }
                     }
                 }/**else{ //Possibly a point with overlapping labels
                     var term1 = points[k][0] - currentPoint[0];
@@ -807,7 +807,3 @@ Scatterplot.prototype.findInArray = function (x,y,array)
    }
     return -1;
 }
-//TODO: non-existent data points (e.g missing from the data set), interpolation is used and then hint path is coloured differently in that region
-//TODO: does the code handle zero values? (point goes off the axis)
-//TODO: how to visualize (distinguish( a revisiting point within a stationary point sequence (afghanistan example on scatterplot), in general, because of the thickness of the hint path
-//TODO: it's hard to see revisiting points

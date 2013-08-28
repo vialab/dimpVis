@@ -807,5 +807,3 @@ Barchart.prototype.calculatePathPoints = function (indices){
 
     return pathPoints;
 }
-//TODO: handling non-existent data values?
-//TODO: zero values? Right now bar disappears and is un-draggable, but would be nice to make the axis draggable or something so the user can still access it

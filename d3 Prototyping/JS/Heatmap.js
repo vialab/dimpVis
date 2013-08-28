@@ -372,12 +372,13 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
             if (this.timeDirection ==1){this.passedMiddle = 1}
             else {this.passedMiddle =0;}
         }
-        console.log("passed mid "+this.passedMiddle+" time direction "+this.timeDirection);
         this.interpValue = 0.5;
+       // console.log(" time direction "+this.timeDirection);
         //newY = this.peakValue;
     }else{ //At base, update the view
 
         if (this.atPeak==-1){
+            console.log(" time direction "+this.timeDirection);
             var newPathDirection = (this.pathDirection==1)?-1:1;
             if (this.timeDirection ==1 && this.nextView < this.lastView){
                 moveForward(this,draggingDirection);
@@ -486,7 +487,6 @@ Heatmap.prototype.interpolateColours = function(current,next,interpAmount){
  *  most recent y-position of the mouse. View tracking variables are
  *  updated according to which view is "snapped" to.
  **/
-//TODO: cannot snap to last view when in a sine wave
 Heatmap.prototype.snapToView = function (){
 
     var currentDist, nextDist;
@@ -774,5 +774,4 @@ Heatmap.prototype.calculatePathPoints = function (offset,indices){
 
     return pathPoints;
 }
-//Todo: non-existent data values in cell (white?), this would involve screening the dataset as well, similar to ambiguous cases
 

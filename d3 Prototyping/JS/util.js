@@ -414,7 +414,7 @@ function drawColourLegend (objectRef,colours,labels,x,y,w,h,spacing){
 
     //Prepare the data for drawing the scale
     objectRef.svg.selectAll(".legend").data(colours.map(function (d,i) {
-        var yCoord = i*h*spacing + y;
+        var yCoord = i*h*spacing + y ;
         return {colour:d,id:i,label:labels[i],y:yCoord};
     })).enter().append("g").attr("class","legend");
 
@@ -426,6 +426,6 @@ function drawColourLegend (objectRef,colours,labels,x,y,w,h,spacing){
 
     //Draw the labels for each colour
     objectRef.svg.selectAll(".legend").append("text").attr("x",x+w+5)
-        .attr("y",function(d){return (d.y + h/2)})
+        .attr("y",function(d){return (d.y + h/2*spacing)})
         .text(function (d){return d.label})
 }
