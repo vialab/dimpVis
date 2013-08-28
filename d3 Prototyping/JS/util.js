@@ -60,7 +60,18 @@ function changeView (objectRef,newView){
         objectRef.nextView = newView + 1;
     }
 }
-
+/**Adjusts the view variables in case they have gone out of bounds
+ * @return the view to draw the visualization at */
+function adjustView (objectRef){
+    if (objectRef.nextView > objectRef.lastView){
+        objectRef.nextView--;
+        objectRef.currentView--;
+        return objectRef.nextView;
+    }else if (objectRef.nextView == objectRef.lastView){
+        return objectRef.nextView;
+    }
+    return objectRef.currentView;
+}
 /** Updates the view variables to move the visualization backward
  * (passing the current view), also sets the direction travelling
  *  over time

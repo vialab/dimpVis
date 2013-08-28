@@ -555,12 +555,7 @@ Scatterplot.prototype.redrawView = function(view) {
     var ref = this;
 
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
-     var drawingView = this.currentView;
-     if (this.nextView>this.lastView){
-         this.nextView--;
-         this.currentView--;
-         drawingView = this.nextView;
-     }
+     var drawingView = adjustView(this);
 
     //Function for drawing a linearly interpolated path between set of points
     var line = d3.svg.line().interpolate("linear");

@@ -608,12 +608,7 @@ Barchart.prototype.snapToView = function (id, heights){
 Barchart.prototype.selectBar = function (id,heights,xPos){
     var ref = this;
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
-    var drawingView = this.currentView;
-    if (this.nextView>this.lastView){
-        this.nextView--;
-        this.currentView--;
-        drawingView = this.nextView;
-    }
+    var drawingView = adjustView(this);
 
     //Create a dataset to draw the hint path in the format: [x,y]
     this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0],d[2]];});
