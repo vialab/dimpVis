@@ -215,13 +215,32 @@ function setHintPathType (objectRef,type){
  *  pathData: an array of points to appear along the entire hint path
  * */
 function drawSmallHintPath (objectRef,translate,pathData){
-    //Try out clipping..
+    //Trying out clipping..
     //http://stackoverflow.com/questions/10486896/svg-clip-path-within-rectangle-does-not-work
-    /**this.svg.select("#hintPath").append("svg:defs").append("svg:clipPath").attr("id","clip")
-     .append("rect").attr("id","clip-rect").attr("width",100).attr("height",100);*/
+     var clippingFrame = 2;
+     var clipWidth = Math.abs(objectRef.pathData[objectRef.currentView][0] - objectRef.pathData[objectRef.currentView + clippingFrame][0]);
 
+    objectRef.svg.append("svg:clipPath").attr("id","clip")
+         .append("rect").attr("id","clip-rect").attr("width",clipWidth).attr("height",objectRef.height)
+         .attr("x",objectRef.pathData[objectRef.currentView][0]).attr("y",0).attr("transform","translate("+(translate+objectRef.barWidth/2)+")");
+
+     //Draw a white underlayer
+     objectRef.svg.select("#hintPath").append("path")
+         .attr("filter", "url(#blur)")
+         .attr("d",  objectRef.hintPathGenerator( objectRef.pathData))
+         .attr("transform","translate("+(-translate)+")")
+         .attr("id","underLayer").attr("clip-path","url(#clip)");
+
+     //Draw the hint path line
+     objectRef.svg.select("#hintPath").append("path")
+         .attr("d",  objectRef.hintPathGenerator( objectRef.pathData))
+         .attr("filter", "url(#blur)")
+         .attr("transform","translate("+(-translate)+")")
+         .attr("id","path").attr("clip-path","url(#clip)");
+
+    //Partial hint path by drawing individual segments...
      //Draw the hint path line segment at current and next view
-     objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
+     /**objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
         .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#666")
         .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
 
@@ -240,17 +259,20 @@ function drawSmallHintPath (objectRef,translate,pathData){
     //Make the interaction paths (if any) invisible
     if (objectRef.isAmbiguous ==1){
         objectRef.svg.select("#hintPath").selectAll(".interactionPath").style("stroke","none");
-    }
+    }*/
 }
 /**Redraws the shortened hint path, where the full path segment is always displayed between next and current view.
  * Depending on the time direction, the next path segment the user is approaching is partially visible.
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
 //TODO: this code is slightly inefficient, but save refactoring for later
-function redrawSmallHintPath (objectRef,ambiguousObjects){
+function redrawSmallHintPath (objectRef,ambiguousObjects,translateAmount){
+    //CLIPPING:
+    objectRef.svg.select("#clip-rect").attr("transform","translate(" + (translateAmount) + ")");
 
+    //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
-    if (objectRef.timeDirection == 1){ //Moving forward
+    /**if (objectRef.timeDirection == 1){ //Moving forward
 
         if (ambiguousObjects[objectRef.nextView][0]==1){
             objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
@@ -291,7 +313,7 @@ function redrawSmallHintPath (objectRef,ambiguousObjects){
             objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-objectRef.interpValue)).style("stroke","#666")
                 .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]])});
         }
-    }
+    }*/
 }
 //////////////////////Indicators along a sine wave (interaction path)//////////////////////
 

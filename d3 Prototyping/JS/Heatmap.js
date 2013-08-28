@@ -660,11 +660,15 @@ this.hintYValues = coords.map(function (d){return d[1]});
 /**Draws the hint path as a rectangle (in the case where all colours are the same along the hint path) */
 Heatmap.prototype.drawHintRect = function (startX,startY,width,translateAmount,colour){
 
+    this.svg.append("svg:defs").append("svg:filter")
+        .attr("id", "blur3").append("svg:feGaussianBlur")
+        .attr("stdDeviation", 1);
+
     this.svg.select("#hintPath").append("rect")
         .attr("x",startX).attr("y",startY).attr("height",6).attr("width",width)
         .style("fill",colour).style("stroke","#FFF").style("stroke-width",1)
         .attr("transform","translate("+translateAmount+")")
-        .attr("id","path").attr("filter", "url(#blur)");
+        .attr("id","path").attr("filter", "url(#blur3)");
 }
 /** Clears the hint path for a dragged cell by removing all of
  * it's svg components

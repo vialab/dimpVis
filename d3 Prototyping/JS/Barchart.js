@@ -455,9 +455,10 @@ Barchart.prototype.findHeight = function (yPos){
            }
            return 0.3;
        });
-    if (this.hintPathType ==1){
-        redrawSmallHintPath(this,this.ambiguousBars);
-    }
+   if (this.hintPathType ==1){
+        redrawSmallHintPath(this,this.ambiguousBars,translateAmount);
+   }
+
 }
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
@@ -677,14 +678,14 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("d", this.hintPathGenerator(ref.pathData))
         .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
         .attr("transform","translate("+(-translate)+")")
-        .attr("id","underLayer");
+        .attr("id","underLayer").attr("clip-path","url(#clip)");
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("path")
        .attr("d", this.hintPathGenerator(ref.pathData))
        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
        .attr("transform","translate("+(-translate)+")")
-       .attr("id","path");
+       .attr("id","path").attr("clip-path","url(#clip)");
 
     if (this.useMobile){ //Adjust the display properties of the hint path
        this.svg.select("#path").style("stroke","#c6dbef").style("stroke-width",4);
@@ -704,6 +705,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)})
         .attr("transform", "translate("+(-translate)+")")
         .attr("id",function (d) {return "hintLabel"+ d.id})
+        .attr("clip-path","url(#clip)")
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
         //.on("touchend",this.touchLabel);
 }
