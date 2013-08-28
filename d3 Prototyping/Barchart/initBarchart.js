@@ -4,10 +4,14 @@
 //Create new barchart visualization
 var barchart   = new Barchart(400, 50, 30, 100 , "#bargraph",80);
 
+window.onload = function (){
+    barchart.useMobile = checkDevice();
+}
+
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
-barchart.clickSVG = function (){
+/**barchart.clickSVG = function (){
     barchart.clearHintPath();
-};
+};*/
 
 //Toggle the type of indicator displayed when dragging along the sine wave
 //Currently not being used..
@@ -39,17 +43,27 @@ barchart.dragEvent = d3.behavior.drag()
         return {x:d.xPos,y:d.nodes[barchart.currentView][0]};
     })
     .on("dragstart", function(d){
+        d3.event.sourceEvent.preventDefault();
         barchart.clearHintPath();
         barchart.draggedBar = d.id;
         barchart.selectBar(d.id, d.nodes, d.xPos);
     })
     .on("drag", function(d){
+        d3.event.sourceEvent.preventDefault();
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
-        //barchart.updateDraggedBar(d.id,d3.mouse(this)[1],d3.mouse(this)[0]); //Note: d3.mouse gets coordinates relative to svg container (d3.event does not account for transformations),
-                                                                              // but does not work on touch screens
-        barchart.updateDraggedBar(d.id,d3.event.y,d3.event.x);
+        //Check for touch points
+        var userX,userY;
+        if (d3.touches(this).length > 0){
+            userX = d3.touches(this)[0][0];
+            userY = d3.touches(this)[0][1];
+        }else{
+            userX = d3.event.x;
+            userY = d3.event.y;
+        }
+        barchart.updateDraggedBar(d.id,userX,userY);
     })
     .on("dragend",function (d){
+        d3.event.sourceEvent.preventDefault();
         barchart.snapToView(d.id,d.nodes);
         slider.updateSlider(barchart.currentView);
     });
@@ -63,12 +77,23 @@ slider.render();
 
 //Define the function to respond to the dragging behaviour of the slider tick
  slider.dragEvent = d3.behavior.drag()  
-					  .on("dragstart", function(){ barchart.clearHintPath();})
+					  .on("dragstart", function(){
+                          d3.event.sourceEvent.preventDefault();
+                          barchart.clearHintPath();
+                      })
                       .on("drag", function(){
-						   slider.updateDraggedSlider(d3.event.x);
+                          d3.event.sourceEvent.preventDefault();
+                          var userX;
+                          if (d3.touches(this).length > 0){
+                             userX = d3.touches(this)[0][0];
+                          }else{
+                             userX = d3.event.x;
+                          }
+						   slider.updateDraggedSlider(userX);
                            barchart.interpolateBars(-1,slider.interpValue,slider.currentTick,slider.nextTick);
 					  })
 					  .on("dragend",function (){
+                          d3.event.sourceEvent.preventDefault();
 					      slider.snapToTick();
                           barchart.changeView(slider.currentTick);
                           barchart.redrawView(slider.currentTick,-1);

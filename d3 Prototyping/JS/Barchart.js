@@ -12,6 +12,7 @@
    this.topMargin = y;
    this.id = id;
    this.svg = null; //Reference to svg container
+   this.useMobile = false;
 
    //Display properties
    this.padding = p;
@@ -58,10 +59,10 @@
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
    this.clickSVG = this.placeholder();
-   this.touchEndFunction = this.placeholder;
+   /**this.touchEndFunction = this.placeholder;
    this.touchStartFunction = this.placeholder;
    this.touchMoveFunction = this.placeholder;
-   this.touchLabel = this.placeholder;
+   this.touchLabel = this.placeholder;*/
    this.dragEvent = null;
    this.draggedBar = -1;
 
@@ -241,7 +242,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  *
  *  Recall: the base of every bar is at this.base, therefore top of the bar is this.base-barHeight
  * */
- Barchart.prototype.updateDraggedBar = function (id,mouseY,mouseX){
+ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
      var ref = this;
     //Re-draw the bars according to the dragging amount
     this.svg.select("#displayBars"+id).each(function (d) {
@@ -646,9 +647,10 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     }
 
     //Fade out the other bars
-    this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
-    /**.transition().duration(300)*/.style("fill-opacity", 0.5);
-
+    if (!this.useMobile){
+        this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
+        /**.transition().duration(300)*/.style("fill-opacity", 0.5);
+    }
 }
 /** Draws interaction paths as sine waves with a dashed line, also sets the passedMiddle variable
  *  translate: the amount to translate the path such that it corresponds with the dragged bar
@@ -673,16 +675,21 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
    //Draw a white underlayer
    this.svg.select("#hintPath").append("path")
         .attr("d", this.hintPathGenerator(ref.pathData))
-        //.attr("filter", "url(#blur)")
+        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
         .attr("transform","translate("+(-translate)+")")
         .attr("id","underLayer");
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("path")
        .attr("d", this.hintPathGenerator(ref.pathData))
-       .attr("filter", "url(#blur)")
+       .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
        .attr("transform","translate("+(-translate)+")")
        .attr("id","path");
+
+    if (this.useMobile){ //Adjust the display properties of the hint path
+       this.svg.select("#path").style("stroke","#c6dbef").style("stroke-width",4);
+       this.svg.select("#underlayer").style("stroke-width",5);
+    }
 
 	//Draw the hint labels
    this.svg.select("#hintPath").selectAll("text").data(ref.pathData.map(function(d,i){

@@ -16,7 +16,16 @@ function clearVis (objectClass){
     d3.select("#hintPath").remove();
     d3.select("#legend").remove();
 }
-
+/**Checks if a mobile device is being used, called when the page loads
+ * @return true if mobile, false otherwise
+ * This code is from: http://stackoverflow.com/questions/3514784/what-is-the-best-way-to-detect-a-handheld-device-in-jquery
+ * */
+function checkDevice (){
+    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+        return true;
+    }
+    return false;
+}
 //////////////////////Updating important object variables//////////////////////
 
 /** Updates the view variables to move the visualization forward

@@ -806,7 +806,6 @@ Scatterplot.prototype.activateSlider = function (id){
 
     //Update the display (labels + slider)
     this.svg.select("#interactionSlider"+id).call(dragInteractionSlider).style("fill","#c7c7c7");
-
     this.svg.selectAll(".hintLabels").filter(function (d){return (ref.ambiguousPoints[d.id][1]==id)})
         .transition(200).attr("x",function (d){return ((d.x - 25*d.groupNum)+65)}).attr("y",function (d){return (d.y + 25* d.groupNum)});
 }
