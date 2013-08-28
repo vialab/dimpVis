@@ -38,6 +38,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.amplitude = 10; //Of the sine wave (interaction path)
    this.interactionPaths = [];
    this.atPeak = -1;
+   this.passedMiddle = -1; //Passed the mid point of the peak of the sine wave
    this.peakValue = null;
    this.pathDirection = -1;
 
@@ -229,6 +230,12 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        else if (mouseY < ref.mouseY){ draggingDirection = 1;}
        else{ draggingDirection = ref.previousDragDirection;}
 
+       //Re-set the time direction and dragging direction if the dragging has just started
+       if (ref.timeDirection ==0){
+           ref.timeDirection = 1; //Forward in time by default
+           ref.previousDragDirection = draggingDirection;
+       }
+
        var current = d.values[ref.currentView];
        var next = d.values[ref.nextView];
        var currentY = ref.hintYValues[ref.currentView];
@@ -382,7 +389,6 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
                 moveBackward(this,draggingDirection);
                 this.setSineWaveVariables(newPathDirection,cellY,1);
             }else if (this.nextView == this.lastView){ //TODO:Kind of a redundant solution (because the code in util already does this) figure out a better way
-                //TODO: apply this solution to other prototypes
                 if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
                     this.timeDirection = (this.timeDirection==1)?-1:1;
                     this.atPeak= this.nextView;
@@ -572,6 +578,8 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
     this.currentView--;
     drawingView = this.nextView;
  }
+
+ this.timeDirection = 0;  //In case dragging starts at a peak..
 
  //Save some important information
  var ref = this;

@@ -265,7 +265,7 @@ function drawSmallHintPath (objectRef,translate,pathData){
  * Depending on the time direction, the next path segment the user is approaching is partially visible.
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
-//TODO: this code is slightly inefficient, but save refactoring for later
+//TODO: this code is slightly inefficient, refactor later
 function redrawSmallHintPath (objectRef,ambiguousObjects,translateAmount){
     //CLIPPING:
     objectRef.svg.select("#clip-rect").attr("transform","translate(" + (translateAmount) + ")");

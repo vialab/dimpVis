@@ -239,6 +239,12 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
             draggingDirection = ref.previousDragDirection;
         }
 
+        //Re-set the time direction and dragging direction if the dragging has just started
+        if (ref.timeDirection ==0){
+            ref.timeDirection = 1; //Forward in time by default
+            ref.previousDragDirection = draggingDirection;
+        }
+
         if (ref.isAmbiguous==1){ //Might be at a stationary sequence
 
             var currentAmbiguous = ref.ambiguousSegments[ref.currentView];
@@ -387,6 +393,11 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
             else if (this.timeDirection ==-1 && this.currentView >0){
                 moveBackward(this,draggingDirection);
                 this.setSineWaveVariables(newPathDirection,angle,1);
+            }else if (this.nextView == this.lastView){
+                if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
+                    this.timeDirection = (this.timeDirection==1)?-1:1;
+                    this.atCorner = this.nextView;
+                }
             }
         }
     }
@@ -695,6 +706,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
         this.currentView--;
         drawingView = this.nextView;
     }
+    this.timeDirection = 0;  //In case dragging starts at a corner..
 
     this.dragStartAngle = start; //Important: save the start angle and re-set interpolation
     this.interpValue = 0;

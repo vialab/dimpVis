@@ -423,6 +423,11 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
              }else if (this.timeDirection==-1 && this.currentView >0){
                  moveBackward(this,draggingDirection);
                  setSineWaveVariables(this,newPathDirection,barY,1);
+             }else if (this.nextView == this.lastView){
+                 if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
+                     this.timeDirection = (this.timeDirection==1)?-1:1;
+                     this.atPeak= this.nextView;
+                 }
              }
         }
          //newY=barY;
