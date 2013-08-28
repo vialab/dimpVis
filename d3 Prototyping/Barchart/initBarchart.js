@@ -32,7 +32,7 @@ barchart.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
     d3.event.preventDefault();
     barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
-    barchart.changeView(i);
+    changeView(barchart,i);
     slider.updateSlider(i);
 };
 barchart.render(dataset,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
@@ -95,7 +95,7 @@ slider.render();
 					  .on("dragend",function (){
                           d3.event.sourceEvent.preventDefault();
 					      slider.snapToTick();
-                          barchart.changeView(slider.currentTick);
+                          changeView(barchart,slider.currentTick);
                           barchart.redrawView(slider.currentTick,-1);
                      });
 //Apply the dragging function to the movable tick

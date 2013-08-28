@@ -248,11 +248,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     this.svg.select("#displayBars"+id).each(function (d) {
 
         //Set the current vertical dragging direction of the user
-        var draggingDirection;
+        var draggingDirection = (mouseY > ref.mouseY)? -1 : (mouseY < ref.mouseY)? 1 : ref.previousDragDirection;
         //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
-        if (mouseY>ref.mouseY){ draggingDirection = -1;}
-        else if (mouseY < ref.mouseY){ draggingDirection = 1;}
-        else{ draggingDirection = ref.previousDragDirection;}
 
        //Re-set the time direction and dragging direction if the dragging has just started
         if (ref.timeDirection ==0){
@@ -561,21 +558,6 @@ Barchart.prototype.redrawView = function (view,id){
              .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
     }
 }
-/** Updates the view tracking variables when the view is being changed by an external
- * visualization (e.g., slider)
- * */
-Barchart.prototype.changeView = function (newView){
-    if (newView ==0){
-        this.currentView = newView
-        this.nextView = newView+1;
-    }else if (newView == this.lastView){
-        this.nextView = newView;
-        this.currentView = newView -1;
-    }else {
-        this.currentView = newView;
-        this.nextView = newView + 1;
-    }
-}
 /** Re-calculates the x-values for the moving hint path x-coordinates
  * (for both points comprising the path and labels)
  * oldX: the original x position
@@ -712,7 +694,6 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("id",function (d) {return "hintLabel"+ d.id})
         .attr("clip-path","url(#clip)")
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
-        //.on("touchend",this.touchLabel);
 }
 /** Clears the hint path by removing its components from the svg
  * */

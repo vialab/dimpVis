@@ -294,14 +294,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
  * @return: the new direction travelling in time
  * */
 Scatterplot.prototype.findTimeDirection = function (interpAmount){
-    var direction;
-    if (interpAmount > this.interpValue){ //Forwards in time
-        direction = 1;
-    }else if (interpAmount < this.interpValue){ //Backwards in time
-        direction = -1;
-    }else{ //Did not change
-        direction = this.timeDirection
-    }
+    var direction = (interpAmount > this.interpValue)? 1 : (interpAmount < this.interpValue)?-1 : this.timeDirection;
 
     if (this.timeDirection != direction){ //Switched directions
         console.log("switched directions "+direction+" currentInterp "+this.interpValue+" newInterp "+interpAmount+" "+this.currentView+" "+this.nextView);
@@ -367,14 +360,7 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
      var loopInterp = this.convertMouseToLoop_interp(angles[2]);
 
      //Find the angular dragging direction
-     var draggingDirection;
-     if (angles[1] > this.previousLoopAngle){
-         draggingDirection = 1;
-     }else if (angles[1] < this.previousLoopAngle){
-         draggingDirection = -1;
-     }else{
-         draggingDirection = this.previousDraggingDirection;
-     }
+     var draggingDirection = (angles[1] > this.previousLoopAngle)? 1 : (angles[1] < this.previousLoopAngle)?-1 : this.previousDraggingDirection;
 
      //Adjust the interpolation value based on the dragging direction
     var interpAmount = 1-angles[2];
@@ -495,22 +481,6 @@ Scatterplot.prototype.snapToView = function( id, points) {
 
     //Redraw the view
     this.redrawView(this.currentView);
-}
-/** Updates the view tracking variables when the view is being changed by an external
- * visualization (e.g., slider)
- * */
-Scatterplot.prototype.changeView = function( newView) {
-	 //Update the view tracker variables
-	 if (newView ==0){//First point on path
-            this.currentView = newView
-			this.nextView = newView+1;
-	}else if (newView == this.lastView){  //Last point of path
-		   this.nextView = newView;
-		   this.currentView = newView -1;
-	}else { //A point somewhere in the middle
-            this.currentView = newView;
-            this.nextView = newView + 1;
-	}
 }
 /** Animates all points in the scatterplot along their hint paths from
  *  startView to endView, this function is called when "fast-forwarding"

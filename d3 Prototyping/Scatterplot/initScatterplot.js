@@ -15,7 +15,7 @@ scatterplot.init();
 scatterplot.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation(); //Prevents the event from propagating down to the SVG
     scatterplot.animatePoints(scatterplot.draggedPoint,scatterplot.currentView, i);
-    scatterplot.changeView(i);
+    changeView(scatterplot,i);
     slider.updateSlider(i);
 };
 
@@ -62,7 +62,7 @@ slider.render();
 					  })
 					  .on("dragend",function (){
 					      slider.snapToTick();
-                          scatterplot.changeView(slider.currentTick); 
+                          changeView(scatterplot,slider.currentTick);
                           scatterplot.redrawView(slider.currentTick);
 					  });	
 

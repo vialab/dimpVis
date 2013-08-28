@@ -20,7 +20,7 @@ drawColourLegend(piechart,colours,colourLabels,220,10,30,15,1.2);
 piechart.clickHintLabelFunction = function (d,i){
      d3.event.stopPropagation();
      piechart.animateSegments(piechart.draggedSegment,piechart.currentView,i);
-     piechart.changeView(i);
+     changeView(piechart,i);
      slider.updateSlider(i);
  };
 
@@ -62,7 +62,7 @@ slider.dragEvent = d3.behavior.drag()
     })
     .on("dragend",function (){
         slider.snapToTick();
-        piechart.changeView(slider.currentTick);
+        changeView(piechart,slider.currentTick);
         piechart.redrawView(slider.currentTick,piechart.draggedSegment);
     });
 

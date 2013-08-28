@@ -225,10 +225,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
    this.svg.select("#cell"+id).each(function (d){
 
        //Find the current vertical dragging direction of the user
-       var draggingDirection;
-       if (mouseY > ref.mouseY){ draggingDirection = -1;}
-       else if (mouseY < ref.mouseY){ draggingDirection = 1;}
-       else{ draggingDirection = ref.previousDragDirection;}
+       var draggingDirection = (mouseY > ref.mouseY)? -1 : (mouseY < ref.mouseY)? 1 : ref.previousDragDirection;
 
        //Re-set the time direction and dragging direction if the dragging has just started
        if (ref.timeDirection ==0){
@@ -278,7 +275,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
 
            //Check where the mouse is w.r.t the sine wave (e.g., at an end point, in the middle of it etc.)
            if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching sine wave from right (along hint path)
-               ref.setSineWaveVariables(currentAmbiguous[1],currentY,1);
+               setSineWaveVariables(ref,currentAmbiguous[1],currentY,1);
                hideAnchor(ref,2);
 
                if((currentY>nextY && ref.pathDirection==1) || (currentY<nextY && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
@@ -287,7 +284,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
 
                ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
            }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching sine wave from the left
-               ref.setSineWaveVariables(nextAmbiguous[1],nextY,0);
+               setSineWaveVariables(ref,nextAmbiguous[1],nextY,0);
                hideAnchor(ref,2);
 
                if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
@@ -299,7 +296,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
 
                //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
                if (ref.passedMiddle == -1){
-                   ref.setSineWaveVariables(draggingDirection,currentY,0);
+                   setSineWaveVariables(ref,draggingDirection,currentY,0);
                    //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
                    if (ref.pathDirection != currentAmbiguous[1] && ref.currentView>0){
                        ref.passedMiddle = 1;
@@ -384,10 +381,10 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
             var newPathDirection = (this.pathDirection==1)?-1:1;
             if (this.timeDirection ==1 && this.nextView < this.lastView){
                 moveForward(this,draggingDirection);
-                this.setSineWaveVariables(newPathDirection,cellY,0);
+                setSineWaveVariables(this,newPathDirection,cellY,0);
             }else if (this.timeDirection==-1 && this.currentView >0){
                 moveBackward(this,draggingDirection);
-                this.setSineWaveVariables(newPathDirection,cellY,1);
+                setSineWaveVariables(this,newPathDirection,cellY,1);
             }else if (this.nextView == this.lastView){ //TODO:Kind of a redundant solution (because the code in util already does this) figure out a better way
                 if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
                     this.timeDirection = (this.timeDirection==1)?-1:1;
@@ -399,17 +396,6 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
     }
     //console.log("interp "+this.interpValue);
    // redrawAnchor(this,-1,-1,-1,newY,2);
-}
-/**Updates variables for dragging along the sine wave:
- *  pathDirection: vertical direction of the approaching portion of the sine wave (e.g., at next view)
- *  barHeight: height of the stationary bar, used to calculate the height of the upcoming peak/trough
- *  passedMiddle: a flag to determine how to calculate the interpolation (0: interp is between 0 and <0.5,
- *  1: interp is between 0.5 and < 1)
- * */
-Heatmap.prototype.setSineWaveVariables = function (pathDirection,cellY,passedMiddle){
-    this.passedMiddle = passedMiddle;
-    this.pathDirection = pathDirection;
-    this.peakValue = (pathDirection==1)?(cellY-this.amplitude):(this.amplitude+cellY);
 }
 /** Translates the hint path according to the amount dragged from current to next view
  * currentOffset,nextOffset: y-value offsets of the two bounding views
@@ -526,21 +512,6 @@ Heatmap.prototype.snapToView = function (){
 
      this.redrawView(this.currentView);
      this.redrawHintPath(this.currentView);
-}
-/** Updates the view tracking variables when the view is being changed by an external
- * visualization (e.g., slider), then redraw the view at the new view.
- * */
-Heatmap.prototype.changeView = function (newView){
-    if (newView ==0){
-        this.currentView = newView
-        this.nextView = newView+1;
-    }else if (newView == this.lastView){
-        this.nextView = newView;
-        this.currentView = newView -1;
-    }else {
-        this.currentView = newView;
-        this.nextView = newView + 1;
-    }
 }
 /**Redraws the heatmap at a specified view by re-colouring all cells.
  * id: of the dragged cell

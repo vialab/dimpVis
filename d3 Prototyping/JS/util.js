@@ -45,6 +45,21 @@ function moveForward(objectRef,draggingDirection){
         }
     }
 }
+/** Updates the view tracking variables when the view is being changed by an external
+ * visualization (e.g., slider)
+ * */
+function changeView (objectRef,newView){
+    if (newView ==0){
+        objectRef.currentView = newView
+        objectRef.nextView = newView+1;
+    }else if (newView == objectRef.lastView){
+        objectRef.nextView = newView;
+        objectRef.currentView = newView -1;
+    }else {
+        objectRef.currentView = newView;
+        objectRef.nextView = newView + 1;
+    }
+}
 
 /** Updates the view variables to move the visualization backward
  * (passing the current view), also sets the direction travelling

@@ -14,7 +14,7 @@ heatmap.init();
 heatmap.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
     heatmap.animateColours(heatmap.draggedCell,heatmap.currentView,i);
-    heatmap.changeView(i);
+    changeView(heatmap,i);
     slider.updateSlider(i);
 };
 
@@ -58,7 +58,7 @@ slider.dragEvent = d3.behavior.drag()
                   })
                   .on("dragend",function (){
                       slider.snapToTick();
-                      heatmap.changeView(slider.currentTick);
+                      changeView(heatmap,slider.currentTick);
                       heatmap.redrawView(slider.currentTick);
                   });
 //Apply the dragging function to the movable tick
