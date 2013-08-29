@@ -276,7 +276,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
            //Check where the mouse is w.r.t the sine wave (e.g., at an end point, in the middle of it etc.)
            if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching sine wave from right (along hint path)
                setSineWaveVariables(ref,currentAmbiguous[1],currentY,1);
-               hideAnchor(ref,2);
+               //hideAnchor(ref,2);
 
                if((currentY>nextY && ref.pathDirection==1) || (currentY<nextY && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
                    ref.atPeak = ref.currentView;
@@ -285,9 +285,9 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
                ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
            }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching sine wave from the left
                setSineWaveVariables(ref,nextAmbiguous[1],nextY,0);
-               hideAnchor(ref,2);
+               //hideAnchor(ref,2);
 
-               if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
+               if(currentY>nextY){ //Detect if the sine wave and regular hint path form a peak at end point
                    ref.atPeak = ref.nextView;
                }
 
@@ -307,7 +307,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
                ref.handleDraggedCell_stationary(currentY,mouseY,draggingDirection);
            }else{ //Not encountering the sine wave
                ref.atPeak = -1;
-               hideAnchor(ref,2);
+               //hideAnchor(ref,2);
                ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
            }
        }else{
@@ -373,12 +373,10 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
             else {this.passedMiddle =0;}
         }
         this.interpValue = 0.5;
-       // console.log(" time direction "+this.timeDirection);
         //newY = this.peakValue;
     }else{ //At base, update the view
 
         if (this.atPeak==-1){
-            console.log(" time direction "+this.timeDirection);
             var newPathDirection = (this.pathDirection==1)?-1:1;
             if (this.timeDirection ==1 && this.nextView < this.lastView){
                 moveForward(this,draggingDirection);
@@ -395,7 +393,6 @@ Heatmap.prototype.handleDraggedCell_stationary = function  (cellY,mouseY,draggin
         }
         //newY=cellY;
     }
-    //console.log("interp "+this.interpValue);
    // redrawAnchor(this,-1,-1,-1,newY,2);
 }
 /** Translates the hint path according to the amount dragged from current to next view
@@ -492,6 +489,7 @@ Heatmap.prototype.snapToView = function (){
     var currentDist, nextDist;
 
     if (this.ambiguousCells[this.currentView][0]==1 && this.ambiguousCells[this.nextView][0]==1){
+
         if (this.interpValue > 0.5){ //Snap to nextView
             currentDist = 1;
             nextDist = 0;
@@ -541,7 +539,7 @@ Heatmap.prototype.redrawHintPath = function(view){
  * Good tutorial on svg line gradients: http://tutorials.jenkov.com/svg/svg-gradients.html
  * */
 Heatmap.prototype.showHintPath = function(id,pathData,x,y){
-console.log(this.nextView);
+
   //In case next view went out of bounds (from snapping to view), re-adjust the view variables
   var drawingView = adjustView(this);
 
@@ -706,6 +704,7 @@ Heatmap.prototype.checkAmbiguous = function (data){
             }
         }
     }
+
     //Check if any stationary colours were found
     if (this.isAmbiguous ==1){
         //A case where the colour doesn't change for the entire hint path, therefore the hint path cannot be drawn as a gradient
@@ -726,7 +725,7 @@ Heatmap.prototype.findPaths = function (startIndex,offsets){
     pathInfo[1] = [];
     for (var j=startIndex; j<=this.lastView;j++){
         if (this.ambiguousCells[j]==1){
-            if (j!=startIndex && this.ambiguousCells[j-1]!=1){ //Starting a new path
+            if (j!=startIndex && (this.ambiguousCells[j-1]!=1 || (this.ambiguousCells[j-1] == 1 && offsets[j]!= offsets[j-1]))){ //Starting a new path
                 this.interactionPaths.push(this.calculatePathPoints(pathInfo[0],pathInfo[1]));
                 pathInfo = [];
                 pathInfo[0] = offsets[j];

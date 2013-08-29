@@ -599,7 +599,7 @@ Scatterplot.prototype.redrawView = function(view) {
  * */
 Scatterplot.prototype.placeLabels = function (points){
 
-  //if (this.isAmbiguous == 0){return points}
+  //if (this.isAmbiguous == 0){return points} //TODO: inefficient because this function will always be called even if there aren't any ambiguous cases
 
   var ref = this;
   var offset = -1;

@@ -706,15 +706,14 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     //Render white path under the main hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
-        .attr("id","pathUnderlayer").attr("class","path")
-       // .attr("filter", "url(#blur2)");
-        .attr("filter", "url(#blur)");
+        .attr("id","pathUnderlayer").attr("class","path");
+        //.attr("filter", "url(#blur)");
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
-        .attr("id","path").attr("class","path")
-        .attr("filter", "url(#blur)");
+        .attr("id","path").attr("class","path");
+        //.attr("filter", "url(#blur)");
 
    /** var drawLine = d3.svg.line().interpolate("cardinal");
     var testPoints = this.calculateHintPathPoints(this.hintArcInfo);
@@ -757,7 +756,7 @@ Piechart.prototype.convertAngle = function (angle){
      //this.removeAnchor();
      this.svg.select("#hintPath").selectAll("text").remove();
      this.svg.select("#hintPath").selectAll("path").remove();
-     this.svg.selectAll(".displayArcs").style("fill-opacity", 1);
+     //this.svg.selectAll(".displayArcs").style("fill-opacity", 1);
  }
 /**Calculates the amount to translate the hint path inwards or outwards on the piechart
  * this is really acheived by growing or shrinking the radius of the hint path segments
@@ -766,7 +765,13 @@ Piechart.prototype.convertAngle = function (angle){
  * */
 Piechart.prototype.findHintRadius = function (index,view){
    // console.log(index+" "+(this.labelOffset+this.hintRadiusSpacing*(index-view)));
-    return this.labelOffset+this.hintRadiusSpacing*(index-view);
+    var radius = this.labelOffset+this.hintRadiusSpacing*(index-view);
+    if (radius <0){ //Remove this section of the hint path (to prevent it from wrapping around to the other side), also remove the label
+        this.svg.select("#hintLabel"+index).style("fill","none");
+        return 0;
+    }
+    this.svg.select("#hintLabel"+index).style("fill","#666");
+    return radius;
 }
 /**Interpolates radius between start and end view, used for animating the hint path
  * while a segment is dragged

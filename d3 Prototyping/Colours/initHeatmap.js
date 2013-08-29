@@ -22,7 +22,7 @@ var colours = colorbrewer.YlOrRd[5];
 var colourLabels = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
 heatmap.render(data,xLabels,yLabels,colours);
 
-drawColourLegend(heatmap,colours,colourLabels,220,10,heatmap.cellSize/3,heatmap.cellSize/3,1);
+//drawColourLegend(heatmap,colours,colourLabels,220,10,heatmap.cellSize/3,heatmap.cellSize/3,1);
 
 //Define the function to respond to the dragging behaviour of the cells
 heatmap.dragEvent = d3.behavior.drag()

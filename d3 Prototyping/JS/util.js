@@ -38,7 +38,7 @@ function moveForward(objectRef,draggingDirection){
     if (objectRef.nextView < objectRef.lastView){ //Avoid index out of bounds
         objectRef.currentView = objectRef.nextView;
         objectRef.nextView++;
-        objectRef.timeDirection = 1;
+        //objectRef.timeDirection = 1;
     }else if (draggingDirection !=0){
         if (draggingDirection != objectRef.previousDragDirection){ //Flip the direction when at the end of the hint path
             objectRef.timeDirection = (objectRef.timeDirection==1)?-1:1;
@@ -66,6 +66,7 @@ function adjustView (objectRef){
     if (objectRef.nextView > objectRef.lastView){
         objectRef.nextView--;
         objectRef.currentView--;
+        objectRef.interpValue = 0;
         return objectRef.nextView;
     }else if (objectRef.nextView == objectRef.lastView){
         return objectRef.nextView;
@@ -82,7 +83,8 @@ function moveBackward (objectRef,draggingDirection){
     if (objectRef.currentView > 0){ //Avoid index out of bounds
         objectRef.nextView = objectRef.currentView;
         objectRef.currentView--;
-        objectRef.timeDirection = -1;
+        objectRef.interpValue = 0;
+        //objectRef.timeDirection = -1;
     }else if (draggingDirection !=0){
         if (draggingDirection != objectRef.previousDragDirection){ //Flip the direction when at the end of the hint path
             objectRef.timeDirection = (objectRef.timeDirection==1)?-1:1;
@@ -108,14 +110,14 @@ function checkBounds (objectRef,a,b,mouse){
 
     //Check if the mouse is between start and end values
     if (mouse <= start) {
-        //if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
-        //else{objectRef.interpValue = 0;}
-        objectRef.interpValue = 0;
+       // if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
+       //else{objectRef.interpValue = 0;}
+        //objectRef.interpValue = 0;
         return start;
     }else if (mouse >= end) {
         //if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
-        //else{objectRef.interpValue = 0;}
-        objectRef.interpValue = 0;
+       // else{objectRef.interpValue = 0;}
+        //objectRef.interpValue = 0;
         return end;
     }
     return mouse;
@@ -151,6 +153,7 @@ function findInterpolation (objectRef,a,b,mouse,ambiguity,draggingDirection){
     if (draggingDirection != objectRef.previousDragDirection){
         objectRef.timeDirection = (objectRef.timeDirection==-1) ? 1:-1;
     }
+    //objectRef.timeDirection = (currentInterpValue > objectRef.interpValue)? 1 : (currentInterpValue < objectRef.interpValue)?-1 : objectRef.timeDirection;
 
     //Save the current interpolation value
     objectRef.interpValue = currentInterpValue;

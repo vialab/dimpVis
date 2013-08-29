@@ -723,7 +723,9 @@ Barchart.prototype.checkAmbiguous = function (){
         currentBar= this.pathData[j][1];
         for (var k=j;k<=this.lastView;k++){
             //if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
+
             if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<this.heightThreshold){ //An almost repeated bar, less than one pixel difference
+
                 if (Math.abs(k-j)==1){ //Stationary bar
                     this.isAmbiguous = 1;
                     //If the bar's index does not exist in the array of all stationary bars, add it
@@ -737,7 +739,6 @@ Barchart.prototype.checkAmbiguous = function (){
                 }
             }
         }
-
     }
     //First check if there exists any stationary bars in the dataset
     if (stationaryBars.length>0){
@@ -756,7 +757,8 @@ Barchart.prototype.findPaths = function (startIndex){
 
     for (var j=startIndex; j<=this.lastView;j++){
         if (this.ambiguousBars[j][0]==1){
-            if (j!=startIndex && this.ambiguousBars[j-1][0]!=1){ //Starting a new path
+            if (j!=startIndex && (this.ambiguousBars[j-1][0]!=1||
+                (this.ambiguousBars[j-1][0]==1 && Math.abs(this.pathData[j][1]-this.pathData[j-1][1])>this.heightThreshold))){ //Starting a new path
                 this.interactionPaths.push(this.calculatePathPoints(pathInfo));
                 pathInfo = [];
                 pathNumber++;
