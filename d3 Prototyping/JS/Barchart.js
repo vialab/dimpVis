@@ -602,20 +602,25 @@ Barchart.prototype.snapToView = function (id, heights){
  *  */
 Barchart.prototype.selectBar = function (id,heights,xPos){
     var ref = this;
+    this.isAmbiguous = 0;
+
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
     var drawingView = adjustView(this);
 
     //Create a dataset to draw the hint path in the format: [x,y]
     this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0],d[2]];});
 
-    //Search the dataset for ambiguous cases (sequences of stationary points)
-    this.checkAmbiguous();
-
     var translate = this.hintPathSpacing*drawingView;
     this.timeDirection = 0;  //In case dragging starts at a peak..
 
+    //Search the dataset for ambiguous cases (sequences of stationary bars)
+    var ambiguousData = checkAmbiguous(this,heights.map(function(d){return d[0]}),this.heightThreshold);
+    this.ambiguousBars = ambiguousData[0];
+
     //Draw the hint path
     if (this.isAmbiguous ==1){
+        this.interactionPaths = [];
+        ambiguousData[1].forEach(function (d){ref.interactionPaths.push(ref.calculatePathPoints(d))});
         this.drawInteractionPaths(translate);
     }
     if (this.hintPathType ==0){
@@ -635,6 +640,7 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
  * */
 Barchart.prototype.drawInteractionPaths = function(translate){
     var ref = this;
+
     this.svg.select("#hintPath").selectAll(".interactionPath")
         .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
         .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
@@ -694,76 +700,6 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         this.svg.select("#hintPath").selectAll("path").remove();
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
-/** Search for ambiguous cases in a list of heights/y-coordinates.  Ambiguous cases are tagged by type, using a number.
- *  The scheme is: 0: not ambiguous, 1: stationary bar (bar which doesn't move for at least 2 consecutive years)
- *  This information is stored in the ambiguousBars array, which gets re-populated each time a
- *  new bar is dragged.  This array is in  the format: [[type, newY]...number of views]
- *
- *  To alleviate interaction in regions where the heights are very similar (within this.heightThreshold), we also consider
- *  these bars to be stationary.
- * */
-Barchart.prototype.checkAmbiguous = function (){
-    var j, currentBar;
-    var stationaryBars = [];
-    this.isAmbiguous = 0;
-    this.ambiguousBars = [];
-
-    //Re-set the ambiguousPoints array
-    for (j=0;j<=this.lastView;j++){
-        this.ambiguousBars[j] = [0];
-    }
-    //Populate the stationary and revisiting bars array
-    //Search for heights that are equal (called "repeated bars")
-    for (j=0;j<=this.lastView;j++){
-        currentBar= this.pathData[j][1];
-        for (var k=j;k<=this.lastView;k++){
-            //if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
-            if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<this.heightThreshold){ //An almost repeated bar, less than one pixel difference
-
-                if (Math.abs(k-j)==1){ //Stationary bar
-                    this.isAmbiguous = 1;
-                    //If the bar's index does not exist in the array of all stationary bars, add it
-                    if (stationaryBars.indexOf(j)==-1){
-                        stationaryBars.push(j);
-                        this.ambiguousBars[j] = [1];
-                    }if (stationaryBars.indexOf(k)==-1){
-                        stationaryBars.push(k);
-                        this.ambiguousBars[k] = [1];
-                    }
-                }
-            }
-        }
-    }
-    //First check if there exists any stationary bars in the dataset
-    if (stationaryBars.length>0){
-        //Then, generate points for drawing an interaction path
-        this.findPaths(d3.min(stationaryBars));
-    }
-}
-/** Populate an array containing all data for drawing a sine wave:
- * interactionPaths[] = [[points for the sine wave]..number of paths]
- * startIndex: the index of the first stationary bar (only for reducing the search, can just
- * set this to 0)
- * */
-Barchart.prototype.findPaths = function (startIndex){
-    var pathInfo = [];
-    var pathNumber = 0;
-
-    for (var j=startIndex; j<=this.lastView;j++){
-        if (this.ambiguousBars[j][0]==1){
-            if (j!=startIndex && (this.ambiguousBars[j-1][0]!=1||
-                (this.ambiguousBars[j-1][0]==1 && Math.abs(this.pathData[j][1]-this.pathData[j-1][1])>this.heightThreshold))){ //Starting a new path
-                this.interactionPaths.push(this.calculatePathPoints(pathInfo));
-                pathInfo = [];
-                pathNumber++;
-            }
-            this.ambiguousBars[j].push(pathNumber);
-            pathInfo.push(j);
-        }
-    }
-
-    this.interactionPaths.push(this.calculatePathPoints(pathInfo));
-}
 /** Calculates a set of points to compose a sine wave (for an interaction path)
  * indices: the corresponding year indices, this array's length is the number of peaks of the path
  * @return an array of points for drawing the sine wave: [[x,y], etc.]

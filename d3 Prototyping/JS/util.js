@@ -440,3 +440,67 @@ function drawColourLegend (objectRef,colours,labels,x,y,w,h,spacing){
         .attr("y",function(d){return (d.y + h/2*spacing)})
         .text(function (d){return d.label})
 }
+/** Search for ambiguous cases in a list of values along the hint path.  Ambiguous objects are tagged as 1, this is stored in
+ *  ambiguousObjs
+ *
+ *  To alleviate interaction in regions where the heights are very similar (within valueThreshold), we also consider
+ *  these objects to be stationary in value.
+ * */
+function checkAmbiguous(objectRef,values,valueThreshold){
+    var j, currentObj;
+    var ambiguousObjs = [];
+    var length = values.length;
+
+    for (j=0;j<=length;j++){
+        ambiguousObjs[j] = [0];
+    }
+
+    //Search for values that match
+    for (j=0;j<length;j++){
+        currentObj = values[j];
+        for (var k=0;k<length;k++){
+            if (j!=k && Math.abs(values[k] - currentObj)<= valueThreshold){ //A repeated (or almost repeated) value is found
+                    if (Math.abs(k-j)==1){ //Stationary value
+                        objectRef.isAmbiguous = 1;
+                        ambiguousObjs[j] = [1];
+                    }
+
+            }
+        }
+    }
+    if (objectRef.isAmbiguous ==1){
+        //Generate points for drawing an interaction path
+        return findInteractionPaths(ambiguousObjs,values,valueThreshold);
+    }
+    return [ambiguousObjs];
+}
+/** Creates an array containing all data for drawing a sine wave:
+ * interactionPaths[] = [[points for the sine wave]..number of paths]
+ * */
+function findInteractionPaths(ambiguousObjs,values,valueThreshold){
+    var indices = [];
+    var pathNumber = 0;
+    var firstPath = false;
+    var length = values.length;
+    var interactionPaths = [];
+
+    for (var j=0; j< length;j++){
+        if (ambiguousObjs[j][0]==1){
+            if (j!=0 && (ambiguousObjs[j-1][0]!=1||
+                (ambiguousObjs[j-1][0]==1 && Math.abs(values[j]-values[j-1])>valueThreshold))){ //Starting a new path
+                if (!firstPath){
+                    firstPath = true;
+                }else{
+                    interactionPaths.push(indices);
+                    indices = [];
+                    pathNumber++;
+                }
+            }
+            ambiguousObjs[j].push(pathNumber);
+            indices.push(j);
+        }
+    }
+    interactionPaths.push(indices);
+
+    return [ambiguousObjs,interactionPaths];
+}

@@ -46,6 +46,7 @@ function Piechart(x,y, r,id,title,hLabels){
    this.mouseX = 0;
    this.mouseY = 0;
    this.hintArcInfo = []; //The points and radii along the hint path
+   this.angleThreshold = 0.01;
 
    this.ambiguousSegments = [];
    this.interactionPaths = [];
@@ -255,7 +256,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY,nodes){
             if (this.passedMiddle == -1){
                 setSineWaveVariables(this,draggingDirection,current,0);
                 //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
-                if (this.pathDirection != currentAmbiguous[2] && ref.currentView>0){
+                if (this.pathDirection != currentAmbiguous[2] && this.currentView>0){
                     this.passedMiddle = 1;
                     moveBackward(this,draggingDirection);
                 }
@@ -590,23 +591,17 @@ Piechart.prototype.calculateHintAngles = function (angles,view,flag){
 }
 /** This function analyzes the hint path data to do the following:
  *  Calculate hint path coordinates, radius etc.
- *  Finds stationary sequences (1 - is stationary, 0 - not)
  *  Detect corners (changes in angular direction)
  * */
 Piechart.prototype.processHintPathInfo = function (angles,view){
     //Hint path design: separate radius for each year
     var newAngle, r, x, y,previousDirection,prevAngle;
     var currentDirection = 1;
-    var stationaryAngle = "start";
-    var stationaryGroupNum = 0;
 
     var hintAngles = [];
-    this.corners = []; //Clear the arrays
-    this.ambiguousSegments =[];
-
+    this.corners = [];
     //Re-set the array
     for (j=0;j<=this.lastView;j++){
-        this.ambiguousSegments[j] = [0];
         this.corners[j] = 0;
     }
 
@@ -618,27 +613,7 @@ Piechart.prototype.processHintPathInfo = function (angles,view){
         var c = this.calculatePolarCoords((newAngle - this.halfPi),r);
         hintAngles.push([c[0],c[1],r,newAngle]);
 
-        //Step 2: Determine if the angle is a part of a stationary sequence
-        if (newAngle == prevAngle){
-            this.isAmbiguous = 1;
-            if (stationaryAngle == "start"){
-                stationaryAngle = newAngle;
-                this.ambiguousSegments[j] = [1,stationaryGroupNum];
-                this.ambiguousSegments[j-1] = [1,stationaryGroupNum];
-            }else{
-                if (stationaryAngle == newAngle){
-                    this.ambiguousSegments[j] = [1,stationaryGroupNum];
-                    this.ambiguousSegments[j-1] = [1,stationaryGroupNum];
-                }else{
-                    stationaryGroupNum++;
-                    stationaryAngle = newAngle;
-                    this.ambiguousSegments[j] = [1,stationaryGroupNum];
-                    this.ambiguousSegments[j-1] = [1,stationaryGroupNum];
-                }
-            }
-        }
-
-        //Step 3: Determine if the angle is on a corner (only if it's not already ambiguous)
+        //Step 2: Determine if the angle is on a corner (only if it's not already ambiguous)
         if (j>0){
             currentDirection = (newAngle>prevAngle)?1:0;
             if (previousDirection != currentDirection && this.ambiguousSegments[j-1][0]!=1){
@@ -666,6 +641,12 @@ Piechart.prototype.showHintPath = function (id,angles,start){
 
     this.dragStartAngle = start; //Important: save the start angle and re-set interpolation
     this.interpValue = 0;
+    this.isAmbiguous = 0;
+
+    //Search the dataset for ambiguous cases (sequences of stationary bars)
+    var ambiguousData = checkAmbiguous(this,angles,this.angleThreshold);
+    this.ambiguousSegments = ambiguousData[0];
+
     this.hintArcInfo = this.processHintPathInfo(angles,drawingView);
     //this.appendAnchor((this.dragStartAngle+angles[drawingView]));
 
@@ -674,24 +655,9 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     //NOTE: Angle has to be converted to match the svg rotate standard: (offset by 90 deg)
     //http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
     if (this.isAmbiguous ==1 ){ //Draw interaction paths (if any)
-        this.findPaths(); //Generate points for drawing an interaction path
-        this.svg.select("#hintPath").selectAll(".interactionPath")
-            .data(this.interactionPaths.map(function (d,i) {
-                var viewIndex = d[1];
-                var angle_deg = ref.convertAngle((angles[viewIndex]+ref.dragStartAngle))*(180/Math.PI);
-                return {points:d[0],id:i,rotationAngle:angle_deg,view:viewIndex}
-             })).enter().append("path").attr("class","interactionPath")
-            .attr("d",function (d) {
-                //Translate the sine wave to it's stationary angle
-                var xTranslate = ref.hintArcInfo[d.view][0];
-                var yTranslate = ref.hintArcInfo[d.view][1];
-                var translatedPoints = d.points.map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
-
-                d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")"); //Transform the node in this function so data doesn't have to be saved...
-
-                return ref.interactionPathGenerator(translatedPoints);
-            });
-        this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
+        this.interactionPaths = [];
+        ambiguousData[1].forEach(function (d){ref.interactionPaths.push(ref.calculatePathPoints(d))});
+        this.drawInteractionPaths(angles);
     }
     //Render white path under the main hint path
     this.svg.select("#hintPath").append("path")
@@ -952,24 +918,6 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
         };
     }
 }
-/** Populates "interactionsPath" array with all points for drawing the sine waves:
- * interactionPaths[] = [[points for the sine wave]..number of paths]
- * */
-Piechart.prototype.findPaths = function (){
-    var pathInfo = [];
-    var pathNumber = 0;
-    for (var j=0; j<=this.lastView;j++){
-        if (this.ambiguousSegments[j][0]==1){
-            if (this.ambiguousSegments[j][1] != pathNumber){ //Starting a new path
-                pathNumber = this.ambiguousSegments[j][1];
-                this.interactionPaths.push(this.calculatePathPoints(pathInfo));
-                pathInfo = [];
-            }
-            pathInfo.push(j);
-        }
-    }
-    this.interactionPaths.push(this.calculatePathPoints(pathInfo));
-}
 /** Calculates a set of points to compose a sine wave (for an interaction path)
  * indices: the corresponding year indices, this array's length is the number of peaks of the path
  * @return an array of points for drawing the sine wave: [[x,y], etc.]
@@ -1008,4 +956,28 @@ Piechart.prototype.calculatePathPoints = function (indices){
     this.ambiguousSegments[indices[indices.length-1]].push(endDirection);
 
     return [pathPoints,indices[0]];
+}
+/** Draws interaction paths as sine waves with a dashed line, also sets the passedMiddle variable
+ *  translateX,Y: the amount to translate the path by initially
+ * */
+Piechart.prototype.drawInteractionPaths = function(angles){
+    var ref = this;
+
+    this.svg.select("#hintPath").selectAll(".interactionPath")
+        .data(this.interactionPaths.map(function (d,i) {
+        var viewIndex = d[1];
+        var angle_deg = ref.convertAngle((angles[viewIndex]+ref.dragStartAngle))*(180/Math.PI);
+        return {points:d[0],id:i,rotationAngle:angle_deg,view:viewIndex}
+    })).enter().append("path").attr("class","interactionPath")
+        .attr("d",function (d) {
+            //Translate the sine wave to it's stationary angle
+            var xTranslate = ref.hintArcInfo[d.view][0];
+            var yTranslate = ref.hintArcInfo[d.view][1];
+            var translatedPoints = d.points.map(function (b){return [b[0]+xTranslate,b[1]+yTranslate]});
+
+            d3.select(this).attr("transform","rotate("+d.rotationAngle+","+xTranslate+","+yTranslate+")"); //Transform the node in this function so data doesn't have to be saved...
+
+            return ref.interactionPathGenerator(translatedPoints);
+        });
+    this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
 }

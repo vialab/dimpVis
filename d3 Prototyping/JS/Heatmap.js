@@ -42,6 +42,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.passedMiddle = -1; //Passed the mid point of the peak of the sine wave
    this.peakValue = null;
    this.pathDirection = -1;
+   this.heightThreshold = 0;
 
    //Display properties
    this.labels = hLabels;
@@ -548,8 +549,11 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  //Re-set some flags (which may get set later on)
  this.allStationary = 0;
  this.isAmbiguous = 0;
+ //this.ambiguousCells = [];
 
- this.checkAmbiguous(pathData); //Check for ambiguous cases
+ var yOffsets = pathData.map(function(d){return d[4]});
+ var ambiguousData = checkAmbiguous(this,yOffsets,this.heightThreshold);
+ this.ambiguousCells = ambiguousData[0];
 
  //Create any array with the hint path coordinates
  var translateY = -this.ySpacing*pathData[drawingView][4];
@@ -560,17 +564,9 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
 
  //Draw the interaction path(s) (if any)
   if (this.isAmbiguous ==1){
-    this.svg.select("#hintPath").selectAll(".interactionPath")
-        .data(this.interactionPaths.map(function (d,i){
-             var adjustedPoints = d.map(function (b){return [b[0],b[1]+translateY]})
-             return {points:adjustedPoints,id:i}
-        }))
-        .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
-        .attr("transform","translate("+translateX+")")
-        .attr("class","interactionPath");
-
-     //appendAnchor(this,this.draggedCellX,this.draggedCellY,2);
-     this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
+     this.interactionPaths = [];
+     ambiguousData[1].forEach(function (d){ref.interactionPaths.push(ref.calculatePathPoints(yOffsets[d[0]],d))});
+     this.drawInteractionPaths(translateX,translateY);
   }
 //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
@@ -663,74 +659,6 @@ Heatmap.prototype.findHintX = function (index){
 Heatmap.prototype.findHintY = function (yOffset){
     return this.ySpacing*yOffset;
 }
-/** Search for stationary ambiguous cases in a list of yoffsets of colours (repeated colours).
- *  This information is stored in the ambiguousBars array, which gets re-populated each time a
- *  new cell is dragged.  This array is in  the format: [[type, newY]...number of views]
- *  data: an array containing the yOffsets of the hint path (this will likely be d.values)
- * */
-Heatmap.prototype.checkAmbiguous = function (data){
-    var j, currentCellOffset;
-    var stationaryCells = [];
-    this.isAmbiguous = 0;
-    this.ambiguousCells = [];
-    var yOffsets = data.map(function (d){return d[4];}); //Flatten the array to only contain y-offsets
-
-    //Re-set the ambiguousCells array
-    for (j=0;j<=this.lastView;j++){
-        this.ambiguousCells[j] = [0];
-    }
-
-    //Populate the stationary cells array by searching for sequences of continuous equal y-offsets
-    for (j=0;j<=this.lastView;j++){
-        currentCellOffset= yOffsets[j];
-        for (var k=j;k<=this.lastView;k++){
-            if (j!=k && yOffsets[k]== currentCellOffset){ //Repeated colour is found
-                if (Math.abs(k-j)==1){ //Stationary colour
-                    this.isAmbiguous = 1;
-                    //If the bar's index does not exist in the array of all stationary bars, add it
-                    if (stationaryCells.indexOf(j)==-1){
-                        stationaryCells.push(j);
-                        this.ambiguousCells[j] = [1];
-                    }if (stationaryCells.indexOf(k)==-1){
-                        stationaryCells.push(k);
-                        this.ambiguousCells[k] = [1];
-                    }
-                }
-            }
-        }
-    }
-
-    //Check if any stationary colours were found
-    if (this.isAmbiguous ==1){
-        //A case where the colour doesn't change for the entire hint path, therefore the hint path cannot be drawn as a gradient
-        if (stationaryCells.length > this.lastView){
-            this.allStationary = 1;
-        }
-        this.findPaths(d3.min(stationaryCells),yOffsets);//Then, generate points for drawing an interaction path
-    }
-}
-/** This function will populate an array containing all data for drawing a sine wave:
- * interactionPaths[] = [[points for the sine wave]..number of paths]
- * startIndex: the index of the first stationary cell (optional, just set to 0 if not known)
- * pathData: d.values
- * */
-Heatmap.prototype.findPaths = function (startIndex,offsets){
-    var pathInfo = [];
-    pathInfo[0] = offsets[startIndex];
-    pathInfo[1] = [];
-    for (var j=startIndex; j<=this.lastView;j++){
-        if (this.ambiguousCells[j]==1){
-            if (j!=startIndex && (this.ambiguousCells[j-1]!=1 || (this.ambiguousCells[j-1] == 1 && offsets[j]!= offsets[j-1]))){ //Starting a new path
-                this.interactionPaths.push(this.calculatePathPoints(pathInfo[0],pathInfo[1]));
-                pathInfo = [];
-                pathInfo[0] = offsets[j];
-                pathInfo[1] = [];
-            }
-            pathInfo[1].push(j);
-        }
-    }
-    this.interactionPaths.push(this.calculatePathPoints(pathInfo[0],pathInfo[1]));
-}
 /** Calculates a set of points to compose a sine wave (for an interaction path)
  * indices: the corresponding year indices, this array's length is the number of peaks of the path
  * offset: view offset of the stationary points
@@ -768,4 +696,20 @@ Heatmap.prototype.calculatePathPoints = function (offset,indices){
 
     return pathPoints;
 }
+/** Draws interaction paths as sine waves with a dashed line, also sets the passedMiddle variable
+ *  translateX,Y: the amount to translate the path by initially
+ * */
+Heatmap.prototype.drawInteractionPaths = function(translateX,translateY){
+    var ref = this;
+    this.svg.select("#hintPath").selectAll(".interactionPath")
+        .data(this.interactionPaths.map(function (d,i){
+        var adjustedPoints = d.map(function (b){return [b[0],b[1]+translateY]})
+        return {points:adjustedPoints,id:i}
+    }))
+        .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
+        .attr("transform","translate("+translateX+")")
+        .attr("class","interactionPath");
 
+    //appendAnchor(this,this.draggedCellX,this.draggedCellY,2);
+    this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
+}
