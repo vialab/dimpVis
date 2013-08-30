@@ -323,12 +323,21 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
             inferTimeDirection(this,draggingDirection,0);
         }else{
             moveForward(this,draggingDirection);
-            //console.log(findPixelDistance(this.mouseX,this.mouseY,barX,nextY));
+           // var coords = this.calculatePolarCoords(mouseAngle,this.radius);
+           // console.log(findPixelDistance(this.mouseX,this.mouseY,coords[0],coords[1]));
         }
         this.redrawView(this.nextView,id);
     }
 }
-/** Resolves a dragging interaction in a similar method as handleDraggedSegment, except
+/** Calculates the polar coordinates of an angle on the piechart
+ *  @return an array [x,y] containing the coordinates
+ * */
+Piechart.prototype.calculatePolarCoords = function (angle,radius){
+     var px = this.cx + radius*Math.cos(angle);
+     var py = this.cy + radius*Math.sin(angle);
+     return [px,py];
+}
+  /** Resolves a dragging interaction in a similar method as handleDraggedSegment, except
  *  this function is only called when in the middle of a stationary sequence of segments.
  *  angle: The angle of the stationary segment
  *  id: of the dragged segment
@@ -384,25 +393,17 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
 Piechart.prototype.appendAnchor = function (angle){
 
     if (this.svg.select("#segmentAnchor").empty()){
-
-        var newAngle = this.convertAngle(angle);
-        var cx = this.cx + (this.radius+10)*Math.cos(newAngle);
-        var cy = this.cy + (this.radius+10)*Math.sin(newAngle);
-
+        var c = this.calculatePolarCoords(this.convertAngle(angle),this.radius+10);
        //this.svg.select("#hintPath").append("circle").attr("r",4).attr("id","anchor").attr("stroke","none");
-        this.svg.select("#hintPath").append("path").attr("d",this.lineGenerator([[this.cx,this.cy],[cx,cy]]))
+        this.svg.select("#hintPath").append("path").attr("d",this.lineGenerator([[this.cx,this.cy],[c[0],c[1]]]))
             .attr("id","segmentAnchor").attr("stroke","#2ca02c");
     }
 }
 /** Re-draws the anchor along with the dragged segment
  * */
 Piechart.prototype.redrawAnchor = function (angle){
-    var newAngle = this.convertAngle(angle+this.dragStartAngle);
-
-    var cx = this.cx + (this.radius+10)*Math.cos(newAngle);
-    var cy = this.cy + (this.radius+10)*Math.sin(newAngle);
-
-    this.svg.select("#segmentAnchor").attr("d",this.lineGenerator([[this.cx,this.cy],[cx,cy]]));
+    var c = this.calculatePolarCoords(this.convertAngle(angle+this.dragStartAngle),this.radius+10);
+    this.svg.select("#segmentAnchor").attr("d",this.lineGenerator([[this.cx,this.cy],[c[0],c[1]]]));
 }
 /** Removes the anchor from the svg
  * */
@@ -582,9 +583,8 @@ Piechart.prototype.calculateHintAngles = function (angles,view,flag){
         }else{
             r = this.interpolateHintRadius(j,this.currentView,this.nextView);
         }
-        x = this.cx + r*Math.cos(newAngle - this.halfPi);
-        y = this.cy+ r*Math.sin(newAngle - this.halfPi);
-        hintAngles.push([x,y,r,newAngle]);
+        var c =  this.calculatePolarCoords((newAngle - this.halfPi),r);
+        hintAngles.push([c[0],c[1],r,newAngle]);
   }
    return hintAngles;
 }
@@ -615,9 +615,8 @@ Piechart.prototype.processHintPathInfo = function (angles,view){
         //Step 1: Calculate the new hint path information for this angle
         newAngle = this.dragStartAngle + angles[j];
         r = this.findHintRadius(j,view);
-        x = this.cx + r*Math.cos(newAngle - this.halfPi);
-        y = this.cy+ r*Math.sin(newAngle - this.halfPi);
-        hintAngles.push([x,y,r,newAngle]);
+        var c = this.calculatePolarCoords((newAngle - this.halfPi),r);
+        hintAngles.push([c[0],c[1],r,newAngle]);
 
         //Step 2: Determine if the angle is a part of a stationary sequence
         if (newAngle == prevAngle){
@@ -806,14 +805,14 @@ Piechart.prototype.createArcString = function (pathInfo){
 
             if (currentDirection != previousDirection){ //Changing directions
                 var radiusDiff = Math.abs(pathInfo[j][2] - pathInfo[j-1][2]);
-                x = this.cx + (pathInfo[j-1][2] + radiusDiff*0.35)*Math.cos(pathInfo[j-1][3] -this.halfPi);
-                y = this.cy + (pathInfo[j-1][2] + radiusDiff*0.35)*Math.sin(pathInfo[j-1][3] - this.halfPi);
-                dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+x+" "+y; //Small connecting line which joins two radii
+                var coords = this.calculatePolarCoords((pathInfo[j-1][3] -this.halfPi),(pathInfo[j-1][2] + radiusDiff*0.35));
+
+                dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+coords[0]+" "+coords[1]; //Small connecting line which joins two radii
                 if (pathInfo[j][3] > pathInfo[j-1][3]){
                     dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
-                        +pathInfo[j][2]+" 0 0 0 "+x+" "+y;
+                        +pathInfo[j][2]+" 0 0 0 "+coords[0]+" "+coords[1];
                 }else{
-                    dString +="M "+x+" "+y+" A "+pathInfo[j][2]+" "
+                    dString +="M "+coords[0]+" "+coords[1]+" A "+pathInfo[j][2]+" "
                         +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
                 }
             } else {
