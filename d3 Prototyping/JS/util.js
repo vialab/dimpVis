@@ -45,6 +45,14 @@ function moveForward(objectRef,draggingDirection){
         }
     }
 }
+/**Finds the pixel distance from the user's point to the dragged data object's point
+ * @return the pixel distance (calculated with the euclidean distance formula)
+ * */
+function findPixelDistance (userX,userY,objectX,objectY){
+    var term1 = userX - objectX;
+    var term2 = userY - objectY;
+    return Math.sqrt((term1*term1)+(term2*term2));
+}
 /** Updates the view tracking variables when the view is being changed by an external
  * visualization (e.g., slider)
  * */

@@ -43,6 +43,8 @@ function Piechart(x,y, r,id,title,hLabels){
                                //1 if going forward, -1 if going backward
    this.previousDragDirection = 1;
    this.mouseAngle = -1; //Save the angle of the previously dragged segment
+   this.mouseX = 0;
+   this.mouseY = 0;
    this.hintArcInfo = []; //The points and radii along the hint path
 
    this.ambiguousSegments = [];
@@ -211,81 +213,69 @@ Piechart.prototype.calculateLayout = function (angles,start,id){
  *  endAngles along the hint path).  From this comparison, the views are resolved and
  *  (if needed), the piechart segments are re-drawn based on the dragging amount
  *  id: The id of the dragged segment
- *  mouseX,mouseY: The coordinates of the mouse
  * */
-Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY){
-    var ref = this;
+Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY,nodes){
 
-    this.svg.select("#displayArcs"+id).attr("d", function (d) {
+    //Calculate the angle of the dragged segment
+    var angle = this.findMouseAngle(mouseX,mouseY);
 
-        //Set the start angle of the dragged segment
-        d.startAngle = ref.dragStartAngle;
+    //Find the angles for the current and next view
+    var current = nodes[this.currentView];
+    var next =  nodes[this.nextView];
 
-        //Calculate the angle of the dragged segment
-        var angle = ref.findMouseAngle(mouseX,mouseY);
+    //Find the current angular dragging direction
+    var draggingDirection = (angle > this.mouseAngle)? 1 : (angle < this.mouseAngle)? -1 : this.previousDragDirection;
 
-        //Find the angles for the current and next view
-        var current = d.nodes[ref.currentView];
-        var next =  d.nodes[ref.nextView];
-        var newAngle;
+    //Re-set the time direction and dragging direction if the dragging has just started
+    if (this.timeDirection ==0){
+        this.timeDirection = 1; //Forward in time by default
+        this.previousDragDirection = draggingDirection;
+    }
 
-        //Find the current angular dragging direction
-        var draggingDirection = (angle > ref.mouseAngle)? 1 : (angle < ref.mouseAngle)? -1 : ref.previousDragDirection;
+    if (this.isAmbiguous==1){ //Might be at a stationary sequence
 
-        //Re-set the time direction and dragging direction if the dragging has just started
-        if (ref.timeDirection ==0){
-            ref.timeDirection = 1; //Forward in time by default
-            ref.previousDragDirection = draggingDirection;
-        }
+        var currentAmbiguous = this.ambiguousSegments[this.currentView];
+        var nextAmbiguous = this.ambiguousSegments[this.nextView];
 
-        if (ref.isAmbiguous==1){ //Might be at a stationary sequence
-
-            var currentAmbiguous = ref.ambiguousSegments[ref.currentView];
-            var nextAmbiguous = ref.ambiguousSegments[ref.nextView];
-
-            if (currentAmbiguous[0] == 1 && nextAmbiguous[0] == 0){
-                setSineWaveVariables(ref,currentAmbiguous[2],current,1);
-                if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==-1)){ //Detect if the sine wave and regular hint path form a peak at end point
-                    ref.atCorner = ref.currentView;
-                }
-                newAngle = ref.handleDraggedSegment(id,current,next,angle, d.nodes,draggingDirection);
-            }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0] == 1){
-                setSineWaveVariables(ref,-1,next,0);
-                //Detect if the sine wave and regular hint path form a peak at end point
-                if(current>next){
-                    ref.atCorner = ref.nextView;
-                }
-                newAngle = ref.handleDraggedSegment(id,current,next,angle, d.nodes,draggingDirection);
-            }else if (currentAmbiguous[0] == 1 && nextAmbiguous[0] == 1){ //In middle of sequence
-                //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
-                if (ref.passedMiddle == -1){
-                    setSineWaveVariables(ref,draggingDirection,current,0);
-                    //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
-                    if (ref.pathDirection != currentAmbiguous[2] && ref.currentView>0){
-                        ref.passedMiddle = 1;
-                        moveBackward(ref,draggingDirection);
-                    }
-                }
-                ref.handleDraggedSegment_stationary(id,current,angle, d.nodes,draggingDirection);
-                newAngle = current;
-            }else{ //No stationary case to handle right now
-                ref.atCorner = -1;
-                newAngle = ref.handleDraggedSegment(id,current,next,angle,d.nodes,draggingDirection);
+        if (currentAmbiguous[0] == 1 && nextAmbiguous[0] == 0){
+            setSineWaveVariables(this,currentAmbiguous[2],current,1);
+            if((current>next && this.pathDirection==1) || (current<next && this.pathDirection==-1)){ //Detect if the sine wave and regular hint path form a peak at end point
+                this.atCorner = this.currentView;
             }
-        } else{ //No ambiguity on the entire hint path
-            newAngle = ref.handleDraggedSegment(id,current,next,angle,d.nodes,draggingDirection);
+            this.handleDraggedSegment(id,current,next,angle, nodes,draggingDirection);
+        }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0] == 1){
+            setSineWaveVariables(this,-1,next,0);
+            //Detect if the sine wave and regular hint path form a peak at end point
+            if(current>next){
+                this.atCorner = this.nextView;
+            }
+            this.handleDraggedSegment(id,current,next,angle, nodes,draggingDirection);
+        }else if (currentAmbiguous[0] == 1 && nextAmbiguous[0] == 1){ //In middle of sequence
+            //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
+            if (this.passedMiddle == -1){
+                setSineWaveVariables(this,draggingDirection,current,0);
+                //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
+                if (this.pathDirection != currentAmbiguous[2] && ref.currentView>0){
+                    this.passedMiddle = 1;
+                    moveBackward(this,draggingDirection);
+                }
+            }
+            this.handleDraggedSegment_stationary(id,current,angle, nodes,draggingDirection);
+        }else{ //No stationary case to handle right now
+            this.atCorner = -1;
+            this.handleDraggedSegment(id,current,next,angle,nodes,draggingDirection);
         }
+    } else{ //No ambiguity on the entire hint path
+        this.handleDraggedSegment(id,current,next,angle,nodes,draggingDirection);
+    }
 
-        d.endAngle = ref.dragStartAngle + newAngle; //Set the new end angle to re-draw the dragged angle
-        ref.mouseAngle = angle; //Save the dragging angle
-        ref.previousDragDirection = draggingDirection; //Save the current dragging direction
+    //Save some values
+    this.mouseAngle = angle;
+    this.previousDragDirection = draggingDirection;
+    this.mouseX = mouseX;
+    this.mouseY = mouseY;
 
-       // ref.redrawAnchor(newAngle);
-
-        return ref.arcGenerator(d); //Re-draw the arc
-
-    });
-
+    //this.redrawAnchor(angle);
 }
 /** Calculates the angle of the mouse w.r.t the piechart center
  *  mouseX, mouseY: coordinates of the mouse
@@ -327,14 +317,16 @@ Piechart.prototype.handleDraggedSegment = function(id,current,next,mouseAngle,no
         }else{
             moveBackward(this,draggingDirection);
         }
+        this.redrawView(this.currentView,id);
     }else{ //At next
         if (this.corners[this.nextView]==1 || this.atCorner == this.nextView){ //Next is a corner, or a corner formed by the sine wave and hint path
             inferTimeDirection(this,draggingDirection,0);
         }else{
             moveForward(this,draggingDirection);
+            //console.log(findPixelDistance(this.mouseX,this.mouseY,barX,nextY));
         }
+        this.redrawView(this.nextView,id);
     }
-    return bounds;
 }
 /** Resolves a dragging interaction in a similar method as handleDraggedSegment, except
  *  this function is only called when in the middle of a stationary sequence of segments.
@@ -439,8 +431,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
     this.calculateLayout(newAngles,this.dragStartAngle,id);
 
     //Redraw the segments at the interpolated angles
-    this.svg.selectAll(".displayArcs").filter(function (d){return d.id!=id})
-        .attr("d", function (d){
+    this.svg.selectAll(".displayArcs").attr("d", function (d){
             d.startAngle = ref.startAngles[d.id];
             d.endAngle = ref.endAngles[d.id];
             return ref.arcGenerator(d);
@@ -706,14 +697,14 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     //Render white path under the main hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
-        .attr("id","pathUnderlayer").attr("class","path");
-        //.attr("filter", "url(#blur)");
+        .attr("id","pathUnderlayer").attr("class","path")
+        .attr("filter", "url(#blur)");
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
-        .attr("id","path").attr("class","path");
-        //.attr("filter", "url(#blur)");
+        .attr("id","path").attr("class","path")
+        .attr("filter", "url(#blur)");
 
    /** var drawLine = d3.svg.line().interpolate("cardinal");
     var testPoints = this.calculateHintPathPoints(this.hintArcInfo);

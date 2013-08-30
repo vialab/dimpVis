@@ -33,7 +33,7 @@ heatmap.dragEvent = d3.behavior.drag()
                        heatmap.showHintPath(d.id,d.values,d.x,d.y);
                    })
                   .on("drag", function(d){
-                        heatmap.updateDraggedCell(d.id,d3.event.y);
+                        heatmap.updateDraggedCell(d.id,d3.event.y, d3.event.x,d.values);
                         slider.animateTick(heatmap.interpValue,heatmap.currentView,heatmap.nextView);
                   })
                   .on("dragend",function (d){

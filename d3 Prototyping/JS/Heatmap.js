@@ -24,7 +24,8 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.previousDragDirection = 1; //Dragging direction of the user: 1 if up, -1 if down
    this.timeDirection = 1 //Direction travelling over time, 1: forward, -1: backward
 
-   this.mouseY=null; //To track the mouse position
+   this.mouseY= 0;
+   this.mouseX = 0;
    this.interpValue = 0; //Value to track the progress of colour interpolation when switching between views
    this.draggedCell = -1; //Keeps track of the id of the dragged cell
    this.draggedCellX = -1; //Saved x coordinate of the dragged cell
@@ -216,27 +217,22 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
  *  (if needed), the heatmap is recoloured based on the dragging distance (how close the
  *  user is to one of the bounding views)
  *  id: The id of the dragged cell
- *  mouseY: The y-coordinate of the mouse, received from the drag event
  * */
- Heatmap.prototype.updateDraggedCell = function(id, mouseY){
-   var ref = this;
-
-   //Redraw the colours of all cells according to the dragging amount
-   this.svg.select("#cell"+id).each(function (d){
+ Heatmap.prototype.updateDraggedCell = function(id, mouseY,mouseX,values){
 
        //Find the current vertical dragging direction of the user
-       var draggingDirection = (mouseY > ref.mouseY)? -1 : (mouseY < ref.mouseY)? 1 : ref.previousDragDirection;
+       var draggingDirection = (mouseY > this.mouseY)? -1 : (mouseY <this.mouseY)? 1 : this.previousDragDirection;
 
        //Re-set the time direction and dragging direction if the dragging has just started
-       if (ref.timeDirection ==0){
-           ref.timeDirection = 1; //Forward in time by default
-           ref.previousDragDirection = draggingDirection;
+       if (this.timeDirection ==0){
+           this.timeDirection = 1; //Forward in time by default
+           this.previousDragDirection = draggingDirection;
        }
 
-       var current = d.values[ref.currentView];
-       var next = d.values[ref.nextView];
-       var currentY = ref.hintYValues[ref.currentView];
-       var nextY = ref.hintYValues[ref.nextView];
+       var current = values[this.currentView];
+       var next = values[this.nextView];
+       var currentY = this.hintYValues[this.currentView];
+       var nextY = this.hintYValues[this.nextView];
 
        /**var smallCurrentY = ref.draggedCellY; //Center of the dragged cell
        var smallNextY;
@@ -268,57 +264,55 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        smallNextY = (slope==1)? (ref.draggedCellY - next[4]*4):(ref.draggedCellY + next[4]*4);*/
        //console.log(smallCurrentY+" "+smallNextY);
 
-       if (ref.isAmbiguous==1){ //At least one ambiguous region exists on the hint path
+       if (this.isAmbiguous==1){ //At least one ambiguous region exists on the hint path
 
-           var currentAmbiguous = ref.ambiguousCells[ref.currentView];
-           var nextAmbiguous = ref.ambiguousCells[ref.nextView];
+           var currentAmbiguous = this.ambiguousCells[this.currentView];
+           var nextAmbiguous = this.ambiguousCells[this.nextView];
 
            //Check where the mouse is w.r.t the sine wave (e.g., at an end point, in the middle of it etc.)
            if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching sine wave from right (along hint path)
-               setSineWaveVariables(ref,currentAmbiguous[1],currentY,1);
+               setSineWaveVariables(this,currentAmbiguous[1],currentY,1);
                //hideAnchor(ref,2);
 
-               if((currentY>nextY && ref.pathDirection==1) || (currentY<nextY && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
-                   ref.atPeak = ref.currentView;
+               if((currentY>nextY && this.pathDirection==1) || (currentY<nextY && this.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
+                   this.atPeak = this.currentView;
                }
 
-               ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
+               this.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
            }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching sine wave from the left
-               setSineWaveVariables(ref,nextAmbiguous[1],nextY,0);
+               setSineWaveVariables(this,nextAmbiguous[1],nextY,0);
                //hideAnchor(ref,2);
 
                if(currentY>nextY){ //Detect if the sine wave and regular hint path form a peak at end point
-                   ref.atPeak = ref.nextView;
+                   this.atPeak = this.nextView;
                }
 
-               ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
+               this.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
            }else if(currentAmbiguous[0]==1 && nextAmbiguous[0]==1){ //In middle of sine wave
 
                //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
-               if (ref.passedMiddle == -1){
-                   setSineWaveVariables(ref,draggingDirection,currentY,0);
+               if (this.passedMiddle == -1){
+                   setSineWaveVariables(this,draggingDirection,currentY,0);
                    //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
-                   if (ref.pathDirection != currentAmbiguous[1] && ref.currentView>0){
-                       ref.passedMiddle = 1;
-                       moveBackward(ref,draggingDirection);
+                   if (this.pathDirection != currentAmbiguous[1] && this.currentView>0){
+                       this.passedMiddle = 1;
+                       moveBackward(this,draggingDirection);
                    }
                }
 
-               ref.handleDraggedCell_stationary(currentY,mouseY,draggingDirection);
+               this.handleDraggedCell_stationary(currentY,mouseY,draggingDirection);
            }else{ //Not encountering the sine wave
-               ref.atPeak = -1;
+               this.atPeak = -1;
                //hideAnchor(ref,2);
-               ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
+               this.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
            }
        }else{
-          ref.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
+           this.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
        }
 
-       //console.log(ref.currentView+" "+ref.nextView+" "+ref.interpValue+" "+ref.timeDirection);
-       ref.previousDragDirection = draggingDirection; //Save the current dragging direction
-    });
-
-     this.mouseY = mouseY; //Save the mouse coordinate
+     this.previousDragDirection = draggingDirection;
+     this.mouseY = mouseY;
+     this.mouseX = mouseX;
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
@@ -343,6 +337,7 @@ Heatmap.prototype.handleDraggedCell = function (current,next,currentY,nextY,mous
             inferTimeDirection(this,draggingDirection,0);
         }else{
             moveForward(this,draggingDirection);
+            //console.log(findPixelDistance(this.mouseX,this.mouseY,this.draggedCellX,this.draggedCellY));
         }
     }
 }

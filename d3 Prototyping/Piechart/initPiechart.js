@@ -38,7 +38,7 @@ piechart.dragEvent = d3.behavior.drag()
         piechart.showHintPath(d.id, d.nodes, d.startAngle);
     })
     .on("drag", function(d){
-        piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y);
+        piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y, d.nodes);
         slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
     })
     .on("dragend",function (d){

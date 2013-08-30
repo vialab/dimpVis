@@ -35,7 +35,7 @@ var dragBar = d3.behavior.drag()
 					  })
                       .on("drag", function(d){
                            slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
-                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y);
+                           scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y, d.nodes);
 					  })
 					  .on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
                                                   //coordinates of the scatterplot object

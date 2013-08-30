@@ -42,6 +42,7 @@
    //Variables for handling regular interaction
    this.interpValue=0; //For estimating the time direction and update the barchart view
    this.mouseY = 0;
+   this.mouseX = 0;
    this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
    this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
 
@@ -242,84 +243,77 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  *
  *  Recall: the base of every bar is at this.base, therefore top of the bar is this.base-barHeight
  * */
- Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY){
-     var ref = this;
-    //Re-draw the bars according to the dragging amount
-    this.svg.select("#displayBars"+id).each(function (d) {
+ Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY,barX,nodes){
 
-        //Set the current vertical dragging direction of the user
-        var draggingDirection = (mouseY > ref.mouseY)? -1 : (mouseY < ref.mouseY)? 1 : ref.previousDragDirection;
-        //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
+    //Set the current vertical dragging direction of the user
+    var draggingDirection = (mouseY > this.mouseY)? -1 : (mouseY < this.mouseY)? 1 : this.previousDragDirection;
+    //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
 
-       //Re-set the time direction and dragging direction if the dragging has just started
-        if (ref.timeDirection ==0){
-            ref.timeDirection = 1; //Forward in time by default
-            ref.previousDragDirection = draggingDirection;
-        }
+   //Re-set the time direction and dragging direction if the dragging has just started
+    if (this.timeDirection ==0){
+        this.timeDirection = 1; //Forward in time by default
+        this.previousDragDirection = draggingDirection;
+    }
 
-        var current = d.nodes[ref.currentView];
-        var next = d.nodes[ref.nextView];
-        var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
+    var current = nodes[this.currentView];
+    var next = nodes[this.nextView];
+    var newValues = []; //Will contain the new height and y-position:[y,h] of the dragged bar
 
-        if (ref.isAmbiguous ==1){ //At least one stationary sequence exists somewhere on the hint path
+    if (this.isAmbiguous ==1){ //At least one stationary sequence exists somewhere on the hint path
 
-            var currentAmbiguous = ref.ambiguousBars[ref.currentView];
-            var nextAmbiguous = ref.ambiguousBars[ref.nextView];
+        var currentAmbiguous = this.ambiguousBars[this.currentView];
+        var nextAmbiguous = this.ambiguousBars[this.nextView];
 
-            //Check for stationary bar sequences
-            if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching the stationary points from right (along hint path)
+        //Check for stationary bar sequences
+        if (currentAmbiguous[0] == 1 && nextAmbiguous[0] ==0){ //Approaching the stationary points from right (along hint path)
 
-                setSineWaveVariables(ref,currentAmbiguous[2],current[0],1);
+            setSineWaveVariables(this,currentAmbiguous[2],current[0],1);
 
-                if((current>next && ref.pathDirection==1) || (current<next && ref.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
-                    ref.atPeak = ref.currentView;
-                }
-
-                newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
-
-            }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching the stationary points from left (along hint path)
-                setSineWaveVariables(ref,nextAmbiguous[2],next[0],0);
-
-                if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
-                    ref.atPeak = ref.nextView;
-                }
-
-                newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
-
-            }else if (currentAmbiguous[0]==1 && nextAmbiguous[0]==1){ //In middle of sequence
-
-                //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
-                if (ref.passedMiddle == -1){
-                    setSineWaveVariables(ref,draggingDirection,current[0],0);
-                    //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
-                    if (ref.pathDirection != currentAmbiguous[2] && ref.currentView>0){
-                        ref.passedMiddle = 1;
-                        moveBackward(ref,draggingDirection);
-                    }
-                }
-
-                ref.handleDraggedBar_stationary(current[0],mouseY,mouseX,id,draggingDirection);
-
-                newValues = [current[0],current[1]];
-
-            }else{ //No stationary case to handle right now
-                ref.atPeak = -1;
-                newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
+            if((current>next && this.pathDirection==1) || (current<next && this.pathDirection==1)){ //Detect if the sine wave and regular hint path form a peak at end point
+                this.atPeak = this.currentView;
             }
-        }else { //No stationary ambiguous cases exist
-            newValues = ref.handleDraggedBar(current,next,mouseY,id,draggingDirection);
+
+            newValues = this.handleDraggedBar(current,next,mouseY,id,draggingDirection,barX);
+
+        }else if (currentAmbiguous[0] == 0 && nextAmbiguous[0]==1){ //Approaching the stationary points from left (along hint path)
+            setSineWaveVariables(this,nextAmbiguous[2],next[0],0);
+
+            if(current>next){ //Detect if the sine wave and regular hint path form a peak at end point
+                this.atPeak = this.nextView;
+            }
+
+            newValues = this.handleDraggedBar(current,next,mouseY,id,draggingDirection,barX);
+
+        }else if (currentAmbiguous[0]==1 && nextAmbiguous[0]==1){ //In middle of sequence
+
+            //Dragging has started in the middle of a sequence, need to determine the time direction based on the vertical dragging direction
+            if (this.passedMiddle == -1){
+                setSineWaveVariables(this,draggingDirection,current[0],0);
+                //If vertical dragging indicates the time direction should move backwards, in this case need to update the view variables
+                if (this.pathDirection != currentAmbiguous[2] && this.currentView>0){
+                    this.passedMiddle = 1;
+                    moveBackward(this,draggingDirection);
+                }
+            }
+
+            this.handleDraggedBar_stationary(current[0],mouseY,mouseX,id,draggingDirection);
+            newValues = [current[0],current[1]];
+
+        }else{ //No stationary case to handle right now
+            this.atPeak = -1;
+            newValues = this.handleDraggedBar(current,next,mouseY,id,draggingDirection,barX);
         }
+    }else { //No stationary ambiguous cases exist
+        newValues = this.handleDraggedBar(current,next,mouseY,id,draggingDirection,barX);
+    }
 
-        //Re-draw the dragged bar
-        ref.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
+    //Re-draw the dragged bar
+    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
 
-        //Save the dragging direction
-        ref.previousDragDirection = draggingDirection;
-
-    });
-
-    //Save the mouse y-coordinate
-    this.mouseY = mouseY;
+   //Save some variables
+   this.previousDragDirection = draggingDirection;
+   this.mouseY = mouseY;
+   this.mouseX = mouseX;
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
@@ -328,7 +322,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  *  id: of the dragged bar
  *  @return: [newY,newHeight], values used to update the drawing of the dragged bar
  * */
-Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingDirection){
+Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingDirection,barX){
     var newValues = [];
 
     //Resolve the bounds, find the appropriate y-coords (if at peak, the tolerance adjusted y-value is used instead of the original)
@@ -360,6 +354,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
             newValues = this.findNewY(nextY,currentY,mouseY,next);
         }else{
             moveForward(this,draggingDirection);
+            //console.log(findPixelDistance(this.mouseX,this.mouseY,barX,nextY));
             newValues = (next[2]!=0)?[nextY,this.findHeight(nextY)]:[nextY,next[1]];
         }
     }
@@ -723,7 +718,6 @@ Barchart.prototype.checkAmbiguous = function (){
         currentBar= this.pathData[j][1];
         for (var k=j;k<=this.lastView;k++){
             //if (j!=k && this.pathData[k][1]== currentBar){ //Repeated bar is found
-
             if (j!=k && (Math.abs(this.pathData[k][1]- currentBar))<this.heightThreshold){ //An almost repeated bar, less than one pixel difference
 
                 if (Math.abs(k-j)==1){ //Stationary bar

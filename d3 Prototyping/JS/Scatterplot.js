@@ -217,48 +217,42 @@ Scatterplot.prototype.removeAnchor = function (){
  *  the minimum distance.  As the point is dragged, the views are updated and the rest
  *  of the points are animated
  *  id: The id of the dragged point, for selecting by id
- *  mousex, mouseY: The coordinates of the mouse, received from the drag event
  * */
-Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY) {
+Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
+
+    var pt1_x = nodes[this.currentView][0];
+    var pt2_x = nodes[this.nextView][0];
+    var pt1_y = nodes[this.currentView][1];
+    var pt2_y = nodes[this.nextView][1];
+    var newPoint = [];
+
+    if (this.isAmbiguous==1){ //Ambiguous cases exist on the hint path
+
+        var currentPointInfo = this.ambiguousPoints[this.currentView];
+        var nextPointInfo = this.ambiguousPoints[this.nextView];
+
+        if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
+            this.previousLoopAngle = "start";
+            newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+        }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
+            this.previousLoopAngle = "start";
+            newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+        }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
+            this.dragAlongLoop(id,currentPointInfo[1],mouseX,mouseY);
+            return;
+        }else{
+            newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+        }
+    }else{ //No ambiguous cases exist
+        newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
+    }
+
+    //Re-draw the dragged point
+    this.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
 
     //Save the mouse coordinates
-    var ref = this;
     this.mouseX = mouseX;
     this.mouseY = mouseY;
-
-    //Re-draw the point's according to the position of the dragged point
-    this.svg.select("#displayPoints"+id).each( function (d) {
-
-        var pt1_x = d.nodes[ref.currentView][0];
-        var pt2_x = d.nodes[ref.nextView][0];
-        var pt1_y = d.nodes[ref.currentView][1];
-        var pt2_y = d.nodes[ref.nextView][1];
-        var newPoint = [];
-
-        if (ref.isAmbiguous==1){ //Ambiguous cases exist on the hint path
-
-            var currentPointInfo = ref.ambiguousPoints[ref.currentView];
-            var nextPointInfo = ref.ambiguousPoints[ref.nextView];
-
-            if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
-                ref.previousLoopAngle = "start";
-                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
-            }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
-                ref.previousLoopAngle = "start";
-                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
-            }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
-                ref.dragAlongLoop(id,currentPointInfo[1],mouseX,mouseY);
-                return;
-            }else{
-                newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
-            }
-        }else{ //No ambiguous cases exist
-            newPoint = ref.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
-        }
-
-        //Re-draw the dragged point
-        ref.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
-    });
 }
 /** Calculates the new position of the dragged point
  * id: of the dragged point
@@ -275,9 +269,11 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
     //Update the position of the dragged point
     if (t<0){ //Passed current
         this.moveBackward();
+        //console.log(findPixelDistance(this.mouseX,this.mouseY,pt1_x,pt1_y));
         newPoint = [pt1_x,pt1_y];
     }else if (t>1){ //Passed next
         this.moveForward();
+        //console.log(findPixelDistance(this.mouseX,this.mouseY,pt2_x,pt2_y));
         newPoint= [pt2_x,pt2_y];
     }else{ //Some in between the views (pt1 and pt2)
         this.interpolatePoints(id,t,this.currentView,this.nextView);

@@ -60,7 +60,7 @@ barchart.dragEvent = d3.behavior.drag()
             userX = d3.event.x;
             userY = d3.event.y;
         }
-        barchart.updateDraggedBar(d.id,userX,userY);
+        barchart.updateDraggedBar(d.id,userX,userY,d.xPos,d.nodes);
     })
     .on("dragend",function (d){
         d3.event.sourceEvent.preventDefault();
