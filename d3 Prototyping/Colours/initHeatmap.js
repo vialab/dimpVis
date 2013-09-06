@@ -13,6 +13,7 @@ heatmap.init();
 
 heatmap.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
+    d3.event.preventDefault();
     heatmap.animateColours(heatmap.draggedCell,heatmap.currentView,i);
     changeView(heatmap,i);
     slider.updateSlider(i);
@@ -28,16 +29,19 @@ heatmap.render(data,xLabels,yLabels,colours);
 heatmap.dragEvent = d3.behavior.drag()
                    .origin(function(d){ return {x:d.x+heatmap.cellSize/2,y:d.y+heatmap.cellSize/2};})
                    .on("dragstart", function(d){
+                       d3.event.sourceEvent.preventDefault();
                        heatmap.clearHintPath();
                        heatmap.draggedCell = d.id;
                        heatmap.showHintPath(d.id,d.values,d.x,d.y);
                    })
                   .on("drag", function(d){
+                        d3.event.sourceEvent.preventDefault();
                         heatmap.updateDraggedCell(d.id,d3.event.y, d3.event.x,d.values);
                         slider.animateTick(heatmap.interpValue,heatmap.currentView,heatmap.nextView);
                   })
-                  .on("dragend",function (d){
-                       heatmap.snapToView(d.id);
+                  .on("dragend",function (){
+                       d3.event.sourceEvent.preventDefault();
+                       heatmap.snapToView();
                        slider.updateSlider(heatmap.currentView);
                   });
 

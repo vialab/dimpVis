@@ -3,6 +3,12 @@
 
 //Create a new piechart visualization
 var piechart   = new Piechart(50, 50 , 180,"#piegraph","Random",labels);
+
+
+window.onload = function (){
+    piechart.useMobile = checkDevice();
+}
+
 var colours = colorbrewer.Set2[3]; //Use scale from color brewer
 var colourLabels = ["Segment A","Segment B","Segment C"];
 
@@ -19,6 +25,7 @@ drawColourLegend(piechart,colours,colourLabels,220,10,30,15,1.2);
 //Define the function for fast-forwarding the view by clicking on any label along the hint path
 piechart.clickHintLabelFunction = function (d,i){
      d3.event.stopPropagation();
+    d3.event.preventDefault();
      piechart.animateSegments(piechart.draggedSegment,piechart.currentView,i);
      changeView(piechart,i);
      slider.updateSlider(i);
@@ -31,6 +38,7 @@ piechart.dragEvent = d3.behavior.drag()
      return {x:d3.event.x,y:d3.event.y};
      })*/
     .on("dragstart", function(d){
+        d3.event.sourceEvent.preventDefault();
         piechart.draggedSegment = d.id;
         piechart.clearHintPath();
         //Prevent the angle from blowing up, by making sure it starts under 360 deg
@@ -38,10 +46,13 @@ piechart.dragEvent = d3.behavior.drag()
         piechart.showHintPath(d.id, d.nodes, d.startAngle);
     })
     .on("drag", function(d){
-        piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y, d.nodes);
+        d3.event.sourceEvent.preventDefault();
+        var coords = getUserCoords(this);
+        piechart.updateDraggedSegment(d.id,coords[0],coords[1], d.nodes);
         slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
     })
     .on("dragend",function (d){
+        d3.event.sourceEvent.preventDefault();
         piechart.snapToView(d.id,d.nodes);
         slider.updateSlider(piechart.currentView);
     });

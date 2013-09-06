@@ -24,6 +24,8 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.previousDragDirection = 1; //Dragging direction of the user: 1 if up, -1 if down
    this.timeDirection = 1 //Direction travelling over time, 1: forward, -1: backward
 
+  // this.useMobile = false;
+
    this.mouseY= 0;
    this.mouseX = 0;
    this.interpValue = 0; //Value to track the progress of colour interpolation when switching between views
@@ -546,11 +548,7 @@ Heatmap.prototype.showHintPath = function(id,pathData,x,y){
  this.draggedCellX = x + this.cellSize/2; //Save the center coordinates of the dragged cell
  this.draggedCellY = y + this.cellSize/2;
 
- //Re-set some flags (which may get set later on)
  this.allStationary = 0;
- this.isAmbiguous = 0;
- //this.ambiguousCells = [];
-
  var yOffsets = pathData.map(function(d){return d[4]});
  var ambiguousData = checkAmbiguous(this,yOffsets,this.heightThreshold);
  this.ambiguousCells = ambiguousData[0];

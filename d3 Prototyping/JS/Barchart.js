@@ -15,6 +15,9 @@
    this.useMobile = false;
 
    //Display properties
+   this.barColour = "#74c476";
+   this.zeroBarColour = "#c7c7c7";
+
    this.padding = p;
    this.barWidth = bw;
    this.strokeWidth=5;
@@ -163,8 +166,8 @@ this.svg.selectAll("rect")
      .attr("x", function(d){return d.xPos;})
      .attr("y", function(d){ return d.nodes[ref.currentView][0];})
      .attr("width", this.barWidth)
-     .attr("height", function(d) {return d.nodes[ref.currentView][1]; })
-	 .attr("class", "displayBars")
+     .attr("height", function(d) {return d.nodes[ref.currentView][1]})
+	 .attr("class", "displayBars").style("fill",ref.barColour)
 	 .attr("id", function (d){return "displayBars"+d.id;});
 
 	//Add a blank g element to contain the hint path
@@ -308,7 +311,8 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     }
 
     //Re-draw the dragged bar
-    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);
+    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1])
+        .style("fill",this.barColour);
 
    //Save some variables
    this.previousDragDirection = draggingDirection;
@@ -537,11 +541,12 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  *  NOTE: view tracking variables are not updated by this function
  * */
 Barchart.prototype.redrawView = function (view,id){
-   var ref = this;
+    var ref = this;
    //Re-draw the  bars at the specified view
    this.svg.selectAll(".displayBars").transition().duration(300)
-              .attr("height", function (d){return d.nodes[view][1];})
-              .attr("y", function (d){return d.nodes[view][0];});
+              .attr("height", function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?2:d.nodes[view][1];})
+              .attr("y", function (d){return d.nodes[view][0];})
+              .style("fill",function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?ref.zeroBarColour:ref.barColour;});
 
     //Re-draw the hint path (if id is specified)
     if (id!=-1){
@@ -602,7 +607,6 @@ Barchart.prototype.snapToView = function (id, heights){
  *  */
 Barchart.prototype.selectBar = function (id,heights,xPos){
     var ref = this;
-    this.isAmbiguous = 0;
 
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
     var drawingView = adjustView(this);
@@ -671,8 +675,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
        .attr("id","path").attr("clip-path","url(#clip)");
 
     if (this.useMobile){ //Adjust the display properties of the hint path
-       this.svg.select("#path").style("stroke","#c6dbef").style("stroke-width",4);
-       this.svg.select("#underlayer").style("stroke-width",5);
+       drawMobileHintPath(this);
     }
 
 	//Draw the hint labels

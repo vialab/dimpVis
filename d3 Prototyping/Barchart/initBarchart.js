@@ -9,9 +9,9 @@ window.onload = function (){
 }
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
-/**barchart.clickSVG = function (){
+barchart.clickSVG = function (){
     barchart.clearHintPath();
-};*/
+};
 
 //Toggle the type of indicator displayed when dragging along the sine wave
 //Currently not being used..
@@ -51,16 +51,8 @@ barchart.dragEvent = d3.behavior.drag()
     .on("drag", function(d){
         d3.event.sourceEvent.preventDefault();
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
-        //Check for touch points
-        var userX,userY;
-        if (d3.touches(this).length > 0){
-            userX = d3.touches(this)[0][0];
-            userY = d3.touches(this)[0][1];
-        }else{
-            userX = d3.event.x;
-            userY = d3.event.y;
-        }
-        barchart.updateDraggedBar(d.id,userX,userY,d.xPos,d.nodes);
+        var coords = getUserCoords(this);
+        barchart.updateDraggedBar(d.id,coords[0],coords[1],d.xPos,d.nodes);
     })
     .on("dragend",function (d){
         d3.event.sourceEvent.preventDefault();

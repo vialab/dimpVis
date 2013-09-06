@@ -26,6 +26,21 @@ function checkDevice (){
     }
     return false;
 }
+/**Changes some display properties of the hint path, such as increasing the stroke width and
+ * making the colour lighter.  To make the hint path look nicer in it's non-blurred form
+ * */
+function drawMobileHintPath (objectRef){
+    objectRef.svg.select("#path").style("stroke-opacity",0.5).style("stroke-width",4);
+    objectRef.svg.select("#underlayer").style("stroke-width",5);
+}
+/**Resolves the user's coordinates depending on whether there is touch or mouse interaction
+ * */
+function getUserCoords (objectRef){
+    if (d3.touches(objectRef).length > 0){
+        return [d3.touches(objectRef)[0][0],d3.touches(objectRef)[0][1]];
+    }
+    return [d3.event.x,d3.event.y];
+}
 //////////////////////Updating important object variables//////////////////////
 
 /** Updates the view variables to move the visualization forward
@@ -450,6 +465,7 @@ function checkAmbiguous(objectRef,values,valueThreshold){
     var j, currentObj;
     var ambiguousObjs = [];
     var length = values.length;
+    objectRef.isAmbiguous = 0;
 
     for (j=0;j<=length;j++){
         ambiguousObjs[j] = [0];
@@ -472,7 +488,7 @@ function checkAmbiguous(objectRef,values,valueThreshold){
         //Generate points for drawing an interaction path
         return findInteractionPaths(ambiguousObjs,values,valueThreshold);
     }
-    return [ambiguousObjs];
+    return [ambiguousObjs,[]];
 }
 /** Creates an array containing all data for drawing a sine wave:
  * interactionPaths[] = [[points for the sine wave]..number of paths]

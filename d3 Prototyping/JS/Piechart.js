@@ -28,6 +28,8 @@ function Piechart(x,y, r,id,title,hLabels){
    this.labels = hLabels;
    this.numArcs = -1; //Total number of arcs in the piechart
 
+   this.useMobile = false;
+
    //View index tracker variables
    this.currentView = 0; //Starting view of the piechart (first year)
    this.nextView = 1;
@@ -638,10 +640,8 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     var drawingView = adjustView(this);
 
     this.timeDirection = 0;  //In case dragging starts at a corner..
-
     this.dragStartAngle = start; //Important: save the start angle and re-set interpolation
     this.interpValue = 0;
-    this.isAmbiguous = 0;
 
     //Search the dataset for ambiguous cases (sequences of stationary bars)
     var ambiguousData = checkAmbiguous(this,angles,this.angleThreshold);
@@ -663,14 +663,17 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","pathUnderlayer").attr("class","path")
-        .attr("filter", "url(#blur)");
+        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"});
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","path").attr("class","path")
-        .attr("filter", "url(#blur)");
+        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"});
 
+    if (this.useMobile){ //Adjust the display properties of the hint path
+       drawMobileHintPath(this);
+    }
    /** var drawLine = d3.svg.line().interpolate("cardinal");
     var testPoints = this.calculateHintPathPoints(this.hintArcInfo);
 
