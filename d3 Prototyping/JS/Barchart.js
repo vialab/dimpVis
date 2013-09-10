@@ -457,9 +457,8 @@ Barchart.prototype.findHeight = function (yPos){
            return 0.3;
        });
    if (this.hintPathType ==1){
-        redrawSmallHintPath(this,this.ambiguousBars,translateAmount);
+        redrawSmallHintPath(this,this.ambiguousBars,translateAmount,false);
    }
-
 }
 /**"Animates" the rest of the bars while one is being dragged
  * Uses the interpAmount to determine how far the bar has travelled between the two heights
@@ -630,7 +629,7 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     if (this.hintPathType ==0){
         this.drawHintPath(xPos,translate,drawingView);
     }else{
-        drawSmallHintPath(this,translate,this.pathData);
+        drawSmallHintPath(this,translate,this.pathData,false);
     }
 
     //Fade out the other bars

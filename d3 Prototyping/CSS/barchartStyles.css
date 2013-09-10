@@ -33,7 +33,8 @@ body {
 #underLayer{
     stroke-width:9;
     fill:none;
-    stroke:#FFFFFF;
+    /**stroke:#FFFFFF;*/
+    stroke:none;
 }
 
 

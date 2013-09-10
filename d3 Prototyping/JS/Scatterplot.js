@@ -23,6 +23,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.xLabel = xLabel;
    this.yLabel = yLabel;
    this.graphTitle = title;
+   this.hintPathType = 0;
 
    // Create a variable to reference the main svg
    this.svg = null;
@@ -60,6 +61,7 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
    this.clickSVG = this.placeholder;
+   this.hintPathGenerator =  d3.svg.line().interpolate("linear");
 }
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -282,6 +284,9 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
         //Save the values
         this.timeDirection = this.findTimeDirection(t);
         this.interpValue = t; //Save the interpolation amount
+        if (this.hintPathType ==1){
+            redrawSmallHintPath(this,this.ambiguousBars,0,true);
+        }
     }
     return newPoint;
 }
@@ -542,26 +547,37 @@ Scatterplot.prototype.redrawView = function(view) {
 	          .attr("cx",function (d){return d.nodes[view][0];})
 			  .attr("cy",function (d){return d.nodes[view][1];});
 }
-/** Displays the hint path by appending text labels and a path to the svg
- * id: The id of the dragged point, to determine which hint path to draw
- * points: An array of all points of the dragged point (e.g., d.nodes)
- * */
- Scatterplot.prototype.showHintPath = function (id,points){
-    var ref = this;
-
+/** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
+ *  id: the id of the dragged point
+ *  points: An array of all points of the dragged point (e.g., d.nodes)
+ *  */
+Scatterplot.prototype.selectPoint = function (id,points){
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
-     var drawingView = adjustView(this);
-
-    //Function for drawing a linearly interpolated path between set of points
-    var line = d3.svg.line().interpolate("linear");
+    var drawingView = adjustView(this);
 
     //First check for ambiguous cases in the hint path of the dragged point, then draw loops (if any)
-     ref.checkAmbiguous(id,points);
+    this.checkAmbiguous(id,points);
 
-    if (ref.isAmbiguous==1){
-        ref.appendAnchor();
+    if (this.isAmbiguous==1){
+        this.appendAnchor();
     }
 
+    if (this.hintPathType ==0){
+        this.drawHintPath(drawingView,points);
+    }else{
+        drawSmallHintPath(this,0,points,true);
+    }
+
+    //Fade out the other points using a transition
+    this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
+        .transition().duration(300)
+        .style("fill-opacity", 0.3);
+}
+/** Displays the hint path by appending its svg components to the main svg
+ *  view: view to draw at
+ * */
+ Scatterplot.prototype.drawHintPath = function (view,points){
+     var ref = this;
     //Draw the hint path labels, reposition any which are in a stationary sequence
     var adjustedPoints = this.placeLabels(points);
 
@@ -575,20 +591,16 @@ Scatterplot.prototype.redrawView = function(view) {
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
         .attr("class","hintLabels")
-        .attr("fill-opacity",function (d){ return ((d.id==drawingView)?1:0.3)})
+        .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)})
         .attr("id",function (d){return "hintLabels"+ d.id})
         .on("click", this.clickHintLabelFunction);
 
     //Render the hint path line
     this.svg.select("#hintPath").append("svg:path")
-        .attr("d",  line(points))
+        .attr("d",  this.hintPathGenerator(points))
         .attr("id","path")
         .attr("filter", "url(#blur)");
 
-    //Fade out the other points using a transition
-    this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
-	           .transition().duration(300)
-	           .style("fill-opacity", 0.3);
 }
 /**This function places labels in ambiguous cases such that they do not overlap
  * points: a 2D array of positions of each label [x,y]...

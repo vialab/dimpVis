@@ -28,6 +28,7 @@ function Piechart(x,y, r,id,title,hLabels){
    this.labels = hLabels;
    this.numArcs = -1; //Total number of arcs in the piechart
 
+   this.hintPathType = 0;
    this.useMobile = false;
 
    //View index tracker variables
@@ -448,7 +449,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  Piechart.prototype.animateHintPath = function (angles){
     var ref = this;
     var hintArcInfo = ref.calculateHintAngles(angles,null,1);
-    var hintPathArcString = ref.createArcString(hintArcInfo);
+    var hintPathArcString = ref.createArcString(hintArcInfo,false);
 
     //Redraw the hint path
     this.svg.selectAll(".path").attr("d", hintPathArcString);
@@ -468,6 +469,9 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
                 return ref.interactionPathGenerator(translatedPoints);
             });
     }
+     if (this.hintPathType ==1){
+         redrawSmallHintPath(this,this.ambiguousSegments,0,false);
+     }
 }
 /** Interpolates across two labels to show the user's transition between views
  * d: a node from .hintLabels
@@ -543,7 +547,7 @@ Piechart.prototype.changeLabelOpacity = function (d,view){
 Piechart.prototype.redrawHintPath = function (view,angles){
     var ref = this;
     var hintArcInfo = this.calculateHintAngles(angles,view,0);
-    var hintPathArcString = this.createArcString(hintArcInfo);
+    var hintPathArcString = this.createArcString(hintArcInfo,false);
 
     //Redraw the hint path
     this.svg.selectAll(".path").attr("d", hintPathArcString);
@@ -629,11 +633,11 @@ Piechart.prototype.processHintPathInfo = function (angles,view){
     }
     return hintAngles;
 }
-/**Displays the hint path for the dragged segment
+/** Called each time a new segment is dragged.  Searches for ambiguous regions, and draws the hint path
  * id: the id of the dragged segment
  * angles: an array of all angles to appear on the hint path
- * */
-Piechart.prototype.showHintPath = function (id,angles,start){
+ *  */
+Piechart.prototype.selectSegment = function (id,angles,start){
     var ref = this;
 
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
@@ -646,11 +650,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     //Search the dataset for ambiguous cases (sequences of stationary bars)
     var ambiguousData = checkAmbiguous(this,angles,this.angleThreshold);
     this.ambiguousSegments = ambiguousData[0];
-
     this.hintArcInfo = this.processHintPathInfo(angles,drawingView);
-    //this.appendAnchor((this.dragStartAngle+angles[drawingView]));
-
-    var hintPathArcString = this.createArcString(this.hintArcInfo);
 
     //NOTE: Angle has to be converted to match the svg rotate standard: (offset by 90 deg)
     //http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
@@ -659,6 +659,22 @@ Piechart.prototype.showHintPath = function (id,angles,start){
         ambiguousData[1].forEach(function (d){ref.interactionPaths.push(ref.calculatePathPoints(d))});
         this.drawInteractionPaths(angles);
     }
+
+    if (this.hintPathType ==0){
+        this.drawHintPath(id,drawingView);
+    }else{
+        var arcs = this.createArcString(this.hintArcInfo,true);
+        console.log(arcs)
+        drawSmallHintPath(this,0,arcs,false);
+    }
+}
+/**Displays the hint path for the dragged segment
+ * */
+Piechart.prototype.drawHintPath = function (id,view){
+    var ref = this;
+    //this.appendAnchor((this.dragStartAngle+angles[drawingView]));
+    var hintPathArcString = this.createArcString(this.hintArcInfo,false);
+
     //Render white path under the main hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
@@ -674,7 +690,7 @@ Piechart.prototype.showHintPath = function (id,angles,start){
     if (this.useMobile){ //Adjust the display properties of the hint path
        drawMobileHintPath(this);
     }
-   /** var drawLine = d3.svg.line().interpolate("cardinal");
+    /**var drawLine = d3.svg.line().interpolate("cardinal");
     var testPoints = this.calculateHintPathPoints(this.hintArcInfo);
 
     this.svg.select("#hintPath").append("path")
@@ -689,12 +705,8 @@ Piechart.prototype.showHintPath = function (id,angles,start){
          .append("svg:text").text(function(d) { return ref.labels[d.id]; })
          .attr("transform", function (d){return "translate("+ d.x+","+ d.y+")";})
          .on("click",this.clickHintLabelFunction)
-         .attr("fill-opacity",function (d){ return ref.changeLabelOpacity(d,drawingView)})
+         .attr("fill-opacity",function (d){ return ref.changeLabelOpacity(d,view)})
          .attr("id",function (d){return "hintLabel"+ d.id}).attr("class","hintLabels");
-
-    //Fade out all the other segments
-	/**this.svg.selectAll(".displayArcs")//.filter(function (d){return d.id!=id})
-         .transition().duration(400).style("fill-opacity", 0.9);*/
 
    this.hintArcInfo = [];
 }
@@ -749,8 +761,9 @@ Piechart.prototype.interpolateHintRadius = function (index,startView,endView){
  *         A is the rotation angle, rx,ry is the radius of the arc and the 0's are just unset flags
  *  Good resource: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
  * */
-Piechart.prototype.createArcString = function (pathInfo){
+Piechart.prototype.createArcString = function (pathInfo,isSmallHintPath){
     var dString = "";
+    var strings = [];
     var x,y;
     var currentDirection = 1, previousDirection = 1;
     //TODO: doesn't draw properly when angle wraps around 360 deg
@@ -771,31 +784,37 @@ Piechart.prototype.createArcString = function (pathInfo){
                 x2 = pathInfo[j-1][0];
                 y2 = pathInfo[j-1][1];
             }
-
+            var currentStr = "";
             if (currentDirection != previousDirection){ //Changing directions
                 var radiusDiff = Math.abs(pathInfo[j][2] - pathInfo[j-1][2]);
                 var coords = this.calculatePolarCoords((pathInfo[j-1][3] -this.halfPi),(pathInfo[j-1][2] + radiusDiff*0.35));
-
-                dString +="M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+coords[0]+" "+coords[1]; //Small connecting line which joins two radii
+                currentStr = "M "+pathInfo[j-1][0]+" "+pathInfo[j-1][1]+" L "+coords[0]+" "+coords[1]; //Small connecting line which joins two radii
                 if (pathInfo[j][3] > pathInfo[j-1][3]){
-                    dString +="M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
+                    currentStr += "M "+pathInfo[j][0]+" "+pathInfo[j][1]+" A "+pathInfo[j][2]+" "
                         +pathInfo[j][2]+" 0 0 0 "+coords[0]+" "+coords[1];
                 }else{
-                    dString +="M "+coords[0]+" "+coords[1]+" A "+pathInfo[j][2]+" "
+                    currentStr += "M "+coords[0]+" "+coords[1]+" A "+pathInfo[j][2]+" "
                         +pathInfo[j][2]+" 0 0 0 "+pathInfo[j][0]+" "+pathInfo[j][1];
                 }
             } else {
                 //Always written as bigger to smaller angle to get the correct drawing direction of arc
-                dString +="M "+x2+" "+y2+" A "+pathInfo[j][2]+" "+pathInfo[j][2]+" 0 0 0 "+x1+" "+y1;
+                currentStr = "M "+x2+" "+y2+" A "+pathInfo[j][2]+" "+pathInfo[j][2]+" 0 0 0 "+x1+" "+y1;
+            }
+
+            if (isSmallHintPath){
+                strings.push(currentStr);
+            }else{
+                dString += currentStr;
             }
         }
         previousDirection = currentDirection;
     }
-    return dString;
+
+    return (isSmallHintPath)? strings:dString;
 }
 /** Might remove this function later (just an alternative method for drawing the hint path, but results are the same as drawing arcs)
  * */
- /**Piechart.prototype.calculateHintPathPoints = function (pathInfo){
+/** Piechart.prototype.calculateHintPathPoints = function (pathInfo){
    var newPoints = [];
    var lastIndex = pathInfo.length-1;
    var startAngle,angleDiff,startRadius,radiusDiff;

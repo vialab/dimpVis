@@ -10,6 +10,7 @@ heatmap.clickSVG = function (){
 };
 
 heatmap.init();
+setHintPathType(heatmap,1);
 
 heatmap.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
@@ -32,7 +33,7 @@ heatmap.dragEvent = d3.behavior.drag()
                        d3.event.sourceEvent.preventDefault();
                        heatmap.clearHintPath();
                        heatmap.draggedCell = d.id;
-                       heatmap.showHintPath(d.id,d.values,d.x,d.y);
+                       heatmap.selectCell(d.id,d.values,d.x,d.y);
                    })
                   .on("drag", function(d){
                         d3.event.sourceEvent.preventDefault();

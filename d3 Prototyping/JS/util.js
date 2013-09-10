@@ -266,10 +266,10 @@ function setHintPathType (objectRef,type){
  *  dragged data object
  *  pathData: an array of points to appear along the entire hint path
  * */
-function drawSmallHintPath (objectRef,translate,pathData){
+function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
     //Trying out clipping..
     //http://stackoverflow.com/questions/10486896/svg-clip-path-within-rectangle-does-not-work
-     var clippingFrame = 2;
+    /** var clippingFrame = 2;
      var clipWidth = Math.abs(objectRef.pathData[objectRef.currentView][0] - objectRef.pathData[objectRef.currentView + clippingFrame][0]);
 
     objectRef.svg.append("svg:clipPath").attr("id","clip")
@@ -288,13 +288,16 @@ function drawSmallHintPath (objectRef,translate,pathData){
          .attr("d",  objectRef.hintPathGenerator( objectRef.pathData))
          .attr("filter", "url(#blur)")
          .attr("transform","translate("+(-translate)+")")
-         .attr("id","path").attr("clip-path","url(#clip)");
+         .attr("id","path").attr("clip-path","url(#clip)");*/
 
     //Partial hint path by drawing individual segments...
      //Draw the hint path line segment at current and next view
-     /**objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
+     objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
         .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#666")
-        .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+        .attr("d", function (d) {
+             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                 objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+         });
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
@@ -305,67 +308,83 @@ function drawSmallHintPath (objectRef,translate,pathData){
         .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
 
     if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
-        objectRef.svg.select("#nextPath").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]])});
+        objectRef.svg.select("#nextPath").attr("d", function (d) {
+            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
+               objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
+        });
     }
 
     //Make the interaction paths (if any) invisible
-    if (objectRef.isAmbiguous ==1){
+   if (objectRef.isAmbiguous ==1 && !isScatterplot){
         objectRef.svg.select("#hintPath").selectAll(".interactionPath").style("stroke","none");
-    }*/
+    }
 }
 /**Redraws the shortened hint path, where the full path segment is always displayed between next and current view.
  * Depending on the time direction, the next path segment the user is approaching is partially visible.
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
 //TODO: this code is slightly inefficient, refactor later
-function redrawSmallHintPath (objectRef,ambiguousObjects,translateAmount){
+function redrawSmallHintPath (objectRef,ambiguousObjects,translate,isScatterplot){
     //CLIPPING:
-    objectRef.svg.select("#clip-rect").attr("transform","translate(" + (translateAmount) + ")");
+    //objectRef.svg.select("#clip-rect").attr("transform","translate(" + (translateAmount) + ")");
 
     //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
-    /**if (objectRef.timeDirection == 1){ //Moving forward
-
-        if (ambiguousObjects[objectRef.nextView][0]==1){
-            objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
-        }else{
-            objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+    if (objectRef.timeDirection == 1){ //Moving forward
+        if (!isScatterplot){
+            if (ambiguousObjects[objectRef.nextView][0]==1){
+                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
+            }else{
+                objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+            }
         }
-
         //Clear the backward path
         objectRef.svg.select("#backwardPath").style("stroke","none");
         //Create the interpolation function and get the total length of the path
         var length = d3.select("#forwardPath").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
+
         //Full sub-path of current time interval is always visible
-        objectRef.svg.select("#path").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+        objectRef.svg.select("#path").attr("d", function (d) {
+            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+            objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+        });
 
         if (objectRef.nextView < objectRef.lastView){
             objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue)).style("stroke","#666")
-                .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]])});
+                .attr("d", function (d) {
+                    return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
+                        objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
+                });
         }
 
     }else{ //Moving backward
-
-        if (ambiguousObjects[objectRef.currentView][0]==1){
-            objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
-        }else{
-            objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+        if (!isScatterplot){
+            if (ambiguousObjects[objectRef.currentView][0]==1){
+                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
+            }else{
+                objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+            }
         }
-
         //Clear the forward path
         objectRef.svg.select("#forwardPath").style("stroke","none");
         //Create the interpolation function and get the total length of the path
         var length = d3.select("#backwardPath").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
         //Full sub-path of current time interval is always visible
-        objectRef.svg.select("#path").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+        objectRef.svg.select("#path").attr("d", function (d) {
+            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+        });
 
         if (objectRef.currentView > 0){
             objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-objectRef.interpValue)).style("stroke","#666")
-                .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]])});
+                .attr("d", function (d) {
+                    return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
+                });
         }
-    }*/
+    }
 }
 //////////////////////Indicators along a sine wave (interaction path)//////////////////////
 

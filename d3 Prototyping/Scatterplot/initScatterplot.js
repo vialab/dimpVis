@@ -10,6 +10,7 @@ scatterplot.clickSVG = function (){
     scatterplot.clearHintPath();
 };
 scatterplot.init();
+setHintPathType(scatterplot,1);
 
 //Define the click interaction of the hint labels to invoke fast switching among views
 scatterplot.clickHintLabelFunction = function (d, i){
@@ -31,7 +32,7 @@ var dragBar = d3.behavior.drag()
 						    scatterplot.clearHintPath();
 						    scatterplot.draggedPoint = d.id;
                             scatterplot.previousDragAngle = 0; //To be safe, re-set this
-                            scatterplot.showHintPath(d.id,d.nodes);
+                            scatterplot.selectPoint(d.id,d.nodes);
 					  })
                       .on("drag", function(d){
                            slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
