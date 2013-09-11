@@ -41,6 +41,10 @@ body {
     fill: none;
     stroke:#c7c7c7;
 }
-
+/*For the short hint path */
+#forwardPath, #backwardPath{
+    stroke-width:2;
+    fill:none;
+}
 
 

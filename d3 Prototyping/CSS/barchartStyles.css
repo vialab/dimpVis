@@ -27,9 +27,10 @@ body {
 
 /*For the short hint path */
 #forwardPath, #backwardPath{
-    stroke-width:2;
+    stroke-width:1;
     fill:none;
 }
+
 #underLayer{
     stroke-width:9;
     fill:none;

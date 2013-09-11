@@ -82,3 +82,8 @@ body {
     font-family: sans-serif;
     font-size:10px;
 }
+/*For the short hint path */
+#forwardPath, #backwardPath{
+    stroke-width:3;
+    fill:none;
+}

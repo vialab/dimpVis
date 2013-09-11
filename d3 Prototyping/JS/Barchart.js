@@ -457,7 +457,7 @@ Barchart.prototype.findHeight = function (yPos){
            return 0.3;
        });
    if (this.hintPathType ==1){
-        redrawSmallHintPath(this,this.ambiguousBars,translateAmount,false);
+        redrawSmallHintPath(this,this.ambiguousBars,translateAmount);
    }
 }
 /**"Animates" the rest of the bars while one is being dragged
@@ -541,21 +541,25 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  * */
 Barchart.prototype.redrawView = function (view,id){
     var ref = this;
-   //Re-draw the  bars at the specified view
-   this.svg.selectAll(".displayBars").transition().duration(300)
-              .attr("height", function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?2:d.nodes[view][1];})
-              .attr("y", function (d){return d.nodes[view][0];})
-              .style("fill",function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?ref.zeroBarColour:ref.barColour;});
+   if (this.hintPathType==1){
+       hideSmallHintPath(this);
+   }else{
+       //Re-draw the  bars at the specified view
+       this.svg.selectAll(".displayBars").transition().duration(300)
+           .attr("height", function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?2:d.nodes[view][1];})
+           .attr("y", function (d){return d.nodes[view][0];})
+           .style("fill",function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?ref.zeroBarColour:ref.barColour;});
 
-    //Re-draw the hint path (if id is specified)
-    if (id!=-1){
-        var translate = view*this.hintPathSpacing;
+       //Re-draw the hint path (if id is specified)
+       if (id!=-1){
+           var translate = view*this.hintPathSpacing;
 
-        //Re-draw the hint path and labels
-        this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+(-translate)+")");
-        this.svg.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
-             .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
-    }
+           //Re-draw the hint path and labels
+           this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+(-translate)+")");
+           this.svg.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
+               .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
+       }
+   }
 }
 /** Re-calculates the x-values for the moving hint path x-coordinates
  * (for both points comprising the path and labels)

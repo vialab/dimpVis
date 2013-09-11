@@ -285,7 +285,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
         this.timeDirection = this.findTimeDirection(t);
         this.interpValue = t; //Save the interpolation amount
         if (this.hintPathType ==1){
-            redrawSmallHintPath(this,this.ambiguousBars,0,true);
+            redrawSmallHintPath(this,[],0);
         }
     }
     return newPoint;
@@ -538,14 +538,16 @@ Scatterplot.prototype.snapToView = function( id, points) {
  *  NOTE: view tracking variables are not updated by this function
  * */
 Scatterplot.prototype.redrawView = function(view) {
-
-    this.hideAnchor();
-
-    //Re-colour the hint path labels
-    this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
-    this.svg.selectAll(".displayPoints").transition().duration(300)
-	          .attr("cx",function (d){return d.nodes[view][0];})
-			  .attr("cy",function (d){return d.nodes[view][1];});
+    if (this.hintPathType==1){
+        hideSmallHintPath(this);
+    }else{
+        this.hideAnchor();
+        //Re-colour the hint path labels
+        this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
+        this.svg.selectAll(".displayPoints").transition().duration(300)
+            .attr("cx",function (d){return d.nodes[view][0];})
+            .attr("cy",function (d){return d.nodes[view][1];});
+    }
 }
 /** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
  *  id: the id of the dragged point

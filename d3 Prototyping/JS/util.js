@@ -301,7 +301,7 @@ function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
-        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath").style("stroke","none");
+        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath");
 
     //Draw the current hint path line segment to show dragging direction (shown when travelling backwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
@@ -324,14 +324,15 @@ function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
 //TODO: this code is slightly inefficient, refactor later
-function redrawSmallHintPath (objectRef,ambiguousObjects,translate,isScatterplot){
+function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
     //CLIPPING:
     //objectRef.svg.select("#clip-rect").attr("transform","translate(" + (translateAmount) + ")");
 
     //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward
-        if (!isScatterplot){
+        console.log(objectRef.interpValue);
+        if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
             }else{
@@ -357,9 +358,8 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate,isScatterplot
                         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 });
         }
-
     }else{ //Moving backward
-        if (!isScatterplot){
+        if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.currentView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
             }else{
@@ -386,6 +386,11 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate,isScatterplot
         }
     }
 }
+/**Hides the small hint path whenever the user stops dragging */
+function hideSmallHintPath (objectRef){
+    objectRef.svg.select("#hintPath").selectAll("path").style("stroke","none");
+}
+
 //////////////////////Indicators along a sine wave (interaction path)//////////////////////
 
 /** Appends an anchor to the svg (with id 'anchor), if there isn't already one

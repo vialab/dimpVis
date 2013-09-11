@@ -18,7 +18,7 @@ function Piechart(x,y, r,id,title,hLabels){
 
    //Height and width of SVG can be calculated based on radius
    this.width = x + r*5;
-   this.height = y+ r*5;
+   this.height = y + r*5;
    this.cx = this.width/3; //Center of the piechart
    this.cy = this.height/3;
 
@@ -233,8 +233,9 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY,nodes){
     //Re-set the time direction and dragging direction if the dragging has just started
     if (this.timeDirection ==0){
         this.timeDirection = 1; //Forward in time by default
-        this.previousDragDirection = draggingDirection;
+        draggingDirection = this.previousDragDirection;
     }
+    //console.log(angle*180/Math.PI+" "+this.mouseAngle*180/Math.PI+" "+this.previousDragDirection+" "+draggingDirection);
 
     if (this.isAmbiguous==1){ //Might be at a stationary sequence
 
@@ -278,7 +279,7 @@ Piechart.prototype.updateDraggedSegment = function (id,mouseX, mouseY,nodes){
     this.previousDragDirection = draggingDirection;
     this.mouseX = mouseX;
     this.mouseY = mouseY;
-
+    //console.log(this.timeDirection);
     //this.redrawAnchor(angle);
 }
 /** Calculates the angle of the mouse w.r.t the piechart center
@@ -470,7 +471,7 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
             });
     }
      if (this.hintPathType ==1){
-         redrawSmallHintPath(this,this.ambiguousSegments,0,false);
+         redrawSmallHintPath(this,this.ambiguousSegments,0);
      }
 }
 /** Interpolates across two labels to show the user's transition between views
@@ -622,7 +623,7 @@ Piechart.prototype.processHintPathInfo = function (angles,view){
         //Step 2: Determine if the angle is on a corner (only if it's not already ambiguous)
         if (j>0){
             currentDirection = (newAngle>prevAngle)?1:0;
-            if (previousDirection != currentDirection && this.ambiguousSegments[j-1][0]!=1){
+            if (previousDirection != currentDirection && this.ambiguousSegments[j-1][0]!=1 && (j-1)>0){
                 this.corners[j-1] = 1;
             }
         }
@@ -646,6 +647,7 @@ Piechart.prototype.selectSegment = function (id,angles,start){
     this.timeDirection = 0;  //In case dragging starts at a corner..
     this.dragStartAngle = start; //Important: save the start angle and re-set interpolation
     this.interpValue = 0;
+    this.previousDragDirection = (angles[this.nextView]>angles[this.currentView])?1:-1;
 
     //Search the dataset for ambiguous cases (sequences of stationary bars)
     var ambiguousData = checkAmbiguous(this,angles,this.angleThreshold);
@@ -730,12 +732,12 @@ Piechart.prototype.convertAngle = function (angle){
      //this.svg.selectAll(".displayArcs").style("fill-opacity", 1);
  }
 /**Calculates the amount to translate the hint path inwards or outwards on the piechart
- * this is really acheived by growing or shrinking the radius of the hint path segments
+ * this is really achieved by growing or shrinking the radius of the hint path segments
  * index: the arc index (which arc the hint angle lies on)
  * view: the view index
  * */
 Piechart.prototype.findHintRadius = function (index,view){
-   // console.log(index+" "+(this.labelOffset+this.hintRadiusSpacing*(index-view)));
+
     var radius = this.labelOffset+this.hintRadiusSpacing*(index-view);
     if (radius <0){ //Remove this section of the hint path (to prevent it from wrapping around to the other side), also remove the label
         this.svg.select("#hintLabel"+index).style("fill","none");

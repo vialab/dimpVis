@@ -418,7 +418,7 @@ Heatmap.prototype.animateHintPath = function (currentOffset,interpAmount){
     if (this.hintPathType ==1){
         this.svg.select("#forwardPath").attr("transform","translate("+translateX+")");
         this.svg.select("#backwardPath").attr("transform","translate("+translateX+")");
-        redrawSmallHintPath(this,this.ambiguousCells,translateX,false);
+        redrawSmallHintPath(this,this.ambiguousCells,translateX);
     }
 }
 /**Updates the colour of the cells by interpolating the colour between views
@@ -525,14 +525,18 @@ Heatmap.prototype.redrawView = function(view){
  *  view: the view index to draw at
  * */
 Heatmap.prototype.redrawHintPath = function(view){
-    var translateX = -this.xSpacing*view;
+    if (this.hintPathType==1){
+        hideSmallHintPath(this);
+    }else{
+        var translateX = -this.xSpacing*view;
 
-    this.svg.select("#hintPath").selectAll("text").attr("transform", "translate("+translateX+")")
-        .attr("fill-opacity",function (d){return (d.id==view)?1:0.3});
+        this.svg.select("#hintPath").selectAll("text").attr("transform", "translate("+translateX+")")
+            .attr("fill-opacity",function (d){return (d.id==view)?1:0.3});
 
-    this.svg.select("#path").attr("transform", "translate("+translateX+")");
-    this.svg.select("#pathUnderlayer").attr("transform", "translate("+translateX+")");
-    this.svg.selectAll(".interactionPath").attr("transform", "translate("+translateX+")");
+        this.svg.select("#path").attr("transform", "translate("+translateX+")");
+        this.svg.select("#pathUnderlayer").attr("transform", "translate("+translateX+")");
+        this.svg.selectAll(".interactionPath").attr("transform", "translate("+translateX+")");
+    }
 }
 /** Called each time a new bar is dragged.  Searches for ambiguous regions, and draws the hint path
  * id: of the dragged cell
@@ -578,9 +582,8 @@ Heatmap.prototype.selectCell = function (id,pathData,x,y){
      if (this.hintPathType ==0){
         this.drawHintPath(id,pathData,coords,translateX,drawingView);
      }else{
-        // this.svg.select("#forwardPath").attr("transform","translate("+translateX+")");
-       //  this.svg.select("#backwardPath").attr("transform","translate("+translateX+")");
         drawSmallHintPath(this,translateX,coords,false);
+        this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+translateX+")");
      }
 
     //Save the y-coordinates for finding dragging boundaries
