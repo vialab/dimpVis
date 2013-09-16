@@ -249,13 +249,14 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY,barX,nodes){
 
     //Set the current vertical dragging direction of the user
-    var draggingDirection = (mouseY > this.mouseY)? -1 : (mouseY < this.mouseY)? 1 : this.previousDragDirection;
     //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
+     var draggingDirection= (mouseY > this.mouseY)? -1 : (mouseY < this.mouseY)? 1 : this.previousDragDirection;
 
    //Re-set the time direction and dragging direction if the dragging has just started
     if (this.timeDirection ==0){
         this.timeDirection = 1; //Forward in time by default
-        this.previousDragDirection = draggingDirection;
+        //this.previousDragDirection = draggingDirection;
+        draggingDirection = this.previousDragDirection;
     }
 
     var current = nodes[this.currentView];
@@ -311,8 +312,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     }
 
     //Re-draw the dragged bar
-    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1])
-        .style("fill",this.barColour);
+    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]).style("fill",this.barColour);
 
    //Save some variables
    this.previousDragDirection = draggingDirection;
@@ -541,9 +541,10 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  * */
 Barchart.prototype.redrawView = function (view,id){
     var ref = this;
-   if (this.hintPathType==1){
+  if (this.hintPathType==1){
        hideSmallHintPath(this);
-   }else{
+   }
+   //else{
        //Re-draw the  bars at the specified view
        this.svg.selectAll(".displayBars").transition().duration(300)
            .attr("height", function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?2:d.nodes[view][1];})
@@ -559,7 +560,7 @@ Barchart.prototype.redrawView = function (view,id){
            this.svg.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
                .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
        }
-   }
+   //}
 }
 /** Re-calculates the x-values for the moving hint path x-coordinates
  * (for both points comprising the path and labels)
@@ -619,6 +620,7 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
 
     var translate = this.hintPathSpacing*drawingView;
     this.timeDirection = 0;  //In case dragging starts at a peak..
+    this.previousDragDirection = (heights[this.nextView][0]>heights[this.currentView][0])?-1:1;
 
     //Search the dataset for ambiguous cases (sequences of stationary bars)
     var ambiguousData = checkAmbiguous(this,heights.map(function(d){return d[0]}),this.heightThreshold);

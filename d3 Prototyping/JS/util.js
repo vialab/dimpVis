@@ -331,7 +331,7 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
     //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward
-        console.log(objectRef.interpValue);
+
         if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");

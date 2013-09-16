@@ -666,7 +666,6 @@ Piechart.prototype.selectSegment = function (id,angles,start){
         this.drawHintPath(id,drawingView);
     }else{
         var arcs = this.createArcString(this.hintArcInfo,true);
-        console.log(arcs)
         drawSmallHintPath(this,0,arcs,false);
     }
 }

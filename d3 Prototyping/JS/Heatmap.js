@@ -230,7 +230,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        //Re-set the time direction and dragging direction if the dragging has just started
        if (this.timeDirection ==0){
            this.timeDirection = 1; //Forward in time by default
-           this.previousDragDirection = draggingDirection;
+           draggingDirection = this.previousDragDirection;
        }
 
        var current = values[this.currentView];
@@ -313,7 +313,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
        }else{
            this.handleDraggedCell(current,next,currentY,nextY,mouseY,draggingDirection);
        }
-
+console.log(this.timeDirection);
      this.previousDragDirection = draggingDirection;
      this.mouseY = mouseY;
      this.mouseX = mouseX;
@@ -549,6 +549,7 @@ Heatmap.prototype.selectCell = function (id,pathData,x,y){
     var drawingView = adjustView(this);
 
     this.timeDirection = 0;  //In case dragging starts at a peak..
+    this.previousDragDirection = (pathData[this.nextView][1]>pathData[this.currentView][1])?1:-1;
 
     //Save some important information
     var ref = this;
