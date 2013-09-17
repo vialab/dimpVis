@@ -6,7 +6,9 @@ var timeCounter = 0;
 var timerVar;
 var totalTasks = 2; //For each interaction technique
 var techniqueOrder = []; //Randomized order of interaction techniques
-var maxTaskTime = 5;
+var maxTaskTime = 100;
+var firstTouchDown = null;
+var lastTouchUp = null;
 
 //To disable the drag function
 var doNothing = d3.behavior.drag().on("dragstart", null)
@@ -32,7 +34,7 @@ barchart.clickHintLabelFunction = function (d, i){
     slider.updateSlider(i);
 };
 
-barchart.render(dataset,labels,"","","");
+//barchart.render(dataset,labels,"","","");
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
@@ -46,6 +48,11 @@ barchart.dragEvent = d3.behavior.drag()
 
         //Log the interaction
         d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content=dragStart"+ d.id, function(d) { });
+
+        if (firstTouchDown ==null){ //Log this as the beginning of a task
+            firstTouchDown = timeCounter;
+            console.log("first touch down"+ firstTouchDown);
+        }
     })
     .on("drag", function(d){
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
@@ -57,12 +64,13 @@ barchart.dragEvent = d3.behavior.drag()
 
         //Log the interaction
         d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content=dragEnd"+ d.id, function(d) { });
+        lastTouchUp = timeCounter;
     });
 
 //////////////////////Code for creating the slider widget//////////////////////
 var slider   = new Slider(50, 800, "#time",labels, "Time","#666",80);
 slider.init();
-slider.render();
+//slider.render();
 
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
@@ -83,7 +91,7 @@ slider.dragEvent = d3.behavior.drag()
 var timerFunc = function (){
     timeCounter++;
     if (timeCounter > maxTaskTime){ //Exceeded maximum time provided for a task
-        alert("Maximum time to complete the task has been exceeded.  You will now begin the next task.");
+        alert("Maximum time to complete the task has been reached.  You will now begin the next task.");
         //Grab the solution (if any), submit whatever solution is currently in the text box?
         var solution = d3.select("#taskSolution").node().value;
         var result;
@@ -96,7 +104,7 @@ var timerFunc = function (){
         }else{
             switchTask("");
         }
-    }else if (timeCounter > 2){ //Display the timer counts for debugging
+    }else if (timeCounter > 20){ //Display the timer counts for debugging
         d3.select("#timer").node().innerHTML="Time Remaining: "+(maxTaskTime-timeCounter);
     }
 };
@@ -108,7 +116,7 @@ window.onload = function (){
         console.log(response);
         techniqueOrder = response;
         updateInteractionTechnique(techniqueOrder[techniqueCounter]);
-        //startTimer();
+        startTimer();
     });
 }
 
@@ -147,6 +155,14 @@ function switchTask (solution){
     //Log the solution
     d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content="+solution, function(d) { });
 
+    //Log the last touch down event recorded, then calculate the task completion time
+    console.log("Last touch up "+lastTouchUp);
+    console.log("Total time in seconds"+(Math.abs(lastTouchUp - firstTouchDown)));
+
+    //Re-set the touch event trackers
+    firstTouchDown = null;
+    lastTouchUp = null;
+
     taskCounter++;
 
     if (taskCounter>totalTasks){
@@ -159,8 +175,8 @@ function switchTask (solution){
     d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
     d3.select("#taskDescription").node().innerHTML = "Description #"+taskCounter;
 
-   // stopTimer();
-   // startTimer();
+    stopTimer();
+    startTimer();
 }
 //Sets the current interaction technique, and disables the other (dimp vs. slider)
 function switchInteractionTechnique(){ //TODO: change the data set
@@ -173,13 +189,23 @@ function switchInteractionTechnique(){ //TODO: change the data set
 }
 //Updates the view to enable and disable the appropriate interaction technique
 //Technique ID's: Dimp=0, Time slider=1, Small multiples=2 (not implemented yet)
+//TODO: to display the small multiples, since the interface is static, could just redirect to a new page or append it as an svg on top of the interactive interface (to avoid having the clear the svg when
+//TODO: switching between techniques)
 function updateInteractionTechnique(techniqueID){
     if (techniqueID == 0) {  //Enable dimp technique, disable time slider dragging
+        barchart.render(dataset,labels,"","","");
+        slider.render();
         slider.widget.select("#slidingTick").call(doNothing);
         barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
-    }else{ //Enable time slider, disable dimp interaction
+    }else if (techniqueID ==1){ //Enable time slider, disable dimp interaction
+        barchart.render(dataset,labels,"","","");
+        slider.render();
         slider.widget.select("#slidingTick").call(slider.dragEvent);
         barchart.svg.selectAll(".displayBars").call(doNothing);
+    }else if (techniqueID==2){ //Enable the small multiples interface
+       clearVis(".gDisplayBars");
+       if (slider.widget!=null) slider.widget.remove();
+        addSmallMultiples();
     }
 }
 //Move to the next phase (after all tasks for both techniques), changes the visualization
@@ -198,7 +224,7 @@ function changePhase (){
 //Add full hint path and fast forwarding feature, use real dataset and clear the task panel
 function startExploratory(){
 
-    //stopTimer();
+    stopTimer();
     //Tell the server that exploratory period is starting
     d3.xhr("http://localhost:8080/startExploratory?", function(d) { });
 
@@ -212,7 +238,7 @@ function startExploratory(){
     d3.select("#taskDescription").remove();
     d3.select("#counter").node().innerHTML = "Exploratory Period..";
     d3.select("#nextButton").node().innerHTML = "Next Phase";
-    slider.widget.remove();
+   // slider.widget.remove();//TODO: maybe not remove it, but disable it's dragging
 
     d3.select("#nextButton").on("click", changePhase);
    //TODO: add a timer to this

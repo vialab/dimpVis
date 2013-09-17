@@ -9,14 +9,40 @@
 /**Clears the visualization elements appended to the SVG (used when the dataset is changed
  * objectClass: is the class name e.g., ".bars", assigned to all data objects
  * */
-function clearVis (objectRef,objectClass){
-    d3.selectAll(objectClass).remove();
-    d3.selectAll(".axisLabel").remove();
-    d3.selectAll(".axis").remove();
-    d3.select("#hintPath").remove();
-    //objectRef.clearHintPath();
+function clearVis (objectClass){
+    if (!d3.selectAll(objectClass).empty()){
+        d3.selectAll(objectClass).remove();
+        d3.selectAll(".axisLabel").remove();
+        d3.selectAll(".axis").remove();
+        d3.select("#hintPath").remove();
+        d3.select("#legend").remove();
+    }
 }
-
+/**Checks if a mobile device is being used, called when the page loads
+ * @return true if mobile, false otherwise
+ * This code is from: http://stackoverflow.com/questions/3514784/what-is-the-best-way-to-detect-a-handheld-device-in-jquery
+ * */
+function checkDevice (){
+    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+        return true;
+    }
+    return false;
+}
+/**Changes some display properties of the hint path, such as increasing the stroke width and
+ * making the colour lighter.  To make the hint path look nicer in it's non-blurred form
+ * */
+function drawMobileHintPath (objectRef){
+    objectRef.svg.select("#path").style("stroke-opacity",0.5).style("stroke-width",4);
+    objectRef.svg.select("#underlayer").style("stroke-width",5);
+}
+/**Resolves the user's coordinates depending on whether there is touch or mouse interaction
+ * */
+function getUserCoords (objectRef){
+    if (d3.touches(objectRef).length > 0){
+        return [d3.touches(objectRef)[0][0],d3.touches(objectRef)[0][1]];
+    }
+    return [d3.event.x,d3.event.y];
+}
 //////////////////////Updating important object variables//////////////////////
 
 /** Updates the view variables to move the visualization forward
@@ -25,17 +51,53 @@ function clearVis (objectRef,objectClass){
  *                    set to 0, if unknown
  * */
 function moveForward(objectRef,draggingDirection){
+
     if (objectRef.nextView < objectRef.lastView){ //Avoid index out of bounds
         objectRef.currentView = objectRef.nextView;
         objectRef.nextView++;
-        objectRef.timeDirection = 1;
+        //objectRef.timeDirection = 1;
     }else if (draggingDirection !=0){
         if (draggingDirection != objectRef.previousDragDirection){ //Flip the direction when at the end of the hint path
             objectRef.timeDirection = (objectRef.timeDirection==1)?-1:1;
         }
     }
 }
-
+/**Finds the pixel distance from the user's point to the dragged data object's point
+ * @return the pixel distance (calculated with the euclidean distance formula)
+ * */
+function findPixelDistance (userX,userY,objectX,objectY){
+    var term1 = userX - objectX;
+    var term2 = userY - objectY;
+    return Math.sqrt((term1*term1)+(term2*term2));
+}
+/** Updates the view tracking variables when the view is being changed by an external
+ * visualization (e.g., slider)
+ * */
+function changeView (objectRef,newView){
+    if (newView ==0){
+        objectRef.currentView = newView
+        objectRef.nextView = newView+1;
+    }else if (newView == objectRef.lastView){
+        objectRef.nextView = newView;
+        objectRef.currentView = newView -1;
+    }else {
+        objectRef.currentView = newView;
+        objectRef.nextView = newView + 1;
+    }
+}
+/**Adjusts the view variables in case they have gone out of bounds
+ * @return the view to draw the visualization at */
+function adjustView (objectRef){
+    if (objectRef.nextView > objectRef.lastView){
+        objectRef.nextView--;
+        objectRef.currentView--;
+        objectRef.interpValue = 0;
+        return objectRef.nextView;
+    }else if (objectRef.nextView == objectRef.lastView){
+        return objectRef.nextView;
+    }
+    return objectRef.currentView;
+}
 /** Updates the view variables to move the visualization backward
  * (passing the current view), also sets the direction travelling
  *  over time
@@ -46,14 +108,14 @@ function moveBackward (objectRef,draggingDirection){
     if (objectRef.currentView > 0){ //Avoid index out of bounds
         objectRef.nextView = objectRef.currentView;
         objectRef.currentView--;
-        objectRef.timeDirection = -1;
+        objectRef.interpValue = 0;
+        //objectRef.timeDirection = -1;
     }else if (draggingDirection !=0){
         if (draggingDirection != objectRef.previousDragDirection){ //Flip the direction when at the end of the hint path
             objectRef.timeDirection = (objectRef.timeDirection==1)?-1:1;
         }
     }
 }
-
 /** Checks if the mouse is in bounds defined by a and b, updates the interpolation amount
  *  mouse: the mouse position
  *  @return start,end: boundary values are returned if the given
@@ -73,17 +135,16 @@ function checkBounds (objectRef,a,b,mouse){
 
     //Check if the mouse is between start and end values
     if (mouse <= start) {
-        //if (this.timeDirection == -1) {this.interpValue = 1; }
-        //else{this.interpValue = 0;}
-        objectRef.interpValue = 0;
+       // if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
+       //else{objectRef.interpValue = 0;}
+        //objectRef.interpValue = 0;
         return start;
-    }else if (mouse >=end) {
-        //if (this.timeDirection == -1) {this.interpValue = 1; }
-        //else{this.interpValue = 0;}
-        objectRef.interpValue = 0;
+    }else if (mouse >= end) {
+        //if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
+       // else{objectRef.interpValue = 0;}
+        //objectRef.interpValue = 0;
         return end;
     }
-
     return mouse;
 }
 /** Calculates the interpolation amount  (percentage travelled) of the mouse, between views.
@@ -117,6 +178,7 @@ function findInterpolation (objectRef,a,b,mouse,ambiguity,draggingDirection){
     if (draggingDirection != objectRef.previousDragDirection){
         objectRef.timeDirection = (objectRef.timeDirection==-1) ? 1:-1;
     }
+    //objectRef.timeDirection = (currentInterpValue > objectRef.interpValue)? 1 : (currentInterpValue < objectRef.interpValue)?-1 : objectRef.timeDirection;
 
     //Save the current interpolation value
     objectRef.interpValue = currentInterpValue;
@@ -206,31 +268,64 @@ function setHintPathType (objectRef,type){
  *  dragged data object
  *  pathData: an array of points to appear along the entire hint path
  * */
-function drawSmallHintPath (objectRef,translate,pathData){
-    //Try out clipping..
+function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
+    //Trying out clipping..
     //http://stackoverflow.com/questions/10486896/svg-clip-path-within-rectangle-does-not-work
-    /**this.svg.select("#hintPath").append("svg:defs").append("svg:clipPath").attr("id","clip")
-     .append("rect").attr("id","clip-rect").attr("width",100).attr("height",100);*/
+    /** var clippingFrame = 2;
+     var clipWidth = Math.abs(objectRef.pathData[objectRef.currentView][0] - objectRef.pathData[objectRef.currentView + clippingFrame][0]);
+
+    objectRef.svg.append("svg:clipPath").attr("id","clip")
+         .append("rect").attr("id","clip-rect").attr("width",clipWidth).attr("height",objectRef.height)
+         .attr("x",objectRef.pathData[objectRef.currentView][0]).attr("y",0).attr("transform","translate("+(translate+objectRef.barWidth/2)+")");
+
+     //Draw a white underlayer
+     objectRef.svg.select("#hintPath").append("path")
+         .attr("filter", "url(#blur)")
+         .attr("d",  objectRef.hintPathGenerator( objectRef.pathData))
+         .attr("transform","translate("+(-translate)+")")
+         .attr("id","underLayer").attr("clip-path","url(#clip)");
+
+     //Draw the hint path line
+     objectRef.svg.select("#hintPath").append("path")
+         .attr("d",  objectRef.hintPathGenerator( objectRef.pathData))
+         .attr("filter", "url(#blur)")
+         .attr("transform","translate("+(-translate)+")")
+         .attr("id","path").attr("clip-path","url(#clip)");*/
+
+    //Partial hint path by drawing individual segments...
+
 
      //Draw the hint path line segment at current and next view
      objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
         .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#666")
-        .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+
+        .attr("d", function (d) {
+             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                 objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+         });
+
+      //Set the small path to only show 20% of it
+     /** var length = d3.select("#path").node().getTotalLength();
+      var interpStr = d3.interpolateString("0," + length, length + "," + length);
+      objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));*/
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
-        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath").style("stroke","none");
+        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath");
 
     //Draw the current hint path line segment to show dragging direction (shown when travelling backwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
         .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
 
     if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
-        objectRef.svg.select("#nextPath").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]])});
+        objectRef.svg.select("#nextPath").attr("d", function (d) {
+            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
+               objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
+        });
     }
 
     //Make the interaction paths (if any) invisible
-    if (objectRef.isAmbiguous ==1){
+   if (objectRef.isAmbiguous ==1 && !isScatterplot){
         objectRef.svg.select("#hintPath").selectAll(".interactionPath").style("stroke","none");
     }
 }
@@ -238,53 +333,98 @@ function drawSmallHintPath (objectRef,translate,pathData){
  * Depending on the time direction, the next path segment the user is approaching is partially visible.
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
-//TODO: this code is slightly inefficient, but save refactoring for later
-function redrawSmallHintPath (objectRef,ambiguousObjects){
+//TODO: this code is slightly inefficient, refactor later
+function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
+    //CLIPPING:
+    //objectRef.svg.select("#clip-rect").attr("transform","translate(" + (translateAmount) + ")");
 
+    //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward
 
-        if (ambiguousObjects[objectRef.nextView][0]==1){
-            objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
-        }else{
-            objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+        if (ambiguousObjects.length > 0){
+            if (ambiguousObjects[objectRef.nextView][0]==1){
+                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
+            }else{
+                objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+            }
         }
-
         //Clear the backward path
         objectRef.svg.select("#backwardPath").style("stroke","none");
         //Create the interpolation function and get the total length of the path
         var length = d3.select("#forwardPath").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
+
         //Full sub-path of current time interval is always visible
-        objectRef.svg.select("#path").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+        objectRef.svg.select("#path").attr("d", function (d) {
+            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+            objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+        });
 
         if (objectRef.nextView < objectRef.lastView){
             objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue)).style("stroke","#666")
-                .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]])});
+                .attr("d", function (d) {
+                    return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
+                        objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
+                });
         }
+
+         //Clear the backward path
+        //Trying to reduce the partial hint path even more here
+        /**objectRef.svg.select("#backwardPath").style("stroke","none");
+        if (this.interpValue+0.2 >1){ //Overflow, draw the next segment
+            //Create the interpolation function and get the total length of the path
+            var length = d3.select("#forwardPath").node().getTotalLength();
+            var interpStr = d3.interpolateString("0," + length, length + "," + length);
+            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(0.2+objectRef.interpValue)).style("stroke","#666")
+                .attr("d", function (d) {
+                    return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
+                        objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
+                });
+        }else{ //Keep drawing the #path element
+            //Set the small path to only show 20% of it
+            var length = d3.select("#path").node().getTotalLength();
+            var interpStr = d3.interpolateString("0," + length, length + "," + length);
+            objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2+objectRef.interpValue)).attr("d", function (d) {
+                return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                    objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+            });
+        }*/
+
 
     }else{ //Moving backward
-
-        if (ambiguousObjects[objectRef.currentView][0]==1){
-            objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
-        }else{
-            objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+        if (ambiguousObjects.length > 0){
+            if (ambiguousObjects[objectRef.currentView][0]==1){
+                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
+            }else{
+                objectRef.svg.selectAll(".interactionPath").style("stroke","none");
+            }
         }
-
         //Clear the forward path
         objectRef.svg.select("#forwardPath").style("stroke","none");
         //Create the interpolation function and get the total length of the path
         var length = d3.select("#backwardPath").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
         //Full sub-path of current time interval is always visible
-        objectRef.svg.select("#path").attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]])});
+        objectRef.svg.select("#path").attr("d", function (d) {
+            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+        });
 
         if (objectRef.currentView > 0){
             objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-objectRef.interpValue)).style("stroke","#666")
-                .attr("d", function (d) {return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]])});
+                .attr("d", function (d) {
+                    return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
+                });
         }
     }
 }
+/**Hides the small hint path whenever the user stops dragging */
+function hideSmallHintPath (objectRef){
+    objectRef.svg.select("#hintPath").selectAll("path").style("stroke","none");
+}
+
 //////////////////////Indicators along a sine wave (interaction path)//////////////////////
 
 /** Appends an anchor to the svg (with id 'anchor), if there isn't already one
@@ -347,117 +487,103 @@ function removeAnchor (objectRef){
         objectRef.svg.select("#anchor").remove();
     }
 }
-
-//TODO: still deciding if these functions should be in this file?
-//////////////////////Detecting Ambiguity (stationary sequences) in the dataset //////////////////////
-
-/** Search for ambiguous cases in a list of data values.  Ambiguous cases are tagged by type.
- *  ambiguousFlag: 0: not ambiguous, 1: stationary data object (which doesn't move for at least 2 consecutive years)
- *  This information is stored in the ambiguousObjects array, which gets re-populated each time a
- *  new object is dragged.
- *  This array is in  the format: [[ambiguousFlag,groupNum,sineWaveDirection]...all years along the hint path]
- *
- *  To alleviate interaction in regions where values are very similar (within threshold), we also consider
- *  these objects to be stationary.
- *
- *  values: array of values to deem two objects "equal"
+/**Draws a colour scale showing what is assigned to each colour
+ * colours: the different colours to map the values to
+ * labels: the labels to identify each colour
+ * x,y: left and top margins of the scale
+ * w,h: of the colour blocks in the legend
+ * spacing: between the colour blocks (optional, but must be 1 if none is desired)
  * */
-function checkAmbiguous (objectRef,values,threshold){
-    var j, currentObj;
-    var stationaryObjects = [];
-    objectRef.isAmbiguous = 0;
-    objectRef.ambiguousObjects = [];
+function drawColourLegend (objectRef,colours,labels,x,y,w,h,spacing){
 
-    //Re-set the ambiguousPoints array
-    for (j=0;j<=objectRef.lastView;j++){
-        objectRef.ambiguousObjects[j] = [0];
+    //Prepare the data for drawing the scale
+    objectRef.svg.selectAll(".legend").data(colours.map(function (d,i) {
+        var yCoord = i*h*spacing + y ;
+        return {colour:d,id:i,label:labels[i],y:yCoord};
+    })).enter().append("g").attr("class","legend");
+
+    //Draw the colours as rectangles
+    objectRef.svg.selectAll(".legend").append("rect")
+        .attr("x", x).attr("y",function(d){return d.y})
+        .attr("width",w).attr("height",h)
+        .style("fill",function (d){return d.colour});
+
+    //Draw the labels for each colour
+    objectRef.svg.selectAll(".legend").append("text").attr("x",x+w+5)
+        .attr("y",function(d){return (d.y + h/2*spacing)})
+        .text(function (d){return d.label})
+}
+/** Search for ambiguous cases in a list of values along the hint path.  Ambiguous objects are tagged as 1, this is stored in
+ *  ambiguousObjs
+ *
+ *  To alleviate interaction in regions where the heights are very similar (within valueThreshold), we also consider
+ *  these objects to be stationary in value.
+ * */
+function checkAmbiguous(objectRef,values,valueThreshold){
+    var j, currentObj;
+    var ambiguousObjs = [];
+    var length = values.length;
+    objectRef.isAmbiguous = 0;
+
+    for (j=0;j<=length;j++){
+        ambiguousObjs[j] = [0];
     }
 
-    //Search for values that are equal
-    for (j=0;j<=objectRef.lastView;j++){
-        currentObj= values[j];
-        for (var k=j;k<=objectRef.lastView;k++){
-            if (j!=k && (Math.abs(this.pathData[k][1]- currentObj))< threshold){ //An almost repeated bar, less than one pixel difference
-                if (Math.abs(k-j)==1){ //Stationary bar
-                    objectRef.isAmbiguous = 1;
-                    //If the bar's index does not exist in the array of all stationary bars, add it
-                    if (stationaryObjects.indexOf(j)==-1){
-                        stationaryObjects.push(j);
-                        objectRef.ambiguousObjects[j] = [1];
-                    }if (stationaryObjects.indexOf(k)==-1){
-                        stationaryObjects.push(k);
-                        objectRef.ambiguousObjects[k] = [1];
+    //Search for values that match
+    for (j=0;j<length;j++){
+        currentObj = values[j];
+        for (var k=0;k<length;k++){
+            if (j!=k && Math.abs(values[k] - currentObj)<= valueThreshold){ //A repeated (or almost repeated) value is found
+                    if (Math.abs(k-j)==1){ //Stationary value
+                        objectRef.isAmbiguous = 1;
+                        ambiguousObjs[j] = [1];
                     }
+
+            }
+        }
+    }
+    if (objectRef.isAmbiguous ==1){
+        //Generate points for drawing an interaction path
+        return findInteractionPaths(ambiguousObjs,values,valueThreshold);
+    }
+    return [ambiguousObjs,[]];
+}
+/** Creates an array containing all data for drawing a sine wave:
+ * interactionPaths[] = [[points for the sine wave]..number of paths]
+ * */
+function findInteractionPaths(ambiguousObjs,values,valueThreshold){
+    var indices = [];
+    var pathNumber = 0;
+    var firstPath = false;
+    var length = values.length;
+    var interactionPaths = [];
+
+    for (var j=0; j< length;j++){
+        if (ambiguousObjs[j][0]==1){
+            if (j!=0 && (ambiguousObjs[j-1][0]!=1||
+                (ambiguousObjs[j-1][0]==1 && Math.abs(values[j]-values[j-1])>valueThreshold))){ //Starting a new path
+                if (!firstPath){
+                    firstPath = true;
+                }else{
+                    interactionPaths.push(indices);
+                    indices = [];
+                    pathNumber++;
                 }
             }
+            ambiguousObjs[j].push(pathNumber);
+            indices.push(j);
         }
+    }
+    interactionPaths.push(indices);
 
-    }
-    //First check if there exists any stationary bars in the dataset
-    if (stationaryObjects.length>0){
-        //Then, generate points for drawing an interaction path
-         findPaths(objectRef,d3.min(stationaryObjects));
-    }
+    return [ambiguousObjs,interactionPaths];
 }
-/** Populates interactionPaths array (of the object) which contains data for drawing a sine wave.
- * Format: interactionPaths[] = [[points for the sine wave]..number of paths]
- * startIndex: the index of the first stationary bar (only for reducing the search, can just
- * set this to 0)
+
+/**Draws the small multiples interface by loading it as an image and appending it to the svg with id "multiples"
  * */
-function findPaths (objectRef,startIndex){
-    var pathInfo = [];
-    var pathNumber = 0;
-
-    for (var j=startIndex; j<=objectRef.lastView;j++){
-        if (objectRef.ambiguousObjects[j][0]==1){
-            if (j!=startIndex && objectRef.ambiguousObjects[j-1][0]!=1){ //Starting a new path
-                objectRef.interactionPaths.push(calculatePathPoints(objectRef,pathInfo));
-                pathInfo = [];
-                pathNumber++;
-            }
-            objectRef.ambiguousObjects[j].push(pathNumber);
-            pathInfo.push(j);
-        }
-    }
-
-    objectRef.interactionPaths.push(calculatePathPoints(pathInfo));
-}
-/** Calculates a set of points to compose a sine wave (for an interaction path)
- * indices: the corresponding year indices, this array's length is the number of peaks needed on the path
- * @return an array of points for drawing the sine wave: [[x,y], etc.]
- * */
-function calculatePathPoints (objectRef,indices){
-    var angle = 0;
-    var pathPoints = [];
-    var quarterPi = Math.PI/4;
-
-    //Save the x and y coordinates of the stationary bar
-    var xPos = this.pathData[indices[0]][0];
-    var yPos = this.pathData[indices[0]][1];
-
-    //Find the period of the sine function
-    var length = indices.length;
-    var totalPts = 3*length + (length-3);
-
-    var indexCounter = 0;
-    var sign = -1;
-
-    //Calculate the points (5 per gap between views)
-    for (var j=0;j<totalPts;j++){
-        var theta = angle + quarterPi*j;
-        var y = objectRef.amplitude*Math.sin(theta)+yPos;
-        var x = (this.hintPathSpacing/4)*j + xPos;
-        if (j%4==0){ //Add the sign (+1 for peak, -1 for trough) to each ambiguous bar along the sine wave
-            this.ambiguousBars[indices[indexCounter]].push(sign);
-            indexCounter++;
-            sign = (sign==-1)?1:-1; //Flip the sign of the sine wave direction
-        }
-        pathPoints.push([x,y]);
-    }
-
-    //Insert the direction of the end point on the sine wave into ambiguousBars array
-    var endDirection = (indices.length % 2==0)?-1:1;
-    this.ambiguousBars[indices[indices.length-1]][2] = endDirection;
-
-    return pathPoints;
+//TODO: need to figure out the proper dimensions of this image (corresponding to the screen size)
+ function addSmallMultiples (){
+    d3.select("#multiples").append("svg") .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500)
+                           .append("svg:image").attr("xlink:href","smallMultiples.png")
+                            .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500);
 }

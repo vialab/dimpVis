@@ -10,11 +10,13 @@
  * objectClass: is the class name e.g., ".bars", assigned to all data objects
  * */
 function clearVis (objectClass){
-    d3.selectAll(objectClass).remove();
-    d3.selectAll(".axisLabel").remove();
-    d3.selectAll(".axis").remove();
-    d3.select("#hintPath").remove();
-    d3.select("#legend").remove();
+    if (!d3.selectAll(objectClass).empty()){
+        d3.selectAll(objectClass).remove();
+        d3.selectAll(".axisLabel").remove();
+        d3.selectAll(".axis").remove();
+        d3.select("#hintPath").remove();
+        d3.select("#legend").remove();
+    }
 }
 /**Checks if a mobile device is being used, called when the page loads
  * @return true if mobile, false otherwise
@@ -291,13 +293,21 @@ function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
          .attr("id","path").attr("clip-path","url(#clip)");*/
 
     //Partial hint path by drawing individual segments...
+
+
      //Draw the hint path line segment at current and next view
      objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
         .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#666")
+
         .attr("d", function (d) {
              return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                  objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
          });
+
+      //Set the small path to only show 20% of it
+     /** var length = d3.select("#path").node().getTotalLength();
+      var interpStr = d3.interpolateString("0," + length, length + "," + length);
+      objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));*/
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
@@ -358,6 +368,30 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 });
         }
+
+         //Clear the backward path
+        //Trying to reduce the partial hint path even more here
+        /**objectRef.svg.select("#backwardPath").style("stroke","none");
+        if (this.interpValue+0.2 >1){ //Overflow, draw the next segment
+            //Create the interpolation function and get the total length of the path
+            var length = d3.select("#forwardPath").node().getTotalLength();
+            var interpStr = d3.interpolateString("0," + length, length + "," + length);
+            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(0.2+objectRef.interpValue)).style("stroke","#666")
+                .attr("d", function (d) {
+                    return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
+                        objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
+                });
+        }else{ //Keep drawing the #path element
+            //Set the small path to only show 20% of it
+            var length = d3.select("#path").node().getTotalLength();
+            var interpStr = d3.interpolateString("0," + length, length + "," + length);
+            objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2+objectRef.interpValue)).attr("d", function (d) {
+                return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                    objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+            });
+        }*/
+
+
     }else{ //Moving backward
         if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.currentView][0]==1){
@@ -543,4 +577,13 @@ function findInteractionPaths(ambiguousObjs,values,valueThreshold){
     interactionPaths.push(indices);
 
     return [ambiguousObjs,interactionPaths];
+}
+
+/**Draws the small multiples interface by loading it as an image and appending it to the svg with id "multiples"
+ * */
+//TODO: need to figure out the proper dimensions of this image (corresponding to the screen size)
+ function addSmallMultiples (){
+    d3.select("#multiples").append("svg") .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500)
+                           .append("svg:image").attr("xlink:href","smallMultiples.png")
+                            .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500);
 }
