@@ -4,7 +4,7 @@ var taskCounter = 1;
 var techniqueCounter = 0;
 var timeCounter = 0;
 var timerVar;
-var totalTasks = 2; //For each interaction technique
+var totalTasks = 3; //For each interaction technique
 var techniqueOrder = []; //Randomized order of interaction techniques
 var maxTaskTime = 100;
 var firstTouchDown = null;
@@ -16,26 +16,20 @@ var doNothing = d3.behavior.drag().on("dragstart", null)
 
 //////////////////////Code for creating a barchart visualization//////////////////////
 var barchart   = new Barchart(700, 90, 10, 10 , "#bargraph",40);
-
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 barchart.clickSVG = function (){
     barchart.clearHintPath();
 };
-
 barchart.init();
 setHintPathType(barchart,1); //Make sure set to partial hint path initially
-
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
     d3.event.preventDefault();
     barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
-    barchart.changeView(i);
+    changeView(barchart,i);
     slider.updateSlider(i);
 };
-
-//barchart.render(dataset,labels,"","","");
-
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
     .origin(function(d){ //Set the starting point of the drag interaction
@@ -70,29 +64,27 @@ barchart.dragEvent = d3.behavior.drag()
 //////////////////////Code for creating the slider widget//////////////////////
 var slider   = new Slider(50, 800, "#time",labels, "Time","#666",80);
 slider.init();
-//slider.render();
-
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){ barchart.clearHintPath();})
     .on("drag", function(){
-        slider.updateDraggedSlider(d3.mouse(this)[0]);
+        slider.updateDraggedSlider(d3.event.x);
         barchart.interpolateBars(-1,slider.interpValue,slider.currentTick,slider.nextTick);
     })
     .on("dragend",function (){
         slider.snapToTick();
-        barchart.changeView(slider.currentTick);
+        changeView(barchart,slider.currentTick);
         barchart.redrawView(slider.currentTick,-1);
     });
 
 //////////////////////Declare functions required to run the experiment here//////////////////////
 
-//Function that will be executed every 1 second to check the time
+//Function that will be executed every second to check the time
 var timerFunc = function (){
     timeCounter++;
-    if (timeCounter > maxTaskTime){ //Exceeded maximum time provided for a task
+   /** if (timeCounter > maxTaskTime){ //Exceeded maximum time provided for a task
         alert("Maximum time to complete the task has been reached.  You will now begin the next task.");
-        //Grab the solution (if any), submit whatever solution is currently in the text box?
+        //Grab the solution (if any), submit the most recent solution?
         var solution = d3.select("#taskSolution").node().value;
         var result;
         if (solution.length >0){
@@ -106,7 +98,7 @@ var timerFunc = function (){
         }
     }else if (timeCounter > 20){ //Display the timer counts for debugging
         d3.select("#timer").node().innerHTML="Time Remaining: "+(maxTaskTime-timeCounter);
-    }
+    }*/
 };
 
 //Called when the html page is loaded
@@ -116,6 +108,7 @@ window.onload = function (){
         console.log(response);
         techniqueOrder = response;
         updateInteractionTechnique(techniqueOrder[techniqueCounter]);
+        hideSliderInfo(slider);
         startTimer();
     });
 }
@@ -156,6 +149,7 @@ function switchTask (solution){
     d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content="+solution, function(d) { });
 
     //Log the last touch down event recorded, then calculate the task completion time
+    //TODO: for important information (e.g., the task solutions), log this information twice (once in txt file and then again either in server console or browser console)
     console.log("Last touch up "+lastTouchUp);
     console.log("Total time in seconds"+(Math.abs(lastTouchUp - firstTouchDown)));
 
@@ -170,16 +164,21 @@ function switchTask (solution){
         switchInteractionTechnique();
     }
 
+    //TODO: Prepare the visualization for the next task (e.g., highlight bars)
+    //highlightDataObject(0,1,"displayBars",this.barColour,"#D95F02");
+
     //Clear the text box, update the task panel display
     d3.select("#taskSolution").node().value = "";
     d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
     d3.select("#taskDescription").node().innerHTML = "Description #"+taskCounter;
 
+    //TODO: display feedback message
+
     stopTimer();
     startTimer();
 }
 //Sets the current interaction technique, and disables the other (dimp vs. slider)
-function switchInteractionTechnique(){ //TODO: change the data set
+function switchInteractionTechnique(){ //TODO: change the data set(?)
    techniqueCounter++;
    if (techniqueCounter > 0){ //Finished all tasks, enter exploratory period
        startExploratory();
@@ -230,6 +229,7 @@ function startExploratory(){
 
    //Update the visualization
    setHintPathType(barchart,0);
+    showSliderInfo(slider);
    barchart.render(dataset2,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
    barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);  //TODO: should time slider be active? Since slider is a competitor technique, maybe it should be removed entirely
 

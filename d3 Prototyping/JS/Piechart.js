@@ -581,7 +581,7 @@ Piechart.prototype.redrawHintPath = function (view,angles){
  * */
 Piechart.prototype.calculateHintAngles = function (angles,view,flag){
   //Hint path design: separate radius for each year
-  var newAngle, r, x, y;
+  var newAngle, r;
   var hintAngles = [];
   for (var j=0;j<angles.length;j++){
        //Calculate the new information

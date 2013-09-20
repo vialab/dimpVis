@@ -642,6 +642,7 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     if (!this.useMobile){
         this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
         /**.transition().duration(300)*/.style("fill-opacity", 0.5);
+        //highlightDataObject(0,1,"displayBars",this.barColour,"#D95F02");
     }
 }
 /** Draws interaction paths as sine waves with a dashed line, also sets the passedMiddle variable

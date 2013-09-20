@@ -69,9 +69,9 @@ Slider.prototype.render = function() {
    //Draw the ticks
    this.widget.selectAll("g").append("svg:rect")
       .attr("x", function (d) {return d.value;})
-      .attr("y", 10)
-	  .attr("width", 1).attr("height", 12)
-      .attr("fill", ref.displayColour)
+      .attr("y", function (d,i){return ((i==0)||(i==ref.numTicks-1))?-2:10})
+	  .attr("width", 1).attr("height", function (d,i){return ((i==0)||(i==ref.numTicks-1))?24:12})
+      .style("fill", ref.displayColour)
 	  .attr("class","ticks");
 
    //Draw the labels for each tick
@@ -79,14 +79,14 @@ Slider.prototype.render = function() {
       .text(function(d) { return d.label; })
 	  .attr("x", function(d) {return d.value}).attr("y", 37)
 	  .style("font-family", "sans-serif").style("font-size", "12px")
-	  .attr("fill", function (d,i){
+	  .style("fill", function (d,i){
 	       if (ref.tickLabels.length >25){ //Only display every 5 labels to reduce clutter
 		      if (i%5 ==0) return ref.displayColour;
 			  else return "none";
 		   }
 		   return ref.displayColour;
 	   })
-	   .attr("text-anchor","middle");
+	   .attr("text-anchor","middle").attr("class","tickLabels");
 
    //Draw a long line through all ticks
    this.widget.append("rect").attr("class","sliderAxis")

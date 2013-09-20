@@ -92,6 +92,6 @@ slider.render();
                      });
 //Apply the dragging function to the movable tick
 slider.widget.select("#slidingTick").call(slider.dragEvent);
-
+hideSliderInfo(slider);
 
 				   

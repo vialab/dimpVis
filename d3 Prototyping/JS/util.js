@@ -305,9 +305,9 @@ function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
          });
 
       //Set the small path to only show 20% of it
-     /** var length = d3.select("#path").node().getTotalLength();
+     var length = d3.select("#path").node().getTotalLength();
       var interpStr = d3.interpolateString("0," + length, length + "," + length);
-      objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));*/
+      objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
@@ -342,7 +342,7 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward
 
-        if (ambiguousObjects.length > 0){
+        /**if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
             }else{
@@ -367,20 +367,28 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
                         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 });
-        }
+        }*/
 
          //Clear the backward path
         //Trying to reduce the partial hint path even more here
-        /**objectRef.svg.select("#backwardPath").style("stroke","none");
-        if (this.interpValue+0.2 >1){ //Overflow, draw the next segment
+        objectRef.svg.select("#backwardPath").style("stroke","none");
+        if (objectRef.interpValue+0.2 >1){ //Overflow, draw the next segment
+
             //Create the interpolation function and get the total length of the path
             var length = d3.select("#forwardPath").node().getTotalLength();
             var interpStr = d3.interpolateString("0," + length, length + "," + length);
-            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(0.2+objectRef.interpValue)).style("stroke","#666")
+            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue*0.2)).style("stroke","#666")
                 .attr("d", function (d) {
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
                         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 });
+            //Remove part of the trailing hint path
+            /**length = d3.select("#path").node().getTotalLength();
+            var interpStr2 = d3.interpolateString("0," + length, length + "," + length);
+            objectRef.svg.select("#path").attr("stroke-dasharray",interpStr2(0.8)).attr("d", function (d) {
+                return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                    objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+            });*/
         }else{ //Keep drawing the #path element
             //Set the small path to only show 20% of it
             var length = d3.select("#path").node().getTotalLength();
@@ -389,11 +397,12 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                 return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                     objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
             });
-        }*/
+            objectRef.svg.select("#forwardPath").style("stroke","none");
+        }
 
 
     }else{ //Moving backward
-        if (ambiguousObjects.length > 0){
+        /**if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.currentView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
             }else{
@@ -417,7 +426,31 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                          objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
                 });
+        }*/
+
+        //Trying to reduce the partial hint path even more here
+        objectRef.svg.select("#forwardPath").style("stroke","none");
+        if (objectRef.interpValue+0.2 >1){ //Overflow, draw the next segment
+
+            //Create the interpolation function and get the total length of the path
+           var length = d3.select("#backwardPath").node().getTotalLength();
+            var interpStr = d3.interpolateString("0," + length, length + "," + length);
+            objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue*0.2)).style("stroke","#666")
+                .attr("d", function (d) {
+                    return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                        objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
+                });
+        }else{ //Keep drawing the #path element
+            //Set the small path to only show 20% of it
+            var length = d3.select("#path").node().getTotalLength();
+            var interpStr = d3.interpolateString("0," + length, length + "," + length);
+            objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2+objectRef.interpValue)).attr("d", function (d) {
+                return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                    objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+            });
+            objectRef.svg.select("#backwardPath").style("stroke","none");
         }
+
     }
 }
 /**Hides the small hint path whenever the user stops dragging */
@@ -586,4 +619,26 @@ function findInteractionPaths(ambiguousObjs,values,valueThreshold){
     d3.select("#multiples").append("svg") .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500)
                            .append("svg:image").attr("xlink:href","smallMultiples.png")
                             .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500);
+}
+/**Highlights data object(s) with the specified id in the highlightColour from the class of data objects
+ * Used for completing the tasks in the user evaluation
+ * id2 is optional, if N/A then set it as -1
+ * */
+function highlightDataObject (id1,id2,className,origColour,highlightColour){
+   d3.selectAll("."+className).style("fill", function (d){return ((d.id==id1)||(d.id==id2))?highlightColour:origColour; });
+}
+
+/**Function which shows info (year labels, middle ticks) on the slider widget */
+function showSliderInfo(sliderRef){
+    sliderRef.widget.selectAll(".tickLabels").style("fill",sliderRef.displayColour);
+}
+/**Function which hides info (year labels, middle ticks) on the slider widget.
+ * This is used during the user evaluation to remove information about time */
+function hideSliderInfo(sliderRef){
+   //Hide the tick labels
+    sliderRef.widget.selectAll(".tickLabels").style("fill","none");
+   //Hide all ticks except the end ones
+    sliderRef.widget.selectAll(".ticks")
+        .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});
+
 }
