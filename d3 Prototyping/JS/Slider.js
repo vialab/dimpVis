@@ -22,8 +22,8 @@ function Slider(x, y, id,labels,description,colour,spacing) {
    this.sliderOffset = x+(description.length*20); //Font size of title is 20px
    this.width = this.sliderOffset + this.numTicks*this.tickSpacing;
    this.height = 50;
-   this.tickYPos = 35; //Amount to translate the draggable tick by in the y coordinate
-   this.anchorYPos = 10; //Amount to translate the anchor which follows the draggable tick when it is not placed on the main slider
+   this.tickYPos = 33; //Amount to translate the draggable tick by in the y coordinate
+   this.anchorYPos = 11; //Amount to translate the anchor which follows the draggable tick when it is not placed on the main slider
    this.sliderHeight = 15; //Thickness of the main slider line
 
    this.currentTick = 0; //Start the slider always at the first tick
@@ -72,8 +72,10 @@ Slider.prototype.render = function() {
    //Draw the ticks
    this.widget.selectAll("g").append("svg:rect")
       .attr("x", function (d) {return d.value;})
-      .attr("y", function (d,i){return ((i==0)||(i==ref.numTicks-1))?-2:10})
-	  .attr("width", 1).attr("height", function (d,i){return ((i==0)||(i==ref.numTicks-1))?24:12})
+      //.attr("y", function (d,i){return ((i==0)||(i==ref.numTicks-1))?(10-ref.sliderHeight/2):10})
+       .attr("y", function (d,i){return (10-ref.sliderHeight/2)})
+	  .attr("width", 2)//.attr("height", function (d,i){return ((i==0)||(i==ref.numTicks-1))?(12+ref.sliderHeight):12})
+       .attr("height", function (d,i){return (12+ref.sliderHeight)})
       .style("fill", ref.displayColour)
 	  .attr("class","ticks");
 
@@ -112,11 +114,10 @@ Slider.prototype.render = function() {
       .attr("stroke", "white").attr("fill", ref.displayColour)
       .style("cursor", "pointer").attr("id","slidingTick");
   //Draw an anchor to attach the triangle with the main slider bar
-   this.widget.append("rect").attr("d",d3.svg.symbol().type("triangle-up").size(150))
-        .attr("transform", function(d) { return "translate(" +ref.sliderPos + "," + ref.anchorYPos + ")"; })
-        .attr("stroke", "none").attr("fill", "#FFF").attr("width", 1).attr("height", ref.sliderHeight)
+   this.widget.append("rect").attr("d",d3.svg.symbol().type("triangle-up").size(170))
+        .attr("transform", function(d) { return "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")"; })
+        .attr("stroke", "none").style("fill", "#c7c7c7").attr("width", 1).attr("height", (ref.sliderHeight-2))
         .style("cursor", "pointer").attr("id","anchor");
-
 }
 /** Re-draws the dragged tick by translating it according to the x-coordinate of the mouse
  *  mouseX: The x-coordinate of the mouse, received from the drag event
@@ -168,7 +169,8 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
    }
 
     this.widget.select("#slidingTick").attr("transform","translate(" + translateX + "," + ref.tickYPos + ")");
-    this.widget.select("#anchor").attr("transform", "translate(" + translateX + "," + ref.anchorYPos + ")");
+    this.widget.select("#anchor").attr("width",translateX-ref.sliderOffset);
+    //this.widget.select("#anchor").attr("transform", "translate(" + translateX + "," + ref.anchorYPos + ")");
 }
 /** Determines how far the slider has travelled between two ticks (current and next) and sets
  * the interpolation value accordingly (as percentage travelled)

@@ -614,8 +614,8 @@ function findInteractionPaths(ambiguousObjs,values,valueThreshold){
 
 /**Draws the small multiples interface by loading it as an image and appending it to the svg with id "multiples"
  * */
-//TODO: need to figure out the proper dimensions of this image (corresponding to the screen size)
- function addSmallMultiples (){
+//TODO: need to make an interactive small multiples display (where user can select an image by clicking on it)
+ function drawSmallMultiples (){
     d3.select("#multiples").append("svg") .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500)
                            .append("svg:image").attr("xlink:href","smallMultiples.png")
                             .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500);
@@ -638,7 +638,12 @@ function hideSliderInfo(sliderRef){
    //Hide the tick labels
     sliderRef.widget.selectAll(".tickLabels").style("fill","none");
    //Hide all ticks except the end ones
-    sliderRef.widget.selectAll(".ticks")
-        .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});
+   /** sliderRef.widget.selectAll(".ticks")
+        .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});*/
 
+}
+
+/**Prints out the pixel location of the year ticks along the slider, used to find solutions to the tasks */
+function printPixelValues(sliderRef){
+    console.log(sliderRef.tickPositions);
 }

@@ -638,7 +638,12 @@ function hideSliderInfo(sliderRef){
    //Hide the tick labels
     sliderRef.widget.selectAll(".tickLabels").style("fill","none");
    //Hide all ticks except the end ones
-    sliderRef.widget.selectAll(".ticks")
-        .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});
+   /** sliderRef.widget.selectAll(".ticks")
+        .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});*/
 
+}
+
+/**Prints out the pixel location of the year ticks along the slider, used to find solutions to the tasks */
+function printPixelValues(sliderRef){
+    console.log(sliderRef.tickPositions);
 }

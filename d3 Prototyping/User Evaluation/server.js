@@ -8,10 +8,12 @@ var static = require('node-static'),
 //Some variables specific to each participant
 //TODO: might want to log these or record them somewhere (since the order is random)
 //TODO: change phaseOrder to only two phases (between subjects)
-var phaseOrder = [0,1,2,3]; //This should be randomized eventually (list of indices pointing to the phaseURL arrays
+var phaseOrder = [0,1,2,3]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
 var phaseNumber = 0; //The current phase (will eventually reach 3, the end of the phaseOrder array), this always starts at 0 (regardless of order)
-var techniqueOrder = [1,2,0]; //This should be randomized as well , the interaction technique order within phases
+var techniqueOrder = [1,2,0]; //This should be counterbalanced as well , the interaction technique order within phases
+var taskOrder = [0]; //This should be randomized, an index pointing to the task
 var logFileName = "logTasks";
+
 /**
 * Create a node-static server instance to serve the './client' folder, will automatically load index.html
 */
@@ -38,7 +40,6 @@ app.get("/log", function(req, res) {
     var phaseId = phaseOrder[phaseNumber];
 
     var log = fs.createWriteStream(logFileName+".txt", {"flags" : "a"});
-    var now = new Date();
 
     log.write( phaseId+ "|" + techniqueId + "|" + taskNumber + "|" + new Date().toString() + "|" + content + "\n");
 
@@ -65,13 +66,13 @@ app.get("/nextPhase", function(req, res) {
     res.end();
 
 });
-/** Sends the interaction technique to begin the phase with
+/** Sends the interaction technique and task ordering
  * */
-app.get("/getInteractionTechniqueOrder", function(req, res) {
+app.get("/getOrders", function(req, res) {
 
-    var jsonStr = JSON.stringify(techniqueOrder);
+    var jsonStr = [techniqueOrder,taskOrder];
 
-    console.log("Sending the interaction technique order");
+    console.log("Sending the interaction technique and task orders");
 
     res.set('Content-Type', 'application/json');
     res.send( jsonStr );
