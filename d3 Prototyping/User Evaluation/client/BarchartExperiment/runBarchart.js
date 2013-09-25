@@ -78,6 +78,13 @@ slider.dragEvent = d3.behavior.drag()
         barchart.redrawView(slider.currentTick,-1);
     });
 
+//////////////////////Code for creating the small multiples display//////////////////////
+var multiples = new Multiples("#multiples",10,100,2,2);
+multiples.clickImageFunction = function (d){
+    multiples.clickedImage = d.id;
+    //TODO: add data logging of the answer
+    console.log("clicked "+ d.name+" "+ d.id);
+}
 //////////////////////Declare functions required to run the experiment here//////////////////////
 //TODO:might want a re-set visualization button in case it freezes or fails (can't jsut refresh the page or the order will get messed up)
 
@@ -205,11 +212,13 @@ function switchInteractionTechnique(){ //TODO: change the data set(?)
 //Technique ID's: Dimp=0, Time slider=1, Small multiples=2 (not implemented yet)
 function updateInteractionTechnique(techniqueID){
     if (techniqueID == 0) {  //Enable dimp technique, disable time slider dragging
+        multiples.remove();
         barchart.render(dataset,labels,"","","");
         slider.render();
         slider.widget.select("#slidingTick").call(doNothing);
         barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
     }else if (techniqueID ==1){ //Enable time slider, disable dimp interaction
+        multiples.remove();
         barchart.render(dataset,labels,"","","");
         slider.render();
         slider.widget.select("#slidingTick").call(slider.dragEvent);
@@ -217,7 +226,7 @@ function updateInteractionTechnique(techniqueID){
     }else if (techniqueID==2){ //Enable the small multiples interface
        clearVis(".gDisplayBars");
        if (slider.widget!=null) slider.widget.remove();
-       drawSmallMultiples();
+       //TODO: render the small multiples
     }
 }
 //Move to the next phase (after all tasks for both techniques), changes the visualization

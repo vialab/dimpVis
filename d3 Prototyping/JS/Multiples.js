@@ -10,9 +10,10 @@ function Multiples(id,spacing,size,imagesX,imagesY) {
     this.id = id;
     this.spacing = spacing;
     this.imgSize = size;
-    this.svgSize = imagesX*imagesY*size + imagesX*imagesY*spacing;
+    //this.svgSize = imagesX*imagesY*size + imagesX*imagesY*spacing;
     this.svg = null;
     this.clickImageFunction = {};
+    this.selectedImage = -1; //Index of the selected (clicked) image
 }
 /**Draw the multiples display by adding the images
  * imageArray: strings containing the image file name, assume that the image is placed in the same
@@ -20,13 +21,12 @@ function Multiples(id,spacing,size,imagesX,imagesY) {
 Multiples.prototype.render = function (imageArray){
     var ref = this;
     //Draw the main svg container
-    this.svg = d3.select("#multiples").append("svg") .attr("x", "0").attr("y", "0").attr("width", this.svgSize).attr("height", this.svgSize);
+    this.svg = d3.select("#mainSvg");//.attr("x", "0").attr("y", "0").attr("width", this.svgSize).attr("height", this.svgSize);
 
     //Draw the images, ordered by time from left to right, then top to bottom
     var row = 0;
     var col = 0;
-    this.svg.selectAll(".images")
-        .data(imageArray.map(function (d,i) {
+    this.svg.selectAll(".images").data(imageArray.map(function (d,i) {
            var imgY = row*ref.spacing + row*ref.imgSize;
            var imgX = ref.imgSize*col + ref.spacing*col;
 
@@ -38,6 +38,20 @@ Multiples.prototype.render = function (imageArray){
            return {id:i,name:d,x:imgX,y:imgY};
     })).enter().append("svg:image").attr("xlink:href",function (d){return d.name})
         .attr("x", function (d){return d.x}).attr("y", function (d){return d.y})
+        .attr("width", this.imgSize).attr("height", this.imgSize).style("cursor","pointer")
+        .on("click",this.clickImageFunction).attr("id",function (d){return "image"+ d.id});
+
+
+    //Add a blank rectangle used for highlighting a selected image
+    this.svg.append("rect").attr("id","border");
+}
+//Clears the small multiples display
+Multiples.prototype.remove = function (){
+    this.svg.remove();
+}
+//Draws a border around an image when it is selected, at position x,y (of the image)
+Multiples.prototype.highlightImage = function (x,y){
+    this.svg.select("#border").attr("x", x).attr("y", y)
         .attr("width", this.imgSize).attr("height", this.imgSize)
-        .on("click",this.clickImageFunction);
+        .style("fill","none").style("stroke","black").style("stroke-width",2);
 }
