@@ -50,23 +50,24 @@ Slider.prototype.init = function() {
    this.widget = d3.select(this.id).append("svg")      
       .attr("width", this.width).attr("height", this.height)
       .style("position", "absolute")
-      .style("left", this.xpos + "px").style("top", this.ypos + "px")
-      .append("g");
+      .style("left", this.xpos + "px").style("top", this.ypos + "px");
+
 }
 /** Render the widget onto the svg
  *  Note: no data set is required because it was automatically generated in the constructor
  * */
 Slider.prototype.render = function() {
    var ref = this;
+   //this.widget.remove(); //Clear any existing elements
 
    //Add the title beside the slider
-   this.widget.append("text").text(this.title)
+   this.widget.append("g").append("text").text(this.title)
               .attr("x",0).attr("y",20).attr("fill",this.displayColour)
               .style("font-family", "sans-serif").style("font-size","20px");
 
    //Prepare the data for drawing the slider ticks
    this.widget.selectAll("rect")
-     .data(this.tickPositions.map(function (d,i) {return {id:i,value:d,label:ref.tickLabels[i]};}))
+     .data(this.tickPositions.map(function (d,i) {console.log(d);return {id:i,value:d,label:ref.tickLabels[i]};}))
       .enter().append("g");
 
    //Draw the ticks

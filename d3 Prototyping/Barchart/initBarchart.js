@@ -65,7 +65,7 @@ barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 //Create a slider widget
 var slider   = new Slider(50, 700, "#time",labels, "Time","#666",40);
 slider.init();
-slider.render();
+/**slider.render();
 
 //Define the function to respond to the dragging behaviour of the slider tick
  slider.dragEvent = d3.behavior.drag()  
@@ -75,13 +75,8 @@ slider.render();
                       })
                       .on("drag", function(){
                           d3.event.sourceEvent.preventDefault();
-                          var userX;
-                          if (d3.touches(this).length > 0){
-                             userX = d3.touches(this)[0][0];
-                          }else{
-                             userX = d3.event.x;
-                          }
-						   slider.updateDraggedSlider(userX);
+                          var userX = getUserCoords(this);
+						   slider.updateDraggedSlider(userX[0]);
                            barchart.interpolateBars(-1,slider.interpValue,slider.currentTick,slider.nextTick);
 					  })
 					  .on("dragend",function (){
@@ -93,9 +88,9 @@ slider.render();
 //Apply the dragging function to the movable tick
 slider.widget.select("#slidingTick").call(slider.dragEvent);
 hideSliderInfo(slider);
-
+//drawBlankScreen("#mainSvg",2000,2000);
 //Testing the small multiples display
-clearVis(".gDisplayBars");
+/**clearVis(".gDisplayBars");
 
 if (slider.widget!=null) slider.widget.remove();
 var multiples = new Multiples("#multiples",10,100,2,2);
@@ -104,7 +99,8 @@ multiples.clickImageFunction = function (d){
     multiples.highlightImage(d.x, d.y);
     console.log("clicked "+ d.name+" "+ d.id);
 }
-multiples.render(["1.png","2.png","3.png","4.png"]);
+multiples.render(["1.png","2.png","3.png","4.png"]);*/
+
 
 
 

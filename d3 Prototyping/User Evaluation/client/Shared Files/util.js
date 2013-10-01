@@ -305,9 +305,9 @@ function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
          });
 
       //Set the small path to only show 20% of it
-     var length = d3.select("#path").node().getTotalLength();
+    /** var length = d3.select("#path").node().getTotalLength();
       var interpStr = d3.interpolateString("0," + length, length + "," + length);
-      objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));
+      objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));*/
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
@@ -342,7 +342,7 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward
 
-        /**if (ambiguousObjects.length > 0){
+        if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
             }else{
@@ -367,11 +367,11 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
                         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 });
-        }*/
+        }
 
          //Clear the backward path
         //Trying to reduce the partial hint path even more here
-        objectRef.svg.select("#backwardPath").style("stroke","none");
+        /**objectRef.svg.select("#backwardPath").style("stroke","none");
         if (objectRef.interpValue+0.2 >1){ //Overflow, draw the next segment
 
             //Create the interpolation function and get the total length of the path
@@ -383,12 +383,12 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 });
             //Remove part of the trailing hint path
-            /**length = d3.select("#path").node().getTotalLength();
+           length = d3.select("#path").node().getTotalLength();
             var interpStr2 = d3.interpolateString("0," + length, length + "," + length);
             objectRef.svg.select("#path").attr("stroke-dasharray",interpStr2(0.8)).attr("d", function (d) {
                 return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                     objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-            });*/
+            });
         }else{ //Keep drawing the #path element
             //Set the small path to only show 20% of it
             var length = d3.select("#path").node().getTotalLength();
@@ -398,11 +398,11 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                     objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
             });
             objectRef.svg.select("#forwardPath").style("stroke","none");
-        }
+        }*/
 
 
     }else{ //Moving backward
-        /**if (ambiguousObjects.length > 0){
+        if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.currentView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
             }else{
@@ -426,10 +426,10 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                          objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
                 });
-        }*/
+        }
 
         //Trying to reduce the partial hint path even more here
-        objectRef.svg.select("#forwardPath").style("stroke","none");
+       /** objectRef.svg.select("#forwardPath").style("stroke","none");
         if (objectRef.interpValue+0.2 >1){ //Overflow, draw the next segment
 
             //Create the interpolation function and get the total length of the path
@@ -449,7 +449,7 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                     objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
             });
             objectRef.svg.select("#backwardPath").style("stroke","none");
-        }
+        }*/
 
     }
 }
@@ -611,15 +611,6 @@ function findInteractionPaths(ambiguousObjs,values,valueThreshold){
 
     return [ambiguousObjs,interactionPaths];
 }
-
-/**Draws the small multiples interface by loading it as an image and appending it to the svg with id "multiples"
- * */
-//TODO: need to figure out the proper dimensions of this image (corresponding to the screen size)
- function addSmallMultiples (){
-    d3.select("#multiples").append("svg") .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500)
-                           .append("svg:image").attr("xlink:href","smallMultiples.png")
-                            .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500);
-}
 /**Highlights data object(s) with the specified id in the highlightColour from the class of data objects
  * Used for completing the tasks in the user evaluation
  * id2 is optional, if N/A then set it as -1
@@ -647,3 +638,4 @@ function hideSliderInfo(sliderRef){
 function printPixelValues(sliderRef){
     console.log(sliderRef.tickPositions);
 }
+

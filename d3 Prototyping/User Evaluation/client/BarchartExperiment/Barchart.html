@@ -15,20 +15,23 @@
   </head>
   <body>
 
+
   <!--For appending the visualizations -->
     <div id="bargraph"></div>
     <div id="time"></div>
-    <div id="multiples"></div>
 
-    <!-- Collect the answers to the tasks -->
+    <!-- Move to the next task -->
     <div id="taskPanel">
         <div id="counter">Task #1</div>
         <div id="taskDescription"></div>
-        <!--<div id="solutionEntry"> Solution: <input id="taskSolution" type="text"></div>-->
-        <br><br>
-        <center><button id="nextButton">Submit</button></center>
+        <br>
+        <center><button id="submitButton" class="buttons">Submit</button></center>
     </div>
     <div id="timer"></div>
+  <!-- For displaying a blank screen after submitting the answer to a task-->
+  <div id="intermediateScreen">
+      <center><div id="nextButton" class="buttons">Next Task</div></center>
+ </div>
     <script type="text/javascript" src="runBarchart.js"></script>
   </body>
 </html>

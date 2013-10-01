@@ -312,7 +312,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     }
 
     //Re-draw the dragged bar
-    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]).style("fill",this.barColour);
+    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);//.style("fill",this.barColour);
 
    //Save some variables
    this.previousDragDirection = draggingDirection;
@@ -549,7 +549,7 @@ Barchart.prototype.redrawView = function (view,id){
        this.svg.selectAll(".displayBars").transition().duration(300)
            .attr("height", function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?2:d.nodes[view][1];})
            .attr("y", function (d){return d.nodes[view][0];});
-          // .style("fill",function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?ref.zeroBarColour:ref.barColour;});
+           //.style("fill",function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?ref.zeroBarColour:ref.barColour;});
 
        //Re-draw the hint path (if id is specified)
        if (id!=-1){
@@ -639,10 +639,11 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     }
 
     //Fade out the other bars
-    /**if (!this.useMobile){
-        this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
-        .transition().duration(300).style("fill-opacity", 0.5);
-    }*/
+    if (!this.useMobile){
+        //this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
+        /**.transition().duration(300).style("fill-opacity", 0.5);*/
+        //highlightDataObject(0,1,"displayBars",this.barColour,"#D95F02");
+    }
 }
 /** Draws interaction paths as sine waves with a dashed line, also sets the passedMiddle variable
  *  translate: the amount to translate the path such that it corresponds with the dragged bar

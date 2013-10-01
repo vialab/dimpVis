@@ -4,7 +4,8 @@ var taskCounter = 0;
 var techniqueCounter = 0;
 var timeCounter = 0;
 var timerVar;
-var totalTasks = 3; //For each interaction technique
+var totalObjectiveTasks = 3; //For each interaction technique
+var totalWarmUpTasks = 1;
 var techniqueOrder = []; //Counterbalanced order of interaction technique
 var taskOrder = []; //Randomized order of tasks
 var maxTaskTime = 100;
@@ -37,6 +38,7 @@ barchart.dragEvent = d3.behavior.drag()
         return {x:d.xPos,y:d.nodes[barchart.currentView][0]};
     })
     .on("dragstart", function(d){
+        d3.event.sourceEvent.preventDefault();
         barchart.clearHintPath();
         barchart.draggedBar = d.id;
         barchart.selectBar(d.id, d.nodes, d.xPos);
@@ -50,10 +52,12 @@ barchart.dragEvent = d3.behavior.drag()
         }
     })
     .on("drag", function(d){
+        d3.event.sourceEvent.preventDefault();
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
-        barchart.updateDraggedBar(d.id,d3.event.y,d3.event.x);
+        barchart.updateDraggedBar(d.id,d3.event.x,d3.event.y,d.xPos,d.nodes);
     })
     .on("dragend",function (d){
+        d3.event.sourceEvent.preventDefault();
         barchart.snapToView(d.id,d.nodes);
         slider.updateSlider(barchart.currentView);
 
@@ -63,7 +67,7 @@ barchart.dragEvent = d3.behavior.drag()
     });
 
 //////////////////////Code for creating the slider widget//////////////////////
-var slider   = new Slider(50, 800, "#time",labels, "Time","#666",80);
+var slider   = new Slider(50, 800, "#time",labels, "","#636363",80);
 slider.init();
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
@@ -79,12 +83,12 @@ slider.dragEvent = d3.behavior.drag()
     });
 
 //////////////////////Code for creating the small multiples display//////////////////////
-var multiples = new Multiples("#multiples",10,100,2,2);
+/**var multiples = new Multiples("#multiples",10,100,2,2);
 multiples.clickImageFunction = function (d){
     multiples.clickedImage = d.id;
     //TODO: add data logging of the answer
     console.log("clicked "+ d.name+" "+ d.id);
-}
+}*/
 //////////////////////Declare functions required to run the experiment here//////////////////////
 //TODO:might want a re-set visualization button in case it freezes or fails (can't jsut refresh the page or the order will get messed up)
 
@@ -112,16 +116,15 @@ var timerFunc = function (){
 
 //Called when the html page is loaded
 window.onload = function (){
-    //Get the starting technique
-    //TODO: also get the task ordering
+
     d3.json("http://localhost:8080/getOrders?", function(error,response) {
         console.log(response);
         techniqueOrder = response[0];
         taskOrder = response[1];
         updateInteractionTechnique(techniqueOrder[techniqueCounter]);
-        updateTaskDisplay();
-        hideSliderInfo(slider);
+        updateTaskDisplay(objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]]);
         startTimer();
+        hideSliderInfo(slider);
     });
 }
 
@@ -137,24 +140,16 @@ function stopTimer(){
 
 //Moves to the next task
 function nextTask (){
-    //Grab the solution (if any)
-   /** var solution = d3.select("#taskSolution").node().value;
-    var result;
-    if (solution.length >0){
-        result = confirm("You have entered: "+solution+".  Proceed to the next task?");
-    }else{
-        result = confirm("You have not entered a solution.  Proceed to the next task?");
-    }
-
-    if (result ==true){
-       switchTask(solution);
-    }*/
-   var solution = (techniqueOrder[techniqueCounter]==3)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
-   var result = confirm("You will submit this view of the barchart as your solution.  Proceed to the next task?");
+   //Get the solution
+   var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
+  //Issue a confirmation
+   /**var result = confirm("You will submit this view of the barchart as your solution.  Proceed to the next task?");
 
     if (result ==true){
         switchTask(solution);
-    }
+    }*/
+   //Clear the screen
+
 }
 //Switches the task, and checks if max tasks has been reached
 //If max tasks reached, switches interaction technique, otherwise:
@@ -175,34 +170,41 @@ function switchTask (solution){
 
     taskCounter++;
 
-    if (taskCounter>=totalTasks){
+    if (taskCounter>=totalObjectiveTasks){
         taskCounter = 0;
         switchInteractionTechnique();
     }
-    //TODO: display feedback message
-    updateTaskDisplay();
+    //TODO: display feedback message + blank screen as confirmation
+    console.log(taskOrder[taskCounter]);
+    updateTaskDisplay(objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]]);
 
     stopTimer();
     startTimer();
 }
-/**Update the display according to the current task*/
-function updateTaskDisplay (){
-    var currentTaskData = objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]];
-
+/**Update the display according to the current task
+ * taskInfo: one entry from the tasks array */
+function updateTaskDisplay (taskInfo){
+    //TODO: the only updating for the multiples case would just be re-setting the scrolling (if any)
     //Update the visualization for the next task (e.g., highlight bars)
-    if (currentTaskData[1]==0){
-        highlightDataObject(currentTaskData[3],-1,"displayBars",this.barColour,"#D95F02");
+    if (taskInfo[1]==0){ //One data object to highlight
+        highlightDataObject(taskInfo[3],-1,"displayBars","#1B9E77","#D95F02");
+    }else if (taskInfo[1]==1){ //Two data objects to highlight
+        highlightDataObject(taskInfo[3][0],taskInfo[3][1],"displayBars","#1B9E77","#D95F02");
     }
 
     //Update the task panel display
-   // d3.select("#taskSolution").node().value = "";
     d3.select("#counter").node().innerHTML = "Task #"+taskCounter;
-    d3.select("#taskDescription").node().innerHTML = currentTaskData[0];
+    d3.select("#taskDescription").node().innerHTML = taskInfo[0];
+
+    //Re-set the visualization to the first view
+    changeView(barchart,0);
+    barchart.redrawView(0,-1);
+    slider.updateSlider(0);
 }
 //Sets the current interaction technique, and disables the other (dimp vs. slider)
 function switchInteractionTechnique(){ //TODO: change the data set(?)
    techniqueCounter++;
-   if (techniqueCounter > 0){ //Finished all tasks, enter exploratory period
+   if (techniqueCounter > 3){ //Finished all tasks, enter exploratory period
        startExploratory();
    }else{
        updateInteractionTechnique(techniqueOrder[techniqueCounter]);
@@ -212,13 +214,13 @@ function switchInteractionTechnique(){ //TODO: change the data set(?)
 //Technique ID's: Dimp=0, Time slider=1, Small multiples=2 (not implemented yet)
 function updateInteractionTechnique(techniqueID){
     if (techniqueID == 0) {  //Enable dimp technique, disable time slider dragging
-        multiples.remove();
+        //multiples.remove();
         barchart.render(dataset,labels,"","","");
         slider.render();
         slider.widget.select("#slidingTick").call(doNothing);
         barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
     }else if (techniqueID ==1){ //Enable time slider, disable dimp interaction
-        multiples.remove();
+        //multiples.remove();
         barchart.render(dataset,labels,"","","");
         slider.render();
         slider.widget.select("#slidingTick").call(slider.dragEvent);
@@ -252,7 +254,7 @@ function startExploratory(){
    //Update the visualization
    setHintPathType(barchart,0);
     showSliderInfo(slider);
-   barchart.render(dataset2,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
+   barchart.render(dataset2,labels2,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
    barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);  //TODO: should time slider be active? Since slider is a competitor technique, maybe it should be removed entirely
 
    //Update the task panel
@@ -265,10 +267,26 @@ function startExploratory(){
     d3.select("#nextButton").on("click", changePhase);
    //TODO: add a timer to this
 }
+/**Begins the warm up tasks and tutorial period */
+function startWarmup(){
 
+    //When starting the objective tasks
+    /**updateInteractionTechnique(techniqueOrder[techniqueCounter]);
+    updateTaskDisplay();
+    startTimer();*/
+}
 //Move to the next task, with confirmation.  Collect the solution (if any) provided for the task
-d3.select("#nextButton").on("click", nextTask);
+d3.select("#submitButton").on("click", nextTask);
 
 
+//////////////////////Code for the intermediate screen //////////////////////
+/**Displays a screen when the submit button is pressed, to confirm the submission
+ * */
+function showIntermediateScreen (){
 
-				   
+}
+/**Hides the intermediate screen when the background (outside of the button) is pressed
+ * */
+function hideIntermediateScreen (){
+
+}

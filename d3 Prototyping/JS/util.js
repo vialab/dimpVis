@@ -5,7 +5,7 @@
  * All functions must be passed a variable containing a reference to the object (this)
  * in order to access object variables and/or functions
  */
-
+//TODO: move functions related to user study to a separate file
 /**Clears the visualization elements appended to the SVG (used when the dataset is changed
  * objectClass: is the class name e.g., ".bars", assigned to all data objects
  * */
@@ -297,17 +297,16 @@ function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
 
      //Draw the hint path line segment at current and next view
      objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
-        .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#666")
-
+        .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#bdbdbd")
         .attr("d", function (d) {
              return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                  objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
          });
 
       //Set the small path to only show 20% of it
-     var length = d3.select("#path").node().getTotalLength();
+    /** var length = d3.select("#path").node().getTotalLength();
       var interpStr = d3.interpolateString("0," + length, length + "," + length);
-      objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));
+      objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));*/
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
@@ -317,7 +316,15 @@ function drawSmallHintPath (objectRef,translate,pathData,isScatterplot){
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
         .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
 
-    if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
+     //Draw the markers along the path
+     objectRef.svg.select("#hintPath").append("path").datum(pathData)
+         .attr("transform","translate("+(-translate)+")").attr("id","backwardMarker").style("stroke","none");
+     objectRef.svg.select("#hintPath").append("path").datum(pathData)
+         .attr("transform","translate("+(-translate)+")").attr("id","forwardMarker").style("stroke","none");
+     objectRef.svg.select("#hintPath").append("path").datum(pathData)
+         .attr("transform","translate("+(-translate)+")").attr("id","currentMarker").style("stroke","none");
+
+     if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
         objectRef.svg.select("#nextPath").attr("d", function (d) {
             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
                objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
@@ -342,15 +349,17 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward
 
-        /**if (ambiguousObjects.length > 0){
+        if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.nextView][0]==1){
-                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#969696");
+                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#bdbdbd");
             }else{
                 objectRef.svg.selectAll(".interactionPath").style("stroke","none");
             }
         }
         //Clear the backward path
         objectRef.svg.select("#backwardPath").style("stroke","none");
+        objectRef.svg.select("#backwardMarker").style("stroke","none");
+
         //Create the interpolation function and get the total length of the path
         var length = d3.select("#forwardPath").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
@@ -358,20 +367,32 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-            objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+                objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
         });
+        objectRef.svg.select("#currentMarker").attr("d", function (d) {
+            return objectRef.hintPathGenerator([[d[objectRef.nextView][0]-5,d[objectRef.nextView][1]],
+                [d[objectRef.nextView][0]+5,d[objectRef.nextView][1]]]);
+        }).style("stroke","#636363");
 
         if (objectRef.nextView < objectRef.lastView){
-            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue)).style("stroke","#666")
+            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue)).style("stroke","#bdbdbd")
                 .attr("d", function (d) {
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
                         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 });
-        }*/
+            if (objectRef.interpValue > 0.95){
+                objectRef.svg.select("#forwardMarker").style("stroke","#636363")
+                    .attr("d", function (d) {
+                        return objectRef.hintPathGenerator([[d[objectRef.nextView+1][0]-5,d[objectRef.nextView+1][1]],
+                            [d[objectRef.nextView+1][0]+5,d[objectRef.nextView+1][1]]]);
+                    });
+            }
+        }
+
 
          //Clear the backward path
         //Trying to reduce the partial hint path even more here
-        objectRef.svg.select("#backwardPath").style("stroke","none");
+        /**objectRef.svg.select("#backwardPath").style("stroke","none");
         if (objectRef.interpValue+0.2 >1){ //Overflow, draw the next segment
 
             //Create the interpolation function and get the total length of the path
@@ -383,12 +404,12 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 });
             //Remove part of the trailing hint path
-            /**length = d3.select("#path").node().getTotalLength();
+           length = d3.select("#path").node().getTotalLength();
             var interpStr2 = d3.interpolateString("0," + length, length + "," + length);
             objectRef.svg.select("#path").attr("stroke-dasharray",interpStr2(0.8)).attr("d", function (d) {
                 return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                     objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-            });*/
+            });
         }else{ //Keep drawing the #path element
             //Set the small path to only show 20% of it
             var length = d3.select("#path").node().getTotalLength();
@@ -398,38 +419,53 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                     objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
             });
             objectRef.svg.select("#forwardPath").style("stroke","none");
-        }
+        }*/
 
 
     }else{ //Moving backward
-        /**if (ambiguousObjects.length > 0){
+        if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.currentView][0]==1){
-                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#969696");
+                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#bdbdbd");
             }else{
                 objectRef.svg.selectAll(".interactionPath").style("stroke","none");
             }
         }
         //Clear the forward path
         objectRef.svg.select("#forwardPath").style("stroke","none");
+        objectRef.svg.select("#forwardMarker").style("stroke","none");
+
         //Create the interpolation function and get the total length of the path
         var length = d3.select("#backwardPath").node().getTotalLength();
         var interpStr = d3.interpolateString("0," + length, length + "," + length);
+
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                 objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
         });
+        objectRef.svg.select("#currentMarker").attr("d", function (d) {
+            return objectRef.hintPathGenerator([[d[objectRef.currentView][0]-5,d[objectRef.currentView][1]],
+                [d[objectRef.currentView][0]+5,d[objectRef.currentView][1]]]);
+        }).style("stroke","#636363");
 
         if (objectRef.currentView > 0){
-            objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-objectRef.interpValue)).style("stroke","#666")
+            objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-objectRef.interpValue)).style("stroke","#bdbdbd")
                 .attr("d", function (d) {
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-                         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
+                        objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
                 });
-        }*/
+            if (objectRef.interpValue < 0.05){
+                objectRef.svg.select("#backwardMarker").style("stroke","#636363")
+                    .attr("d", function (d) {
+                        return objectRef.hintPathGenerator([[d[objectRef.currentView-1][0]-5,d[objectRef.currentView-1][1]],
+                            [d[objectRef.currentView-1][0]+5,d[objectRef.currentView-1][1]]]);
+                    });
+            }
+        }
+
 
         //Trying to reduce the partial hint path even more here
-        objectRef.svg.select("#forwardPath").style("stroke","none");
+       /** objectRef.svg.select("#forwardPath").style("stroke","none");
         if (objectRef.interpValue+0.2 >1){ //Overflow, draw the next segment
 
             //Create the interpolation function and get the total length of the path
@@ -449,7 +485,7 @@ function redrawSmallHintPath (objectRef,ambiguousObjects,translate){
                     objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
             });
             objectRef.svg.select("#backwardPath").style("stroke","none");
-        }
+        }*/
 
     }
 }
@@ -611,15 +647,6 @@ function findInteractionPaths(ambiguousObjs,values,valueThreshold){
 
     return [ambiguousObjs,interactionPaths];
 }
-
-/**Draws the small multiples interface by loading it as an image and appending it to the svg with id "multiples"
- * */
-//TODO: need to make an interactive small multiples display (where user can select an image by clicking on it)
- function drawSmallMultiples (){
-    d3.select("#multiples").append("svg") .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500)
-                           .append("svg:image").attr("xlink:href","smallMultiples.png")
-                            .attr("x", "0").attr("y", "0").attr("width", 500).attr("height", 500);
-}
 /**Highlights data object(s) with the specified id in the highlightColour from the class of data objects
  * Used for completing the tasks in the user evaluation
  * id2 is optional, if N/A then set it as -1
@@ -642,8 +669,6 @@ function hideSliderInfo(sliderRef){
         .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});*/
 
 }
-
-/**Prints out the pixel location of the year ticks along the slider, used to find solutions to the tasks */
-function printPixelValues(sliderRef){
-    console.log(sliderRef.tickPositions);
+function drawIntermediateScreen(){
+    d3.select("#mainSvg").append("rect").attr("x",0).attr("y",0).attr("class","buttons").attr("width",100).attr("height",100);
 }

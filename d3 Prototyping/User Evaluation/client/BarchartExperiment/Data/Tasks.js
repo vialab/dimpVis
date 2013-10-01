@@ -25,14 +25,20 @@ var practiceTasks = [
 
 var objectiveTasks = [
     [
-        ["When is the orange bar at 20,000?",0,0,1,100]
+        ["When is the orange bar at 3?",0,0,1,0],
+        ["When is the orange bar at 4?",0,0,2,0],
+        ["When is the orange bar at 9?",0,0,3,0]
+
     ], //Tasks for dimpvis
 
     [
-        ["When is the orange bar at 20,000?",0,0,1,100]
+        ["When is the orange bar at 7?",0,0,0,0],
+        ["When is the orange bar at 2?",0,0,6,0],
+        ["When is the orange bar at 7?",0,0,7,0]
+
     ], //Tasks for time slider
 
     [
-        ["When is the orange bar at 20,000?",0,0,1,100]
+        ["When is the orange bar at 3?",0,0,1,100]
     ] //Tasks for multiples
 ];
