@@ -457,7 +457,7 @@ Barchart.prototype.findHeight = function (yPos){
            return 0.3;
        });
    if (this.hintPathType ==1){
-        redrawSmallHintPath(this,this.ambiguousBars,translateAmount);
+        redrawPartialHintPath_line(this,this.ambiguousBars);
    }
 }
 /**"Animates" the rest of the bars while one is being dragged
@@ -542,7 +542,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
 Barchart.prototype.redrawView = function (view,id){
     var ref = this;
   if (this.hintPathType==1){
-       hideSmallHintPath(this);
+       hidePartialHintPath(this);
    }
    //else{
        //Re-draw the  bars at the specified view
@@ -635,7 +635,7 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     if (this.hintPathType ==0){
         this.drawHintPath(xPos,translate,drawingView);
     }else{
-        drawSmallHintPath(this,translate,this.pathData,false);
+        drawPartialHintPath_line(this,translate,this.pathData);
     }
 
     //Fade out the other bars

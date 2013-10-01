@@ -22,8 +22,8 @@ function Slider(x, y, id,labels,description,colour,spacing) {
    this.sliderOffset = x+(description.length*20); //Font size of title is 20px
    this.width = this.sliderOffset + this.numTicks*this.tickSpacing;
    this.height = 50;
-   this.tickYPos = 33; //Amount to translate the draggable tick by in the y coordinate
-   this.anchorYPos = 11; //Amount to translate the anchor which follows the draggable tick when it is not placed on the main slider
+   this.tickYPos = 35; //Amount to translate the draggable tick by in the y coordinate
+   this.anchorYPos = 12; //Amount to translate the anchor which follows the draggable tick when it is not placed on the main slider
    this.sliderHeight = 15; //Thickness of the main slider line
 
    this.currentTick = 0; //Start the slider always at the first tick
@@ -58,17 +58,16 @@ Slider.prototype.init = function() {
  * */
 Slider.prototype.render = function() {
    var ref = this;
-   //this.widget.remove(); //Clear any existing elements
 
    //Add the title beside the slider
-   this.widget.append("text").text(this.title)
+   this.widget.append("text").text(this.title).attr("class","slider")
               .attr("x",0).attr("y",20).attr("fill",this.displayColour)
               .style("font-family", "sans-serif").style("font-size","20px");
 
    //Prepare the data for drawing the slider ticks
    this.widget.selectAll("rect")
      .data(this.tickPositions.map(function (d,i) {return {id:i,value:d,label:ref.tickLabels[i]};}))
-      .enter().append("g");
+      .enter().append("g").attr("class","slider");
 
    //Draw the ticks
    this.widget.selectAll("g").append("svg:rect")
@@ -95,7 +94,7 @@ Slider.prototype.render = function() {
 	   .attr("text-anchor","middle").attr("class","tickLabels");
 
    //Draw a long line through all ticks
-   this.widget.append("rect").attr("class","sliderAxis")
+   this.widget.append("rect").attr("class","slider")
        .attr("x",ref.sliderOffset).attr("y",10)
        .attr("width", ref.tickPositions[ref.numTicks-1] - ref.sliderOffset)
        .attr("height", ref.sliderHeight)
@@ -110,15 +109,14 @@ Slider.prototype.render = function() {
 	  .style("cursor", "pointer").attr("id","slidingTick");*/
 
  //Draw a triangle draggable tick
-  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(150))
-      .attr("transform", function(d) { return "translate(" +ref.sliderPos + "," + ref.tickYPos + ")"; })
-      .attr("stroke", "white").attr("fill", ref.displayColour)
-      .style("cursor", "pointer").attr("id","slidingTick");
+  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(180))
+      .attr("transform", "translate(" +ref.sliderPos + "," + ref.tickYPos + ")")
+      .attr("fill", ref.displayColour).style("stroke","white")
+      .style("cursor", "pointer").attr("id","slidingTick").attr("class","slider");
   //Draw an anchor to attach the triangle with the main slider bar
-   this.widget.append("rect").attr("d",d3.svg.symbol().type("triangle-up").size(170))
-        .attr("transform", function(d) { return "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")"; })
-        .attr("stroke", "none").style("fill", "#c7c7c7").attr("width", 1).attr("height", (ref.sliderHeight-2))
-        .style("cursor", "pointer").attr("id","anchor");
+   this.widget.append("rect").attr("transform", "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")")
+        .attr("stroke", "none").style("fill", "#bdbdbd").attr("width", 1).attr("height", (ref.sliderHeight-4))
+        .style("cursor", "pointer").attr("id","anchor").attr("class","slider");
 }
 /** Re-draws the dragged tick by translating it according to the x-coordinate of the mouse
  *  mouseX: The x-coordinate of the mouse, received from the drag event
@@ -208,6 +206,7 @@ Slider.prototype.updateSlider = function( newView ) {
     this.widget.select("#slidingTick")
 	           //.attr("x",function (){return ref.tickPositions[newView];});
                 .attr("transform",function (){return "translate(" + ref.tickPositions[newView] + "," + ref.tickYPos + ")";});
+    this.widget.select("#anchor").attr("width",this.tickPositions[newView] - this.sliderOffset);
 }
 /** Snaps the draggable tick to the nearest tick on the slider after the mouse is
  *  released
@@ -224,12 +223,15 @@ Slider.prototype.snapToTick = function() {
          if (currentDist > nextDist){
             ref.currentTick = ref.nextTick;
             ref.nextTick++;
+            ref.widget.select("#anchor").attr("width",next-ref.sliderOffset);
              return "translate(" + next + "," + ref.tickYPos + ")";
             //return (next-5);
         }
+            ref.widget.select("#anchor").attr("width",current-ref.sliderOffset);
             return "translate(" + current + "," + ref.tickYPos + ")";
         //return (current-5);
      });
+
 }
 /** The tick is drawn according the to the provided interpolation amount,
  *  and interpolation occurs between current and next view
@@ -243,7 +245,9 @@ Slider.prototype.animateTick = function(interpAmount, currentView, nextView) {
                .attr("transform",function (){
                      var current = ref.tickPositions[currentView];
                      var next = ref.tickPositions[nextView];
-                     return "translate("+d3.interpolate(current,next)(interpAmount)+","+ref.tickYPos+")";
+                     var interpX = d3.interpolate(current,next)(interpAmount);
+                     ref.widget.select("#anchor").attr("width",interpX-ref.sliderOffset)
+                     return "translate("+interpX+","+ref.tickYPos+")";
                  });
     }
 }

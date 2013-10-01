@@ -4,7 +4,7 @@ var taskCounter = 0;
 var techniqueCounter = 0;
 var timeCounter = 0;
 var timerVar;
-var totalObjectiveTasks = 3; //For each interaction technique
+var totalObjectiveTasks = 4; //For each interaction technique
 var totalWarmUpTasks = 1;
 var techniqueOrder = []; //Counterbalanced order of interaction technique
 var taskOrder = []; //Randomized order of tasks
@@ -143,12 +143,12 @@ function nextTask (){
    //Get the solution
    var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
   //Issue a confirmation
-   /**var result = confirm("You will submit this view of the barchart as your solution.  Proceed to the next task?");
+   var result = confirm("You will submit this view of the barchart as your solution.  Proceed to the next task?");
 
     if (result ==true){
         switchTask(solution);
-    }*/
-   //Clear the screen
+    }
+   //TODO:Clear the screen
 
 }
 //Switches the task, and checks if max tasks has been reached
@@ -175,7 +175,6 @@ function switchTask (solution){
         switchInteractionTechnique();
     }
     //TODO: display feedback message + blank screen as confirmation
-    console.log(taskOrder[taskCounter]);
     updateTaskDisplay(objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]]);
 
     stopTimer();
@@ -186,10 +185,13 @@ function switchTask (solution){
 function updateTaskDisplay (taskInfo){
     //TODO: the only updating for the multiples case would just be re-setting the scrolling (if any)
     //Update the visualization for the next task (e.g., highlight bars)
-    if (taskInfo[1]==0){ //One data object to highlight
-        highlightDataObject(taskInfo[3],-1,"displayBars","#1B9E77","#D95F02");
-    }else if (taskInfo[1]==1){ //Two data objects to highlight
-        highlightDataObject(taskInfo[3][0],taskInfo[3][1],"displayBars","#1B9E77","#D95F02");
+    if (taskInfo[3].length==1){ //One data object to highlight
+       // highlightDataObject(taskInfo[3],-1,"displayBars","#1B9E77","#D95F02");
+        highlightDataObject(taskInfo[3][0],-1,"displayBars","#BDBDBD","#D95F02");
+
+    }else if (taskInfo[3].length==2){ //Two data objects to highlight
+       // highlightDataObject(taskInfo[3][0],taskInfo[3][1],"displayBars","#1B9E77","#D95F02");
+        highlightDataObject(taskInfo[3][0],taskInfo[3][1],"displayBars","#BDBDBD","#D95F02","#1B9E77");
     }
 
     //Update the task panel display
@@ -215,19 +217,25 @@ function switchInteractionTechnique(){ //TODO: change the data set(?)
 function updateInteractionTechnique(techniqueID){
     if (techniqueID == 0) {  //Enable dimp technique, disable time slider dragging
         //multiples.remove();
+        clearVis(".gDisplayBars");
+        clearVis(".slider");
         barchart.render(dataset,labels,"","","");
         slider.render();
+        hideSliderInfo(slider);
         slider.widget.select("#slidingTick").call(doNothing);
         barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
     }else if (techniqueID ==1){ //Enable time slider, disable dimp interaction
         //multiples.remove();
+        clearVis(".gDisplayBars");
+        clearVis(".slider");
         barchart.render(dataset,labels,"","","");
         slider.render();
+        hideSliderInfo(slider);
         slider.widget.select("#slidingTick").call(slider.dragEvent);
         barchart.svg.selectAll(".displayBars").call(doNothing);
     }else if (techniqueID==2){ //Enable the small multiples interface
        clearVis(".gDisplayBars");
-       if (slider.widget!=null) slider.widget.remove();
+       clearVis(".slider");
        //TODO: render the small multiples
     }
 }

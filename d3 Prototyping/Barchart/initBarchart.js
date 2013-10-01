@@ -65,7 +65,7 @@ barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 //Create a slider widget
 var slider   = new Slider(50, 700, "#time",labels, "Time","#666",40);
 slider.init();
-/**slider.render();
+slider.render();
 
 //Define the function to respond to the dragging behaviour of the slider tick
  slider.dragEvent = d3.behavior.drag()  
