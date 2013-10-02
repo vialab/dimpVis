@@ -1,12 +1,11 @@
 /** Some Styles for the barchart visualization */
 html{
-    /** Hack for hiding the cursor */
-    cursor: url(invisibleCursor.png), default;
+     /**Hack for hiding the cursor
+    cursor: url(invisibleCursor.png), default;*/
 }
 body {
     /**Disables default selections (text, svg elements) of the browser*/
     -webkit-user-select: none;
-
 }
 
 /*Labels on the hint path */

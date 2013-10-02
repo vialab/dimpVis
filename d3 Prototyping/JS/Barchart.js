@@ -134,8 +134,9 @@ Barchart.prototype.init = function(){
 
      //Find the max value of the heights, used to scale the axes and the dataset
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
+
      //Create the scales
-	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
+	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);
      var yScale =  d3.scale.linear().domain([0,max_h]).range([0,ref.height]);
 
 //Assign data values to a set of rectangles representing the bars of the chart

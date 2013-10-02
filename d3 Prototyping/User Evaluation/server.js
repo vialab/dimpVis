@@ -4,7 +4,7 @@
 var phaseOrder = [0,1,2,3]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
 var phaseNumber = 0; //The current phase (will eventually reach 3, the end of the phaseOrder array), this always starts at 0 (regardless of order)
 var techniqueOrder = [0,1,2]; //This should be counterbalanced as well , the interaction technique order within phases
-var taskOrder = [1,0,2,3]; //This should be randomized, an index pointing to the task
+var taskOrder = [1,0,2,3,4,5,6,7,8,9,10,11]; //This should be randomized, an index pointing to the task
 var logFileName = "logTasks";
 var participantID = "test";
 

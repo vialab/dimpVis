@@ -15,7 +15,8 @@
    this.useMobile = false;
 
    //Display properties
-   this.barColour = "#74c476";
+  // this.barColour = "#74c476"; green
+    this.barColour = "#bdbdbd";
    this.zeroBarColour = "#c7c7c7";
 
    this.padding = p;

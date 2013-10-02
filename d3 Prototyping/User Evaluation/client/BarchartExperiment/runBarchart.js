@@ -4,7 +4,7 @@ var taskCounter = 0;
 var techniqueCounter = 0;
 var timeCounter = 0;
 var timerVar;
-var totalObjectiveTasks = 4; //For each interaction technique
+var totalObjectiveTasks = 12; //For each interaction technique
 var totalWarmUpTasks = 1;
 var techniqueOrder = []; //Counterbalanced order of interaction technique
 var taskOrder = []; //Randomized order of tasks
@@ -186,11 +186,9 @@ function updateTaskDisplay (taskInfo){
     //TODO: the only updating for the multiples case would just be re-setting the scrolling (if any)
     //Update the visualization for the next task (e.g., highlight bars)
     if (taskInfo[3].length==1){ //One data object to highlight
-       // highlightDataObject(taskInfo[3],-1,"displayBars","#1B9E77","#D95F02");
         highlightDataObject(taskInfo[3][0],-1,"displayBars","#BDBDBD","#D95F02");
 
     }else if (taskInfo[3].length==2){ //Two data objects to highlight
-       // highlightDataObject(taskInfo[3][0],taskInfo[3][1],"displayBars","#1B9E77","#D95F02");
         highlightDataObject(taskInfo[3][0],taskInfo[3][1],"displayBars","#BDBDBD","#D95F02","#1B9E77");
     }
 

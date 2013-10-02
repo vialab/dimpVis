@@ -112,7 +112,7 @@ Slider.prototype.render = function() {
   this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(180))
       .attr("transform", "translate(" +ref.sliderPos + "," + ref.tickYPos + ")")
       .attr("fill", ref.displayColour).style("stroke","white")
-      .style("cursor", "pointer").attr("id","slidingTick").attr("class","slider");
+      .attr("id","slidingTick").attr("class","slider");
   //Draw an anchor to attach the triangle with the main slider bar
    this.widget.append("rect").attr("transform", "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")")
         .attr("stroke", "none").style("fill", "#bdbdbd").attr("width", 1).attr("height", (ref.sliderHeight-4))

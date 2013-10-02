@@ -25,7 +25,8 @@ d3.select("#progressForm").selectAll("input").on("change", function change() {
 });*/
 
 barchart.init();
-setHintPathType(barchart,1);
+
+//setHintPathType(barchart,1);
 
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
