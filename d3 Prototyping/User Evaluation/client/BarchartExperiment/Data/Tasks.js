@@ -43,7 +43,7 @@ var objectiveTasks = [
 
         //Multiple values
         ["Find a moment when the height of both the orange bar and the green bar start to increase",1,0,[10,4],6],
-        ["Find a moment when the height of the orange bar starts to increase and the green bar starts to decrease",1,0,[9,11],6],
+        ["Find a moment when the height of the orange bar starts to increase and the green bar starts to decrease",1,0,[8,11],6],
         /**["Find a moment when the height of the orange bar and the green bar start to increase",0,0,[1],0],
         ["Find a moment when the height of the orange bar starts to decrease and the green bar starts to increase",0,0,[1],0],
         ["Find a moment when the height of the orange bar starts to increase and the green bar starts to decrease",0,0,[1],0]*/

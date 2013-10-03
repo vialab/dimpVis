@@ -1,17 +1,17 @@
 /** This file creates and coordinates a barchart and a slider according to the provided dataset
  * */
 
+//Add a main svg which all visualization elements will be appended to
+ d3.select("#bargraph").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",1000).on("click",function(){
+     barchart.clearHintPath();
+ });
+
 //Create new barchart visualization
-var barchart   = new Barchart(400, 50, 30, 100 , "#bargraph",80);
+var barchart   = new Barchart(400, 50, 80);
 
 window.onload = function (){
     barchart.useMobile = checkDevice();
 }
-
-//Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
-barchart.clickSVG = function (){
-    barchart.clearHintPath();
-};
 
 //Toggle the type of indicator displayed when dragging along the sine wave
 //Currently not being used..
@@ -64,7 +64,7 @@ barchart.dragEvent = d3.behavior.drag()
 barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(50, 700, "#time",labels, "Time","#666",40);
+var slider   = new Slider(50, 700, labels, "Time","#666",40);
 slider.init();
 slider.render();
 

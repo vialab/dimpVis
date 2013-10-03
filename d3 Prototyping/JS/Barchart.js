@@ -1,16 +1,9 @@
 /** Constructor for a barchart visualization
- * x: the left margin
- * y: the right margin
  * h: height of the svg container
  * bw: width of the bars
- * id: id of the div tag to append the svg container
  * p: a padding value, to format the axes
  */
- function Barchart(h,bw,x,y,id,p){
-   //Position and size attributes for drawing the svg
-   this.leftMargin = x;
-   this.topMargin = y;
-   this.id = id;
+ function Barchart(h,bw,p){
    this.svg = null; //Reference to svg container
    this.useMobile = false;
 
@@ -62,7 +55,6 @@
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
-   this.clickSVG = this.placeholder();
    /**this.touchEndFunction = this.placeholder;
    this.touchStartFunction = this.placeholder;
    this.touchMoveFunction = this.placeholder;
@@ -87,13 +79,8 @@
 Barchart.prototype.init = function(){
 
     //Draw the main svg
-   this.svg = d3.select(this.id).append("svg")
-       .attr("id","mainSvg").style("position", "absolute")
-       .attr("width", this.width)
-       .attr("height", this.height+(this.padding*2))
-       .style("left", this.leftMargin + "px")
-       .style("top", this.topMargin + "px")
-       .on("click",this.clickSVG).append("g").attr("id","mainG")
+   this.svg = d3.select("#mainSvg")
+       .append("g").attr("id","gBarchart")
        .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
      //Add the blur filter to the SVG so other elements can call it
@@ -129,8 +116,7 @@ Barchart.prototype.init = function(){
     this.yLabel = yLabel;
 
     //Set the width of the svg (based on number of bars)
-     this.width = (this.barWidth+this.strokeWidth)*this.numBars;
-     d3.select("#mainSvg").attr("width",this.width+(this.padding*2));
+     this.width = (this.barWidth+this.strokeWidth)*this.numBars
 
      //Find the max value of the heights, used to scale the axes and the dataset
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));

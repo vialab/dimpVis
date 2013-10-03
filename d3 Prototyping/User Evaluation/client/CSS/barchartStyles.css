@@ -6,6 +6,10 @@ html{
 body {
     /**Disables default selections (text, svg elements) of the browser*/
     -webkit-user-select: none;
+    overflow:hidden;
+}
+#vis{
+    float:left;
 }
 
 /*Labels on the hint path */
@@ -84,6 +88,39 @@ body {
    stroke-width:2;
 }
 
+#nextButton{
+    fill:#ededed;
+}
+#nextButtonText{
+    fill:#636363;
+    font-family: sans-serif;
+    font:verdana;
+    font-size:44px;
+    font-weight:bold;
+    text-shadow:1px 1px 0px #ffffff;
+    pointer-events:none;
+}
+#continueButton{
+    fill:#ededed;
+}
+#continueButtonText{
+    fill:#636363;
+    font-family: sans-serif;
+    font:verdana;
+    font-size:44px;
+    font-weight:bold;
+    text-shadow:1px 1px 0px #ffffff;
+    pointer-events:none;
+}
+#feedbackMessage{
+    fill:#636363;
+    font-family: sans-serif;
+    font:verdana;
+    font-size:44px;
+    font-weight:bold;
+    text-shadow:1px 1px 0px #ffffff;
+    pointer-events:none;
+}
 
 
 

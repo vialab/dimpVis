@@ -8,12 +8,11 @@
  * spacing: spacing between ticks (in pixels)
  */
 //TODO: Get rid of magic numbers and find a way to automatically compute them (e.g., positioning of slider and title relative to width)
-function Slider(x, y, id,labels,description,colour,spacing) {
+function Slider(x, y, labels,description,colour,spacing) {
    // Save the position, size and display properties
    this.xpos = x;
    this.ypos = y;
    this.mouseX = -1;
-   this.id = id; 
    this.numTicks  = labels.length;
    this.title = description;
    this.tickLabels = labels;
@@ -47,11 +46,9 @@ function Slider(x, y, id,labels,description,colour,spacing) {
  *  will be drawn.
  * */
 Slider.prototype.init = function() {
-   this.widget = d3.select(this.id).append("svg")      
-      .attr("width", this.width).attr("height", this.height)
-      .style("position", "absolute")
-      .style("left", this.xpos + "px").style("top", this.ypos + "px")
-      .append("g");
+   this.widget = d3.select("#mainSvg").append("g").attr("id","gSlider")
+       .attr("width", this.width).attr("height", this.height)
+       .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");
 }
 /** Render the widget onto the svg
  *  Note: no data set is required because it was automatically generated in the constructor

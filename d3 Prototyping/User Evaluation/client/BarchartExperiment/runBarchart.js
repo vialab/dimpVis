@@ -11,19 +11,24 @@ var taskOrder = []; //Randomized order of tasks
 var maxTaskTime = 100;
 var firstTouchDown = null;
 var lastTouchUp = null;
+var screenX = 1650;
+var screenY = 1000;
 
 //To disable the drag function
 var doNothing = d3.behavior.drag().on("dragstart", null)
     .on("drag", null).on("dragend",null);
+//Attach click events to the buttons
+d3.select("#submitButton").on("click", showIntermediateScreen);
 
 //////////////////////Code for creating a barchart visualization//////////////////////
-var barchart   = new Barchart(700, 90, 10, 10 , "#bargraph",40);
-//Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
-barchart.clickSVG = function (){
-    barchart.clearHintPath();
-};
+
+//Add a main svg which all visualization elements will be appended to
+d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",1200).attr("height",screenY);
+
+var barchart   = new Barchart(700, 70, 30);
 barchart.init();
 setHintPathType(barchart,1); //Make sure set to partial hint path initially
+
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
@@ -67,7 +72,7 @@ barchart.dragEvent = d3.behavior.drag()
     });
 
 //////////////////////Code for creating the slider widget//////////////////////
-var slider   = new Slider(50, 800, "#time",labels, "","#636363",80);
+var slider   = new Slider(50, 800,labels, "","#636363",80);
 slider.init();
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
@@ -89,9 +94,8 @@ multiples.clickImageFunction = function (d){
     //TODO: add data logging of the answer
     console.log("clicked "+ d.name+" "+ d.id);
 }*/
-//////////////////////Declare functions required to run the experiment here//////////////////////
-//TODO:might want a re-set visualization button in case it freezes or fails (can't jsut refresh the page or the order will get messed up)
 
+//////////////////////Declare functions required to run the experiment here//////////////////////
 //Function that will be executed every second to check the time
 var timerFunc = function (){
     timeCounter++;
@@ -137,25 +141,18 @@ function stopTimer(){
     d3.select("#timer").node().innerHTML="";
 }
 
+/** Switches the task, and checks if max tasks has been reached
+  * If max tasks reached, switches interaction technique, otherwise:
+  * Updates the html page when a new task begins and saves the solution entered in the text box
+  * Logs the solution
+ * */
+function nextTask (solution){
 
-//Moves to the next task
-function nextTask (){
-   //Get the solution
-   var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
-  //Issue a confirmation
-   var result = confirm("You will submit this view of the barchart as your solution.  Proceed to the next task?");
+    //Clear the feedback screen
+    d3.select("#mainSvg").attr("width", 1200);
+    d3.selectAll(".submitScreen").remove();
+    d3.select("#taskPanel").style("display","block");
 
-    if (result ==true){
-        switchTask(solution);
-    }
-   //TODO:Clear the screen
-
-}
-//Switches the task, and checks if max tasks has been reached
-//If max tasks reached, switches interaction technique, otherwise:
-//Updates the html page when a new task begins and saves the solution entered in the text box
-//Logs the solution
-function switchTask (solution){
     //Log the solution
     d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&content="+solution, function(d) { });
 
@@ -180,6 +177,66 @@ function switchTask (solution){
     stopTimer();
     startTimer();
 }
+
+/**Cancel submitting the task solution by tapping the background of the intermediate screen
+ * This will take the user back to the task */
+//TODO:might want a re-set visualization button in case it freezes or fails (can't jsut refresh the page or the order will get messed up)
+function cancelSubmitTask(){
+    d3.select("#mainSvg").attr("width", 1200);
+    d3.selectAll(".submitScreen").remove();
+    d3.select("#taskPanel").style("display","block");
+}
+/**Compares the solution entered by the participant with the correct solution and gives feedback
+ * accordingly
+ * */
+//TODO: Could actually calculate the accuracy here since we are already comparing the submitted solution against the correct one
+ function showFeedbackScreen (){
+
+    //Clear the intermediate screen
+    d3.select("#nextButton").style("display","none");
+    d3.select("#nextButtonText").style("display","none");
+
+   //Make the elements for the feedback screen visible
+    d3.select("#submitScreenBackground").on("click",function(){console.log("cancelling the svg click")});
+    d3.select("#continueButton").style("display","block");
+    d3.select("#continueButtonText").style("display","block");
+    d3.select("#feedbackMessage").style("display","block");
+
+
+}
+/**Displays a screen when the submit button is pressed, to confirm the submission
+ * */
+function showIntermediateScreen (){
+
+   /**d3.select("#taskPanel").style("display","none");
+   var svg =  d3.select("#mainSvg");
+   svg.attr("width", screenX);
+
+    svg.append("rect").attr("x",0).attr("y",0).attr("id","submitScreenBackground").attr("class","submitScreen").attr("width",screenX).attr("height",screenY)
+        .style("fill", "#BDBDBD").on("click",cancelSubmitTask);
+
+   svg.append("rect").attr("x",screenX/2-150).attr("y",screenY/3).attr("id","nextButton").attr("width",300).attr("height",100)
+       .style("display","block").attr("rx",6).attr("ry",6).attr("class","submitScreen").on("click",showFeedbackScreen);
+
+    svg.append("text").attr("x",screenX/2-75).attr("y",screenY/3+60).attr("id","nextButtonText").attr("class","submitScreen")
+        .text("Next Task");*/
+
+    //Get the feedback based on the solution
+    var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
+    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]][4];
+    var message = (solution != correctSolution)?" incorrect :(":" correct! :)";
+
+    console.log(solution+" "+correctSolution);
+   nextTask(solution);
+   //Append the elements for the feedback screen
+   /** svg.append("text").attr("x",screenX/2-150).attr("y",screenY/3).attr("id","feedbackMessage").attr("class","submitScreen")
+        .text("You're answer was "+message).style("display","none").style("anchor","middle");
+    svg.append("rect").attr("x",screenX/2-150).attr("y",screenY/3+150).attr("id","continueButton").attr("width",300).attr("height",100)
+        .attr("rx",6).attr("ry",6).attr("class","submitScreen").style("display","none").on("click",nextTask);
+    svg.append("text").attr("x",100).attr("y",100).attr("id","continueButtonText").attr("class","submitScreen")
+        .style("display","none").text("Continue");*/
+}
+
 /**Update the display according to the current task
  * taskInfo: one entry from the tasks array */
 function updateTaskDisplay (taskInfo){
@@ -201,6 +258,28 @@ function updateTaskDisplay (taskInfo){
     barchart.redrawView(0,-1);
     slider.updateSlider(0);
 }
+/**Reloads the previous task display (called when intermediate screen was pressed)
+ * and visualization display
+ */
+//TODO: eventually extend this to reload when the page is refreshed (will need to save info in url)
+/**function reloadTaskDisplay(){
+    var taskInfo = objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]];
+    //Update the visualization for the next task (e.g., highlight bars)
+    if (taskInfo[3].length==1){ //One data object to highlight
+        highlightDataObject(taskInfo[3][0],-1,"displayBars","#BDBDBD","#D95F02");
+
+    }else if (taskInfo[3].length==2){ //Two data objects to highlight
+        highlightDataObject(taskInfo[3][0],taskInfo[3][1],"displayBars","#BDBDBD","#D95F02","#1B9E77");
+    }
+    //Make the task panel visible
+    d3.select("#intermediateScreen").style("display","none");
+    d3.select("#taskPanel").style("display","block");
+
+    //Render the visualizations
+
+    //Set the visualization to the proper view
+
+}*/
 //Sets the current interaction technique, and disables the other (dimp vs. slider)
 function switchInteractionTechnique(){ //TODO: change the data set(?)
    techniqueCounter++;
@@ -281,18 +360,7 @@ function startWarmup(){
     updateTaskDisplay();
     startTimer();*/
 }
-//Move to the next task, with confirmation.  Collect the solution (if any) provided for the task
-d3.select("#submitButton").on("click", nextTask);
 
 
-//////////////////////Code for the intermediate screen //////////////////////
-/**Displays a screen when the submit button is pressed, to confirm the submission
- * */
-function showIntermediateScreen (){
 
-}
-/**Hides the intermediate screen when the background (outside of the button) is pressed
- * */
-function hideIntermediateScreen (){
 
-}
