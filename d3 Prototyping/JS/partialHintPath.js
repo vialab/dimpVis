@@ -3,50 +3,34 @@
  * */
 
  //Variables for the hint path line (barchart, heatmap)
-var lineWidth= 6;
-var lineThickness = 3;
+var lineWidth= 12;
+var lineThickness = 2;
+var pathColour = "#EDEDED";
+    //969696
+//var tickColour = "#636363";
+//var pathColour = "#969696";
+var tickColour = "#EDEDED";
+var forwardPathLength = 0;
+var backwardPathLength = 0;
+var interpolateStroke = function (length,amount){
+    return  d3.interpolateString("0," + length, length + "," + length)(amount);
+}
+
  /** Displays small hint path by appending its svg components to the main svg
  *  translate: amount the path should be translated by in order to align with the
  *  dragged data object
  *  pathData: an array of points to appear along the entire hint path
  * */
 function drawPartialHintPath_line (objectRef,translate,pathData){
-    //Trying out clipping..
-    //http://stackoverflow.com/questions/10486896/svg-clip-path-within-rectangle-does-not-work
-    /** var clippingFrame = 2;
-     var clipWidth = Math.abs(objectRef.pathData[objectRef.currentView][0] - objectRef.pathData[objectRef.currentView + clippingFrame][0]);
-
-     objectRef.svg.append("svg:clipPath").attr("id","clip")
-     .append("rect").attr("id","clip-rect").attr("width",clipWidth).attr("height",objectRef.height)
-     .attr("x",objectRef.pathData[objectRef.currentView][0]).attr("y",0).attr("transform","translate("+(translate+objectRef.barWidth/2)+")");
-
-     //Draw a white underlayer
-     objectRef.svg.select("#hintPath").append("path")
-     .attr("filter", "url(#blur)")
-     .attr("d",  objectRef.hintPathGenerator( objectRef.pathData))
-     .attr("transform","translate("+(-translate)+")")
-     .attr("id","underLayer").attr("clip-path","url(#clip)");
-
-     //Draw the hint path line
-     objectRef.svg.select("#hintPath").append("path")
-     .attr("d",  objectRef.hintPathGenerator( objectRef.pathData))
-     .attr("filter", "url(#blur)")
-     .attr("transform","translate("+(-translate)+")")
-     .attr("id","path").attr("clip-path","url(#clip)");*/
 
       //Partial hint path by drawing individual segments...
       //Draw the hint path line segment at current and next view
     objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
-        .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke","#bdbdbd")
+        .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke",pathColour)
         .attr("d", function (d) {
             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                 objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
         });
-
-    //Set the small path to only show 20% of it
-    /** var length = d3.select("#path").node().getTotalLength();
-     var interpStr = d3.interpolateString("0," + length, length + "," + length);
-     objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2));*/
 
      //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
@@ -82,8 +66,6 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
  * */
 //TODO: this code is slightly inefficient, refactor later
 function redrawPartialHintPath_line (objectRef,ambiguousObjects){
-    //CLIPPING:
-    //objectRef.svg.select("#clip-rect").attr("transform","translate(" + (translateAmount) + ")");
 
     //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
@@ -91,7 +73,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
 
         if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.nextView][0]==1){
-                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke","#bdbdbd");
+                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke",pathColour);
                 return;
             }else{
                 objectRef.svg.selectAll(".interactionPath").style("stroke","none");
@@ -102,8 +84,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         objectRef.svg.select("#backwardMarker").style("stroke","none");
 
         //Create the interpolation function and get the total length of the path
-        var length = d3.select("#forwardPath").node().getTotalLength();
-        var interpStr = d3.interpolateString("0," + length, length + "," + length);
+        forwardPathLength = d3.select("#forwardPath").node().getTotalLength();
 
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
@@ -112,15 +93,15 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         objectRef.svg.select("#currentMarker").attr("d", function (d) {
             return objectRef.hintPathGenerator([[d[objectRef.nextView][0]-lineWidth,d[objectRef.nextView][1]],
                 [d[objectRef.nextView][0]+lineWidth,d[objectRef.nextView][1]]]);
-        }).style("stroke","#636363").style("stroke-width",lineThickness);
+        }).style("stroke",tickColour).style("stroke-width",lineThickness);
 
         if (objectRef.nextView < objectRef.lastView){
-            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue)).style("stroke","#bdbdbd")
+            objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpolateStroke(forwardPathLength,objectRef.interpValue)).style("stroke",pathColour)
                 .attr("d", function (d) {
                     return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
-                });
+                }).attr("filter", "url(#blur2)");
             if (objectRef.interpValue > 0.95){
-                objectRef.svg.select("#forwardMarker").style("stroke","#636363").style("stroke-width",lineThickness)
+                objectRef.svg.select("#forwardMarker").style("stroke",tickColour).style("stroke-width",lineThickness)
                     .attr("d", function (d) {
                         return objectRef.hintPathGenerator([[d[objectRef.nextView+1][0]-lineWidth,d[objectRef.nextView+1][1]],
                             [d[objectRef.nextView+1][0]+lineWidth,d[objectRef.nextView+1][1]]]);
@@ -128,43 +109,10 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
             }
         }
 
-
-        //Clear the backward path
-        //Trying to reduce the partial hint path even more here
-        /**objectRef.svg.select("#backwardPath").style("stroke","none");
-         if (objectRef.interpValue+0.2 >1){ //Overflow, draw the next segment
-
-         //Create the interpolation function and get the total length of the path
-         var length = d3.select("#forwardPath").node().getTotalLength();
-         var interpStr = d3.interpolateString("0," + length, length + "," + length);
-         objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue*0.2)).style("stroke","#666")
-         .attr("d", function (d) {
-         return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]:
-         objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
-         });
-         //Remove part of the trailing hint path
-         length = d3.select("#path").node().getTotalLength();
-         var interpStr2 = d3.interpolateString("0," + length, length + "," + length);
-         objectRef.svg.select("#path").attr("stroke-dasharray",interpStr2(0.8)).attr("d", function (d) {
-         return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-         });
-         }else{ //Keep drawing the #path element
-         //Set the small path to only show 20% of it
-         var length = d3.select("#path").node().getTotalLength();
-         var interpStr = d3.interpolateString("0," + length, length + "," + length);
-         objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2+objectRef.interpValue)).attr("d", function (d) {
-         return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-         });
-         objectRef.svg.select("#forwardPath").style("stroke","none");
-         }*/
-
-
     }else{ //Moving backward
         if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.currentView][0]==1){
-                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke","#bdbdbd");
+                objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke",pathColour);
                 return;
             }else{
                 objectRef.svg.selectAll(".interactionPath").style("stroke","none");
@@ -175,55 +123,33 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         objectRef.svg.select("#forwardMarker").style("stroke","none");
 
         //Create the interpolation function and get the total length of the path
-        var length = d3.select("#backwardPath").node().getTotalLength();
-        var interpStr = d3.interpolateString("0," + length, length + "," + length);
+       backwardPathLength = d3.select("#backwardPath").node().getTotalLength();
 
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                 objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-        });
+        }).attr("filter", "url(#blur2)");
+
         objectRef.svg.select("#currentMarker").attr("d", function (d) {
             return objectRef.hintPathGenerator([[d[objectRef.currentView][0]-lineWidth,d[objectRef.currentView][1]],
                 [d[objectRef.currentView][0]+lineWidth,d[objectRef.currentView][1]]]);
-        }).style("stroke","#636363").style("stroke-width",lineThickness);
+        }).style("stroke",tickColour).style("stroke-width",lineThickness);
 
         if (objectRef.currentView > 0){
-            objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(1-objectRef.interpValue)).style("stroke","#bdbdbd")
-                .attr("d", function (d) {
+            objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpolateStroke(backwardPathLength,(1-objectRef.interpValue)))
+                .style("stroke",pathColour).attr("d", function (d) {
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
-                });
+                }).attr("filter", "url(#blur2)");
             if (objectRef.interpValue < 0.05){
-                objectRef.svg.select("#backwardMarker").style("stroke","#636363").style("stroke-width",lineThickness)
+                objectRef.svg.select("#backwardMarker").style("stroke",tickColour).style("stroke-width",lineThickness)
                     .attr("d", function (d) {
                         return objectRef.hintPathGenerator([[d[objectRef.currentView-1][0]-lineWidth,d[objectRef.currentView-1][1]],
                             [d[objectRef.currentView-1][0]+lineWidth,d[objectRef.currentView-1][1]]]);
                     });
             }
         }
-        //Trying to reduce the partial hint path even more here
-        /** objectRef.svg.select("#forwardPath").style("stroke","none");
-         if (objectRef.interpValue+0.2 >1){ //Overflow, draw the next segment
-
-         //Create the interpolation function and get the total length of the path
-         var length = d3.select("#backwardPath").node().getTotalLength();
-         var interpStr = d3.interpolateString("0," + length, length + "," + length);
-         objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpStr(objectRef.interpValue*0.2)).style("stroke","#666")
-         .attr("d", function (d) {
-         return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
-         });
-         }else{ //Keep drawing the #path element
-         //Set the small path to only show 20% of it
-         var length = d3.select("#path").node().getTotalLength();
-         var interpStr = d3.interpolateString("0," + length, length + "," + length);
-         objectRef.svg.select("#path").attr("stroke-dasharray",interpStr(0.2+objectRef.interpValue)).attr("d", function (d) {
-         return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-         });
-         objectRef.svg.select("#backwardPath").style("stroke","none");
-         }*/
 
     }
 }

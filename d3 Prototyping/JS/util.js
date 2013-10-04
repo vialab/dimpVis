@@ -440,6 +440,3 @@ function hideSliderInfo(sliderRef){
         .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});*/
 
 }
-function drawIntermediateScreen(){
-    d3.select("#mainSvg").append("rect").attr("x",0).attr("y",0).attr("class","buttons").attr("width",100).attr("height",100);
-}

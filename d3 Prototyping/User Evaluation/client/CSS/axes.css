@@ -4,17 +4,17 @@
 .axis path, .axis line {
   fill: none;
   shape-rendering: crispEdges;
-  /**stroke:#bdbdbd;*/
-  stroke:#636363;
-  stroke-width:3;
+  stroke:#bdbdbd;
+  /**stroke:#636363;*/
+  stroke-width:2;
 }
 /** The number ticks */
 .axis text{
   font-family: sans-serif;
   font:verdana;
   font-size:18px;
-  /**fill:#bdbdbd;*/
-   fill:#636363;
+  fill:#bdbdbd;
+   /**fill:#636363;*/
   font-weight: bold;
 }
 /** The labels of x and y dimensions */
@@ -22,15 +22,15 @@
   font-family: sans-serif;
   font-size:14px;
   text-anchor: end;
-  /**fill:#bdbdbd;*/
-  fill:#636363;
+  fill:#bdbdbd;
+  /**fill:#636363;*/
 }
 /** The title of the graph */
 #graphTitle{
     font-family: sans-serif;
     font-size:18px;
-    /**fill:#bdbdbd;*/
-    fill:#636363;
+    fill:#bdbdbd;
+    /**fill:#636363;*/
 }
 
 

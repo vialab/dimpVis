@@ -223,7 +223,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
         .call(xAxis).selectAll("text")
         .text(function (d) {return ref.xLabels[d];})
         .style("text-anchor", "end")
-        .attr("transform", "rotate(-65)");
+        .attr("transform", "translate("+this.barWidth/3+",0)rotate(-65)");
 }
 /** Re-draws the dragged bar by altering it's height according to the dragging amount.
  *  As the bar is dragged, the view variables are updated and the rest
@@ -623,6 +623,7 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
         this.drawHintPath(xPos,translate,drawingView);
     }else{
         drawPartialHintPath_line(this,translate,this.pathData);
+        redrawPartialHintPath_line(this,this.ambiguousBars);
     }
 
     //Fade out the other bars

@@ -23,6 +23,50 @@ var practiceTasks = [
     ] //Tasks for multiples
 ];
 //Tasks for the modified sugar consumption data set
+/**var objectiveTasks = [
+    [
+        //Retrieve value tasks
+        //Object-centric
+        ["When is the orange bar at 100?",0,0,[0],5],
+        ["When is the orange bar greater than 160?",0,0,[6],9],
+        ["When is the orange bar less than 100?",0,0,[3],6],
+        ["When is the orange bar at 40?",0,0,[12],6],
+        ["When is the orange bar greater than 180?",0,0,[1],9],
+
+        //Multiple values
+        ["Find the moment when the orange bar is shorter than the green bar",1,0,[11,6],9],
+        ["Find the moment when the orange bar is equal to the green bar",1,0,[3,0],9],
+        ["Find the moment when the orange bar is taller than the green bar",1,0,[4,2],9],
+        ["Find the moment when the orange bar is taller than the green bar",1,0,[12,4],9],
+        ["Find the moment when the orange bar is shorter than the green bar",1,0,[1,12],9],
+
+        //Distribution tasks
+        //Object-centric
+        ["When does the height of the orange bar change from increasing to decreasing?",0,0,[2],6],
+        ["When does the height of the orange bar change from decreasing to increasing?",0,0,[1],5],
+        ["When does the height of the orange bar change from decreasing to increasing?",0,0,[12],5],
+        ["When does the height of the orange bar change from increasing to decreasing?",0,0,[8],8],
+        ["When does the height of the orange bar change from decreasing to increasing?",0,0,[3],6],
+
+        //Multiple values
+        ["Find the moment when the height of both the orange bar and the green bar change from decreasing to increasing",1,0,[10,4],6],
+        ["Find the moment when the height of the orange bar changes from decreasing to increasing AND the height of the green bar changes from increasing to decreasing",1,0,[8,11],6],
+        ["Find the moment when the height of the orange bar changes from increasing to decreasing AND the height of the green bar changes from decreasing to increasing",1,0,[5,9],7],
+        ["Find the moment when the height of both the orange bar and the green bar change from decreasing to increasing",1,0,[7,5],8],
+        ["Find the moment when the height of both the orange bar and the green bar change from increasing to decreasing",1,0,[9,7],5]
+
+    ], //Tasks for dimpvis
+
+    [
+
+
+    ], //Tasks for time slider
+
+    [
+
+    ] //Tasks for multiples
+];*/ //Set 1
+
 var objectiveTasks = [
     [
         //Retrieve value tasks
@@ -30,62 +74,39 @@ var objectiveTasks = [
         ["When is the orange bar at 100?",0,0,[0],5],
         ["When is the orange bar greater than 160?",0,0,[6],9],
         ["When is the orange bar less than 100?",0,0,[3],6],
+        ["When is the orange bar at 40?",0,0,[12],6],
+        ["When is the orange bar greater than 180?",0,0,[1],9],
 
         //Multiple values
-        ["Find a moment when the orange bar is shorter than the green bar",1,0,[11,6],9],
-        ["Find a moment when the orange bar is equal to the green bar",1,0,[3,0],9],
-        ["Find a moment when the orange bar is taller than the green bar",1,0,[4,2],9],
+        ["Find the moment when the orange bar is shorter than the green bar",1,0,[11,6],9],
+        ["Find the moment when the orange bar is equal to the green bar",1,0,[3,0],9],
+        ["Find the moment when the orange bar is taller than the green bar",1,0,[4,2],9],
+        ["Find the moment when the orange bar is taller than the green bar",1,0,[12,4],9],
+        ["Find the moment when the orange bar is shorter than the green bar",1,0,[1,12],9],
 
         //Distribution tasks
         //Object-centric
-        ["When does the height of the orange bar start to decrease?",0,0,[2],6],
-        ["When does the height of the orange bar start to increase?",0,0,[1],5],
+        ["When does the height of the orange bar change from increasing to decreasing?",0,0,[2],6],
+        ["When does the height of the orange bar change from decreasing to increasing?",0,0,[1],5],
+        ["When does the height of the orange bar change from decreasing to increasing?",0,0,[12],5],
+        ["When does the height of the orange bar change from increasing to decreasing?",0,0,[8],8],
+        ["When does the height of the orange bar change from decreasing to increasing?",0,0,[3],6],
 
         //Multiple values
-        ["Find a moment when the height of both the orange bar and the green bar start to increase",1,0,[10,4],6],
-        ["Find a moment when the height of the orange bar starts to increase and the green bar starts to decrease",1,0,[8,11],6],
-        /**["Find a moment when the height of the orange bar and the green bar start to increase",0,0,[1],0],
-        ["Find a moment when the height of the orange bar starts to decrease and the green bar starts to increase",0,0,[1],0],
-        ["Find a moment when the height of the orange bar starts to increase and the green bar starts to decrease",0,0,[1],0]*/
-
-        //Add tasks for ambiguous cases
-        //Retrieve value
-        //Object-centric
-        ["When is the orange bar at 150?",0,0,[5],9],
-        ["When is the orange bar at 100?",0,0,[7],7]
+        ["Find the moment when the height of both the orange bar and the green bar change from decreasing to increasing",1,0,[10,4],6],
+        ["Find the moment when the height of the orange bar changes from decreasing to increasing AND the height of the green bar changes from increasing to decreasing",1,0,[8,11],6],
+        ["Find the moment when the height of the orange bar changes from increasing to decreasing AND the height of the green bar changes from decreasing to increasing",1,0,[5,9],7],
+        ["Find the moment when the height of both the orange bar and the green bar change from decreasing to increasing",1,0,[7,5],8],
+        ["Find the moment when the height of both the orange bar and the green bar change from increasing to decreasing",1,0,[9,7],5]
 
     ], //Tasks for dimpvis
 
     [
-        //Retrieve value tasks
-        //Object-centric
-        ["When is the orange bar at 100?",0,0,[0],5],
-        ["When is the orange bar greater than 160?",0,0,[6],9],
-        ["When is the orange bar less than 100?",0,0,[3],6],
 
-        //Multiple values
-        ["Find a moment when the orange bar is shorter than the green bar",1,0,[11,6],9],
-        ["Find a moment when the orange bar is equal to the green bar",1,0,[3,0],9],
-        ["Find a moment when the orange bar is taller than the green bar",1,0,[4,2],9],
-
-        //Distribution tasks
-        //Object-centric
-        ["When does the height of the orange bar start to decrease?",0,0,[2],6],
-        ["When does the height of the orange bar start to increase?",0,0,[1],5],
-
-        //Multiple values
-        ["Find a moment when the height of both the orange bar and the green bar start to increase",1,0,[10,4],6],
-        ["Find a moment when the height of the orange bar starts to increase and the green bar starts to decrease",1,0,[9,11],6],
-
-        //Add tasks for ambiguous cases
-        //Retrieve value
-        //Object-centric
-        ["When is the orange bar at 150?",0,0,[5],9],
-        ["When is the orange bar at 100?",0,0,[7],7]
 
     ], //Tasks for time slider
 
     [
-        ["When is the orange bar at 3?",0,0,1,100]
+
     ] //Tasks for multiples
-];
+]; //Set 2
