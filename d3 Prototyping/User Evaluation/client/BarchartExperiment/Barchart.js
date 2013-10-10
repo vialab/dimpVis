@@ -42,6 +42,7 @@
    this.mouseX = 0;
    this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
    this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
+   this.previousTimeDirection = 1;
 
    //Variables used for handling ambiguity
    this.ambiguousBars = [];
@@ -240,6 +241,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  *  Recall: the base of every bar is at this.base, therefore top of the bar is this.base-barHeight
  * */
  Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY,barX,nodes){
+     this.previousTimeDirection = this.timeDirection;
 
     //Set the current vertical dragging direction of the user
     //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
@@ -293,7 +295,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
                 }
             }
 
-            this.handleDraggedBar_stationary(current[0],mouseY,mouseX,id,draggingDirection);
+            this.handleDraggedBar_stationary(current[0],mouseY,mouseX,id,draggingDirection,barX);
             newValues = [current[0],current[1]];
 
         }else{ //No stationary case to handle right now
@@ -307,10 +309,20 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     //Re-draw the dragged bar
     this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);//.style("fill",this.barColour);
 
+    //Log the change in dragging direction
+    if (this.previousDragDirection != draggingDirection){
+         logDragDirectionSwitch(id,this.currentView,this.previousDragDirection,draggingDirection);
+    }
+    //Log change in time direction
+   if (this.timeDirection != this.previousTimeDirection){
+       logTimeDirectionSwitch(id,this.currentView,this.previousTimeDirection,this.timeDirection);
+   }
    //Save some variables
    this.previousDragDirection = draggingDirection;
    this.mouseY = mouseY;
    this.mouseX = mouseX;
+
+   d3.select("#hand").attr("x",mouseX).attr("y",mouseY);
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
@@ -336,7 +348,6 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
         newValues = [mouseY,this.findHeight(mouseY)];
 
     }else if (bounds == currentY ){ //Passing current
-
         if (current[2]!=0 || this.atPeak == this.currentView){ //At a peak or a peak formed by hint path and sine wave
             inferTimeDirection(this,draggingDirection,1);
             newValues = this.findNewY(currentY,nextY,mouseY,current);
@@ -344,6 +355,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
             moveBackward(this,draggingDirection);
             newValues = (current[2]!=0)? [currentY,this.findHeight(currentY)]:[currentY,current[1]];
         }
+        logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,barX,currentY),this.mouseX,this.mouseY,barX,currentY);
     }else{ //Passing next
 
         if (next[2]!=0 || this.atPeak ==this.nextView){ //At a peak or a peak formed by hint path and sine wave
@@ -351,9 +363,9 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
             newValues = this.findNewY(nextY,currentY,mouseY,next);
         }else{
             moveForward(this,draggingDirection);
-            //console.log(findPixelDistance(this.mouseX,this.mouseY,barX,nextY));
             newValues = (next[2]!=0)?[nextY,this.findHeight(nextY)]:[nextY,next[1]];
         }
+        logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,barX,nextY),this.mouseX,this.mouseY,barX,nextY);
     }
 
      return newValues;
@@ -377,7 +389,7 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
  *  id: of the dragged bar
  *  draggingDirection: vertical dragging direction of the mouse
  * */
-Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id,draggingDirection){
+Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id,draggingDirection,barX){
 
      //If the atPeak variable is set to and index, it means that the first or last point on the sine wave is forming
      //A peak with the hint path
@@ -408,9 +420,11 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
              var newPathDirection = (this.pathDirection==1)?-1:1;
              if (this.timeDirection ==1 && this.nextView < this.lastView){
                  moveForward(this,draggingDirection);
+                 logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,barX,barY),this.mouseX,this.mouseY,barX,barY);
                  setSineWaveVariables(this,newPathDirection,barY,0);
              }else if (this.timeDirection==-1 && this.currentView >0){
                  moveBackward(this,draggingDirection);
+                 logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,barX,barY),this.mouseX,this.mouseY,barX,barY);
                  setSineWaveVariables(this,newPathDirection,barY,1);
              }else if (this.nextView == this.lastView){
                  if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path

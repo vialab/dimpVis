@@ -178,13 +178,7 @@ Slider.prototype.setInterpolation = function( mouseX,current,next) {
 	 var distanceTravelled = Math.abs(mouseX - current);
      var newInterp = distanceTravelled/totalDistance;
 
-     //Set the direction travelling in time
-     if (newInterp > this.interpValue){ //Moving forward
-        this.timeDirection = 1;
-     }else { //Going backward
-        this.timeDirection = -1;
-     }
-
+    this.timeDirection = (newInterp>this.interpValue)?1:(newInterp<this.interpValue)?-1:this.interpValue;
     this.interpValue = newInterp;
 }
 /** Updates the location of the draggable tick to the new view

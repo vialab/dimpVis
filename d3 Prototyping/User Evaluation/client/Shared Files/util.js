@@ -5,7 +5,7 @@
  * All functions must be passed a variable containing a reference to the object (this)
  * in order to access object variables and/or functions
  */
-//TODO: move functions related to user study to a separate file
+//TODO: contains data logging
 /**Clears the visualization elements appended to the SVG (used when the dataset is changed
  * objectClass: is the class name e.g., ".bars", assigned to all data objects associated with the
  * visualization
@@ -423,9 +423,9 @@ function findInteractionPaths(ambiguousObjs,values,valueThreshold){
  * id2 and newColour2 are optional, if N/A then set it as -1
  * */
 function highlightDataObject (id1,id2,className,origColour,newColour1,newColour2){
-   d3.selectAll("."+className).style("fill", function (d){
-       return (d.id==id1)?newColour1:(d.id==id2)?newColour2:origColour;
-   });
+    d3.selectAll(className).style("fill", function (d){
+        return (d.id==id1)?newColour1:(d.id==id2)?newColour2:origColour;
+    });
 }
 
 /**Function which shows info (year labels, middle ticks) on the slider widget */
@@ -441,7 +441,4 @@ function hideSliderInfo(sliderRef){
    /** sliderRef.widget.selectAll(".ticks")
         .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});*/
 
-}
-function drawIntermediateScreen(){
-    d3.select("#mainSvg").append("rect").attr("x",0).attr("y",0).attr("class","buttons").attr("width",100).attr("height",100);
 }

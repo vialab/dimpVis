@@ -4,8 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <title>Barchart</title>
 	<link rel="stylesheet" type="text/css" href="../CSS/axes.css" />
+
     <link rel="stylesheet" type="text/css" href="../CSS/barchartStyles.css" />
-    <link rel="stylesheet" type="text/css" href="../CSS/taskPanel.css" />
+      <link rel="stylesheet" type="text/css" href="../CSS/runExperimentStyles.css" />
     <script type="text/javascript" src="../Shared Files/d3.js"></script>
     <script type="text/javascript" src="../Shared Files/util.js"></script>
     <script type="text/javascript" src="../Shared Files/partialHintPath.js"></script>
@@ -20,9 +21,23 @@
   <!--For appending the visualizations -->
     <div id="vis"></div>
 
+  <!-- For displaying tutorials on how to use each interaction technique-->
+  <div id="tutorialScreenBackground" class="tutorial">
+        <div id="tutorialInstructions" class="tutorial">Touch and drag the bars to find a solution to the task.</div>
+       <img id="visGif" class="tutorial"/>
+       <div id="readyMsg" class="tutorial">Ready?</div>
+        <button id="doneTutorialButton" class="buttons">Start tasks</button>
+    </div>
+
+  <!-- For displaying a blank screen while participant fills out a post-tasks questionnaire -->
+  <div id="questionnaireScreenBackground" class="questionnaire">
+      <div id="questionnaireMessage" class="questionnaire">Time to fill out the questionnaire....</div>
+      <button id="doneQuestionnaireButton" class="buttons">Start Exploring</button>
+  </div>
+
     <!-- Move to the next task -->
     <div id="taskPanel">
-        <div id="counter">Task #1</div>
+        <div id="counter"></div>
         <div id="taskDescription"></div>
         <br>
         <center><button id="submitButton" class="buttons">Submit</button></center>

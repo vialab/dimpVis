@@ -242,7 +242,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
    //Re-set the time direction and dragging direction if the dragging has just started
     if (this.timeDirection ==0){
         this.timeDirection = 1; //Forward in time by default
-        //this.previousDragDirection = draggingDirection;
         draggingDirection = this.previousDragDirection;
     }
 
