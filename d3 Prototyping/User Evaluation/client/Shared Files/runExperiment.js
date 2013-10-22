@@ -4,6 +4,8 @@
 //Order of the experiment (get from the server when page is loaded)
 var techniqueOrder = []; //Counterbalanced order of interaction technique
 var taskOrder = []; //Randomized order of tasks
+var currentDataset = []; //Dataset currently being used during a task
+var currentTaskOrder = []; //Set of tasks for the current interaction technique
 
 //Counters for determining the current trial
 var taskCounter = 0;
@@ -81,13 +83,13 @@ function stopTimer(){
 
 //Called when the html page is loaded
 window.onload = function (){
-
          d3.json("http://localhost:8080/getOrders?", function(error,response) {
-         console.log(response);
+         //console.log(response);
          techniqueOrder = response[0];
          taskOrder = response[1];
+         currentTaskOrder = taskOrder[techniqueOrder[techniqueCounter]];
+          console.log("current task order"+currentTaskOrder);
          showTutorial(techniqueOrder[techniqueCounter]);
-         //showQuestionnaireScreen();
     });
  }
 /** Switches the task, and checks if max tasks has been reached
@@ -98,7 +100,7 @@ window.onload = function (){
 function nextTask (){
     //Get the feedback based on the solution
     var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
-    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]][4];
+    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][4];
 
      //Clear the feedback screen
      d3.select("#mainSvg").attr("width", 1200);
@@ -106,7 +108,7 @@ function nextTask (){
      d3.select("#taskPanel").style("display","block");
 
      //TODO: for important information (e.g., the task solutions), log this information twice (once in txt file and then again either in server console or browser console)
-    logTaskSolution(solution,correctSolution);
+     logTaskSolution(solution,correctSolution);
      logTaskCompletionTime();
 
      //Re-set the touch event trackers
@@ -122,7 +124,7 @@ function nextTask (){
          switchInteractionTechnique();
      }
 
-     updateTaskDisplay(objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]]);
+     updateTaskDisplay(objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]]);
 
      stopTimer();
      startTimer();
@@ -138,30 +140,30 @@ function cancelSubmitTask(){
  * taskInfo: one entry from the tasks array */
 function updateTaskDisplay (taskInfo){
 
+    //Re-draw the visualization for the specified dataset
+    currentDataset = datasets[techniqueOrder[techniqueCounter]];
+    clearVisualizations(0);
+    setInteractionTechnique(techniqueOrder[techniqueCounter]);
+
     if (techniqueOrder[techniqueCounter] != 2){ //If not the small multiples display
         //Update the visualization for the next task (e.g., highlight bars)
-        console.log(taskInfo[1]);
-        if (taskInfo[1]==0){ //One data object to highlight
-            highlightDataObject(taskInfo[3][0],-1,className,"#969696","#D95F02");
-        }else if (taskInfo[1]==1){ //Two data objects to highlight
-            highlightDataObject(taskInfo[3][0],taskInfo[3][1],className,"#969696","#D95F02","#1B9E77");
+        if (taskInfo[5]==0){ //One data object to highlight
+            highlightDataObject(taskInfo[7][0],-1,className,"#969696","#D95F02");
+        }else if (taskInfo[5]==1){ //Two data objects to highlight
+            highlightDataObject(taskInfo[7][0],taskInfo[7][1],className,"#969696","#D95F02","#1B9E77");
         }
     }
 
      //Update the task panel display
      d3.select("#counter").node().innerHTML = "#"+(taskCounter+1)+instructions;
-     d3.select("#taskDescription").node().innerHTML = taskInfo[0];
-
-     //Re-set the visualization to the first view
-     changeView(visRef,0);
-     visRef.redrawView(0,-1);
-     slider.updateSlider(0);
- }
+     d3.select("#taskDescription").node().innerHTML = taskInfo[4];
+}
 
 /**Sets the current interaction technique, and disables the others
  * */
 function switchInteractionTechnique(){
      techniqueCounter++;
+     currentTaskOrder = taskOrder[techniqueOrder[techniqueCounter]];
      if (techniqueCounter > 1){ //Finished all tasks, time for participant to fill out the post-task questionnaire
         showQuestionnaireScreen();
      }else{
@@ -169,18 +171,21 @@ function switchInteractionTechnique(){
      }
  }
 /**Clears the visualization, slider and multiples view
+ * clearPanel: if 0, don't clear the task panel, if 1, hide it
  * */
-function clearVisualizations(){
+function clearVisualizations(clearPanel){
     //multiples.remove();
     clearVis(gClassName);
     clearVis(".slider");
-    d3.select("#taskPanel").style("display","none");
+    if (clearPanel==1){
+        d3.select("#taskPanel").style("display","none");
+    }
 }
 /**Draws the visualization and adds interactivity to its objects, draws
  * a slider which cannot be dragged
  * */
 function useDimpTechnique(){
-    visRef.render(dataset,labels,"","","");
+    visRef.render(currentDataset,labels,"","","");
     slider.render();
     hideSliderInfo(slider);
     slider.widget.select("#slidingTick").call(doNothing);
@@ -190,7 +195,7 @@ function useDimpTechnique(){
  /** Draws the visualization with non-interactive objects and a draggable slider
  * */
 function useSliderTechnique(){
-     visRef.render(dataset,labels,"","","");
+     visRef.render(currentDataset,labels,"","","");
      slider.render();
      hideSliderInfo(slider);
      slider.widget.select("#slidingTick").call(slider.dragEvent);
@@ -206,7 +211,7 @@ function useSmallMultipleTechnique(){
 /**Updates the view to enable and disable the appropriate interaction technique
    * Technique ID's: Dimp=0, Time slider=1, Small multiples=2
  */
-function updateInteractionTechnique(techniqueID){
+function setInteractionTechnique(techniqueID){
      if (techniqueID == 0) {  //Enable dimp technique, disable time slider dragging
          useDimpTechnique();
      }else if (techniqueID ==1){ //Enable time slider, disable dimp interaction
@@ -219,20 +224,20 @@ function updateInteractionTechnique(techniqueID){
   * Goes to a new html page returned from the server in "response"
  */
 function changePhase (){
-     //Confirmation window
-     var result = confirm("Is the questionnaire complete?");
+    //TODO: might have a blank confirmation screen in case participant wants to take a break
 
-     if (result ==true){
-         d3.json("http://localhost:8080/nextPhase?", function(error,response) {
+    //Re-direct to a new html page for the next phase
+    d3.json("http://localhost:8080/nextPhase?", function(error,response) {
+         console.log(response);
          window.location = response;
      });
-     }
  }
 
 /**When all tasks are done, start the exploratory period:
    * Add full hint path and fast forwarding feature, use real dataset and clear the task panel
  * */
-function startExploratory(){
+//TODO: might show another tutorial before entering the exploratory period
+ function startExploratory(){
 
      stopTimer();
     //TODO: time this event as well
@@ -242,22 +247,18 @@ function startExploratory(){
      //Update the visualization
      setHintPathType(visRef,0);
      showSliderInfo(slider);
-     visRef.render(realDataset,realLabels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
+     visRef.render(realDataset,realLabels,realDataXLabel,realDataYLabel);
      visRef.svg.selectAll(".displayBars").call(visRef.dragEvent);
-     //TODO: should time slider be active? Since slider is a competitor technique, maybe it should be removed entirely or disabled dragging
+     //TODO: should time slider be active? Since slider is a competitor technique, maybe it should be removed entirely
 
-     //Update the task panel
-     /**d3.select("#taskDescription").remove();
-     d3.select("#counter").node().innerHTML = "Exploratory Period..";
-     d3.select("#nextButton").node().innerHTML = "Next Phase";*/
-     //d3.select("#nextButton").on("click", changePhase);
+     d3.select("#changePhaseButton").style("display","block").on("click",changePhase);
  }
 /**Initiates the objective tasks for an interaction technique
  * */
 function startTasks(){
     hideTutorial();
-    updateInteractionTechnique(techniqueOrder[techniqueCounter]);
-    updateTaskDisplay(objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]]);
+    setInteractionTechnique(techniqueOrder[techniqueCounter]);
+    updateTaskDisplay(objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]]);
     startTimer();
     hideSliderInfo(slider);
 }
@@ -267,7 +268,7 @@ function startTasks(){
 /**Before using a new interaction technique, shows a short tutorial on how to use it
  * */
 function showTutorial(techniqueId){
-    clearVisualizations();
+    clearVisualizations(1);
     d3.selectAll(".tutorial").style("display","block");
     d3.select("#taskPanel").style("display","none");
     d3.select("#vis").style("display","none");
@@ -290,7 +291,7 @@ function hideTutorial(){
 function showFeedbackScreen (){
     //Get the feedback based on the solution
     var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
-    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]][4];
+    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][4];
 
     //Clear the intermediate screen
     d3.select("#nextButton").on("click",nextTask);
@@ -328,7 +329,7 @@ function showIntermediateScreen (){
 /**A blank screen to indicate all techniques have been used and the post-technique questionnaire should be completed
  * */
 function showQuestionnaireScreen(){
-    clearVisualizations();
+    clearVisualizations(1);
     d3.select("#taskPanel").style("display","none");
     d3.select("#vis").style("display","none");
     d3.selectAll(".questionnaire").style("display","block");
@@ -357,9 +358,12 @@ function confirmDoneQuestionnaire(){
  * */
 function logTouchDown (id,touchX,touchY){
     var view = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
+
     //Log the interaction
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=2"+
-        "&objectId="+id+"&viewIndex="+view+"&touchX="+touchX+"&touchY="+touchY+"&time="+timeCounter, function(d) { });
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=2"+
+        "&objectId="+id+"&viewIndex="+view+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+"&time="+timeCounter, function(d) { });
 
     if (firstTouchDown ==null){ //Log this as the beginning of a task
         firstTouchDown = timeCounter;
@@ -372,8 +376,11 @@ function logTouchDown (id,touchX,touchY){
  * */
 function logTouchUp (id,touchX,touchY){
     var view = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=3"+
-        "&objectId="+id+"&viewIndex="+view+"&touchX="+touchX+"&touchY="+touchY+"&time="+timeCounter, function(d) { });
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
+
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=3"+
+        "&objectId="+id+"&viewIndex="+view+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+"&time="+timeCounter, function(d) { });
 
     lastTouchUp = timeCounter;
     lastTouchUpId = id;
@@ -381,12 +388,21 @@ function logTouchUp (id,touchX,touchY){
 /**Logs the participant's solution and the correct solution
  * */
 function logTaskSolution(solution,correctSolution){
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=0"+
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
+
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=0"+
         "&solution="+solution+"&correctSolution="+correctSolution, function(d) { });
 }
+/**Logs the participant's time to complete the task which is measured by the first touch down and last touch up for slider
+ * and dimpVis.  For multiples it is logged ??????
+ * */
+//TODO: might need milliseconds time
 function logTaskCompletionTime (){
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
    //TODO: avoid null times when objects are not interacted with
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=1"+
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=1"+
         "&touchDown="+firstTouchDown+"&touchUp="+lastTouchUp+"&touchTime="+(Math.abs(lastTouchUp - firstTouchDown))+
         "&objectUp="+firstTouchDownId+"&objectDown="+lastTouchUpId, function(d) { });
 
@@ -394,28 +410,54 @@ function logTaskCompletionTime (){
     console.log("Total time in seconds"+(Math.abs(lastTouchUp - firstTouchDown)));
     console.log("id's first touch down: "+firstTouchDownId+" last touch up: "+lastTouchUpId);
 }
+/** Logs a switch in dragging (e.g., dragging up then down), for some cases (slider, scatterplot), this is the same as the time direction
+ * */
 function logDragDirectionSwitch(id,viewIndex,oldDirection,newDirection){
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=4"+
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
+
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=4"+
         "&objectId="+id+"&viewIndex="+viewIndex+"&oldDirection="+oldDirection+"&newDirection="+newDirection, function(d) { });
 }
+/** Logs a switch in time direction (forward or backward)
+ * */
 function logTimeDirectionSwitch(id,viewIndex,oldDirection,newDirection){
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=5"+
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
+
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=5"+
         "&objectId="+id+"&viewIndex="+viewIndex+"&oldDirection="+oldDirection+"&newDirection="+newDirection, function(d) { });
 }
-function logPixelDistance(id,viewIndex,distance,touchX,touchY,objectX,objectY){
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=6"+
-        "&objectId="+id+"&viewIndex="+viewIndex+"&distance="+distance+"&touchX="+touchX+"&touchY="+touchY+
-    "&objectX="+objectX+"&objectY="+objectY, function(d) { });
+/** Logs the pixel distance from the participant's touch point to the data object being dragged
+ * */
+//TODO: this event is bloating the log file, might want to log only if the user deviates far away from the dragged object
+ function logPixelDistance(id,viewIndex,distance,touchX,touchY,objectX,objectY){
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
+
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=6"+
+        "&objectId="+id+"&viewIndex="+viewIndex+"&distance="+distance.toFixed(2)+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+
+    "&objectX="+objectX.toFixed(2)+"&objectY="+objectY.toFixed(2), function(d) { });
 }
+/** Logs the event when the finger is pressed down on any point on the visualization background
+ * */
 function logBackgroundTouchDown(touchX,touchY){
     var view = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=7"+
-        "&viewIndex="+view+"&touchX="+touchX+"&touchY="+touchY+"&time="+timeCounter, function(d) { });
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
+
+    d3.xhr("http://localhost:8080/log?task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=7"+
+        "&viewIndex="+view+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+"&time="+timeCounter, function(d) { });
 }
+/** Logs the event when the finger is released from any point on the visualization background
+ * */
 function logBackgroundTouchUp(touchX,touchY){
     var view = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;
-    d3.xhr("http://localhost:8080/log?task="+taskCounter+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=8"+
-        "&viewIndex="+view+"&touchX="+touchX+"&touchY="+touchY+"&time="+timeCounter, function(d) { });
+    var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
+
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=8"+
+        "&viewIndex="+view+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+"&time="+timeCounter, function(d) { });
 }
 ////////////////functions that need to be fixed\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 /**Reloads the previous task display (called when intermediate screen was pressed)

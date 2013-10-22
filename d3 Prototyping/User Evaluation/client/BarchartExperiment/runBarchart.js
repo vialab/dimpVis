@@ -81,7 +81,8 @@ d3.select("#mainSvg").on("mousedown",function(){
 var visRef = barchart;
 var className = ".displayBars";
 var gClassName = ".gDisplayBars";
-
+var realDataXLabel = "Countries";
+var realDataYLabel = "CO2 Emissions";
 /**d3.select("#mainSvg").append("image").attr("xlink:href","pointingHand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
     .attr("id","hand");*/
 

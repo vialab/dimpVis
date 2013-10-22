@@ -1,20 +1,24 @@
-//Some variables specific to each participant
-//TODO: might want to log these or record them somewhere (since the order is random)
-//TODO: change phaseOrder to only two phases (between subjects)
+////////////////////// Counter-balanced variables to set /////////////////////////////////////////////////////////
 var phaseOrder = [0,1]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
-var phaseNumber = 0; //The current phase (will eventually reach 3, the end of the phaseOrder array), this always starts at 0 (regardless of order)
 var techniqueOrder = [0,1,2]; //This should be counterbalanced as well , the interaction technique order within phases
-var taskOrder = [1,0,2,3,4,5,6,7,8,9,10,11]; //This should be randomized, an index pointing to the task
-var taskType = 1; //TODO: fix this later
-var participantID = "test";
-var logFileName = participantID+"_log.txt";
+var taskTypeOrder = [[0,1],[1,0],[0,1]]; //Retrieve value vs. distribution tasks counterbalanced
+var participantID = "test"; //Unique id assigned to the participant
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//Other variables for storing participant info
 var static = require('node-static'),
     express = require('express'),
     request = require('request'),
     fs = require("fs"),
     exec = require("child_process").exec,
-    phaseURLs = ["BarchartExperiment/Barchart.html","ScatterplotExperiment/Scatterplot.html","PiechartExperiment/Piechart.html","HeatmapExperiment/Heatmap.html"];
+    phaseURLs = ["BarchartExperiment/Barchart.html","ScatterplotExperiment/Scatterplot.html","PiechartExperiment/Piechart.html","HeatmapExperiment/Heatmap.html"],
+    taskOrder = [],
+    phaseNumber = 0;
+
+//Log file names
+var logFileName = participantID+"_log"+phaseOrder[phaseNumber]+".txt";
+var solutionFileName = participantID+"_solutions"+phaseOrder[phaseNumber]+".txt";
+var infoFileName = participantID+"_info.txt";
 
 /**
 * Create a node-static server instance to serve the './client' folder, will automatically load index.html
@@ -24,7 +28,8 @@ var file = new(static.Server)('./client/'),
 
 /** Called at the first (start) page, indicates a new experiment has started
  * */
-app.get('/startExperiment', function(req, res){
+//TODO: might not need this function
+ app.get('/startExperiment', function(req, res){
     console.log('Received request to start experiment');
     res.end();
 
@@ -41,15 +46,22 @@ app.get("/log", function(req, res) {
     var taskNumber = req.query["task"];
     var techniqueId = req.query["interaction"];
     var phaseId = phaseOrder[phaseNumber];
+    var taskType = req.query["taskType"];
 
     var logFilePrepend = participantID+"\t"+new Date().toString()+"\t"+phaseId+"\t"+techniqueId+"\t"+taskType + "\t" +taskNumber + "\t"+eventId;
 
     //Get information needed for a specific event
     var log = fs.createWriteStream(logFileName, {"flags" : "a"});
+    var solutionLog = fs.createWriteStream(solutionFileName, {"flags" : "a"});
+
     if (eventId == 0){ //Task solution
         log.write(logFilePrepend + "\t" + req.query["solution"] + "\t" +req.query["correctSolution"]+"\n");
+        solutionLog.write(logFilePrepend + "\t" + req.query["solution"] + "\t" +req.query["correctSolution"]+"\n");
     }else if (eventId ==1){ //Task completion time
         log.write(logFilePrepend + "\t" + req.query["touchDown"] + "\t" +req.query["touchUp"]
+            + "\t" + req.query["touchTime"] + "\t" +req.query["objectUp"]+ "\t" +req.query["objectDown"]
+            +"\n");
+        solutionLog.write(logFilePrepend + "\t" + req.query["touchDown"] + "\t" +req.query["touchUp"]
             + "\t" + req.query["touchTime"] + "\t" +req.query["objectUp"]+ "\t" +req.query["objectDown"]
             +"\n");
     }else if (eventId == 2 || eventId==3){ //Touch down or up on an object
@@ -73,6 +85,7 @@ app.get("/log", function(req, res) {
     console.log("Event #"+eventId+" logged");
 
     log.end();
+    solutionLog.end();
     res.end();
 
 });
@@ -87,6 +100,7 @@ app.get("/nextPhase", function(req, res) {
     var jsonStr = JSON.stringify(phaseURLs[nextPhase]);
 
     console.log("Changing to phase "+nextPhase+" to url "+jsonStr);
+    setFileNames();
 
     res.set('Content-Type', 'application/json');
     res.send( jsonStr );
@@ -96,6 +110,13 @@ app.get("/nextPhase", function(req, res) {
 /** Sends the interaction technique and task ordering
  * */
 app.get("/getOrders", function(req, res) {
+    randomizeTasks();
+    var log = fs.createWriteStream(infoFileName, {"flags" : "a"});
+    log.write("Participant ID: "+participantID+" \n");
+    log.write("Technique order: "+techniqueOrder+" \n");
+    log.write("Task type order: "+taskTypeOrder+" \n");
+    log.write("Randomized task order: "+taskOrder+" \n");
+    log.end();
 
     var jsonStr = [techniqueOrder,taskOrder];
 
@@ -110,7 +131,7 @@ app.get("/getOrders", function(req, res) {
  * */
 app.get('/startExploratory', function(req, res){
     console.log('Received request to start exploratory period');
-    logFileName = "logExploratory";
+    logFileName = participantID+"_exploratory"+phaseOrder[phaseNumber]+".txt";
     res.end();
 
 });
@@ -125,3 +146,47 @@ app.get(/\w*/, function(req, res){
 
 app.listen(8080);
 console.log('Listening on port 8080. Cheers!...');
+
+function setFileNames(){
+    logFileName = participantID+"_log"+phaseOrder[phaseNumber]+".txt";
+    solutionFileName = participantID+"_solutions"+phaseOrder[phaseNumber]+".txt";
+}
+//Generates an array determining the task order, based on the taskTypeOrder for all three interaction techniques
+//
+//Randomization:
+// indices: 0 - 9 (Retrieve value tasks)
+// indices: 10 - 19 (Distribution tasks)
+function randomizeTasks(){
+  var retrieveTasks = [0,1,2,3,4,5,6,7,8,9];
+  var distributionTasks = [10,11,12,13,14,15,16,17,18,19];
+ for (var i=0;i<3;i++){ //Do for each interaction technique
+     var shuffledRetrieve = shuffle(retrieveTasks);
+     var shuffledDistribution = shuffle(distributionTasks);
+     if (taskTypeOrder[i][0]==0){ //Retrieve tasks come first
+         taskOrder[i] = shuffledRetrieve.concat(shuffledDistribution);
+     }else{ //Distribution tasks come first
+         taskOrder[i] = shuffledDistribution.concat(shuffledRetrieve);
+     }
+ }
+}
+function shuffle(array) {
+    var currentIndex = array.length
+        , temporaryValue
+        , randomIndex
+        ;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+
+    return array;
+}
