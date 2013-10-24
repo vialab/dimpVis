@@ -14,9 +14,8 @@ var timeCounter = 0;
 var timerVar;
 
 //Stoppers for the counters
-var maxTaskTime = 100;
+//var maxTaskTime = 100; Not used yet
 var totalObjectiveTasks = 2; //For each interaction technique
-var totalWarmUpTasks = 1;
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
@@ -28,9 +27,6 @@ var totalWarmUpTasks = 1;
  var screenX = 1650;
  var screenY = 1000;
  var backgroundColour ="#2C2D2D";
- var object1Colour = "";
- var object2Colour = "";
- var buttonColour = "#BDBDBD";
  var instructions = "";
 
 //Customized display properties for the tutorial screens
@@ -100,14 +96,13 @@ window.onload = function (){
 function nextTask (){
     //Get the feedback based on the solution
     var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
-    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][4];
+    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][8];
 
      //Clear the feedback screen
      d3.select("#mainSvg").attr("width", 1200);
      d3.selectAll(".submitScreen").remove();
      d3.select("#taskPanel").style("display","block");
 
-     //TODO: for important information (e.g., the task solutions), log this information twice (once in txt file and then again either in server console or browser console)
      logTaskSolution(solution,correctSolution);
      logTaskCompletionTime();
 
@@ -141,7 +136,7 @@ function cancelSubmitTask(){
 function updateTaskDisplay (taskInfo){
 
     //Re-draw the visualization for the specified dataset
-    currentDataset = datasets[techniqueOrder[techniqueCounter]];
+    currentDataset = datasets[taskInfo[0]];
     clearVisualizations(0);
     setInteractionTechnique(techniqueOrder[techniqueCounter]);
 
@@ -190,7 +185,12 @@ function useDimpTechnique(){
     hideSliderInfo(slider);
     slider.widget.select("#slidingTick").call(doNothing);
     visRef.svg.selectAll(className).call(visRef.dragEvent);
-    instructions = "      Drag the bar"
+    instructions = "      Drag the bar";
+
+    //Re-set the visualization to the first view
+    changeView(barchart,0);
+    barchart.redrawView(0,-1);
+    slider.updateSlider(0);
 }
  /** Draws the visualization with non-interactive objects and a draggable slider
  * */
@@ -201,11 +201,16 @@ function useSliderTechnique(){
      slider.widget.select("#slidingTick").call(slider.dragEvent);
      visRef.svg.selectAll(className).call(doNothing);
      instructions = "      Drag the slider";
+
+     //Re-set the visualization to the first view
+     changeView(barchart,0);
+     barchart.redrawView(0,-1);
+     slider.updateSlider(0);
  }
 /** Draws the small multiple view with clickable images
  * */
 function useSmallMultipleTechnique(){
-    //TODO: render the small multiples
+    multiples.render(currentDataset,[1,0]);
     instructions = "      Click on an image";
 }
 /**Updates the view to enable and disable the appropriate interaction technique
@@ -245,11 +250,11 @@ function changePhase (){
      d3.xhr("http://localhost:8080/startExploratory?", function(d) { });
 
      //Update the visualization
+     slider.render();
      setHintPathType(visRef,0);
      showSliderInfo(slider);
      visRef.render(realDataset,realLabels,realDataXLabel,realDataYLabel);
      visRef.svg.selectAll(".displayBars").call(visRef.dragEvent);
-     //TODO: should time slider be active? Since slider is a competitor technique, maybe it should be removed entirely
 
      d3.select("#changePhaseButton").style("display","block").on("click",changePhase);
  }
@@ -291,7 +296,7 @@ function hideTutorial(){
 function showFeedbackScreen (){
     //Get the feedback based on the solution
     var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
-    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][4];
+    var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][8];
 
     //Clear the intermediate screen
     d3.select("#nextButton").on("click",nextTask);
@@ -366,7 +371,7 @@ function logTouchDown (id,touchX,touchY){
         "&objectId="+id+"&viewIndex="+view+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+"&time="+timeCounter, function(d) { });
 
     if (firstTouchDown ==null){ //Log this as the beginning of a task
-        firstTouchDown = timeCounter;
+        firstTouchDown = new Date().getMilliseconds();
         firstTouchDownId = id;
         console.log("first touch down"+ firstTouchDown);
     }
@@ -382,7 +387,7 @@ function logTouchUp (id,touchX,touchY){
     d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=3"+
         "&objectId="+id+"&viewIndex="+view+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+"&time="+timeCounter, function(d) { });
 
-    lastTouchUp = timeCounter;
+    lastTouchUp = new Date().getMilliseconds();
     lastTouchUpId = id;
 }
 /**Logs the participant's solution and the correct solution

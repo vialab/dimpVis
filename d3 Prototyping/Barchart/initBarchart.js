@@ -89,18 +89,7 @@ slider.render();
 //Apply the dragging function to the movable tick
 slider.widget.select("#slidingTick").call(slider.dragEvent);
 hideSliderInfo(slider);
-//drawBlankScreen("#mainSvg",2000,2000);
-//Testing the small multiples display
-/**clearVis(".gDisplayBars");
 
-if (slider.widget!=null) slider.widget.remove();
-var multiples = new Multiples("#multiples",10,100,2,2);
-multiples.clickImageFunction = function (d){
-    multiples.clickedImage = d.id;
-    multiples.highlightImage(d.x, d.y);
-    console.log("clicked "+ d.name+" "+ d.id);
-}
-multiples.render(["1.png","2.png","3.png","4.png"]);*/
 
 
 

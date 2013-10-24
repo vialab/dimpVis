@@ -4,9 +4,9 @@
 /*Labels on the hint path */
 .hintLabels {
   font-family: sans-serif;
-  font-size:12px;
+  font-size:14px;
   text-anchor:middle;
-  fill:#969696;
+  fill:#bdbdbd;
   /**stroke-width:0.25;
   stroke:#FFF;    */
 }

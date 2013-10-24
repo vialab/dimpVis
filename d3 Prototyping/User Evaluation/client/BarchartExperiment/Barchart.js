@@ -113,7 +113,7 @@ Barchart.prototype.init = function(){
       var ref = this;
 
     //Clear all elements in the main svg - only needed if changing the dataset
-    clearVis(".gDisplayBars");
+    //clearVis(".gDisplayBars");
 
     //Save some global variables
     this.numBars = data.length;
@@ -756,3 +756,4 @@ Barchart.prototype.calculatePathPoints = function (indices){
 
     return pathPoints;
 }
+

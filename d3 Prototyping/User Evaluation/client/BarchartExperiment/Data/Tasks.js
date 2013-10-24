@@ -37,7 +37,13 @@ var objectiveTasks = [
         [1,0,16,1,"Find the moment when the height of both the orange bar and the green bar change from increasing to decreasing",1,0,[11,5],7],
         [0,0,17,1,"Find the moment when the height of both the orange bar and the green bar change from increasing to decreasing",1,0,[9,7],5],
         [1,0,18,1,"Find the moment when the height of the orange bar changes from increasing to decreasing AND the height of the green bar changes from decreasing to increasing",1,0,[10,4],5],
-        [2,0,19,1,"Find the moment when the height of the orange bar changes from decreasing to increasing AND the height of the green bar changes from increasing to decreasing",1,0,[1,5],4]
+        [2,0,19,1,"Find the moment when the height of the orange bar changes from decreasing to increasing AND the height of the green bar changes from increasing to decreasing",1,0,[1,5],4],
+
+        [3,0,60,0,"When is the orange bar greater than 150?",0,1,[0],5],
+        [3,0,61,0,"When is the orange bar at 120?",0,1,[3],4],
+        [3,0,62,0,"When is the orange bar less than 100?",0,1,[2],9],
+        [3,0,63,0,"When is the orange bar at 140?",0,1,[7],4],
+        [3,0,64,0,"When is the orange bar less than 100?",0,1,[4],4]
 
 
     ], //Tasks for dimpvis
@@ -63,7 +69,13 @@ var objectiveTasks = [
         [1,1,36,1,"Find the moment when the height of the orange bar changes from decreasing to increasing AND the height of the green bar changes from increasing to decreasing",1,0,[8,10],7],
         [0,1,37,1,"Find the moment when the height of both the orange bar and the green bar change from decreasing to increasing",1,0,[7,5],8],
         [0,1,38,1,"Find the moment when the height of the orange bar changes from increasing to decreasing AND the height of the green bar changes from decreasing to increasing",1,0,[5,9],7],
-        [1,1,39,1,"Find the moment when the height of both the orange bar and the green bar change from decreasing to increasing",1,0,[4,1],5]
+        [1,1,39,1,"Find the moment when the height of both the orange bar and the green bar change from decreasing to increasing",1,0,[4,1],5],
+
+        [3,1,65,0,"When is the orange bar greater than 120?",0,1,[12],5],
+        [3,1,66,0,"When is the orange bar at 150?",0,1,[2],4],
+        [3,1,67,0,"When is the orange bar less than 120?",0,1,[5],9],
+        [3,1,68,0,"When is the orange bar greater than 90?",0,1,[8],6],
+        [3,1,69,0,"When is the orange bar at 140?",0,1,[6],5]
 
 
     ], //Tasks for time slider
@@ -89,7 +101,14 @@ var objectiveTasks = [
         [2,2,56,1,"Find the moment when the height of both the orange bar and the green bar change from increasing to decreasing",1,0,[8,2],8],
         [1,2,57,1,"Find the moment when the height of both the orange bar and the green bar change from increasing to decreasing",1,0,[8,0],5],
         [0,2,58,1,"Find the moment when the height of both the orange bar and the green bar change from decreasing to increasing",1,0,[10,4],6],
-        [0,2,59,1,"Find the moment when the height of the orange bar changes from decreasing to increasing AND the height of the green bar changes from increasing to decreasing",1,0,[8,11],6]
+        [0,2,59,1,"Find the moment when the height of the orange bar changes from decreasing to increasing AND the height of the green bar changes from increasing to decreasing",1,0,[8,11],6],
+
+        [3,2,70,0,"When is the orange bar less than 90?",0,1,[10],5],
+        [3,2,71,0,"When is the orange bar at 120?",0,1,[9],4],
+        [3,2,72,0,"When is the orange bar at 130?",0,1,[1],4],
+        [3,2,73,0,"When is the orange bar greater than 160?",0,1,[4],9],
+        [3,2,74,0,"When is the orange bar less than 120?",0,1,[11],6]
 
     ] //Tasks for multiples
 ];
+
