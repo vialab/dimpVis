@@ -48,7 +48,7 @@ app.get("/log", function(req, res) {
     var phaseId = phaseOrder[phaseNumber];
     var taskType = req.query["taskType"];
 
-    var logFilePrepend = participantID+"\t"+new Date().toString()+"\t"+phaseId+"\t"+techniqueId+"\t"+taskType + "\t" +taskNumber + "\t"+eventId;
+    var logFilePrepend = eventId+"\t"+participantID+"\t"+new Date().toString()+"\t"+phaseId+"\t"+techniqueId+"\t"+taskType + "\t" +taskNumber;
 
     //Get information needed for a specific event
     var log = fs.createWriteStream(logFileName, {"flags" : "a"});

@@ -63,15 +63,8 @@ slider.dragEvent = d3.behavior.drag()
 
 //////////////////////Create the small multiples display//////////////////////
 
- var multiples = new Multiples(10,300,2,2);
+ var multiples = new Multiples(40,300);
  multiples.init();
-
- /**multiples.clickImageFunction = function (d){
- multiples.clickedImage = d.id;
- multiples.highlightImage(d.x, d.y);
- console.log("clicked "+ d.name+" "+ d.id);
- }
- multiples.render(["1.png","2.png","3.png","4.png"]);*/
 
 //Attach listener to the svg for logging background touches
 d3.select("#mainSvg").on("mousedown",function(){

@@ -169,7 +169,7 @@ function switchInteractionTechnique(){
  * clearPanel: if 0, don't clear the task panel, if 1, hide it
  * */
 function clearVisualizations(clearPanel){
-    //multiples.remove();
+    multiples.remove();
     clearVis(gClassName);
     clearVis(".slider");
     if (clearPanel==1){
@@ -210,7 +210,12 @@ function useSliderTechnique(){
 /** Draws the small multiple view with clickable images
  * */
 function useSmallMultipleTechnique(){
-    multiples.render(currentDataset,[1,0]);
+    var taskInfo = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
+    if (taskInfo[5]==0){ //One data object to highlight
+        multiples.render(currentDataset,[taskInfo[7][0],-1]);
+    }else if (taskInfo[5]==1){ //Two data objects to highlight
+        multiples.render(currentDataset,taskInfo[7]);
+    }
     instructions = "      Click on an image";
 }
 /**Updates the view to enable and disable the appropriate interaction technique
@@ -362,7 +367,7 @@ function confirmDoneQuestionnaire(){
  *  viewIndex: the current view
  * */
 function logTouchDown (id,touchX,touchY){
-    var view = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;
+    var view = (techniqueOrder[techniqueCounter]==2)?multiples.clickedImage:slider.currentTick;
     var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
     var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
 
@@ -380,7 +385,7 @@ function logTouchDown (id,touchX,touchY){
  *  id: of the dragged bar
  * */
 function logTouchUp (id,touchX,touchY){
-    var view = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;
+    var view = (techniqueOrder[techniqueCounter]==2)?multiples.clickedImage:slider.currentTick;
     var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
     var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
 
@@ -404,6 +409,7 @@ function logTaskSolution(solution,correctSolution){
  * */
 //TODO: might need milliseconds time
 function logTaskCompletionTime (){
+    //TODO:this will be different in the small multiples case
     var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
     var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
    //TODO: avoid null times when objects are not interacted with
@@ -435,7 +441,6 @@ function logTimeDirectionSwitch(id,viewIndex,oldDirection,newDirection){
 }
 /** Logs the pixel distance from the participant's touch point to the data object being dragged
  * */
-//TODO: this event is bloating the log file, might want to log only if the user deviates far away from the dragged object
  function logPixelDistance(id,viewIndex,distance,touchX,touchY,objectX,objectY){
     var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
     var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
@@ -447,17 +452,17 @@ function logTimeDirectionSwitch(id,viewIndex,oldDirection,newDirection){
 /** Logs the event when the finger is pressed down on any point on the visualization background
  * */
 function logBackgroundTouchDown(touchX,touchY){
-    var view = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;
+    var view = (techniqueOrder[techniqueCounter]==2)?multiples.clickedImage:slider.currentTick;
     var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
     var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
 
-    d3.xhr("http://localhost:8080/log?task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=7"+
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=7"+
         "&viewIndex="+view+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+"&time="+timeCounter, function(d) { });
 }
 /** Logs the event when the finger is released from any point on the visualization background
  * */
 function logBackgroundTouchUp(touchX,touchY){
-    var view = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;
+    var view = (techniqueOrder[techniqueCounter]==2)?multiples.clickedImage:slider.currentTick;
     var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
     var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
 
@@ -468,7 +473,8 @@ function logBackgroundTouchUp(touchX,touchY){
 /**Reloads the previous task display (called when intermediate screen was pressed)
  * and visualization display
  */
-//TODO: eventually extend this to reload when the page is refreshed (will need to save info in url)
+//TODO: eventually extend this to reload when the page is refreshed (will need to save info in url), or just use full screen mode when running the experiment
+//TODO: just need to make sure the application doesn't crash
 /**function reloadTaskDisplay(){
  var taskInfo = objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]];
  //Update the visualization for the next task (e.g., highlight bars)
