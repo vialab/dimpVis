@@ -1,8 +1,13 @@
 /** This file creates and coordinates a scatterplot and a slider according to the provided dataset
  * */
 
+//Add a main svg which all visualization elements will be appended to
+d3.select("#scatter").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",1000).on("click",function(){
+    scatterplot.clearHintPath();
+});
+
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(0, 0, 550, 550, "#scatter",50,5,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries");
+var scatterplot   = new Scatterplot(0, 0, 500, 500, "#scatter",50,5,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries");
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 scatterplot.clickSVG = function (){
@@ -48,7 +53,7 @@ var dragBar = d3.behavior.drag()
 scatterplot.svg.selectAll(".displayPoints").call(dragBar);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(15, 700, "#time",labels, "Time","#666",50);
+var slider   = new Slider(50, 700, labels, "Time","#666",40);
 slider.init();
 slider.render();
 				  

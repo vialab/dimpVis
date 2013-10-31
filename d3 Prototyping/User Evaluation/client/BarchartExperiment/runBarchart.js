@@ -3,11 +3,12 @@
 
 
 //Add a main svg which all visualization elements will be appended to
-d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",1200).attr("height",1000).style("display","block");
+d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",1540).attr("height",1200).style("display","block");
+
 //////////////////////Create a barchart visualization//////////////////////
 
 var barchart   = new Barchart(700, 70, 30);
-barchart.init();
+barchart.init("mainSvg","gBarchart");
 setHintPathType(barchart,1); //Make sure set to partial hint path initially
 
 //Define click function for each hint path label
@@ -63,7 +64,7 @@ slider.dragEvent = d3.behavior.drag()
 
 //////////////////////Create the small multiples display//////////////////////
 
- var multiples = new Multiples(40,300);
+ var multiples = new Multiples(30,300);
  multiples.init();
 
 //Attach listener to the svg for logging background touches
@@ -83,3 +84,31 @@ var realDataYLabel = "CO2 Emissions";
 /**d3.select("#mainSvg").append("image").attr("xlink:href","pointingHand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
     .attr("id","hand");*/
 
+//////////////////////////Testing a tutorial idea /////////////////////////////////////
+
+//Add a main svg which all visualization elements will be appended to
+/**d3.select("#tutorialVis").append("svg").attr("id","tutorialSvg").attr("width",200).attr("height",200).style("display","block");
+
+var tutorialBarchart   = new Barchart(100, 20, 5);
+tutorialBarchart.init("tutorialSvg","gTutorialBarchart");
+setHintPathType(tutorialBarchart,1); //Make sure set to partial hint path initially
+
+//Define the function to respond to the dragging behaviour of the bars
+tutorialBarchart.dragEvent = d3.behavior.drag()
+    .origin(function(d){ //Set the starting point of the drag interaction
+        return {x:d.xPos,y:d.nodes[tutorialBarchart.currentView][0]};
+    })
+    .on("dragstart", function(d){
+        d3.event.sourceEvent.preventDefault();
+        tutorialBarchart.clearHintPath();
+        tutorialBarchart.draggedBar = d.id;
+        tutorialBarchart.selectBar(d.id, d.nodes, d.xPos);
+    })
+    .on("drag", function(d){
+        d3.event.sourceEvent.preventDefault();
+        tutorialBarchart.updateDraggedBar(d.id,d3.event.x,d3.event.y,d.xPos,d.nodes);
+    })
+    .on("dragend",function (d){
+        d3.event.sourceEvent.preventDefault();
+        tutorialBarchart.snapToView(d.id,d.nodes);
+    });*/

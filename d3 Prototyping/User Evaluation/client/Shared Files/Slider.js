@@ -19,7 +19,7 @@ function Slider(x, y, labels,description,colour,spacing) {
    this.sliderOffset = x+(description.length*20); //Font size of title is 20px
    this.width = this.sliderOffset + this.numTicks*this.tickSpacing;
    this.height = 50;
-   this.tickYPos = 35; //Amount to translate the draggable tick by in the y coordinate
+   this.tickYPos = 45; //Amount to translate the draggable tick by in the y coordinate
    this.anchorYPos = 12; //Amount to translate the anchor which follows the draggable tick when it is not placed on the main slider
    this.sliderHeight = 15; //Thickness of the main slider line
 
@@ -98,7 +98,7 @@ Slider.prototype.render = function() {
        .attr("height", ref.sliderHeight).attr("fill", ref.displayColour);
 
  //Draw a triangle draggable tick
-  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(180))
+  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(500))
       .attr("transform", "translate(" +ref.sliderPos + "," + ref.tickYPos + ")")
       .attr("fill", ref.displayColour).style("stroke","#BDBDBD").style("stroke-width",2)
       .style("cursor", "pointer").attr("id","slidingTick").attr("class","slider");

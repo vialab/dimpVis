@@ -86,13 +86,9 @@ function Piechart(x,y, r,id,title,hLabels){
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Piechart.prototype.init = function(){
-
-   //Draw the main svg to contain the whole visualization
-   this.svg = d3.select(this.id).append("svg")
-      .attr("width", this.width).attr("height", this.height)
-      .style("position", "absolute").style("left", this.xPos + "px")
-      .style("top", this.yPos + "px")
-      .on("click",this.clickSVG).append("g");
+   this.svg = d3.select("#mainSvg")
+       .append("g").attr("id","gPiechart")
+       .attr("transform", "translate(" + this.xPos + "," + this.yPos + ")");
 
    //Add blur filters to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")

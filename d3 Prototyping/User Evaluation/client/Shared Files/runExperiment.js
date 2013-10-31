@@ -15,13 +15,14 @@ var timerVar;
 
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
-var totalObjectiveTasks = 2; //For each interaction technique
+var totalObjectiveTasks = 25; //For each interaction technique
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
  var lastTouchUp = null;
- var firstTouchDownId = null;;
+ var firstTouchDownId = null;
  var lastTouchUpId = null;
+ var taskStartTime = null;
 
  //Display properties
  var screenX = 1650;
@@ -31,11 +32,11 @@ var totalObjectiveTasks = 2; //For each interaction technique
 
 //Customized display properties for the tutorial screens
  var tutorialInstructions = [
-     "Touch and drag the bars to find a solution to the task",
-     "Touch and drag along the slider using the triangle to find a solution to the task",
-     "Touch the image which you think displays the solution to the task"
+     "Drag the bars to find a view of the barchart that answers the question",
+     "Drag along the slider to find a view of the barchart that answers the question",
+     "Touch the image of the barchart that answers the question"
  ];
- var tutorialGifs = ["Images/test.gif", "Images/test.gif", "Images/test.gif"];
+ var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.gif"];
 
  //To disable the drag function
  var doNothing = d3.behavior.drag().on("dragstart", null)
@@ -95,7 +96,7 @@ window.onload = function (){
  * */
 function nextTask (){
     //Get the feedback based on the solution
-    var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
+    var solution = (techniqueOrder[techniqueCounter]==2)?multiples.clickedImage:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
     var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][8];
 
      //Clear the feedback screen
@@ -137,6 +138,7 @@ function updateTaskDisplay (taskInfo){
 
     //Re-draw the visualization for the specified dataset
     currentDataset = datasets[taskInfo[0]];
+    console.log(taskInfo[0]);
     clearVisualizations(0);
     setInteractionTechnique(techniqueOrder[techniqueCounter]);
 
@@ -159,7 +161,7 @@ function updateTaskDisplay (taskInfo){
 function switchInteractionTechnique(){
      techniqueCounter++;
      currentTaskOrder = taskOrder[techniqueOrder[techniqueCounter]];
-     if (techniqueCounter > 1){ //Finished all tasks, time for participant to fill out the post-task questionnaire
+     if (techniqueCounter > 2){ //Finished all tasks, time for participant to fill out the post-task questionnaire
         showQuestionnaireScreen();
      }else{
         showTutorial(techniqueOrder[techniqueCounter]);
@@ -211,6 +213,7 @@ function useSliderTechnique(){
  * */
 function useSmallMultipleTechnique(){
     var taskInfo = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
+
     if (taskInfo[5]==0){ //One data object to highlight
         multiples.render(currentDataset,[taskInfo[7][0],-1]);
     }else if (taskInfo[5]==1){ //Two data objects to highlight
@@ -270,6 +273,7 @@ function startTasks(){
     setInteractionTechnique(techniqueOrder[techniqueCounter]);
     updateTaskDisplay(objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]]);
     startTimer();
+    taskStartTime = new Date().getMilliseconds();
     hideSliderInfo(slider);
 }
 
@@ -283,9 +287,30 @@ function showTutorial(techniqueId){
     d3.select("#taskPanel").style("display","none");
     d3.select("#vis").style("display","none");
 
+    /**tutorialBarchart.render(set1,[],"","","");
+    tutorialBarchart.svg.selectAll(className).call(tutorialBarchart.dragEvent);*/
+
     //Customize the display depending on the current interaction technique
     d3.select("#tutorialInstructions").node().innerHTML = tutorialInstructions[techniqueId];
     d3.select("#visGif").node().src = tutorialGifs[techniqueId];
+
+    //Adjust the size of gif image
+    if (techniqueId ==2){
+        d3.select("#visGif").attr("width",700).attr("height",600);
+        d3.select("#ambiguousTutorial").style("display","none");
+        d3.select("#tutorialImages").style("border","none");
+    }else if (techniqueId==0){
+        d3.select("#visGif").attr("width",300).attr("height",600);
+        d3.select("#hintPathExplanation").node().src = "Images/partialHintPath.png";
+        d3.select("#ambiguousExplanation").node().src = "Images/ambiguousExplanation.png";
+        d3.select("#ambiguousGif").node().src = "Images/ambiguous.gif";
+        d3.select("#ambiguousTutorial").style("display","block");
+        d3.select("#tutorialImages").style("border","20px solid #1C1C1C");
+    }else{
+        d3.select("#visGif").attr("width",400).attr("height",600);
+        d3.select("#ambiguousTutorial").style("display","none");
+        d3.select("#tutorialImages").style("border","none");
+    }
 
 }
 /**Hides all elements of the tutorial screen and restores the elements which were hidden in showTutorial()
@@ -294,13 +319,15 @@ function hideTutorial(){
     d3.selectAll(".tutorial").style("display","none");
     d3.select("#taskPanel").style("display","block");
     d3.select("#vis").style("display","block");
+
+    d3.select("#tutorialSvg").remove();
 }
 /**Compares the solution entered by the participant with the correct solution and gives feedback
  * accordingly
  * */
 function showFeedbackScreen (){
     //Get the feedback based on the solution
-    var solution = (techniqueOrder[techniqueCounter]==2)?0:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
+    var solution = (techniqueOrder[techniqueCounter]==2)?multiples.clickedImage:slider.currentTick;//If in the small multiples condition, submit the view the user clicked on, otherwise submit the view on the slider
     var correctSolution = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][8];
 
     //Clear the intermediate screen
@@ -310,7 +337,7 @@ function showFeedbackScreen (){
     d3.select("#submitScreenBackground").on("click",function(){console.log("cancelling the svg click")}); //Turn off click listener
 
     var message = (solution != correctSolution)?" incorrect :(":" correct! :)";
-    d3.select("#feedbackMessage").style("display","block").text("You're answer was "+message);
+    d3.select("#feedbackMessage").style("display","block").text("Your answer was "+message);
 }
 
 /**Displays a screen when the submit button is pressed, to confirm the submission
@@ -400,26 +427,33 @@ function logTouchUp (id,touchX,touchY){
 function logTaskSolution(solution,correctSolution){
     var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
     var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
-
+    if (firstTouchDown==null){
+        solution = -1;
+    }
     d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=0"+
         "&solution="+solution+"&correctSolution="+correctSolution, function(d) { });
 }
 /**Logs the participant's time to complete the task which is measured by the first touch down and last touch up for slider
- * and dimpVis.  For multiples it is logged ??????
+ * and dimpVis.
  * */
-//TODO: might need milliseconds time
 function logTaskCompletionTime (){
-    //TODO:this will be different in the small multiples case
+
     var taskId = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
     var taskType = objectiveTasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][3];
-   //TODO: avoid null times when objects are not interacted with
-    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=1"+
+
+    /**d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=1"+
         "&touchDown="+firstTouchDown+"&touchUp="+lastTouchUp+"&touchTime="+(Math.abs(lastTouchUp - firstTouchDown))+
+        "&objectUp="+firstTouchDownId+"&objectDown="+lastTouchUpId, function(d) { });*/
+
+   //Try logging task completion time as the entire duration viewing the task screen
+    var taskEndTime = new Date().getMilliseconds();
+    d3.xhr("http://localhost:8080/log?taskType="+taskType+"&task="+taskId+"&interaction="+techniqueOrder[techniqueCounter]+"&eventId=1"+
+        "&touchDown="+taskStartTime+"&touchUp="+taskEndTime+"&touchTime="+(Math.abs(taskStartTime- taskEndTime))+
         "&objectUp="+firstTouchDownId+"&objectDown="+lastTouchUpId, function(d) { });
 
-    console.log("Last touch up "+lastTouchUp);
+    /**console.log("Last touch up "+lastTouchUp);
     console.log("Total time in seconds"+(Math.abs(lastTouchUp - firstTouchDown)));
-    console.log("id's first touch down: "+firstTouchDownId+" last touch up: "+lastTouchUpId);
+    console.log("id's first touch down: "+firstTouchDownId+" last touch up: "+lastTouchUpId);*/
 }
 /** Logs a switch in dragging (e.g., dragging up then down), for some cases (slider, scatterplot), this is the same as the time direction
  * */

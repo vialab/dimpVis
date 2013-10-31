@@ -2,7 +2,7 @@
  * */
 
 //Add a main svg which all visualization elements will be appended to
- d3.select("#bargraph").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",1000).on("click",function(){
+ d3.select("#bargraph").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",900).on("click",function(){
      barchart.clearHintPath();
  });
 
@@ -36,7 +36,7 @@ barchart.clickHintLabelFunction = function (d, i){
     changeView(barchart,i);
     slider.updateSlider(i);
 };
-barchart.render(dataset,labels,"CO2 Emissions of the G8+5 Countries","g8+5 countries","CO2 emissions per person (metric tons)");
+barchart.render(dataset,labels,"","","");
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
@@ -64,7 +64,7 @@ barchart.dragEvent = d3.behavior.drag()
 barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(50, 700, labels, "Time","#666",40);
+var slider   = new Slider(50, 550, labels, "Time","#666",110);
 slider.init();
 slider.render();
 
@@ -88,7 +88,7 @@ slider.render();
                      });
 //Apply the dragging function to the movable tick
 slider.widget.select("#slidingTick").call(slider.dragEvent);
-hideSliderInfo(slider);
+//hideSliderInfo(slider);
 
 
 

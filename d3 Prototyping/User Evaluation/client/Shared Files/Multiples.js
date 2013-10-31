@@ -13,7 +13,6 @@ function Multiples(spacing,size) {
     this.imageSpacingY = this.spacing+20; //Vertical spacing between the images
     this.marginWidth = 15; //Margins around the entire display
     this.baseOffset = 10; //Offset of the base of the bars
-    this.visSpacing = 10; //Offset the visualization within the image to make room for the axis
     this.backgroundColour = "#2C2D2D";    //Behind the visualization
     this.imageBorderColour = "black";
     this.highlightColour = "white"; //Highlight the border of the image when its clicked
@@ -38,7 +37,7 @@ Multiples.prototype.render = function (dataset,highlightBars){
         var imgX = ref.imgSize*col + ref.imageSpacingX*col + ref.marginWidth;
 
         col++;
-        if (col >= 3){
+        if (col >= 4){
             row++;
             col = 0;
         }
@@ -50,12 +49,13 @@ Multiples.prototype.render = function (dataset,highlightBars){
 
     this.svg.selectAll(".multiples").append("rect").attr("width",(this.imgSize+this.spacing+30)).attr("height",(this.imgSize+this.marginWidth+15))
         .on("click",function (d,i){
-            if (i != ref.clickedImage) {
+           if (i != ref.clickedImage) {
                 d3.select("#multiplesBackground"+ref.clickedImage).style("stroke", ref.imageBorderColour); //Clear the previously selected image border
             }
             //Highlight the image by colouring its border
             d3.select("#multiplesBackground"+i).style("stroke",ref.highlightColour);
             ref.clickedImage = i;
+            console.log("clicked image "+ref.clickedImage);
             logTouchDown(i,d3.mouse(this)[0],d3.mouse(this)[1]);
             logTouchUp(i,d3.mouse(this)[0],d3.mouse(this)[1]);
         })
@@ -93,11 +93,11 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
     //Assign data values to a set of rectangles representing the bars of the chart and draw the bars
     d3.select("#multiples"+view).selectAll(".mulitplesBars")
         .data(data.map(function (d,i) {
-        var data = [base - yScale(d.heights[view]),yScale(d.heights[view])];
-        return {nodes:data,id:i,xPos:(xScale(i)+ref.spacing+ref.baseOffset)};
+        var newData = [base - yScale(d.heights[view]),yScale(d.heights[view])];
+        return {nodes:newData,id:i,xPos:(xScale(i)+ref.spacing+ref.baseOffset)};
     })).enter().append("rect").attr("x", function(d){return d.xPos;})
-        .attr("y", function(d){ return d.nodes[0];})
-        .attr("width", 20).attr("height", function(d) {return d.nodes[1]})
+        .attr("y", function(d){ return d.nodes[1];})
+        .attr("width", 20).attr("height", function(d) {return d.nodes[0]})
         .style("fill", function (d){
             return (d.id==highlightBars[0])?"#D95F02":(d.id==highlightBars[1])?"#1B9E77":"#BDBDBD";
         }).style("pointer-events","none").attr("class","multiplesBars");
@@ -116,10 +116,10 @@ Multiples.prototype.drawAxes = function (id,xScale,yScale){
 
     // Add the y-axis
     d3.select("#multiples"+id).append("g").attr("class", "axis")
-        .attr("transform", "translate("+ (this.spacing-5+this.baseOffset)+ ","+(this.baseOffset+5)+")")
+        .attr("transform", "translate("+ (this.spacing-5+this.baseOffset)+ ","+(this.baseOffset)+")")
         .call(yAxis)
     .append("g").attr("class", "axis")
-        .attr("transform", "translate(0," + (this.imgSize) + ")")
+        .attr("transform", "translate(0," + (this.imgSize+5) + ")")
         .call(xAxis).selectAll("text").text("");
 }
 /** Removes the multiples from its g element

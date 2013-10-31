@@ -79,11 +79,11 @@
 /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
-Barchart.prototype.init = function(){
+Barchart.prototype.init = function(svgId,id){
 
     //Draw the main svg
-    this.svg = d3.select("#mainSvg")
-        .append("g").attr("id","gBarchart")
+    this.svg = d3.select("#"+svgId)
+        .append("g").attr("id",id)
         .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
     //Add the blur filter to the SVG so other elements can call it
@@ -221,12 +221,12 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
     // Add the y-axis
     this.svg.append("g").attr("class", "axis")
-        .attr("transform", "translate("+ this.padding+ ",0)")
+        .attr("transform", "translate("+ this.padding+ ",-5)")
         .call(yAxis);
 
     //Add the x-axis
     this.svg.append("g").attr("class", "axis")
-        .attr("transform", "translate("+this.padding+"," + this.height + ")")
+        .attr("transform", "translate("+this.padding+"," + (this.height+5) + ")")
         .call(xAxis).selectAll("text")
         .text(function (d) {return ref.xLabels[d];})
         .style("text-anchor", "end")

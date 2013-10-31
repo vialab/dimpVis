@@ -1,6 +1,11 @@
 /** This file creates and coordinates a piechart and a slider according to the provided dataset
  * */
 
+//Add a main svg which all visualization elements will be appended to
+d3.select("#piegraph").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",1000).on("click",function(){
+    piechart.clearHintPath();
+});
+
 //Create a new piechart visualization
 var piechart   = new Piechart(50, 50 , 180,"#piegraph","Random",labels);
 
@@ -61,7 +66,7 @@ piechart.dragEvent = d3.behavior.drag()
 piechart.svg.selectAll(".displayArcs").call(piechart.dragEvent);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(15, 700, "#time",labels, "Years","#666",50);
+var slider   = new Slider(50, 700, labels, "Time","#666",40);
 slider.init();
 slider.render();
 

@@ -68,12 +68,9 @@ function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
  * */
 Scatterplot.prototype.init = function() {
 
-    this.svg = d3.select(this.id).append("svg")
-      .attr("width", this.width+(this.padding*2.5))
-      .attr("height", this.height+(this.padding*2))
-      .attr("x",this.xpos).attr("y",this.ypos)
-      .on("click",this.clickSVG)
-      .append("g").attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+    this.svg = d3.select("#mainSvg")
+        .append("g").attr("id","gScatterplot")
+        .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
     //Add the blur filter used for the hint path to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")

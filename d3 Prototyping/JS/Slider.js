@@ -79,8 +79,8 @@ Slider.prototype.render = function() {
    //Draw the labels for each tick
    this.widget.selectAll("g").append("svg:text")
       .text(function(d) { return d.label; })
-	  .attr("x", function(d) {return d.value}).attr("y", 37)
-	  .style("font-family", "sans-serif").style("font-size", "12px")
+	  .attr("x", function(d) {return d.value}).attr("y", 0)
+	  .style("font-family", "sans-serif").style("font-size", "14px")
 	  .style("fill", function (d,i){
 	       if (ref.tickLabels.length >25){ //Only display every 5 labels to reduce clutter
 		      if (i%5 ==0) return ref.displayColour;

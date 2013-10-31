@@ -142,7 +142,7 @@ this.svg.selectAll("rect")
 	 .attr("id", function (d){return "gDisplayBars"+d.id;});
 
    //Save the labels for the x-axis
-   this.xLabels = this.svg.selectAll(".gDisplayBars").data().map(function (d){return d.label});
+   this.xLabels = this.svg.selectAll(".gDisplayBars").data().map(function (d){return ""});
 
    //Draw the axes
    yScale =  d3.scale.linear().domain([max_h,0]).range([0,ref.height]); //Reverse the scale to get the corect axis display
