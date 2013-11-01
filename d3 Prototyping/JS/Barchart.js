@@ -684,7 +684,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)})
         .attr("transform", "translate("+(-translate)+")")
         .attr("id",function (d) {return "hintLabel"+ d.id})
-        .attr("clip-path","url(#clip)")
+        //.attr("clip-path","url(#clip)")
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
 }
 /** Clears the hint path by removing its components from the svg

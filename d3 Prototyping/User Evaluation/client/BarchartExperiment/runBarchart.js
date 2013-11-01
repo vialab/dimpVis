@@ -18,6 +18,7 @@ barchart.clickHintLabelFunction = function (d, i){
     barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
     changeView(barchart,i);
     slider.updateSlider(i);
+    console.log("clicked");
 };
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
@@ -44,7 +45,7 @@ barchart.dragEvent = d3.behavior.drag()
     });
 
 //////////////////////Create the time slider//////////////////////
-var slider   = new Slider(50, 800,labels, "","#636363",80);
+var slider   = new Slider(50, 800,"","#636363",80);
 slider.init();
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
@@ -79,10 +80,13 @@ d3.select("#mainSvg").on("mousedown",function(){
 var visRef = barchart;
 var className = ".displayBars";
 var gClassName = ".gDisplayBars";
-var realDataXLabel = "Countries";
-var realDataYLabel = "CO2 Emissions";
-/**d3.select("#mainSvg").append("image").attr("xlink:href","pointingHand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
-    .attr("id","hand");*/
+var gIdName = "#gBarchart";
+var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
+var realDataXLabel = "Program";
+var realDataTitle = "Student Enrollment Over The Years At UOIT";
+
+d3.select("#mainSvg").append("image").attr("xlink:href","pointingHand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
+    .attr("id","hand");
 
 //////////////////////////Testing a tutorial idea /////////////////////////////////////
 

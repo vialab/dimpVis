@@ -430,13 +430,15 @@ function highlightDataObject (id1,id2,className,origColour,newColour1,newColour2
 
 /**Function which shows info (year labels, middle ticks) on the slider widget */
 function showSliderInfo(sliderRef){
-    sliderRef.widget.selectAll(".tickLabels").style("fill",sliderRef.displayColour);
+    sliderRef.widget.selectAll(".tickLabels").style("fill","#EDEDED");
+    sliderRef.widget.select("#sliderTitle").style("fill","#EDEDED");
 }
 /**Function which hides info (year labels, middle ticks) on the slider widget.
  * This is used during the user evaluation to remove information about time */
 function hideSliderInfo(sliderRef){
    //Hide the tick labels
     sliderRef.widget.selectAll(".tickLabels").style("fill","none");
+    sliderRef.widget.select("#sliderTitle").style("fill","none");
    //Hide all ticks except the end ones
    /** sliderRef.widget.selectAll(".ticks")
         .style("fill",function(d,i){return ((i==0)||(i==sliderRef.numTicks-1))?sliderRef.displayColour:"none"});*/

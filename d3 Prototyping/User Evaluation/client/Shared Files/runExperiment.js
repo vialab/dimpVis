@@ -15,7 +15,7 @@ var timerVar;
 
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
-var totalObjectiveTasks = 25; //For each interaction technique
+var totalObjectiveTasks = 1; //For each interaction technique
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
@@ -34,9 +34,10 @@ var totalObjectiveTasks = 25; //For each interaction technique
  var tutorialInstructions = [
      "Drag the bars to find a view of the barchart that answers the question",
      "Drag along the slider to find a view of the barchart that answers the question",
-     "Touch the image of the barchart that answers the question"
+     "Touch the image of the barchart that answers the question",
+     "Drag the bars to explore the visualization over time"
  ];
- var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.gif"];
+ var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.gif","Images/exploratory.gif"];
 
  //To disable the drag function
  var doNothing = d3.behavior.drag().on("dragstart", null)
@@ -85,8 +86,9 @@ window.onload = function (){
          techniqueOrder = response[0];
          taskOrder = response[1];
          currentTaskOrder = taskOrder[techniqueOrder[techniqueCounter]];
-          console.log("current task order"+currentTaskOrder);
-         showTutorial(techniqueOrder[techniqueCounter]);
+         //showTutorial(techniqueOrder[techniqueCounter]);
+             showTutorial(3);
+            // startExploratory();
     });
  }
 /** Switches the task, and checks if max tasks has been reached
@@ -183,7 +185,7 @@ function clearVisualizations(clearPanel){
  * */
 function useDimpTechnique(){
     visRef.render(currentDataset,labels,"","","");
-    slider.render();
+    slider.render(labels);
     hideSliderInfo(slider);
     slider.widget.select("#slidingTick").call(doNothing);
     visRef.svg.selectAll(className).call(visRef.dragEvent);
@@ -198,7 +200,7 @@ function useDimpTechnique(){
  * */
 function useSliderTechnique(){
      visRef.render(currentDataset,labels,"","","");
-     slider.render();
+     slider.render(labels);
      hideSliderInfo(slider);
      slider.widget.select("#slidingTick").call(slider.dragEvent);
      visRef.svg.selectAll(className).call(doNothing);
@@ -249,7 +251,7 @@ function changePhase (){
 /**When all tasks are done, start the exploratory period:
    * Add full hint path and fast forwarding feature, use real dataset and clear the task panel
  * */
-//TODO: might show another tutorial before entering the exploratory period
+//TODO: show another tutorial before entering the exploratory period
  function startExploratory(){
 
      stopTimer();
@@ -258,12 +260,16 @@ function changePhase (){
      d3.xhr("http://localhost:8080/startExploratory?", function(d) { });
 
      //Update the visualization
-     slider.render();
+     slider.render(realLabels);
      setHintPathType(visRef,0);
      showSliderInfo(slider);
-     visRef.render(realDataset,realLabels,realDataXLabel,realDataYLabel);
+     visRef.displayColour = "#74c476"; //Green bars
+     visRef.showZeroValues = 1;
+     visRef.render(realDataset,realLabels,realDataTitle,realDataXLabel,realDataYLabel);
      visRef.svg.selectAll(".displayBars").call(visRef.dragEvent);
 
+     d3.select("#gSlider").attr("transform","translate(200,1050)");
+     d3.select(gIdName).attr("transform","translate(65,65)");
      d3.select("#changePhaseButton").style("display","block").on("click",changePhase);
  }
 /**Initiates the objective tasks for an interaction technique
@@ -299,6 +305,7 @@ function showTutorial(techniqueId){
         d3.select("#visGif").attr("width",700).attr("height",600);
         d3.select("#ambiguousTutorial").style("display","none");
         d3.select("#tutorialImages").style("border","none");
+        d3.select("#hintPathExplanation").node().src = "";
     }else if (techniqueId==0){
         d3.select("#visGif").attr("width",300).attr("height",600);
         d3.select("#hintPathExplanation").node().src = "Images/partialHintPath.png";
@@ -306,12 +313,18 @@ function showTutorial(techniqueId){
         d3.select("#ambiguousGif").node().src = "Images/ambiguous.gif";
         d3.select("#ambiguousTutorial").style("display","block");
         d3.select("#tutorialImages").style("border","20px solid #1C1C1C");
-    }else{
+    }else if (techniqueId==1){
         d3.select("#visGif").attr("width",400).attr("height",600);
         d3.select("#ambiguousTutorial").style("display","none");
         d3.select("#tutorialImages").style("border","none");
+        d3.select("#hintPathExplanation").node().src = "";
+    }else if (techniqueId ==3){ //Exploratory period
+        d3.select("#visGif").attr("width",300).attr("height",400);
+        d3.select("#tutorialImages").style("border","20px solid #1C1C1C");
+        d3.select("#hintPathExplanation").node().src = "Images/fastForwarding.png";
+        d3.select("#ambiguousGif").node().src = "Images/zeroBar.png";
+        d3.select("#ambiguousTutorial").style("display","block");
     }
-
 }
 /**Hides all elements of the tutorial screen and restores the elements which were hidden in showTutorial()
  * */

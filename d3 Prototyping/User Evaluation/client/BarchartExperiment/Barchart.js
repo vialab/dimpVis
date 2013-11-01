@@ -9,8 +9,8 @@
 
    //Display properties
   // this.barColour = "#74c476"; green
-    this.barColour = "#bdbdbd";
-   this.zeroBarColour = "#c7c7c7";
+   this.displayColour = "#bdbdbd";
+   this.zeroBarColour = "#EDEDED";
 
    this.padding = p;
    this.barWidth = bw;
@@ -41,8 +41,9 @@
    this.mouseY = 0;
    this.mouseX = 0;
    this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
-   this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
+   this.peakTolerance = 0; //Tolerance frame applied on peaks of hint path
    this.previousTimeDirection = 1;
+   this.showZeroValues = 0;
 
    //Variables used for handling ambiguity
    this.ambiguousBars = [];
@@ -160,8 +161,18 @@ this.svg.selectAll("rect")
      .attr("x", function(d){return d.xPos;})
      .attr("y", function(d){ return d.nodes[ref.currentView][0];})
      .attr("width", this.barWidth)
-     .attr("height", function(d) {return d.nodes[ref.currentView][1]})
-	 .attr("class", "displayBars").style("fill",ref.barColour)
+     .attr("height", function(d) {
+           if (ref.showZeroValues==1){
+               return (d.nodes[ref.currentView][1]==0)?2:d.nodes[ref.currentView][1];
+           }
+           return d.nodes[ref.currentView][1];
+       })
+	 .attr("class", "displayBars").style("fill",function(d){
+           if (ref.showZeroValues==1){
+               return (d.nodes[ref.currentView][1]==0)?ref.zeroBarColour:ref.displayColour;
+           }
+           return ref.displayColour
+       })
 	 .attr("id", function (d){return "displayBars"+d.id;});
 
 	//Add a blank g element to contain the hint path
@@ -210,13 +221,15 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
 
     // Add the x-axis label
     this.svg.append("text").attr("class", "axisLabel")
-        .attr("x", this.width+this.padding)
-        .attr("y", this.height+this.padding-3)
+        //.attr("x", this.width+50)
+        // .attr("y", this.height+50-3)
+        .attr("x", this.width+50) //Hard coded for the exploratory period
+         .attr("y", 920)
         .text(this.xLabel);
 
     // Add the y-axis label
     this.svg.append("text").attr("class", "axisLabel")
-        .attr("x", 6).attr("transform", "rotate(-90)")
+        .attr("x", 6).attr("y",-40).attr("transform", "rotate(-90)")
         .text(this.yLabel);
 
     // Add the y-axis
@@ -305,10 +318,17 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     }else { //No stationary ambiguous cases exist
         newValues = this.handleDraggedBar(current,next,mouseY,id,draggingDirection,barX);
     }
-
+    var ref = this;
     //Re-draw the dragged bar
-    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",newValues[1]);//.style("fill",this.barColour);
-
+    this.svg.select("#displayBars"+id).attr("y",newValues[0]).attr("height",function(d){
+        if (ref.showZeroValues==1){
+            return (d.nodes[ref.currentView][1]==0 )?2:newValues[1];
+        }
+        return newValues[1];
+    });
+    if (this.showZeroValues==1){
+        this.svg.select("#displayBars"+id).style("fill",function (d){return (d.nodes[ref.currentView][1]==0)?ref.zeroBarColour:ref.displayColour;});
+    }
     //Log the change in dragging direction
     if (this.previousDragDirection != draggingDirection){
          logDragDirectionSwitch(id,this.currentView,this.previousDragDirection,draggingDirection);
@@ -321,8 +341,6 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
    this.previousDragDirection = draggingDirection;
    this.mouseY = mouseY;
    this.mouseX = mouseX;
-
-   d3.select("#hand").attr("x",mouseX).attr("y",mouseY);
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
@@ -480,11 +498,22 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
     //console.log(interpAmount+" start view "+startView+" endView "+endView);
   this.svg.selectAll(".displayBars").filter(function (d){return d.id!=id;})
       .attr("height",function (d){
+          if (ref.showZeroValues==1){
+              return (d.nodes[ref.currentView][1]==0)?2:ref.interpolator(d.nodes[startView][1], d.nodes[endView][1],interpAmount);
+          }
           return ref.interpolator(d.nodes[startView][1], d.nodes[endView][1],interpAmount);
       })
       .attr("y", function(d){
           return ref.interpolator(d.nodes[startView][0], d.nodes[endView][0],interpAmount);
       });
+  if (this.showZeroValues==1){
+      this.svg.selectAll(".displayBars").filter(function (d){return d.id!=id;}).style("fill",function(d){
+          if (ref.showZeroValues==1){
+              return (d.nodes[ref.currentView][1]==0)?ref.zeroBarColour:ref.displayColour;
+          }
+          return ref.displayColour
+      });
+  }
 }
 /** Animates all bars in the barchart along their hint paths from
  *  startView to endView, this function is called a year label on the hint path
@@ -525,9 +554,17 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
         return function(d) {
             //Animate the bar
             d3.select(this).transition(400).ease("linear")
-                .attr("height",d.nodes[animateView][1])
+                .attr("height",function(){
+                    if (ref.showZeroValues==1)return ((d.nodes[animateView][1]==0)?2:d.nodes[animateView][1]);
+                    return d.nodes[animateView][1];
+                 })
                 .attr("y",d.nodes[animateView][0])
+                .style("fill", function(){
+                    if (ref.showZeroValues==1)return ((d.nodes[animateView][1]==0)?ref.zeroBarColour:ref.displayColour);
+                    return ref.displayColour;
+                })
                 .each("end", animate());
+
             //If the bar's hint path is visible, animate it
             if (d.id == id){
 
@@ -553,10 +590,13 @@ Barchart.prototype.redrawView = function (view,id){
    }
    //else{
        //Re-draw the  bars at the specified view
-       this.svg.selectAll(".displayBars").transition().duration(300)
+      this.svg.selectAll(".displayBars").transition().duration(300)
            .attr("height", function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?2:d.nodes[view][1];})
            .attr("y", function (d){return d.nodes[view][0];});
-           //.style("fill",function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?ref.zeroBarColour:ref.barColour;});
+
+    if (this.showZeroValues==1){
+           this.svg.selectAll(".displayBars") .style("fill",function (d){return (d.nodes[view][1]==0)?ref.zeroBarColour:ref.displayColour;});
+       }
 
        //Re-draw the hint path (if id is specified)
        if (id!=-1){
@@ -675,11 +715,11 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
     var ref = this;
 
    //Draw a white underlayer
-   this.svg.select("#hintPath").append("path")
+  /** this.svg.select("#hintPath").append("path")
         .attr("d", this.hintPathGenerator(ref.pathData))
         .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
         .attr("transform","translate("+(-translate)+")")
-        .attr("id","underLayer").attr("clip-path","url(#clip)");
+        .attr("id","underLayer").attr("clip-path","url(#clip)");*/
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("path")
@@ -705,7 +745,6 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)})
         .attr("transform", "translate("+(-translate)+")")
         .attr("id",function (d) {return "hintLabel"+ d.id})
-        .attr("clip-path","url(#clip)")
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
 }
 /** Clears the hint path by removing its components from the svg

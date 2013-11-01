@@ -38,12 +38,10 @@ body {
     stroke:none;
 }
 
-
 /*The interaction path (sine wave)*/
 .interactionPath{
  stroke-dasharray:3,3;
  fill: none;
- /**stroke: #c7c7c7;  */
  stroke:#969696;
 }
 /*The anchor along the interaction path */

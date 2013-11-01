@@ -282,7 +282,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
         this.timeDirection = this.findTimeDirection(t);
         this.interpValue = t; //Save the interpolation amount
         if (this.hintPathType ==1){
-            redrawSmallHintPath(this,[],0);
+           // redrawSmallHintPath(this,[],0);
         }
     }
     return newPoint;
@@ -536,7 +536,7 @@ Scatterplot.prototype.snapToView = function( id, points) {
  * */
 Scatterplot.prototype.redrawView = function(view) {
     if (this.hintPathType==1){
-        hideSmallHintPath(this);
+       // hideSmallHintPath(this);
     }else{
         this.hideAnchor();
         //Re-colour the hint path labels
@@ -564,7 +564,7 @@ Scatterplot.prototype.selectPoint = function (id,points){
     if (this.hintPathType ==0){
         this.drawHintPath(drawingView,points);
     }else{
-        drawSmallHintPath(this,0,points,true);
+        //drawSmallHintPath(this,0,points,true);
     }
 
     //Fade out the other points using a transition

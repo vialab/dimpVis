@@ -7,13 +7,13 @@
  * colour: the colour of the slider
  * spacing: spacing between ticks (in pixels)
  */
-function Slider(x, y, labels,description,colour,spacing) {
+function Slider(x, y, description,colour,spacing) {
    // Save the position, size and display properties
    this.xpos = x;
    this.ypos = y;
-   this.numTicks  = labels.length;
+   this.numTicks  = 0;
    this.title = description;
-   this.tickLabels = labels;
+   this.tickLabels = [];
    this.displayColour = colour;
    this.tickSpacing = spacing;
    this.sliderOffset = x+(description.length*20); //Font size of title is 20px
@@ -34,16 +34,7 @@ function Slider(x, y, labels,description,colour,spacing) {
   //Save the mouse coordinates as logged data
    this.mouseX = 0;
    this.mouseY= 0;
-
-   //Generate an array of x locations for each tick
-   this.tickPositions = []; //All x locations of the ticks on the slider
-   for (var i=0; i < this.numTicks; i++){
-       if (i==0){
-	        this.tickPositions[i] = this.sliderOffset;
-	   }else {
-	         this.tickPositions[i] =  this.tickPositions[i-1] + this.tickSpacing;
-	   }      
-   }     
+   this.tickPositions = [];
 }
 /** Append a blank svg and g container to the div tag indicated by "id", this is where the widget
  *  will be drawn.
@@ -56,11 +47,24 @@ Slider.prototype.init = function() {
 /** Render the widget onto the svg
  *  Note: no data set is required because it was automatically generated in the constructor
  * */
-Slider.prototype.render = function() {
+Slider.prototype.render = function(labels) {
    var ref = this;
+    this.numTicks  = labels.length;
+    this.tickLabels = labels;
 
-   //Add the title beside the slider
+    //Generate an array of x locations for each tick
+    this.tickPositions = []; //All x locations of the ticks on the slider
+    for (var i=0; i < this.numTicks; i++){
+        if (i==0){
+            this.tickPositions[i] = this.sliderOffset;
+        }else {
+            this.tickPositions[i] =  this.tickPositions[i-1] + this.tickSpacing;
+        }
+    }
+
+    //Add the title beside the slider
    this.widget.append("text").text(this.title).attr("class","slider")
+       .attr("id","sliderTitle")
       .attr("x",0).attr("y",20).attr("fill",this.displayColour)
       .style("font-family", "sans-serif").style("font-size","20px");
 
@@ -81,14 +85,14 @@ Slider.prototype.render = function() {
    //Draw the labels for each tick
    this.widget.selectAll("g").append("svg:text")
       .text(function(d) { return d.label; })
-	  .attr("x", function(d) {return d.value}).attr("y", 37)
-	  .style("font-family", "sans-serif").style("font-size", "12px")
+	  .attr("x", function(d) {return d.value}).attr("y", 0)
+	  .style("font-family", "sans-serif").style("font-size", "18px")
 	  .style("fill", function (d,i){
 	       if (ref.tickLabels.length >25){ //Only display every 5 labels to reduce clutter
-		      if (i%5 ==0) return ref.displayColour;
+		      if (i%5 ==0) return "#EDEDED";
 			  else return "none";
 		   }
-		   return ref.displayColour;
+		   return "#EDEDED";
 	   }).attr("text-anchor","middle").attr("class","tickLabels");
 
    //Draw a long line through all ticks

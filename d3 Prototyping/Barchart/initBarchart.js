@@ -2,9 +2,9 @@
  * */
 
 //Add a main svg which all visualization elements will be appended to
- d3.select("#bargraph").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",900).on("click",function(){
+ d3.select("#bargraph").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",900);/**.on("click",function(){
      barchart.clearHintPath();
- });
+ });*/
 
 //Create new barchart visualization
 var barchart   = new Barchart(400, 50, 80);
@@ -26,15 +26,17 @@ d3.select("#progressForm").selectAll("input").on("change", function change() {
 
 barchart.init();
 
-setHintPathType(barchart,1);
+//setHintPathType(barchart,1);
 
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
-    d3.event.stopPropagation();
-    d3.event.preventDefault();
+   d3.event.stopPropagation();
+    console.log("clicked");
+  //  d3.event.preventDefault();
     barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
     changeView(barchart,i);
     slider.updateSlider(i);
+
 };
 barchart.render(dataset,labels,"","","");
 
