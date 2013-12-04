@@ -40,7 +40,7 @@
    this.mouseY = 0;
    this.mouseX = 0;
    this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
-   this.peakTolerance = 10; //Tolerance frame applied on peaks of hint path
+   this.peakTolerance = 0; //Tolerance frame applied on peaks of hint path
 
    //Variables used for handling ambiguity
    this.ambiguousBars = [];
@@ -142,7 +142,7 @@ this.svg.selectAll("rect")
 	 .attr("id", function (d){return "gDisplayBars"+d.id;});
 
    //Save the labels for the x-axis
-   this.xLabels = this.svg.selectAll(".gDisplayBars").data().map(function (d){return ""});
+   this.xLabels = this.svg.selectAll(".gDisplayBars").data().map(function (d){return d.label});
 
    //Draw the axes
    yScale =  d3.scale.linear().domain([max_h,0]).range([0,ref.height]); //Reverse the scale to get the corect axis display

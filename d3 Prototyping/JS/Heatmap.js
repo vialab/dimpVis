@@ -1,16 +1,12 @@
 /** Constructor for a heatmap visualization
- * x: the left margin
- * y: the right margin
+ * p: the margins
  * cs: pixel size of the cells
- * id: id of the div tag to append the svg container
  * title: of the chart
  * hLabels: labels to appear along the hint paths
  */
-function Heatmap(x, y, cs, id,title,hLabels) {
+function Heatmap(p, cs,title,hLabels) {
    // Position and size attributes
-   this.xpos = x;
-   this.ypos = y;
-   this.id = id;
+   this.padding = p;
    this.cellSize = cs;
    this.chartTitle = title;
    this.svg = null;
@@ -51,6 +47,7 @@ function Heatmap(x, y, cs, id,title,hLabels) {
    this.labels = hLabels;
    this.xSpacing = 50; //Spacing across x for hint path
    this.ySpacing = 10; //Spacing for the y of hint path
+   this.colours = [];
 
    //Declare some interaction event functions
    this.dragEvent = {};
@@ -71,11 +68,15 @@ function Heatmap(x, y, cs, id,title,hLabels) {
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Heatmap.prototype.init = function() {
-    this.svg = d3.select(this.id)
+    /**this.svg = d3.select(this.id)
       .append("svg").attr("id","mainSvg")
       .on("click",this.clickSVG)
       .append("g")
-      .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");
+      .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");*/
+
+   this.svg = d3.select("#mainSvg")
+        .append("g").attr("id","gHeatmap")
+        .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
    this.svg.append("svg:defs").append("svg:filter")
       .attr("id", "blur").append("svg:feGaussianBlur")
@@ -85,18 +86,24 @@ Heatmap.prototype.init = function() {
        .attr("id", "blur2").append("svg:feGaussianBlur")
        .attr("stdDeviation", 1);
 }
+/**Calls the util function to draw a legend on the screen
+ * x,y: position of the legend on the screen
+ * */
+Heatmap.prototype.showLegend = function(colourLabels,x,y){
+    drawColourLegend(this,this.colours,colourLabels,x,y,30,15,1.2);
+}
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
  * xLabels: an array of labels to appear on the x-axis
  * yLabels: an array of labels to appear on the y-axis
- * colours: 1D array of colours to map the values to
  *
  * Data MUST be provided in the following array format:
  * data = [{"row","column",[colour values for all views]}...number of cells]
  * */
-Heatmap.prototype.render = function(data,xLabels,yLabels,colours) {
+Heatmap.prototype.render = function(data,xLabels,yLabels) {
     var ref = this;
 
+    this.colours = colorbrewer.YlOrRd[7];
     //Set the width and height of the svg, now that the dimensions are known
     this.width = xLabels.length*this.cellSize+100;
     this.height = yLabels.length*this.cellSize+100;
@@ -108,11 +115,11 @@ Heatmap.prototype.render = function(data,xLabels,yLabels,colours) {
     var maxScore = d3.max(data.map(function (d){return d3.max(d.values); }));
     var minScore = d3.min(data.map(function (d){return d3.min(d.values); }));
 
-    var generateColour = d3.scale.quantize().domain([minScore,maxScore]).range(colours);
+    var generateColour = d3.scale.quantize().domain([maxScore,minScore]).range(this.colours);
 
     //Find the hint y value (of the colour along the colour scale)
     var hintYOffset = d3.scale.quantize().domain([minScore,maxScore])
-        .range(colours.map(function(d,i){return i;}).reverse());//Lower colours on scale have lower offsets
+        .range(ref.colours.map(function(d,i){return i;}).reverse());//Lower colours on scale have lower offsets
                                                                 //Which means drag up to reach higher scores (darker colours)
     //Draw the cells for each entry in the heatmap
     //The allValues array contains information for drawing the cells and drawing the hint path
@@ -204,7 +211,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
     this.svg.selectAll(".axisVertical").data(yLabels)
         .enter().append("svg:text")
         .text(function(d) {return d;})
-        .attr("x",this.xpos+this.width-100)
+        .attr("x",this.padding+this.width-100)
         .attr("y",function (d,i){return ref.cellSize*i+ref.cellSize/2;})
         .attr("class","axisVertical").attr("class","axis");
 
@@ -213,7 +220,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
         .text(function(d) { return d;})
         .attr("transform",function (d,i) {
             return "translate("+(ref.cellSize*i+ref.cellSize/2)+
-                ","+(ref.ypos+ref.height-100)+") rotate(-65)";
+                ","+(ref.padding+ref.height-100)+") rotate(-65)";
         }).attr("class","axisHorizontal").attr("class","axis");
 }
 /** Compares the vertical distance of the mouse with the two bounding views (using the

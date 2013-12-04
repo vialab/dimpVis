@@ -2,20 +2,18 @@
  * */
 
 //Add a main svg which all visualization elements will be appended to
-d3.select("#piegraph").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",1000).on("click",function(){
+
+d3.select("#piegraph").append("svg").attr("id","mainSvg").on("click",function(){
     piechart.clearHintPath();
 });
 
 //Create a new piechart visualization
-var piechart   = new Piechart(50, 50 , 180,"#piegraph","Random",labels);
-
+var piechart   = new Piechart(20 , 180,"Secondary School Averages of Full Time, First Year Science Students",labels);
 
 window.onload = function (){
     piechart.useMobile = checkDevice();
+    d3.select("#mainSvg").attr("width",window.innerWidth).attr("height",window.innerHeight);
 }
-
-var colours = colorbrewer.Set2[3]; //Use scale from color brewer
-var colourLabels = ["Segment A","Segment B","Segment C"];
 
 //Define the function when the SVG (background) is clicked, should clear the hint path displayed
 piechart.clickSVG = function (){
@@ -23,10 +21,10 @@ piechart.clickSVG = function (){
 };
 //Initialize and render the piechart visualization
 piechart.init();
-setHintPathType(piechart,1);
-piechart.render(data,colours);
+//setHintPathType(piechart,1);
+piechart.render(data);
+piechart.showLegend(500,100);
 
-drawColourLegend(piechart,colours,colourLabels,220,10,30,15,1.2);
 
 //Define the function for fast-forwarding the view by clicking on any label along the hint path
 piechart.clickHintLabelFunction = function (d,i){
@@ -66,7 +64,7 @@ piechart.dragEvent = d3.behavior.drag()
 piechart.svg.selectAll(".displayArcs").call(piechart.dragEvent);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(50, 700, labels, "Time","#666",40);
+var slider   = new Slider(90, 600, labels, "","#666",50);
 slider.init();
 slider.render();
 

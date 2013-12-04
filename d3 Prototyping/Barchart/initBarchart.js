@@ -2,15 +2,17 @@
  * */
 
 //Add a main svg which all visualization elements will be appended to
- d3.select("#bargraph").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",900);/**.on("click",function(){
-     barchart.clearHintPath();
- });*/
+d3.select("#bargraph").append("svg").attr("id","mainSvg").on("click",function(){
+    barchart.clearHintPath();
+ });
 
 //Create new barchart visualization
 var barchart   = new Barchart(400, 50, 80);
 
 window.onload = function (){
     barchart.useMobile = checkDevice();
+    d3.select("#mainSvg").attr("width",window.innerWidth).attr("height",window.innerHeight);
+    //alert(window.innerHeight+" "+window.innerWidth);
 }
 
 //Toggle the type of indicator displayed when dragging along the sine wave
@@ -31,14 +33,13 @@ barchart.init();
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
    d3.event.stopPropagation();
-    console.log("clicked");
   //  d3.event.preventDefault();
     barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
     changeView(barchart,i);
     slider.updateSlider(i);
 
 };
-barchart.render(dataset,labels,"","","");
+barchart.render(dataset,labels,"Student Enrollment Over The Years At UOIT","Program","Total Enrollment (Bachelors Degree, Full Time)");
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
@@ -66,7 +67,7 @@ barchart.dragEvent = d3.behavior.drag()
 barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(50, 550, labels, "Time","#666",110);
+var slider   = new Slider(50, 650, labels, "","#666",110);
 slider.init();
 slider.render();
 

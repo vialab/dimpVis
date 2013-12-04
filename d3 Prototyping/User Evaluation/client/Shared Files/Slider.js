@@ -102,7 +102,7 @@ Slider.prototype.render = function(labels) {
        .attr("height", ref.sliderHeight).attr("fill", ref.displayColour);
 
  //Draw a triangle draggable tick
-  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(500))
+  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(600))
       .attr("transform", "translate(" +ref.sliderPos + "," + ref.tickYPos + ")")
       .attr("fill", ref.displayColour).style("stroke","#BDBDBD").style("stroke-width",2)
       .style("cursor", "pointer").attr("id","slidingTick").attr("class","slider");

@@ -1,24 +1,33 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
-    <title>User Evaluation</title>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-    <link rel="stylesheet" type="text/css" href="../CSS/runExperimentStyles.css" />
-    <script type="text/javascript" src="Shared Files/d3.js"></script>
-    <script>
+
+<meta name="google" value="notranslate" /> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+<style>
+html, body {
+	margin: 20px;
+	padding: 0px;
+	font-family:Verdana, Geneva, sans-serif;
+	background-color: #1a1a1a;
+	text-align: center;
+}
+
+</style>
+ <script>
         function startExperiment()
         {
-           console.log("starting experiment...");
-           /**d3.xhr("http://localhost:8080/startExperiment", function(d) {
-           });*/// Currently a blank request to server..
-
-           window.location = "BarchartExperiment/Barchart.html";
+            console.log("starting experiment...");
+            window.location = "BarchartExperiment/Barchart.html";
         }
-    </script>
+ </script>
+ <link href="../CSS/runExperimentStyles.css" rel="stylesheet" type="text/css">
+<link href="Video/introVideo_embed.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-    <h1>[Show brief video explaining what a time-varying visualization is and ambiguous cases?]</h1>
-    <button class="buttons" onclick="startExperiment()">Start</button>
+<iframe class="tscplayer_inline" name="tsc_player" src="Video/introVideo_player.html" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+<button class="buttons" onclick="startExperiment()">Start Experiment</button>
 </body>
 </html>

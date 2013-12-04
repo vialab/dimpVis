@@ -1,16 +1,20 @@
 /** This file creates and coordinates a heatmap and a slider according to the provided dataset
  * */
-
-//Create new heatmap visualization
-var heatmap = new Heatmap(30, 30,50,"#vis","Random",labels);
-
-heatmap.clickSVG = function (){
+//Add a main svg which all visualization elements will be appended to
+d3.select("#heatmap").append("svg").attr("id","mainSvg").on("click",function(){
     d3.event.preventDefault();
     heatmap.clearHintPath();
-};
+});
+window.onload = function (){
+    //TODO:barchart.useMobile = checkDevice();
+    d3.select("#mainSvg").attr("width",window.innerWidth).attr("height",window.innerHeight);
+    //alert(window.innerHeight+" "+window.innerWidth);
+}
+//Create new heatmap visualization
+var heatmap = new Heatmap(30,25,"Network of Student Relationships over Time (Gerhard van de Bunt)",labels);
 
 heatmap.init();
-setHintPathType(heatmap,1);
+//setHintPathType(heatmap,1);
 
 heatmap.clickHintLabelFunction = function (d, i){
     d3.event.stopPropagation();
@@ -19,12 +23,8 @@ heatmap.clickHintLabelFunction = function (d, i){
     changeView(heatmap,i);
     slider.updateSlider(i);
 };
-
-var colours = colorbrewer.YlOrRd[5];
-var colourLabels = ["rgb(254,224,139)","rgb(253,174,97)","rgb(244,109,67)","rgb(215,48,39)","rgb(165,0,38)"];
-heatmap.render(data,xLabels,yLabels,colours);
-
-//drawColourLegend(heatmap,colours,colourLabels,220,10,heatmap.cellSize/3,heatmap.cellSize/3,1);
+heatmap.render(data,xLabels,yLabels);
+heatmap.showLegend(legendLabels,5,200);
 
 //Define the function to respond to the dragging behaviour of the cells
 heatmap.dragEvent = d3.behavior.drag()
@@ -50,7 +50,7 @@ heatmap.dragEvent = d3.behavior.drag()
 heatmap.svg.selectAll(".cell").call(heatmap.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(10, 300, "#time",labels, "Time","#666",20);
+var slider   = new Slider(50, 750, labels, "","#666",50);
 slider.init();
 slider.render();
 //Define the function to respond to the dragging behaviour of the slider tick

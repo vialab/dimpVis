@@ -34,7 +34,7 @@ body {
     padding:10px 26px;
     text-shadow:1px 1px 0px #ffffff;
 }
-#submitButton{
+#submitButton, #showVisButton{
     font-size:40px;
 }
 /**Main side panel */
@@ -122,7 +122,6 @@ body {
     color:#EDEDED;
     font-family: sans-serif;
     font:verdana;
-    font-size:50px;
     font-weight:bold;
     margin:20px;
     display:none;
@@ -131,19 +130,12 @@ body {
     float:left;
 }
 
-#doneTutorialButton{
-    font-size:40px;
-    height:100px;
-    width:300px;
-    margin-left:1700px;
-}
 /**Animated gif showing how to use the visualization */
 #tutorialImages{
     float:left;
 }
 #ambiguousTutorial{
     float:left;
-    margin-top:400px;
     border:20px solid #1C1C1C;
     display:none;
 }
@@ -153,19 +145,12 @@ body {
 }
 #hintPathExplanation{
     float:right;
-    height:400px;
-    width:460px;
-
 }
 #ambiguousExplanation{
     float:right;
 }
 #ambiguousGif{
     float:left;
-}
-#readyMsg{
-    margin-left:1700px;
-    margin-top:900px;
 }
 
 /**Styles for the questionnaire screen */

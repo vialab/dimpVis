@@ -1,24 +1,17 @@
 /** Constructor for a scatterplot visualization
- * x: the left margin
- * y: the right margin
- * w: width of the svg container
- * h: height of the svg container
- * id: id of the div tag to append the svg container
+ * w: width of the graph
+ * h: height of the graph
  * p: a padding value, to format the axes
- * r: the radius of the scatterplot points
  * xLabel: label for the x-axis
  * yLabel: label for the y-axis
  * title: of the graph
 */
-function Scatterplot(x, y, w, h, id,p,r,xLabel,yLabel,title) {
+function Scatterplot(w, h,p,xLabel,yLabel,title) {
    // Position and size attributes for drawing the svg
-   this.xpos = x;
-   this.ypos = y;
-   this.id = id; 
    this.padding = p;
    this.width = w;
    this.height = h;
-   this.pointRadius = r;
+   this.pointRadius = 6;
    this.loopRadius = 50;
    this.xLabel = xLabel;
    this.yLabel = yLabel;
@@ -75,11 +68,16 @@ Scatterplot.prototype.init = function() {
     //Add the blur filter used for the hint path to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blur").append("svg:feGaussianBlur")
-        .attr("stdDeviation", 4);
+        .attr("stdDeviation", 2);
 
     //Add the blur filter for interaction loops
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blurLoop").append("svg:feGaussianBlur")
+        .attr("stdDeviation", 2);
+
+    //Add the blur filter for the partial hint path
+    this.svg.append("svg:defs").append("svg:filter")
+        .attr("id", "blur2").append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
 }
 /** Render the visualization onto the svg
@@ -282,7 +280,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
         this.timeDirection = this.findTimeDirection(t);
         this.interpValue = t; //Save the interpolation amount
         if (this.hintPathType ==1){
-           // redrawSmallHintPath(this,[],0);
+          redrawPartialHintPath_line(this,this.ambiguousPoints);
         }
     }
     return newPoint;
@@ -564,7 +562,8 @@ Scatterplot.prototype.selectPoint = function (id,points){
     if (this.hintPathType ==0){
         this.drawHintPath(drawingView,points);
     }else{
-        //drawSmallHintPath(this,0,points,true);
+        drawPartialHintPath_line(this,0,points);
+        redrawPartialHintPath_line(this,this.ambiguousPoints);
     }
 
     //Fade out the other points using a transition

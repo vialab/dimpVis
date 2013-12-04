@@ -1,24 +1,21 @@
 /** Constructor for a piechart visualization
- * x: the left margin
+ * p: the margin width
  * y: the right margin
  * r: radius of the piechart
- * id: id of the div tag to append the svg container
  * title: of the graph
  * hLabels: A list of labels for the hint path, indicating all the different views of the visualization
  */
-function Piechart(x,y, r,id,title,hLabels){
+function Piechart(p, r,title,hLabels){
     //Save some display properties
-   this.xPos = x;
-   this.yPos = y;
+   this.padding = p;
    this.graphTitle = title;
-   this.id = id;
    this.radius = r;
    this.labelOffset = r;
    this.hintRadiusSpacing = 25;
 
    //Height and width of SVG can be calculated based on radius
-   this.width = x + r*5;
-   this.height = y + r*5;
+   this.width = this.padding + r*5;
+   this.height = this.padding + r*5;
    this.cx = this.width/3; //Center of the piechart
    this.cy = this.height/3;
 
@@ -27,9 +24,10 @@ function Piechart(x,y, r,id,title,hLabels){
    this.corners = [];  //Corners of the hint path
    this.labels = hLabels;
    this.numArcs = -1; //Total number of arcs in the piechart
-
+   this.segmentLabels = [];
    this.hintPathType = 0;
    this.useMobile = false;
+   this.colours = 0;
 
    //View index tracker variables
    this.currentView = 0; //Starting view of the piechart (first year)
@@ -88,7 +86,7 @@ function Piechart(x,y, r,id,title,hLabels){
 Piechart.prototype.init = function(){
    this.svg = d3.select("#mainSvg")
        .append("g").attr("id","gPiechart")
-       .attr("transform", "translate(" + this.xPos + "," + this.yPos + ")");
+       .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
    //Add blur filters to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
@@ -102,24 +100,22 @@ Piechart.prototype.init = function(){
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
  * start: The starting view of the visualization, as an index into the labels array
- * colours: an array of colours for the piechart, if none is specified (empty array), use a default
  * Data MUST be provided in the following array format:
- * Object{"values":{v1,v2...vn},
+ * Object{"values":{v1,v2...vn}, //Values are between 0 and 1
  *        "label":"name of pie segment" } ..... number of pie segments
  * */
- Piechart.prototype.render = function(data,colours){
+ Piechart.prototype.render = function(data){
       var ref = this;
 	  this.numArcs = data.length-1;
-
-      var colourScale = d3.scale.category20();
+      this.colours = colorbrewer.Set2[data.length];
+      var colourScale;
      //Create a colour scale for the pie segments
-     if (colours.length >0){
-         if (this.numArcs <= colours.length){
-             colourScale = d3.scale.quantize().domain([0,this.numArcs]).range(colours);
-         }else{
-             colourScale = d3.scale.linear().domain([0,this.numArcs]).range(colours);
-         }
+     if (this.numArcs <= this.colours.length){
+         colourScale = d3.scale.quantize().domain([0,this.numArcs]).range(this.colours);
+     }else{
+         colourScale = d3.scale.linear().domain([0,this.numArcs]).range(this.colourscolours);
      }
+
 	//Assign the data to the paths drawn as pie segments
 	this.svg.selectAll("path").data(data.map(function (d,i) {
                  var angles = [];
@@ -127,6 +123,7 @@ Piechart.prototype.init = function(){
                 for (var j=0;j< ref.numViews;j++){
                     angles[j] = d.values[j]*ref.twoPi;
                 }
+                ref.segmentLabels[i] = d.label;
                 return {nodes:angles,label:d.label,id:i,startAngle:0,endAngle:0,colour:colourScale(i)};
           }))
          .enter().append("g").attr("class","gDisplayArcs");
@@ -673,10 +670,10 @@ Piechart.prototype.drawHintPath = function (id,view){
     var hintPathArcString = this.createArcString(this.hintArcInfo,false);
 
     //Render white path under the main hint path
-    this.svg.select("#hintPath").append("path")
+    /**this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","pathUnderlayer").attr("class","path")
-        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"});
+        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"});*/
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")
@@ -707,7 +704,13 @@ Piechart.prototype.drawHintPath = function (id,view){
 
    this.hintArcInfo = [];
 }
-/** Angle has to be converted to match the svg rotate standard coordinate system: (offset by 90 deg)
+/**Calls the util function to draw a legend on the screen
+ * x,y: position of the legend on the screen
+ * */
+Piechart.prototype.showLegend = function(x,y){
+    drawColourLegend(this,this.colours,this.segmentLabels,x,y,30,15,1.2);
+}
+ /** Angle has to be converted to match the svg rotate standard coordinate system: (offset by 90 deg)
  *  source: http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
 */
 Piechart.prototype.convertAngle = function (angle){

@@ -1,9 +1,10 @@
 /** This file is draws the interactive visualizations involved in the barchart experiment
  * */
 
-
+var svgWidth = 1540;
+var svgHeight = 1200;
 //Add a main svg which all visualization elements will be appended to
-d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",1540).attr("height",1200).style("display","block");
+d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",svgWidth).attr("height",svgHeight).style("display","block");
 
 //////////////////////Create a barchart visualization//////////////////////
 
@@ -85,8 +86,8 @@ var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
 var realDataXLabel = "Program";
 var realDataTitle = "Student Enrollment Over The Years At UOIT";
 
-d3.select("#mainSvg").append("image").attr("xlink:href","pointingHand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
-    .attr("id","hand");
+/**d3.select("#mainSvg").append("image").attr("xlink:href","../CSS/hand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
+    .attr("id","hand");*/
 
 //////////////////////////Testing a tutorial idea /////////////////////////////////////
 

@@ -14,8 +14,8 @@ function Multiples(spacing,size) {
     this.marginWidth = 15; //Margins around the entire display
     this.baseOffset = 10; //Offset of the base of the bars
     this.backgroundColour = "#2C2D2D";    //Behind the visualization
-    this.imageBorderColour = "black";
-    this.highlightColour = "white"; //Highlight the border of the image when its clicked
+    this.imageBorderColour = "#1C1C1C";
+    this.highlightColour = "#EDEDED"; //Highlight the border of the image when its clicked
 }
 /**Initializes the container which will hold the multiples display (in the main svg)
  * */

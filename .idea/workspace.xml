@@ -1,0 +1,1524 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" line="356" />
+    <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" line="637" />
+    <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Slider.js" line="239" />
+    <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js" line="120" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="09daffa6-4579-40cc-9aab-b801be98a107" name="Default" comment="Created a set of 20 tasks for one data set, added some more data logging events">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/.name" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dimpVis.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Images/exploratory.gif" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Images/fastForwarding.gif" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Images/fastforwarding.PNG" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Images/partialHintPath.pptx" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Images/zeroBar.PNG" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/CSS/hand.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/introVideo.mp4" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/introVideo_First_Frame.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/introVideo_Thumbnails.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/introVideo_controller.swf" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/skins/overlay/spritesheet.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/Datasets/AdmissionAveragesData_piechart.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/Datasets/VanDeBuntNetwork.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_info.txt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_log0.txt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_solutions0.txt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/CSS/hand.svg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/introVideo_config.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/introVideo_embed.css" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/introVideo_player.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/scripts/config_xml.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/scripts/handlebars.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/scripts/jquery-1.7.1.min.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/scripts/jquery-ui-1.8.15.custom.min.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/scripts/modernizr.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/scripts/player-min.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/scripts/swfobject.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Video/skins/overlay/player-min.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Images/multiples.gif" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Images/multiples.gif" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/.idea/workspace.xml" afterPath="$PROJECT_DIR$/d3 Prototyping/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Barchart/initBarchart.js" afterPath="$PROJECT_DIR$/d3 Prototyping/Barchart/initBarchart.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/CSS/barchartStyles.css" afterPath="$PROJECT_DIR$/d3 Prototyping/CSS/barchartStyles.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/CSS/heatmapStyles.css" afterPath="$PROJECT_DIR$/d3 Prototyping/CSS/heatmapStyles.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/CSS/piechartStyles.css" afterPath="$PROJECT_DIR$/d3 Prototyping/CSS/piechartStyles.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css" afterPath="$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Colours/index.html" afterPath="$PROJECT_DIR$/d3 Prototyping/Colours/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Colours/initHeatmap.js" afterPath="$PROJECT_DIR$/d3 Prototyping/Colours/initHeatmap.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/JS/Barchart.js" afterPath="$PROJECT_DIR$/d3 Prototyping/JS/Barchart.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/JS/Heatmap.js" afterPath="$PROJECT_DIR$/d3 Prototyping/JS/Heatmap.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/JS/Piechart.js" afterPath="$PROJECT_DIR$/d3 Prototyping/JS/Piechart.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" afterPath="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/JS/partialHintPath.js" afterPath="$PROJECT_DIR$/d3 Prototyping/JS/partialHintPath.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Piechart/index.html" afterPath="$PROJECT_DIR$/d3 Prototyping/Piechart/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Piechart/initPiechart.js" afterPath="$PROJECT_DIR$/d3 Prototyping/Piechart/initPiechart.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html" afterPath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" afterPath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Barchart.html" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Barchart.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Tasks.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Tasks.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/runBarchart.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/runBarchart.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/CSS/runExperimentStyles.css" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/CSS/runExperimentStyles.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/CSS/scatterplotStyles.css" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/CSS/scatterplotStyles.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/Multiples.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/Multiples.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/Slider.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/Slider.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/runExperiment.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/runExperiment.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/index.html" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js" />
+    </list>
+    <ignored path="dimpVis.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="C:\Users\brittany\Documents\dimpVis" />
+  </component>
+  <component name="DaemonCodeAnalyzer">
+    <disable_hints />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="dimpVis" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file leaf-file-name="heatmapStyles.css" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/heatmapStyles.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="24" column="15" selection-start="479" selection-end="479" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="barchartStyles.css" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/barchartStyles.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="14" column="15" selection-start="334" selection-end="347" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="initHeatmap.js" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/Colours/initHeatmap.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="13" column="31" selection-start="607" selection-end="607" vertical-scroll-proportion="0.1713948">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="index.html" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/Colours/index.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="15" column="27" selection-start="753" selection-end="753" vertical-scroll-proportion="-9.807693">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="randomDataHeatmap.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/Datasets/randomDataHeatmap.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="36" column="0" selection-start="2530" selection-end="2587" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="VanDeBuntNetwork.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/Datasets/VanDeBuntNetwork.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="554" column="0" selection-start="17876" selection-end="17876" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="initBarchart.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/Barchart/initBarchart.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="34" column="30" selection-start="1219" selection-end="1219" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Heatmap.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Heatmap.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="177" column="34" selection-start="8089" selection-end="8089" vertical-scroll-proportion="-7.88">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindManager">
+    <FindUsagesManager>
+      <setting name="OPEN_NEW_TAB" value="false" />
+    </FindUsagesManager>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitLogSettings">
+    <option name="myStructureFilterPaths" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="changedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/CSS/runExperimentStyles.css" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Piechart/index.html" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Datasets/AdmissionAveragesData_piechart.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/CSS/barchartStyles.css" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/CSS/piechartStyles.css" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Piechart/initPiechart.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/JS/Piechart.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/CSS/heatmapStyles.css" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Colours/index.html" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/JS/Heatmap.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Datasets/VanDeBuntNetwork.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Barchart/initBarchart.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Colours/initHeatmap.js" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="1936" />
+    <option name="height" value="1056" />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <expanded-state>
+          <State>
+            <id />
+          </State>
+          <State>
+            <id>DOM issuesJavaScript</id>
+          </State>
+          <State>
+            <id>GeneralJavaScript</id>
+          </State>
+          <State>
+            <id>HTML</id>
+          </State>
+          <State>
+            <id>JavaScript</id>
+          </State>
+          <State>
+            <id>JavaScript function metricsJavaScript</id>
+          </State>
+        </expanded-state>
+      </profile-state>
+    </entry>
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectReloadState">
+    <option name="STATE" value="0" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents ProjectPane="true" />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+    </navigator>
+    <panes>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="User Evaluation" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="User Evaluation" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="client" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Piechart" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="JS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Datasets" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="CSS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Colours" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Barchart" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="282" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="282" />
+    <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="282" />
+    <property name="recentsLimit" value="5" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="282" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="940" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="940" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="283" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="281" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
+    <property name="options.lastSelected" value="web.server" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="DefaultHtmlFileTemplate" value="Html" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="options.searchVisible" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\brittany\Documents\dimpVis\d3 Prototyping\User Evaluation\client" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Node JS.server.js">
+    <configuration default="false" name="server.js" type="NodeJSConfigurationType" factoryName="Node JS" temporary="true" path-to-node="C:/Program Files (x86)/nodejs/node" path-to-js-file="$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js" working-dir="$PROJECT_DIR$" coffeescript-run="false">
+      <RunnerSettings RunnerId="NodeJS.debug" />
+      <ConfigurationWrapper RunnerId="NodeJS.debug" />
+      <method />
+    </configuration>
+    <configuration default="true" type="NodeJSConfigurationType" factoryName="Node JS" working-dir="$PROJECT_DIR$" coffeescript-run="false">
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugSession" factoryName="Local">
+      <JSDebuggerConfigurationSettings>
+        <option name="engineId" value="embedded" />
+        <option name="fileUrl" />
+      </JSDebuggerConfigurationSettings>
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Node JS.server.js" />
+    </list>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="SvnConfiguration" maxAnnotateRevisions="500" myUseAcceleration="nothing" myAutoUpdateAfterCommit="false" cleanupOnStartRun="false">
+    <option name="USER" value="" />
+    <option name="PASSWORD" value="" />
+    <option name="mySSHConnectionTimeout" value="30000" />
+    <option name="mySSHReadTimeout" value="30000" />
+    <option name="LAST_MERGED_REVISION" />
+    <option name="MERGE_DRY_RUN" value="false" />
+    <option name="MERGE_DIFF_USE_ANCESTRY" value="true" />
+    <option name="UPDATE_LOCK_ON_DEMAND" value="false" />
+    <option name="IGNORE_SPACES_IN_MERGE" value="false" />
+    <option name="DETECT_NESTED_COPIES" value="true" />
+    <option name="CHECK_NESTED_FOR_QUICK_MERGE" value="false" />
+    <option name="IGNORE_SPACES_IN_ANNOTATE" value="true" />
+    <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true" />
+    <option name="FORCE_UPDATE" value="false" />
+    <option name="IGNORE_EXTERNALS" value="false" />
+    <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="09daffa6-4579-40cc-9aab-b801be98a107" name="Default" comment="" />
+      <created>1366662209801</created>
+      <updated>1366662209801</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Added minimal distance function for projecting a dragged point onto line segment">
+      <created>1366662426675</created>
+      <updated>1366662426675</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Re-implemented the dragged point function in Scatterplot.js to use minimum distance function">
+      <created>1366664593313</created>
+      <updated>1366664593313</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Changed the animation and started to change the appending of the hint path">
+      <created>1366666236379</created>
+      <updated>1366666236379</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Added multiple chained transitions to animate the points when a hint path label is clicked on the scatterplot">
+      <created>1366734144329</created>
+      <updated>1366734144329</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Changed the animatePoints function to handle reverse animations, but it is still pretty buggy">
+      <created>1366740918469</created>
+      <updated>1366740918469</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Starting to implement the ambiguous case detection for scatterplot">
+      <created>1366748771577</created>
+      <updated>1366748771577</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Detecting ambiguous points in the scatterplot and tagging them by type">
+      <created>1367005382340</created>
+      <updated>1367005382340</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Trying to identify and separate different groups of stationary points, putting the points in separate arrays">
+      <created>1367009410559</created>
+      <updated>1367009410559</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Created small data subsets for drawing interaction loops to facilitate interaction with stationary points on the scatterplot">
+      <created>1367254467358</created>
+      <updated>1367254467358</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Drawing dashed loops to show stationary points on scatterplot">
+      <created>1367263651672</created>
+      <updated>1367263651672</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Changed label positioning for revisiting points on scatterplot">
+      <created>1367268543447</created>
+      <updated>1367268543447</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Drawing labels along interaction loop for stationary points">
+      <created>1367337291228</created>
+      <updated>1367337291228</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Fixed problem with snapping to views: dragend event has undefined mouse coordinates resulting in a null distance calculation">
+      <created>1367345855641</created>
+      <updated>1367345855641</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Small changes to the slider, specifically fixed the same dragend bug and added some comments">
+      <created>1367349445818</created>
+      <updated>1367349445818</updated>
+    </task>
+    <task id="LOCAL-00015" summary="For the scatterplot: fixed the axis colouring problem, repositioned the title">
+      <created>1367355439632</created>
+      <updated>1367355439632</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Starting to clean up the bar chart code">
+      <created>1367427370078</created>
+      <updated>1367427370078</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Changed the animation effect on the barchart to use the d3 interpolate function">
+      <created>1367437757561</created>
+      <updated>1367437757561</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Changed the animation and drawing of the hint path">
+      <created>1367441366017</created>
+      <updated>1367441366017</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Starting to detect ambiguous cases in the barchart (stationary is done)">
+      <created>1367512690038</created>
+      <updated>1367512690038</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Drawing interaction paths on top of the hint path for sequences of stationary bars on the barchart">
+      <created>1367523103536</created>
+      <updated>1367523103536</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Removed some repetition of the d3 svg line generator function in the barchart">
+      <created>1367538309829</created>
+      <updated>1367538309829</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Fixed up some of the dataset files, tried to fix the problem with scatterplot points being drawn off the axis">
+      <created>1367543142951</created>
+      <updated>1367543142951</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Fixed axis problem in scatterplot, need to set min to 0">
+      <created>1367544174674</created>
+      <updated>1367544174674</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Animating the bars and hint path when a hint label is clicked, for the barchart">
+      <created>1367595081187</created>
+      <updated>1367595081187</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Changed method for detecting ambiguous points and merged revisiting and stationary points into the same data structure">
+      <created>1367608319537</created>
+      <updated>1367608319537</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Added clicking to the background SVG as a way for clearing the hint path (however, this event is interfering with the drag event)">
+      <created>1367614302438</created>
+      <updated>1367614302438</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Changed the rendering order of the barchart such that the hint path is always drawn last">
+      <created>1367872491675</created>
+      <updated>1367872491675</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Same rendering order change to the scatterplot">
+      <created>1367872928158</created>
+      <updated>1367872928158</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Fixed some bugs in the piechart code">
+      <created>1367963860247</created>
+      <updated>1367963860247</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Refactored the hint path code for piechart, but hint path is no longer drawing properly">
+      <created>1368045885424</created>
+      <updated>1368045885424</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Made SVG clickable to clear hint path for piechart">
+      <created>1368046466620</created>
+      <updated>1368046466620</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Added label colouring toggling for revisiting points in scatterplot">
+      <created>1368132034390</created>
+      <updated>1368132034390</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Attempting to implement the dragging along loop interaction for scatterplot">
+      <created>1368210285676</created>
+      <updated>1368210285676</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Refactoring the piechart code, adding some missing features (e.g., slider and functions) which are not fully programmed yet.  Altered the piechart datasets to be consistent with the required format">
+      <created>1368840996946</created>
+      <updated>1368840996946</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Refactoring the heatmap code, added axis labels + title and created a new colour generator">
+      <created>1368907096455</created>
+      <updated>1368907096455</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Fixed the hint path gradient for the heatmap">
+      <created>1369068237712</created>
+      <updated>1369068237712</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Added fast forwarding to the heatmap by clicking label on hint path">
+      <created>1369075866457</created>
+      <updated>1369075866457</updated>
+    </task>
+    <task id="LOCAL-00038" summary="Adding translation to the hint path of the heatmap">
+      <created>1369081289052</created>
+      <updated>1369081289052</updated>
+    </task>
+    <task id="LOCAL-00039" summary="Starting to program the interaction across stationary bar sequences on barchart">
+      <created>1369254160966</created>
+      <updated>1369254160966</updated>
+    </task>
+    <task id="LOCAL-00040" summary="Fixed problem of going out of bounds when dragging cell on heatmap">
+      <created>1369341133796</created>
+      <updated>1369341133796</updated>
+    </task>
+    <task id="LOCAL-00041" summary="Translating hint path on heatmap in x and y - not working">
+      <created>1369419395251</created>
+      <updated>1369419395251</updated>
+    </task>
+    <task id="LOCAL-00042" summary="Centered the hint path at the dragged cell on heatmap, now hint path directions are more understandable">
+      <created>1369685123405</created>
+      <updated>1369685123405</updated>
+    </task>
+    <task id="LOCAL-00043" summary="Added animation to hint path on heatmap, but doesn't move properly according to the motion">
+      <created>1369689468043</created>
+      <updated>1369689468043</updated>
+    </task>
+    <task id="LOCAL-00044" summary="Changing the dragging interaction of the loop to follow a circle which approximates the curve in scatterplot ambiguous cases">
+      <created>1370272863311</created>
+      <updated>1370272863311</updated>
+    </task>
+    <task id="LOCAL-00045" summary="Implemented animation of the hint path for the piechart">
+      <created>1370301176668</created>
+      <updated>1370301176668</updated>
+    </task>
+    <task id="LOCAL-00046" summary="Animating segments while a piechart segment is dragged, not working for segments wrapping around 360">
+      <created>1370366466651</created>
+      <updated>1370366466651</updated>
+    </task>
+    <task id="LOCAL-00047" summary="Added animation of the piechart when using the time slider">
+      <created>1370456934732</created>
+      <updated>1370456934732</updated>
+    </task>
+    <task id="LOCAL-00048" summary="Fixed sizing problem with barchart (width not set properly)">
+      <created>1370466389579</created>
+      <updated>1370466389579</updated>
+    </task>
+    <task id="LOCAL-00049" summary="Fixed a small scaling issue with barchart y-axis">
+      <created>1370546685875</created>
+      <updated>1370546685875</updated>
+    </task>
+    <task id="LOCAL-00050" summary="Added some real datasets for barchart and scatterplot (surfnet demo)">
+      <created>1370549944442</created>
+      <updated>1370549944442</updated>
+    </task>
+    <task id="LOCAL-00051" summary="Almost fixed the piechart problem of angles wrapping over 360, but still some angles get drawn flipped">
+      <created>1370626252281</created>
+      <updated>1370626252282</updated>
+    </task>
+    <task id="LOCAL-00052" summary="Added customizable colour scale for the piechart to easily change the colours">
+      <created>1370637589891</created>
+      <updated>1370637589891</updated>
+    </task>
+    <task id="LOCAL-00053" summary="Reduced the start angle of the dragged piechart segment to prevent it from blowing up (over 360)">
+      <created>1370639082688</created>
+      <updated>1370639082688</updated>
+    </task>
+    <task id="LOCAL-00054" summary="Implemented  piechart  animation when hint label is clicked, however the animation effect is strange">
+      <created>1370640160591</created>
+      <updated>1370640160591</updated>
+    </task>
+    <task id="LOCAL-00055" summary="Disabled selection on browser to improve touch interaction, made some small changes to the datasets">
+      <created>1370713002134</created>
+      <updated>1370713002134</updated>
+    </task>
+    <task id="LOCAL-00056" summary="Fixed translate x for heatmap hint path">
+      <created>1370725933569</created>
+      <updated>1370725933569</updated>
+    </task>
+    <task id="LOCAL-00057" summary="Added click function to heatmap svg to clear hint path">
+      <created>1370726530701</created>
+      <updated>1370726530701</updated>
+    </task>
+    <task id="LOCAL-00058" summary="Experimenting with ways to animate the heatmap hint path">
+      <created>1370889717529</created>
+      <updated>1370889717529</updated>
+    </task>
+    <task id="LOCAL-00059" summary="Fixed id conflict with svg container when multiple visualizations are in one html">
+      <created>1370891350616</created>
+      <updated>1370891350616</updated>
+    </task>
+    <task id="LOCAL-00060" summary="Reduced the flickering of the slider by re-setting the interpValue variable of each visualization to 0 each time the view is changed, but it still flckers when the view toggles">
+      <created>1370895744706</created>
+      <updated>1370895744706</updated>
+    </task>
+    <task id="LOCAL-00061" summary="Implemented dragging around a circle for navigating across stationary points in a circle, added fading label colour as an effect">
+      <created>1371580806421</created>
+      <updated>1371580806421</updated>
+    </task>
+    <task id="LOCAL-00062" summary="New approach to translating the hint path for heatmap (shrinking the boundaries and mapping that interpolation amount to the real hint path coordinates)">
+      <created>1371586134277</created>
+      <updated>1371586134277</updated>
+    </task>
+    <task id="LOCAL-00063" summary="Changed the piechart segment dragging by using the angle for bounds checking (instead of the end angle), works a lot better">
+      <created>1371657574779</created>
+      <updated>1371657574779</updated>
+    </task>
+    <task id="LOCAL-00064" summary="Removed the flickering problem with the time slider in all except scatterplot (didn't really eliminate the problem, because the views are still toggling)">
+      <created>1371669506958</created>
+      <updated>1371669506958</updated>
+    </task>
+    <task id="LOCAL-00065" summary="Got the fast forwarding animation feature working again in the scatterplot">
+      <created>1371755903514</created>
+      <updated>1371755903514</updated>
+    </task>
+    <task id="LOCAL-00066" summary="Trying to change the technique for updating the dragged piechart segment to make tracking time differences easier">
+      <created>1371850027003</created>
+      <updated>1371850027003</updated>
+    </task>
+    <task id="LOCAL-00067" summary="Added sine waves to the barchart in the ambiguous case">
+      <created>1372087558542</created>
+      <updated>1372087558542</updated>
+    </task>
+    <task id="LOCAL-00068" summary="Fixed minor view changing bug in slider, but the visualization is still flickering when the slider is dragged">
+      <created>1372093019779</created>
+      <updated>1372093019779</updated>
+    </task>
+    <task id="LOCAL-00069" summary="Changed interaction paths of scatterplot stationary points to loops (instead of circles), implemented dragging along the loops and dragging the point (it will turn to wireframe)">
+      <created>1372100219265</created>
+      <updated>1372100219265</updated>
+    </task>
+    <task id="LOCAL-00070" summary="Adding the example file for dragging along a loop">
+      <created>1372100838413</created>
+      <updated>1372100838413</updated>
+    </task>
+    <task id="LOCAL-00071" summary="Starting to make a d3 example of dragging along a sine wave (for interaction ambiguity)">
+      <created>1372107397012</created>
+      <updated>1372107397012</updated>
+    </task>
+    <task id="LOCAL-00072" summary="Added a different layout for the piechart hint path (each year is on a different radius)">
+      <created>1372272796320</created>
+      <updated>1372272796320</updated>
+    </task>
+    <task id="LOCAL-00073" summary="Implementing a separate D3 example of dragging up and down to navigate across a sine wave (for barchart ambiguity), can move forward but not not backward in time">
+      <created>1372364124099</created>
+      <updated>1372364124099</updated>
+    </task>
+    <task id="LOCAL-00074" summary="Added animation to the sine wave example">
+      <created>1372431582837</created>
+      <updated>1372431582837</updated>
+    </task>
+    <task id="LOCAL-00075" summary="Working on translating the sine wave, still jittering a little but seems to be guessing the correct time direction">
+      <created>1372450303892</created>
+      <updated>1372450303892</updated>
+    </task>
+    <task id="LOCAL-00076" summary="Changed the interpolation of the barchart interaction paths">
+      <created>1372452349404</created>
+      <updated>1372452349404</updated>
+    </task>
+    <task id="LOCAL-00077" summary="Used interpolation amount difference to set the time direction for sine wave example">
+      <created>1372694504308</created>
+      <updated>1372694504308</updated>
+    </task>
+    <task id="LOCAL-00078" summary="Integrated the sine wave dragging code into the barchart">
+      <created>1372694576781</created>
+      <updated>1372694576781</updated>
+    </task>
+    <task id="LOCAL-00079" summary="Added an anchor to the barchart hint path to see the dragging amount more clearly">
+      <created>1372696947494</created>
+      <updated>1372696947494</updated>
+    </task>
+    <task id="LOCAL-00080" summary="Refactored heatmap code for handling dragging">
+      <created>1372718055052</created>
+      <updated>1372718055052</updated>
+    </task>
+    <task id="LOCAL-00081" summary="Added a separate anchor to the scatterplot interaction loops (instead of changing the actual point's display properties)">
+      <created>1372778050209</created>
+      <updated>1372778050209</updated>
+    </task>
+    <task id="LOCAL-00082" summary="Implemented dragging around corners of the piechart hint path using the change in angular dragging direction to trigger a view change">
+      <created>1372784031131</created>
+      <updated>1372784031131</updated>
+    </task>
+    <task id="LOCAL-00083" summary="Fixed the jerky motion when piechart hint path is animated">
+      <created>1372787498258</created>
+      <updated>1372787498258</updated>
+    </task>
+    <task id="LOCAL-00084" summary="Changed the anchor of the barchart to be a line drawn from mouse to position along sine wave">
+      <created>1372796149585</created>
+      <updated>1372796149585</updated>
+    </task>
+    <task id="LOCAL-00085" summary="Changed animation of Barchart hint path to use transformations instead of redrawing the path">
+      <created>1372811150735</created>
+      <updated>1372811150735</updated>
+    </task>
+    <task id="LOCAL-00086" summary="For each visualization, moved most of the styles into css file">
+      <created>1372814652570</created>
+      <updated>1372814652570</updated>
+    </task>
+    <task id="LOCAL-00087" summary="Added time inference to barchart dragging when hint path switches vertical direction and interaction is ambiguous">
+      <created>1372868810663</created>
+      <updated>1372868810663</updated>
+    </task>
+    <task id="LOCAL-00088" summary="Fixed the flickering in the visualizations when dragging the slider (needed to re-set the interpolation amount when views are switched)">
+      <created>1372871634127</created>
+      <updated>1372871634127</updated>
+    </task>
+    <task id="LOCAL-00089" summary="Interaction paths are drawn on the heatmap but do not have the correct x-position">
+      <created>1372883844334</created>
+      <updated>1372883844334</updated>
+    </task>
+    <task id="LOCAL-00090" summary="Changed the method for tracking revolutions in D3 dragging along loop example, but it is still buggy">
+      <created>1373043679981</created>
+      <updated>1373043679981</updated>
+    </task>
+    <task id="LOCAL-00091" summary="Added ambiguous case detection to the piechart, but does not draw any paths yet">
+      <created>1373055229505</created>
+      <updated>1373055229505</updated>
+    </task>
+    <task id="LOCAL-00092" summary="Added label colour switching to the barchart hint path">
+      <created>1373304760825</created>
+      <updated>1373304760825</updated>
+    </task>
+    <task id="LOCAL-00093" summary="Implemented a redraw hint path function for the piechart when snapping to views">
+      <created>1373312986884</created>
+      <updated>1373312986884</updated>
+    </task>
+    <task id="LOCAL-00094" summary="Added a tolerance value to y-coordinates of the bars at peaks along the hint paths">
+      <created>1373319416081</created>
+      <updated>1373319416081</updated>
+    </task>
+    <task id="LOCAL-00095" summary="Added a tolerance amount at peaks on barchart hint path such that the user does not need to drag all the way to the peak point to change views">
+      <created>1373384862090</created>
+      <updated>1373384862090</updated>
+    </task>
+    <task id="LOCAL-00096" summary="Added a form for toggling the type of indicator drawn along the sine wave on the barchart's hint path, this is easier for comparing the different design options">
+      <created>1373389924175</created>
+      <updated>1373389924175</updated>
+    </task>
+    <task id="LOCAL-00097" summary="Detecting and drawing interaction paths on the piechart hint path">
+      <created>1373393700622</created>
+      <updated>1373393700623</updated>
+    </task>
+    <task id="LOCAL-00098" summary="Added a progress indicator to the barchart hint path which highlights the amount travelled between views when the user is dragging">
+      <created>1373400354214</created>
+      <updated>1373400354214</updated>
+    </task>
+    <task id="LOCAL-00099" summary="Changed the method of counting revolutions when dragging along a loop for the scatterplot, is better than the old one but there are still problems when transitioning out of the loop">
+      <created>1373480624469</created>
+      <updated>1373480624469</updated>
+    </task>
+    <task id="LOCAL-00100" summary="Added a large progress path indicator to show how much a user has travelled along the hint path of a barchart, this colours the path from start to finish (instead of between views)">
+      <created>1373482241328</created>
+      <updated>1373482241328</updated>
+    </task>
+    <task id="LOCAL-00101" summary="Fixed problem when dragging along scatterplot loop, the interpolation value was incorrect">
+      <created>1373486657436</created>
+      <updated>1373486657436</updated>
+    </task>
+    <task id="LOCAL-00102" summary="Fixed the flickering problem when bar is at a peak on the hint path and a tolerance height is used">
+      <created>1373559001777</created>
+      <updated>1373559001778</updated>
+    </task>
+    <task id="LOCAL-00103" summary="Added label colour opacity transitioning to the scatterplot hint path">
+      <created>1373560446357</created>
+      <updated>1373560446357</updated>
+    </task>
+    <task id="LOCAL-00104" summary="Added rounded corners to the piechart hint path">
+      <created>1373994782190</created>
+      <updated>1373994782190</updated>
+    </task>
+    <task id="LOCAL-00105" summary="Jumping is a bit better in the barchart, problems occurring when the saved drag direction and current direction are the same.  Made the same code fix to the piechart">
+      <created>1374085460050</created>
+      <updated>1374085460050</updated>
+    </task>
+    <task id="LOCAL-00106" summary="Changed drawing of the piechart hint path to be points and a spline, still looks jagged">
+      <created>1374176560269</created>
+      <updated>1374176560269</updated>
+    </task>
+    <task id="LOCAL-00107" summary="Implemented interaction along sine wave of piechart, but is slightly buggy and anchor does not re-draw in the correct position">
+      <created>1374521174778</created>
+      <updated>1374521174778</updated>
+    </task>
+    <task id="LOCAL-00108" summary="Fixed a bug in scatterplot and barchart: when clicking a data object at the last view, the display shifts to the current view (one less than the next view), for only the case of snapping to view, the next view can go out of bounds so the display is not shifted">
+      <created>1374530146023</created>
+      <updated>1374530146023</updated>
+    </task>
+    <task id="LOCAL-00109" summary="Detecting the end points of a sine wave because when it forms a peak with the hint path, there is interaction ambiguity.">
+      <created>1374614639082</created>
+      <updated>1374614639082</updated>
+    </task>
+    <task id="LOCAL-00110" summary="Fixed jumping when entering the sine wave from the right side of the hint path (moving backwards in time), just needed to ensure the interpolation starts at 1, not 0.  Only works for the 'non-peaks'.">
+      <created>1374681768494</created>
+      <updated>1374681768494</updated>
+    </task>
+    <task id="LOCAL-00111" summary="Fixed time direction ambiguity when dragging begins in the middle of a sine wave on the barchart (the vertical dragging direction decides the time direction)">
+      <created>1374684104068</created>
+      <updated>1374684104068</updated>
+    </task>
+    <task id="LOCAL-00112" summary="Reduced the jumpiness caused by view switching when dragging into a sine wave which forms a peaks with the hint path">
+      <created>1374688085675</created>
+      <updated>1374688085675</updated>
+    </task>
+    <task id="LOCAL-00113" summary="Added function to hide the anchor for the sine wave on barchart when it is not being used">
+      <created>1374699796172</created>
+      <updated>1374699796172</updated>
+    </task>
+    <task id="LOCAL-00114" summary="Added a threshold for height differences between bars, this way consecutive bars with very close heights are treated as stationary (draw interaction path)">
+      <created>1374763949661</created>
+      <updated>1374763949661</updated>
+    </task>
+    <task id="LOCAL-00115" summary="Fixed jumping issues when sine wave is situated at the first or last view along the hint path and these views are encountered during dragging, however it is still jumping at the point when dragging starts from either of these views">
+      <created>1374786017794</created>
+      <updated>1374786017794</updated>
+    </task>
+    <task id="LOCAL-00116" summary="Added dragging along sine wave to the piechart, but views are jumping when entering the sine wave travelling backward in time">
+      <created>1374857246433</created>
+      <updated>1374857246433</updated>
+    </task>
+    <task id="LOCAL-00117" summary="Fixed the heatmap's hint path horizontal translation and time inference at peaks">
+      <created>1374860522327</created>
+      <updated>1374860522327</updated>
+    </task>
+    <task id="LOCAL-00118" summary="Fixed the alignment issues with the sine waves drawn on the Heatmap's hint path">
+      <created>1374863042600</created>
+      <updated>1374863042600</updated>
+    </task>
+    <task id="LOCAL-00119" summary="Added label fading effect to the heatmap hint path">
+      <created>1374866465055</created>
+      <updated>1374866465055</updated>
+    </task>
+    <task id="LOCAL-00120" summary="Fixed jumping occurring on piechart hint path and sine wave corners">
+      <created>1375118127431</created>
+      <updated>1375118127431</updated>
+    </task>
+    <task id="LOCAL-00121" summary="Fixed animation when hint label is clicked on barchart hint path (wrong variable used for counting data objects)">
+      <created>1375122815288</created>
+      <updated>1375122815288</updated>
+    </task>
+    <task id="LOCAL-00122" summary="Fixed fast forwarding feature in scatterplot">
+      <created>1375123936321</created>
+      <updated>1375123936321</updated>
+    </task>
+    <task id="LOCAL-00123" summary="Fixed fast forwarding in the piechart, using tweening for the animation">
+      <created>1375128777990</created>
+      <updated>1375128777990</updated>
+    </task>
+    <task id="LOCAL-00124" summary="Added fast forwarding to piechart, including animating the hint path.  Need to smooth out the animation.">
+      <created>1375130628224</created>
+      <updated>1375130628224</updated>
+    </task>
+    <task id="LOCAL-00125" summary="Fixed jumping when beginning dragging at a peak on the barchart hint path, by applying the same fix as the piechart">
+      <created>1375194011035</created>
+      <updated>1375194011035</updated>
+    </task>
+    <task id="LOCAL-00126" summary="Added dragging along the sine wave to the heatmap hint path">
+      <created>1375201527309</created>
+      <updated>1375201527309</updated>
+    </task>
+    <task id="LOCAL-00127" summary="Started another example of dragging around a circle.  The mouse angle and angle drawn on the loop now match.">
+      <created>1375220684580</created>
+      <updated>1375220684580</updated>
+    </task>
+    <task id="LOCAL-00128" summary="The coordinate system around the loop's centre is now aligned such that the stationary point is at 0 (added to D3 example)">
+      <created>1375364919856</created>
+      <updated>1375364919856</updated>
+    </task>
+    <task id="LOCAL-00129" summary="Drawing the anchor around the loop is now precisely aligned with the mouse dragging (in scatterplot)">
+      <created>1375371670921</created>
+      <updated>1375371670921</updated>
+    </task>
+    <task id="LOCAL-00130" summary="Smoothed out the animation for the piechart segments when label is clicked, however the first transition is still not smooth">
+      <created>1375385067163</created>
+      <updated>1375385067163</updated>
+    </task>
+    <task id="LOCAL-00131" summary="Fixed positioning of the sine wave on heatmap hint path (was offset in y before dragging started)">
+      <created>1375385877515</created>
+      <updated>1375385877515</updated>
+    </task>
+    <task id="LOCAL-00132" summary="Fixed bug in snapping to view functions for all prototypes: was not checking specifically for ambiguous data objects">
+      <created>1375386798297</created>
+      <updated>1375386798297</updated>
+    </task>
+    <task id="LOCAL-00133" summary="Fixed a bug in scatterplot and barchart:">
+      <created>1375739604725</created>
+      <updated>1375739604725</updated>
+    </task>
+    <task id="LOCAL-00134" summary="Made some small aesthetic changes and added a colour scale legend to the heatmap">
+      <created>1375739803503</created>
+      <updated>1375739803503</updated>
+    </task>
+    <task id="LOCAL-00135" summary="Fixed the label placement for stationary points on the scatterplot">
+      <created>1375799700182</created>
+      <updated>1375799700182</updated>
+    </task>
+    <task id="LOCAL-00136" summary="Starting to create an automated application for running the user evaluation using node js as a server">
+      <created>1375823301639</created>
+      <updated>1375823301639</updated>
+    </task>
+    <task id="LOCAL-00137" summary="Set up the nodejs server">
+      <created>1375894410603</created>
+      <updated>1375894410603</updated>
+    </task>
+    <task id="LOCAL-00138" summary="Experimenting with drawing partial hint path for the barchart">
+      <created>1375907150778</created>
+      <updated>1375907150778</updated>
+    </task>
+    <task id="LOCAL-00139" summary="Added data logging to the server">
+      <created>1376332701938</created>
+      <updated>1376332701938</updated>
+    </task>
+    <task id="LOCAL-00140" summary="Added styling to the task bar for running experiments">
+      <created>1376333852529</created>
+      <updated>1376333852529</updated>
+    </task>
+    <task id="LOCAL-00141" summary="Changed method of setting the time direction variable in barchart, instead of using interpolation amount, a change in dragging direction is detected and the time direction sign  is flipped">
+      <created>1376335954081</created>
+      <updated>1376335954081</updated>
+    </task>
+    <task id="LOCAL-00142" summary="Fixed the partial hint path drawing for the barchart (will be used in experiment)">
+      <created>1376337879678</created>
+      <updated>1376337879678</updated>
+    </task>
+    <task id="LOCAL-00143" summary="Added timer to the barchart experiment to induce a time limit for completing tasks">
+      <created>1376343662690</created>
+      <updated>1376343662690</updated>
+    </task>
+    <task id="LOCAL-00144" summary="Fixed issue in barchart with the time direction not being set correctly when at either end point of the hint path">
+      <created>1376407315222</created>
+      <updated>1376407315222</updated>
+    </task>
+    <task id="LOCAL-00145" summary="Started moving functions that can be re-used in the barchart code, into a separate util file">
+      <created>1376410689753</created>
+      <updated>1376410689753</updated>
+    </task>
+    <task id="LOCAL-00146" summary="Added some of the util functions to the heatmap and piechart">
+      <created>1376426937492</created>
+      <updated>1376426937492</updated>
+    </task>
+    <task id="LOCAL-00147" summary="Adding client and server functions to the user experiment for switching prototypes and switching interaction techniques">
+      <created>1376490027952</created>
+      <updated>1376490027952</updated>
+    </task>
+    <task id="LOCAL-00148" summary="Tracking the time and dragging direction in Scatterplot (for data logging purposes) but have not applied this to the loop">
+      <created>1376496600547</created>
+      <updated>1376496600547</updated>
+    </task>
+    <task id="LOCAL-00149" summary="Added time direction detection to scatterplot loops">
+      <created>1376927915459</created>
+      <updated>1376927915459</updated>
+    </task>
+    <task id="LOCAL-00150" summary="Added toggling between hint path types to barchart (makes it easier for running the experiment)">
+      <created>1376932979047</created>
+      <updated>1376932979047</updated>
+    </task>
+    <task id="LOCAL-00151" summary="Added the color brewer plugin for D3">
+      <created>1377029192929</created>
+      <updated>1377029192929</updated>
+    </task>
+    <task id="LOCAL-00152" summary="Added a util function to draw a legend of colours (for piechart and heatmap)">
+      <created>1377203936038</created>
+      <updated>1377203936038</updated>
+    </task>
+    <task id="LOCAL-00153" summary="Experimenting with multi-touch events on barchart">
+      <created>1377280038826</created>
+      <updated>1377280038826</updated>
+    </task>
+    <task id="LOCAL-00154" summary="Added timer to user evaluation application to time each tasks and show an indicator in the last few seconds">
+      <created>1377284749497</created>
+      <updated>1377284749497</updated>
+    </task>
+    <task id="LOCAL-00155" summary="Fixed issue with time direction when sine wave is at the last point on the hint path (on heatmap)">
+      <created>1377285497777</created>
+      <updated>1377285497777</updated>
+    </task>
+    <task id="LOCAL-00156" summary="Experimenting with multi touch on scatterplot, added small time sliders separate from the hint path, but multi-touch interaction does not work year">
+      <created>1377553619166</created>
+      <updated>1377553619166</updated>
+    </task>
+    <task id="LOCAL-00157" summary="Added multi touch function to invoke fast forwarding using a second finger">
+      <created>1377636393286</created>
+      <updated>1377636393286</updated>
+    </task>
+    <task id="LOCAL-00158" summary="Added transition to display the interaction sliders and re-position the labels on scatterplot (so the sliders are not visible all the time)">
+      <created>1377705116194</created>
+      <updated>1377705116194</updated>
+    </task>
+    <task id="LOCAL-00159" summary="Improved the speed of the barchart on mobile devices by removing the bottlenecks (redrawing the blurred hint path, using touch points where possible and removing the opacity updates), after detecting the type of device">
+      <created>1377706964081</created>
+      <updated>1377706964081</updated>
+    </task>
+    <task id="LOCAL-00160" summary="Fixed the problem with heatmap hint path not drawing when all colours along the path are the same, needed to draw the path as a rectangle because blurring wasn't working for a horizontal path">
+      <created>1377708841724</created>
+      <updated>1377708841724</updated>
+    </task>
+    <task id="LOCAL-00161" summary="Experimented with using a clipping rectangle to create a partial view of the hint path, but would like to also grey out the clipped portion of the path">
+      <created>1377715409324</created>
+      <updated>1377715409324</updated>
+    </task>
+    <task id="LOCAL-00162" summary="Fixed issues in piechart, barchart and heatmap, with time direction being set incorrectly when sine wave was at either end point of the hint path">
+      <created>1377716975620</created>
+      <updated>1377716975620</updated>
+    </task>
+    <task id="LOCAL-00163" summary="Made changeView a util function for all prototypes">
+      <created>1377718877687</created>
+      <updated>1377718877687</updated>
+    </task>
+    <task id="LOCAL-00164" summary="Fixed issues with drawing the visualization when snapping to the last view (or using the slider to move to the last view)">
+      <created>1377719911261</created>
+      <updated>1377719911261</updated>
+    </task>
+    <task id="LOCAL-00165" summary="Added detection for revisiting points on the scatterplot hint path (mainly for label placement)">
+      <created>1377723099636</created>
+      <updated>1377723099636</updated>
+    </task>
+    <task id="LOCAL-00166" summary="Changed the piechart hint path animation to have the path disappear when it reaches the center of the chart (when radius is negative), otherwise, the hint path will begin to wrap around to the other half of chart and eventually pour out of the chart.">
+      <created>1377809033909</created>
+      <updated>1377809033909</updated>
+    </task>
+    <task id="LOCAL-00167" summary="Some code refactoring to remove redundant selections and fixed holes appearing in piechart when dragging a segment">
+      <created>1377881366016</created>
+      <updated>1377881366016</updated>
+    </task>
+    <task id="LOCAL-00168" summary="Added a function to each prototype for calculating the pixel distance from user's coordinates to the target coordinates of the dragged data object (will be logged during user study)">
+      <created>1377885290464</created>
+      <updated>1377885290464</updated>
+    </task>
+    <task id="LOCAL-00169" summary="Changed ambiguity detection to a shared function in util file (only for piechart, barchart and heatmap because scatterplot is slightly different)">
+      <created>1377892205128</created>
+      <updated>1377892205128</updated>
+    </task>
+    <task id="LOCAL-00170" summary="Added a small grey bar to replace a bar which has a zero height (so it can be draggable)">
+      <created>1378498257554</created>
+      <updated>1378498257554</updated>
+    </task>
+    <task id="LOCAL-00171" summary="Added partial hint path (for user study) to the heatmap and scatterplot, doesn't work for the piechart yet">
+      <created>1378832264727</created>
+      <updated>1378832264727</updated>
+    </task>
+    <task id="LOCAL-00172" summary="Fixed bug with piechart's time direction not being set accurately when segment is first dragged">
+      <created>1378929184957</created>
+      <updated>1378929184957</updated>
+    </task>
+    <task id="LOCAL-00173" summary="Fixed the time direction in barchart and heatmap (not set properly, which is needed for data logging)">
+      <created>1379359440935</created>
+      <updated>1379359440936</updated>
+    </task>
+    <task id="LOCAL-00174" summary="Added the small multiples technique condition to user evaluation, the small multiples will be displayed as an image over the main svg (easier to control spacing)">
+      <created>1379438979440</created>
+      <updated>1379438979440</updated>
+    </task>
+    <task id="LOCAL-00175" summary="Added another version of the time slider for the user study that appears more like a video time slider (will allow for more precision when selecting an instant in time)">
+      <created>1379707012501</created>
+      <updated>1379707012502</updated>
+    </task>
+    <task id="LOCAL-00176" summary="Added a small multiples display where each image can be clicked">
+      <created>1380050967522</created>
+      <updated>1380050967522</updated>
+    </task>
+    <task id="LOCAL-00177" summary="Fixed the clicking problem with the small multiples vis">
+      <created>1380131945072</created>
+      <updated>1380131945072</updated>
+    </task>
+    <task id="LOCAL-00178" summary="Changed the appearance of the partial hint path and added ticks to indicate existing heights for barchart">
+      <created>1380640060041</created>
+      <updated>1380640060041</updated>
+    </task>
+    <task id="LOCAL-00179" summary="Found a way to hide the cursor in the browser (when using touch monitor)">
+      <created>1380648958594</created>
+      <updated>1380648958594</updated>
+    </task>
+    <task id="LOCAL-00180" summary="Added some warm up tasks for the user study using a fake data set">
+      <created>1380735720590</created>
+      <updated>1380735720590</updated>
+    </task>
+    <task id="LOCAL-00181" summary="Added intermediate screens between each task confirming submission of solution and displaying feedback">
+      <created>1380815349148</created>
+      <updated>1380815349148</updated>
+    </task>
+    <task id="LOCAL-00182" summary="Created a set of 20 tasks for one data set, added some more data logging events">
+      <created>1380920261314</created>
+      <updated>1380920261314</updated>
+    </task>
+    <task id="LOCAL-00183" summary="Added screens to separate stages of the experiment, added a tutorial showing how to use interaction techniques">
+      <created>1381424806809</created>
+      <updated>1381424806809</updated>
+    </task>
+    <task id="LOCAL-00184" summary="Randomized the set of tasks for the barchart experiment">
+      <created>1382469163055</created>
+      <updated>1382469163055</updated>
+    </task>
+    <task id="LOCAL-00185" summary="Starting to automate the generation of small multiple images (different bar highlighting for each task)">
+      <created>1382649163715</created>
+      <updated>1382649163715</updated>
+    </task>
+    <task id="LOCAL-00186" summary="Fixed some formatting with the small multiples display, added some clicking interaction">
+      <created>1382716752200</created>
+      <updated>1382716752200</updated>
+    </task>
+    <task id="LOCAL-00187" summary="Added tutorial pages explaining how to use each interaction technique for the barchart experiment">
+      <created>1383253169588</created>
+      <updated>1383253169589</updated>
+    </task>
+    <task id="LOCAL-00188" summary="Added a real dataset for the barchart experiment and more tutorial pages">
+      <created>1383339101910</created>
+      <updated>1383339101910</updated>
+    </task>
+    <option name="localTasksCounter" value="189" />
+    <servers />
+  </component>
+  <component name="TodoView" selected-index="3">
+    <todo-panel id="selected-file">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="default-changelist">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <editor active="false" />
+    <layout>
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3297244" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32967034" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977587" sideWeight="0.7785433" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.26467448" sideWeight="0.6722441" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3996004" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25987193" sideWeight="0.22047244" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3297244" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="JsTestDriver Server" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32967034" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22145669" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3277559" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32967034" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Command Line Tools Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3297244" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="CHECK_NEW_TODO" value="true" />
+    <option name="myTodoPanelSettings">
+      <value>
+        <are-packages-shown value="false" />
+        <are-modules-shown value="false" />
+        <flatten-packages value="false" />
+        <is-autoscroll-to-source value="false" />
+      </value>
+    </option>
+    <option name="PERFORM_UPDATE_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_COMMIT_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_EDIT_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_CHECKOUT_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_ADD_REMOVE_IN_BACKGROUND" value="true" />
+    <option name="PERFORM_ROLLBACK_IN_BACKGROUND" value="false" />
+    <option name="CHECK_LOCALLY_CHANGED_CONFLICTS_IN_BACKGROUND" value="false" />
+    <option name="ENABLE_BACKGROUND_PROCESSES" value="false" />
+    <option name="CHANGED_ON_SERVER_INTERVAL" value="60" />
+    <option name="SHOW_ONLY_CHANGED_IN_SELECTION_DIFF" value="true" />
+    <option name="CHECK_COMMIT_MESSAGE_SPELLING" value="true" />
+    <option name="DEFAULT_PATCH_EXTENSION" value="patch" />
+    <option name="SHORT_DIFF_HORISONTALLY" value="true" />
+    <option name="SHORT_DIFF_EXTRA_LINES" value="2" />
+    <option name="SOFT_WRAPS_IN_SHORT_DIFF" value="true" />
+    <option name="INCLUDE_TEXT_INTO_PATCH" value="false" />
+    <option name="INCLUDE_TEXT_INTO_SHELF" value="false" />
+    <option name="CREATE_PATCH_EXPAND_DETAILS_DEFAULT" value="true" />
+    <option name="SHOW_FILE_HISTORY_DETAILS" value="true" />
+    <option name="SHOW_VCS_ERROR_NOTIFICATIONS" value="true" />
+    <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added a real dataset for the barchart experiment and more tutorial pages" />
+    <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
+    <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
+    <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="REFORMAT_BEFORE_FILE_COMMIT" value="false" />
+    <option name="FILE_HISTORY_DIALOG_COMMENTS_SPLITTER_PROPORTION" value="0.8" />
+    <option name="FILE_HISTORY_DIALOG_SPLITTER_PROPORTION" value="0.5" />
+    <option name="ACTIVE_VCS_NAME" />
+    <option name="UPDATE_GROUP_BY_PACKAGES" value="false" />
+    <option name="UPDATE_GROUP_BY_CHANGELIST" value="false" />
+    <option name="SHOW_FILE_HISTORY_AS_TREE" value="false" />
+    <option name="FILE_HISTORY_SPLITTER_PROPORTION" value="0.6" />
+    <MESSAGE value="Fixed issues with drawing the visualization when snapping to the last view (or using the slider to move to the last view)" />
+    <MESSAGE value="Added detection for revisiting points on the scatterplot hint path (mainly for label placement)" />
+    <MESSAGE value="Changed the piechart hint path animation to have the path disappear when it reaches the center of the chart (when radius is negative), otherwise, the hint path will begin to wrap around to the other half of chart and eventually pour out of the chart." />
+    <MESSAGE value="Some code refactoring to remove redundant selections and fixed holes appearing in piechart when dragging a segment" />
+    <MESSAGE value="Added a function to each prototype for calculating the pixel distance from user's coordinates to the target coordinates of the dragged data object (will be logged during user study)" />
+    <MESSAGE value="Changed ambiguity detection to a shared function in util file (only for piechart, barchart and heatmap because scatterplot is slightly different)" />
+    <MESSAGE value="Added a small grey bar to replace a bar which has a zero height (so it can be draggable)" />
+    <MESSAGE value="Added partial hint path (for user study) to the heatmap and scatterplot, doesn't work for the piechart yet" />
+    <MESSAGE value="Fixed bug with piechart's time direction not being set accurately when segment is first dragged" />
+    <MESSAGE value="Fixed the time direction in barchart and heatmap (not set properly, which is needed for data logging)" />
+    <MESSAGE value="Added the small multiples technique condition to user evaluation, the small multiples will be displayed as an image over the main svg (easier to control spacing)" />
+    <MESSAGE value="Added another version of the time slider for the user study that appears more like a video time slider (will allow for more precision when selecting an instant in time)" />
+    <MESSAGE value="Added a small multiples display where each image can be clicked" />
+    <MESSAGE value="Fixed the clicking problem with the small multiples vis" />
+    <MESSAGE value="Changed the appearance of the partial hint path and added ticks to indicate existing heights for barchart" />
+    <MESSAGE value="Found a way to hide the cursor in the browser (when using touch monitor)" />
+    <MESSAGE value="Added some warm up tasks for the user study using a fake data set" />
+    <MESSAGE value="Added intermediate screens between each task confirming submission of solution and displaying feedback" />
+    <MESSAGE value="Created a set of 20 tasks for one data set, added some more data logging events" />
+    <MESSAGE value="Added screens to separate stages of the experiment, added a tutorial showing how to use interaction techniques" />
+    <MESSAGE value="Randomized the set of tasks for the barchart experiment" />
+    <MESSAGE value="Starting to automate the generation of small multiple images (different bar highlighting for each task)" />
+    <MESSAGE value="Fixed some formatting with the small multiples display, added some clicking interaction" />
+    <MESSAGE value="Added tutorial pages explaining how to use each interaction technique for the barchart experiment" />
+    <MESSAGE value="Added a real dataset for the barchart experiment and more tutorial pages" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/runBarchart.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/piechartStyles.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="10" column="17" selection-start="284" selection-end="284" vertical-scroll-proportion="-6.8">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/util.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="348" column="23" selection-start="15563" selection-end="15563" vertical-scroll-proportion="0.5744681">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Piechart/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="84" selection-start="715" selection-end="715" vertical-scroll-proportion="0.24142012">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Slider.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.058553386">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Piechart/initPiechart.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="43" column="33" selection-start="1551" selection-end="1551" vertical-scroll-proportion="0.19517796">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/barchartStyles.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="14" column="15" selection-start="334" selection-end="347" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Datasets/randomDataHeatmap.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="36" column="0" selection-start="2530" selection-end="2587" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Colours/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="27" selection-start="753" selection-end="753" vertical-scroll-proportion="-9.807693">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Barchart.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="423" column="1" selection-start="18939" selection-end="18939" vertical-scroll-proportion="8.5">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/heatmapStyles.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="24" column="15" selection-start="479" selection-end="479" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Datasets/VanDeBuntNetwork.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="554" column="0" selection-start="17876" selection-end="17876" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Piechart.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="706" column="0" selection-start="31026" selection-end="31257" vertical-scroll-proportion="0.33333334">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Barchart/initBarchart.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="34" column="30" selection-start="1219" selection-end="1219" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Heatmap.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="177" column="34" selection-start="8089" selection-end="8089" vertical-scroll-proportion="-7.88">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Colours/initHeatmap.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="31" selection-start="607" selection-end="607" vertical-scroll-proportion="0.1713948">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
+

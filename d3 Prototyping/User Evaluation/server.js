@@ -2,7 +2,7 @@
 var phaseOrder = [0,1]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
 var techniqueOrder = [0,1,2]; //This should be counterbalanced as well , the interaction technique order within phases
 var taskTypeOrder = [[0,1],[1,0],[0,1]]; //Retrieve value vs. distribution tasks counterbalanced
-var participantID = "test"; //Unique id assigned to the participant
+var participantID = "Brittany"; //Unique id assigned to the participant
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Other variables for storing participant info
@@ -111,12 +111,16 @@ app.get("/nextPhase", function(req, res) {
  * */
 app.get("/getOrders", function(req, res) {
     randomizeTasks();
+    //Log the assigned condition ordering
     var log = fs.createWriteStream(infoFileName, {"flags" : "a"});
     log.write(new Date().toString()+"\n");
     log.write("Participant ID: "+participantID+" \n");
     log.write("Technique order: "+techniqueOrder+" \n");
-    log.write("Task type order: "+taskTypeOrder+" \n");
-    log.write("Randomized task order: "+taskOrder+" \n");
+    log.write("Task type order: \n");
+    log.write("Dimp: "+taskTypeOrder[0]+"\tSlider: "+taskTypeOrder[1]+"\tMultiples: "+taskTypeOrder[2]+"\n");
+
+    log.write("Randomized task order: \n");
+    log.write("Dimp: "+taskOrder[0]+"\tSlider: "+taskOrder[1]+"\tMultiples: "+taskOrder[2]+"\n");
     log.end();
 
     var jsonStr = [techniqueOrder,taskOrder];
@@ -160,20 +164,30 @@ function setFileNames(){
 function randomizeTasks(){
   var retrieveTasks = [0,1,2,3,4,5,6,7,8,9];
   var distributionTasks = [10,11,12,13,14,15,16,17,18,19];
-  var ambiguousTasks = [20,21,22,23,24];
+  var ambiguousRetrieveTasks = [20,21,22];
+  var ambiguousDistributionTasks = [23,24,25];
+  var practiceTasks = [26,27,28,29,30,31,32,33,34,35,36,37];
+  var practiceAmbiguousTasks = [38,39,40,41];
 
  for (var i=0;i<3;i++){ //Do for each interaction technique
-     //var shuffledRetrieve = shuffle(retrieveTasks);
-     //var shuffledDistribution = shuffle(distributionTasks);
-     //var shuffledAmbiguous = shuffle(ambiguousTasks);
-     //if (taskTypeOrder[i][0]==0){ //Retrieve tasks come first
-         //taskOrder[i] = shuffledRetrieve.concat(shuffledDistribution);//.concat(shuffledAmbiguous);
-         taskOrder[i] = retrieveTasks.concat(distributionTasks).concat(ambiguousTasks);
-    /** }else{ //Distribution tasks come first
-         taskOrder[i] = shuffledDistribution.concat(shuffledRetrieve);//.concat(shuffledAmbiguous);
-     }*/
+     var shuffledRetrieve = shuffle(retrieveTasks);
+     var shuffledDistribution = shuffle(distributionTasks);
+     var shuffledAmbiguousRetrieve = shuffle(ambiguousRetrieveTasks);
+     var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);
+     var randomizedArray = [];
+     if (taskTypeOrder[i][0]==0){ //Retrieve tasks come first
+         randomizedArray = shuffledRetrieve.concat(shuffledDistribution).concat(shuffledAmbiguousRetrieve).concat(shuffledAmbiguousDistribution);
+    }else{ //Distribution tasks come first
+         randomizedArray = shuffledDistribution.concat(shuffledRetrieve).concat(shuffledAmbiguousDistribution).concat(shuffledAmbiguousRetrieve);
+     }
+     if (i==0){ //Extra practice tasks for ambiguous
+         taskOrder[i] = practiceTasks.concat(practiceAmbiguousTasks).concat(randomizedArray);
+     }else{
+         taskOrder[i] = practiceTasks.concat(randomizedArray);
+     }
  }
 }
+//This was taken from stackoverflow..
 function shuffle(array) {
     var currentIndex = array.length
         , temporaryValue
