@@ -4,11 +4,8 @@
 
  //Variables for the hint path line (barchart, heatmap)
 var lineWidth= 12;
-var lineThickness = 2;
+var lineThickness = 1;
 var pathColour = "#EDEDED";
-    //969696
-//var tickColour = "#636363";
-//var pathColour = "#969696";
 var tickColour = "#EDEDED";
 var forwardPathLength = 0;
 var backwardPathLength = 0;

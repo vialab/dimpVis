@@ -206,22 +206,22 @@ Heatmap.prototype.calculateDistance = function(x1,y1,x2,y2){
 Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
     var ref = this;
     this.svg.append("text").attr("id","chartTitle").attr("class","axis")
-        .attr("x",-10).attr("y",-10).text(this.chartTitle);
+        .attr("x",-10).attr("y",/**-10*/-50).text(this.chartTitle);
 
     this.svg.selectAll(".axisVertical").data(yLabels)
         .enter().append("svg:text")
         .text(function(d) {return d;})
-        .attr("x",this.padding+this.width-100)
+        .attr("x",this.padding+this.width-/**100*/160)
         .attr("y",function (d,i){return ref.cellSize*i+ref.cellSize/2;})
-        .attr("class","axisVertical").attr("class","axis");
+        .attr("class","axisVertical");
 
     this.svg.selectAll(".axisHorizontal").data(xLabels)
         .enter().append("svg:text")
         .text(function(d) { return d;})
         .attr("transform",function (d,i) {
-            return "translate("+(ref.cellSize*i+ref.cellSize/2)+
-                ","+(ref.padding+ref.height-100)+") rotate(-65)";
-        }).attr("class","axisHorizontal").attr("class","axis");
+            return "translate("+(ref.cellSize*i+ref.cellSize/2)+",-10)"/**+
+                ","+(ref.padding+ref.height-100)+")" "rotate(-65)";*/
+        }).attr("class","axisHorizontal");
 }
 /** Compares the vertical distance of the mouse with the two bounding views (using the
  *  y-position along the hint path).  From this comparison, the views are resolved and

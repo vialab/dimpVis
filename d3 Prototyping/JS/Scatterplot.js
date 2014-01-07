@@ -11,7 +11,7 @@ function Scatterplot(w, h,p,xLabel,yLabel,title) {
    this.padding = p;
    this.width = w;
    this.height = h;
-   this.pointRadius = 6;
+   this.pointRadius = 5;
    this.loopRadius = 50;
    this.xLabel = xLabel;
    this.yLabel = yLabel;
@@ -139,7 +139,8 @@ Scatterplot.prototype.render = function( data, start, labels) {
           .attr("cy", function(d) {return d.nodes[ref.currentView][1]; })
           .attr("r", this.pointRadius).attr("class", "displayPoints")
           .attr("id", function (d){return "displayPoints"+d.id;})
-          .attr("title", function (d) {return d.label;});
+          .attr("title", function (d) {return d.label;})
+          .style("fill-opacity",1);
 
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -569,7 +570,7 @@ Scatterplot.prototype.selectPoint = function (id,points){
     //Fade out the other points using a transition
     this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
         .transition().duration(300)
-        .style("fill-opacity", 0.3);
+        .style("fill-opacity", 0.3);//.style("stroke-opacity",0.3);
 }
 /** Displays the hint path by appending its svg components to the main svg
  *  view: view to draw at
@@ -793,7 +794,7 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
         //Manually add the orientation angles to the repeatedPoints array (later change this)
         //IMPORTANT: use the angle 0, instead of 360 (360 breaks the code..)
         repeatedPoints[0].push(Math.PI/6);
-        repeatedPoints[1].push(Math.PI/6);
+        //repeatedPoints[1].push(3*Math.PI/2);
 
         this.drawLoops(id,repeatedPoints);
     }

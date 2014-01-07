@@ -8,11 +8,11 @@ d3.select("#piegraph").append("svg").attr("id","mainSvg").on("click",function(){
 });
 
 //Create a new piechart visualization
-var piechart   = new Piechart(20 , 180,"Secondary School Averages of Full Time, First Year Science Students",labels);
+var piechart   = new Piechart(20 , 150,"Secondary School Averages of Full Time, First Year Science Students",labels);
 
 window.onload = function (){
     piechart.useMobile = checkDevice();
-    d3.select("#mainSvg").attr("width",window.innerWidth).attr("height",window.innerHeight);
+    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
 }
 
 //Define the function when the SVG (background) is clicked, should clear the hint path displayed
@@ -23,7 +23,7 @@ piechart.clickSVG = function (){
 piechart.init();
 //setHintPathType(piechart,1);
 piechart.render(data);
-piechart.showLegend(500,100);
+piechart.showLegend(0,50);
 
 
 //Define the function for fast-forwarding the view by clicking on any label along the hint path
@@ -64,7 +64,7 @@ piechart.dragEvent = d3.behavior.drag()
 piechart.svg.selectAll(".displayArcs").call(piechart.dragEvent);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(90, 600, labels, "","#666",50);
+var slider   = new Slider(60, 500, labels, "","#666",50);
 slider.init();
 slider.render();
 

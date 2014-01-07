@@ -16,11 +16,13 @@ html, body {
 }
 
 </style>
+ <script type="text/javascript" src="Shared Files/d3.js"></script>
  <script>
         function startExperiment()
         {
-            console.log("starting experiment...");
-            window.location = "BarchartExperiment/Barchart.html";
+            d3.json("http://localhost:8080/startExperiment?", function(error,response) {
+                window.location = response;
+            });
         }
  </script>
  <link href="../CSS/runExperimentStyles.css" rel="stylesheet" type="text/css">
@@ -28,6 +30,6 @@ html, body {
 </head>
 <body>
 <iframe class="tscplayer_inline" name="tsc_player" src="Video/introVideo_player.html" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-<button class="buttons" onclick="startExperiment()">Start Experiment</button>
+<button style="margin:50px" class="buttons" onclick="startExperiment()">Start Experiment</button>
 </body>
 </html>

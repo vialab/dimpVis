@@ -34,9 +34,13 @@ body {
     padding:10px 26px;
     text-shadow:1px 1px 0px #ffffff;
 }
-#submitButton, #showVisButton{
+#submitButton, #showVisButton {
     font-size:40px;
 }
+#changePhaseButton{
+    font-size:45px;
+}
+
 /**Main side panel */
 #taskPanel{
   float:right;

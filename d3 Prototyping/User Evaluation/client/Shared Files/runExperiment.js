@@ -121,7 +121,7 @@ function nextTask (){
     taskCounter++;
     var numTasks = totalObjectiveTasks;
     if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
-        numTasks = totalObjectiveTasks + 4;
+        //numTasks = totalObjectiveTasks + 4;
     }
 
     if (taskCounter>=numTasks){
@@ -145,10 +145,16 @@ function cancelSubmitTask(){
 function updateTaskDisplay (taskInfo){
     clearVisualizations(0);
      //Update the task panel display
-     //d3.select("#counter").node().innerHTML = "#"+(taskCounter+1)+instructions;
-    d3.select("#counter").node().innerHTML = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2]+" "+instructions;
-     d3.select("#taskDescription").node().innerHTML = taskInfo[4];
-     d3.select("#submitButton").style("display", "none");
+    //d3.select("#counter").node().innerHTML = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2]+" "+instructions;
+
+    var numTasks = totalObjectiveTasks;
+    if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
+        numTasks = totalObjectiveTasks + 4;
+    }
+
+    d3.select("#counter").node().innerHTML = (taskCounter+1)+"/"+numTasks+" "+instructions;
+    d3.select("#taskDescription").node().innerHTML = taskInfo[4];
+    d3.select("#submitButton").style("display", "none");
     d3.select("#showVisButton").style("display", "block");
 }
 /**Draws the visualization on the screen for each task
@@ -271,8 +277,8 @@ function changePhase (){
  * */
 //TODO: show another tutorial before entering the exploratory period
  function startExploratory(){
-
-     stopTimer();
+    hideTutorial();
+    d3.select("#taskPanel").style("display","none");
     //TODO: time this event as well
      //Tell the server that exploratory period is starting
      d3.xhr("http://localhost:8080/startExploratory?", function(d) { });
@@ -288,7 +294,9 @@ function changePhase (){
 
      d3.select("#gSlider").attr("transform","translate(200,1050)");
      d3.select(gIdName).attr("transform","translate(65,65)");
-     d3.select("#changePhaseButton").style("display","block").on("click",changePhase);
+     d3.select("#changePhaseButton").style("display","block").style("width","200px").style("margin-top",screenY+"px")
+         .style("float","right").style("margin-right","20px")
+         .on("click",changePhase);
 
      isExploratory = true;
  }
@@ -344,8 +352,9 @@ function showTutorial(techniqueId){
         d3.select("#visGif").attr("width",screenX*0.2).attr("height",screenY*0.40);
         d3.select("#tutorialImages").style("border","20px solid #1C1C1C");
         d3.select("#hintPathExplanation").node().src = "Images/fastForwarding.png";
-        d3.select("#ambiguousGif").node().src = "Images/zeroBar.png";
-        d3.select("#ambiguousTutorial").style("display","block");
+        d3.select("#ambiguousTutorial").style("display","none");
+        d3.select("#tutorialImages").style("border","none");
+        d3.select("#doneTutorialButton").on("click", startExploratory);
     }
 }
 /**Hides all elements of the tutorial screen and restores the elements which were hidden in showTutorial()
@@ -354,7 +363,6 @@ function hideTutorial(){
     d3.selectAll(".tutorial").style("display","none");
     d3.select("#taskPanel").style("display","block");
     d3.select("#vis").style("display","block");
-
     d3.select("#tutorialSvg").remove();
 }
 /**Compares the solution entered by the participant with the correct solution and gives feedback
@@ -418,7 +426,7 @@ function confirmDoneQuestionnaire(){
     var result = confirm("Are you sure you would like to start exploring?");
     if (result){
        hideQuestionnaireScreen();
-        startExploratory();
+       showTutorial(3);
     }
 }
  ///////////////////////Data logging functions \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\

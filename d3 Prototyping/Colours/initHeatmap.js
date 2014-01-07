@@ -7,11 +7,11 @@ d3.select("#heatmap").append("svg").attr("id","mainSvg").on("click",function(){
 });
 window.onload = function (){
     //TODO:barchart.useMobile = checkDevice();
-    d3.select("#mainSvg").attr("width",window.innerWidth).attr("height",window.innerHeight);
+    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
     //alert(window.innerHeight+" "+window.innerWidth);
 }
 //Create new heatmap visualization
-var heatmap = new Heatmap(30,25,"Network of Student Relationships over Time (Gerhard van de Bunt)",labels);
+var heatmap = new Heatmap(70,15,"Network of Student Relationships over Time (Gerhard van de Bunt)",labels);
 
 heatmap.init();
 //setHintPathType(heatmap,1);
@@ -50,7 +50,7 @@ heatmap.dragEvent = d3.behavior.drag()
 heatmap.svg.selectAll(".cell").call(heatmap.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(50, 750, labels, "","#666",50);
+var slider   = new Slider(50, 540, labels, "","#666",50);
 slider.init();
 slider.render();
 //Define the function to respond to the dragging behaviour of the slider tick

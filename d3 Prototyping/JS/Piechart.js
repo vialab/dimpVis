@@ -80,6 +80,8 @@ function Piechart(p, r,title,hLabels){
   //Interpolate function between two values, at the specified amount
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
+/**Colour constants */
+Piechart.prototype.labelColour = "#FFF";
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
@@ -91,7 +93,7 @@ Piechart.prototype.init = function(){
    //Add blur filters to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
      .attr("id", "blur").append("svg:feGaussianBlur")
-     .attr("stdDeviation", 3);
+     .attr("stdDeviation", 2);
 
     /**this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blur2").append("svg:feGaussianBlur")
@@ -107,7 +109,7 @@ Piechart.prototype.init = function(){
  Piechart.prototype.render = function(data){
       var ref = this;
 	  this.numArcs = data.length-1;
-      this.colours = colorbrewer.Set2[data.length];
+      this.colours = colorbrewer.Dark2[data.length];
       var colourScale;
      //Create a colour scale for the pie segments
      if (this.numArcs <= this.colours.length){
@@ -451,7 +453,8 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
     //Update the hint labels
    this.svg.selectAll(".hintLabels").attr("transform",function (d) {
        return "translate("+hintArcInfo[d.id][0]+","+hintArcInfo[d.id][1]+")";
-    }).attr("fill-opacity",function (d){return ref.interpolateLabelOpacity(d)});
+    }).style("fill-opacity",function (d){return ref.interpolateLabelOpacity(d)})
+      .style("fill",this.labelColour);
 
     //Redraw interaction path(s) if any
     if (this.isAmbiguous==1){
@@ -472,17 +475,17 @@ Piechart.prototype.interpolateSegments = function (id,mouseAngle,startView,endVi
  * */
 Piechart.prototype.interpolateLabelOpacity = function (d){
     if (d.id ==this.currentView){ //Dark to light
-        return d3.interpolate(1,0.3)(this.interpValue);
+        return d3.interpolate(1,0.5)(this.interpValue);
     }else if (d.id == this.nextView){ //Light to dark
-        return d3.interpolate(0.3,1)(this.interpValue);
+        return d3.interpolate(0.5,1)(this.interpValue);
     }
-    return 0.3;
+    return 0.5;
 }
 /** Darkens the label colour opacity of one view label and keeps the rest faded out,
  *  to show the current view when dragging a segment
  * */
 Piechart.prototype.changeLabelOpacity = function (d,view){
-    return (d.id==view)?1:0.3;
+    return (d.id==view)?1:0.5;
 }
 /**Snaps to the nearest view in terms of mouse angle and the two views bounding the time frame
  * id: of the dragged segment
@@ -549,7 +552,8 @@ Piechart.prototype.redrawHintPath = function (view,angles){
     //Update the hint labels and change the opacity to show current view
     this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
         return "translate("+hintArcInfo[i][0]+","+hintArcInfo[i][1]+")";
-    }).attr("fill-opacity",function (d){return ref.changeLabelOpacity(d,view)});
+    }).style("fill-opacity",function (d){return ref.changeLabelOpacity(d,view)})
+       .style("fill",this.labelColour);
 
     //Redraw the interaction path(s) if any
     if (this.isAmbiguous ==1){
@@ -699,7 +703,7 @@ Piechart.prototype.drawHintPath = function (id,view){
          .append("svg:text").text(function(d) { return ref.labels[d.id]; })
          .attr("transform", function (d){return "translate("+ d.x+","+ d.y+")";})
          .on("click",this.clickHintLabelFunction)
-         .attr("fill-opacity",function (d){ return ref.changeLabelOpacity(d,view)})
+         .style("fill-opacity",function (d){ return ref.changeLabelOpacity(d,view)})
          .attr("id",function (d){return "hintLabel"+ d.id}).attr("class","hintLabels");
 
    this.hintArcInfo = [];
@@ -922,9 +926,9 @@ Piechart.prototype.animateSegments = function(id, startView, endView) {
 
                 //Re-draw the hint path labels
                 d3.selectAll(".hintLabels").attr("transform",function (a) {
-                    console.log(a.id);
                     return "translate("+hintArcInfo[a.id][0]+","+hintArcInfo[a.id][1]+")";
-                }).attr("fill-opacity",function (d){return ref.changeLabelOpacity(d,animateView)});
+                }).style("fill-opacity",function (d){return ref.changeLabelOpacity(d,animateView)})
+                  .style("fill",this.labelColour);
 
                 //Redraw the interaction path(s) if any
                 if (ref.isAmbiguous ==1){

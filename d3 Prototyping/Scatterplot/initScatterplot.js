@@ -5,9 +5,11 @@
 d3.select("#scatter").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",1000).on("click",function(){
     scatterplot.clearHintPath();
 });
-
+window.onload = function (){
+    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
+}
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(500, 500,50,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries");
+var scatterplot   = new Scatterplot(400, 400,50,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries");
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 scatterplot.clickSVG = function (){
@@ -50,7 +52,7 @@ var dragPoint = d3.behavior.drag()
 scatterplot.svg.selectAll(".displayPoints").call(dragPoint);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(40, 700, labels, "","#666",50);
+var slider   = new Slider(35, 540, labels, "","#666",50);
 slider.init();
 slider.render();
 				  

@@ -11,7 +11,7 @@ var static = require('node-static'),
     request = require('request'),
     fs = require("fs"),
     exec = require("child_process").exec,
-    phaseURLs = ["BarchartExperiment/Barchart.html","ScatterplotExperiment/Scatterplot.html","PiechartExperiment/Piechart.html","HeatmapExperiment/Heatmap.html"],
+    phaseURLs = ["BarchartExperiment/Barchart.html","ScatterplotExperiment/Scatterplot.html"],
     taskOrder = [],
     phaseNumber = 0;
 
@@ -26,14 +26,19 @@ var infoFileName = participantID+"_info.txt";
 var file = new(static.Server)('./client/'),
     app  = express();
 
-/** Called at the first (start) page, indicates a new experiment has started
+/** Called at the first (start) page, indicates a new experiment has started,
+ * decides which phase to initiate first based on the assigned order
  * */
-//TODO: might not need this function
- app.get('/startExperiment', function(req, res){
-    console.log('Received request to start experiment');
-    res.end();
 
-});
+ app.get('/startExperiment', function(req, res){
+     var jsonStr = JSON.stringify(phaseURLs[phaseOrder[phaseNumber]]);
+
+     console.log("Sending the first phase number");
+
+     res.set('Content-Type', 'application/json');
+     res.send( jsonStr );
+     res.end();
+ });
 /** Log an event occurring on the client side (See word document for logging format and codes)
  *  Need to send the following appended parameters:
  *  content: specific to each logged event
@@ -93,7 +98,7 @@ app.get("/log", function(req, res) {
  * */
 app.get("/nextPhase", function(req, res) {
 
-    techniqueOrder = [2,1,0];
+    //techniqueOrder = [2,1,0];
     phaseNumber++;
 
     var nextPhase = phaseOrder[phaseNumber];

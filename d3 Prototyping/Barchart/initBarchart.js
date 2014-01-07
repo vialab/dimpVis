@@ -7,11 +7,11 @@ d3.select("#bargraph").append("svg").attr("id","mainSvg").on("click",function(){
  });
 
 //Create new barchart visualization
-var barchart   = new Barchart(400, 50, 80);
+var barchart   = new Barchart(300, 45, 50);
 
 window.onload = function (){
     barchart.useMobile = checkDevice();
-    d3.select("#mainSvg").attr("width",window.innerWidth).attr("height",window.innerHeight);
+    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
     //alert(window.innerHeight+" "+window.innerWidth);
 }
 
@@ -67,7 +67,7 @@ barchart.dragEvent = d3.behavior.drag()
 barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(50, 650, labels, "","#666",110);
+var slider   = new Slider(30, 500, labels, "","#666",110);
 slider.init();
 slider.render();
 

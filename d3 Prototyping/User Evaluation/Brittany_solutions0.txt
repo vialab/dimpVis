@@ -1,2 +1,88 @@
 0	Brittany	Mon Dec 02 2013 17:58:03 GMT-0500 (Eastern Standard Time)	0	0	0	78	1	3
 1	Brittany	Mon Dec 02 2013 17:58:03 GMT-0500 (Eastern Standard Time)	0	0	0	78	594	895	301	0	0
+0	Brittany	Tue Jan 07 2014 11:49:48 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 11:49:48 GMT-0500 (Eastern Standard Time)	0	0	0	78	91	145	54	null	null
+0	Brittany	Tue Jan 07 2014 11:49:50 GMT-0500 (Eastern Standard Time)	0	0	0	79	-1	5
+1	Brittany	Tue Jan 07 2014 11:49:50 GMT-0500 (Eastern Standard Time)	0	0	0	79	0	488	488	null	null
+0	Brittany	Tue Jan 07 2014 11:49:52 GMT-0500 (Eastern Standard Time)	0	0	0	80	-1	5
+1	Brittany	Tue Jan 07 2014 11:49:52 GMT-0500 (Eastern Standard Time)	0	0	0	80	327	832	505	null	null
+0	Brittany	Tue Jan 07 2014 11:49:55 GMT-0500 (Eastern Standard Time)	0	0	0	81	-1	7
+1	Brittany	Tue Jan 07 2014 11:49:55 GMT-0500 (Eastern Standard Time)	0	0	0	81	79	856	777	null	null
+1	Brittany	Tue Jan 07 2014 11:49:58 GMT-0500 (Eastern Standard Time)	0	0	0	82	687	248	439	null	null
+0	Brittany	Tue Jan 07 2014 11:49:58 GMT-0500 (Eastern Standard Time)	0	0	0	82	-1	8
+0	Brittany	Tue Jan 07 2014 11:50:09 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+1	Brittany	Tue Jan 07 2014 11:50:09 GMT-0500 (Eastern Standard Time)	0	1	0	90	111	551	440	null	null
+1	Brittany	Tue Jan 07 2014 11:59:19 GMT-0500 (Eastern Standard Time)	0	2	0	102	649	98	551	null	null
+0	Brittany	Tue Jan 07 2014 11:59:19 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+0	Brittany	Tue Jan 07 2014 12:03:14 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:03:14 GMT-0500 (Eastern Standard Time)	0	0	0	78	559	869	310	null	null
+0	Brittany	Tue Jan 07 2014 12:03:18 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+1	Brittany	Tue Jan 07 2014 12:03:18 GMT-0500 (Eastern Standard Time)	0	1	0	90	727	156	571	null	null
+0	Brittany	Tue Jan 07 2014 12:03:21 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:03:21 GMT-0500 (Eastern Standard Time)	0	2	0	102	983	733	250	null	null
+1	Brittany	Tue Jan 07 2014 12:06:07 GMT-0500 (Eastern Standard Time)	0	0	0	78	542	468	74	null	null
+0	Brittany	Tue Jan 07 2014 12:06:07 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+0	Brittany	Tue Jan 07 2014 12:06:11 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+1	Brittany	Tue Jan 07 2014 12:06:11 GMT-0500 (Eastern Standard Time)	0	1	0	90	299	500	201	null	null
+0	Brittany	Tue Jan 07 2014 12:06:15 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:06:15 GMT-0500 (Eastern Standard Time)	0	2	0	102	697	412	285	null	null
+1	Brittany	Tue Jan 07 2014 12:06:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	867	273	594	null	null
+0	Brittany	Tue Jan 07 2014 12:06:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+0	Brittany	Tue Jan 07 2014 12:06:56 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+1	Brittany	Tue Jan 07 2014 12:06:56 GMT-0500 (Eastern Standard Time)	0	1	0	90	139	233	94	null	null
+1	Brittany	Tue Jan 07 2014 12:06:59 GMT-0500 (Eastern Standard Time)	0	2	0	102	820	106	714	null	null
+0	Brittany	Tue Jan 07 2014 12:06:59 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:09:11 GMT-0500 (Eastern Standard Time)	0	0	0	78	820	346	474	null	null
+0	Brittany	Tue Jan 07 2014 12:09:11 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:09:14 GMT-0500 (Eastern Standard Time)	0	1	0	90	745	274	471	null	null
+0	Brittany	Tue Jan 07 2014 12:09:14 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+0	Brittany	Tue Jan 07 2014 12:09:16 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:09:16 GMT-0500 (Eastern Standard Time)	0	2	0	102	708	794	86	null	null
+1	Brittany	Tue Jan 07 2014 12:10:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	280	319	39	null	null
+0	Brittany	Tue Jan 07 2014 12:10:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:10:27 GMT-0500 (Eastern Standard Time)	0	1	0	90	985	918	67	null	null
+0	Brittany	Tue Jan 07 2014 12:10:27 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+0	Brittany	Tue Jan 07 2014 12:10:30 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:10:30 GMT-0500 (Eastern Standard Time)	0	2	0	102	480	374	106	null	null
+0	Brittany	Tue Jan 07 2014 12:11:49 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:11:49 GMT-0500 (Eastern Standard Time)	0	0	0	78	180	234	54	null	null
+0	Brittany	Tue Jan 07 2014 12:11:51 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+1	Brittany	Tue Jan 07 2014 12:11:51 GMT-0500 (Eastern Standard Time)	0	1	0	90	549	514	35	null	null
+1	Brittany	Tue Jan 07 2014 12:11:54 GMT-0500 (Eastern Standard Time)	0	2	0	102	220	266	46	null	null
+0	Brittany	Tue Jan 07 2014 12:11:54 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+0	Brittany	Tue Jan 07 2014 12:13:12 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:13:12 GMT-0500 (Eastern Standard Time)	0	0	0	78	343	254	89	null	null
+1	Brittany	Tue Jan 07 2014 12:13:14 GMT-0500 (Eastern Standard Time)	0	1	0	90	533	262	271	null	null
+0	Brittany	Tue Jan 07 2014 12:13:14 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+0	Brittany	Tue Jan 07 2014 12:13:16 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:13:16 GMT-0500 (Eastern Standard Time)	0	2	0	102	744	621	123	null	null
+0	Brittany	Tue Jan 07 2014 12:13:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:13:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	620	475	145	null	null
+0	Brittany	Tue Jan 07 2014 12:13:55 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+1	Brittany	Tue Jan 07 2014 12:13:55 GMT-0500 (Eastern Standard Time)	0	1	0	90	173	979	806	null	null
+0	Brittany	Tue Jan 07 2014 12:13:58 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:13:58 GMT-0500 (Eastern Standard Time)	0	2	0	102	413	243	170	null	null
+1	Brittany	Tue Jan 07 2014 12:16:09 GMT-0500 (Eastern Standard Time)	0	0	0	78	953	143	810	null	null
+0	Brittany	Tue Jan 07 2014 12:16:09 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:16:12 GMT-0500 (Eastern Standard Time)	0	1	0	90	896	71	825	null	null
+0	Brittany	Tue Jan 07 2014 12:16:12 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+0	Brittany	Tue Jan 07 2014 12:16:14 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:16:14 GMT-0500 (Eastern Standard Time)	0	2	0	102	564	920	356	null	null
+0	Brittany	Tue Jan 07 2014 12:16:51 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:16:51 GMT-0500 (Eastern Standard Time)	0	0	0	78	879	30	849	null	null
+0	Brittany	Tue Jan 07 2014 12:16:53 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+1	Brittany	Tue Jan 07 2014 12:16:53 GMT-0500 (Eastern Standard Time)	0	1	0	90	830	789	41	null	null
+0	Brittany	Tue Jan 07 2014 12:16:57 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:16:57 GMT-0500 (Eastern Standard Time)	0	2	0	102	718	230	488	null	null
+0	Brittany	Tue Jan 07 2014 12:18:13 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:18:13 GMT-0500 (Eastern Standard Time)	0	0	0	78	581	769	188	null	null
+0	Brittany	Tue Jan 07 2014 12:18:16 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+1	Brittany	Tue Jan 07 2014 12:18:16 GMT-0500 (Eastern Standard Time)	0	1	0	90	515	681	166	null	null
+0	Brittany	Tue Jan 07 2014 12:18:20 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+1	Brittany	Tue Jan 07 2014 12:18:20 GMT-0500 (Eastern Standard Time)	0	2	0	102	864	657	207	null	null
+0	Brittany	Tue Jan 07 2014 12:28:43 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:28:43 GMT-0500 (Eastern Standard Time)	0	0	0	78	113	303	190	null	null
+0	Brittany	Tue Jan 07 2014 12:33:21 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:33:21 GMT-0500 (Eastern Standard Time)	0	0	0	78	466	593	127	null	null
+1	Brittany	Tue Jan 07 2014 12:34:57 GMT-0500 (Eastern Standard Time)	0	1	0	90	553	580	27	null	null
+0	Brittany	Tue Jan 07 2014 12:34:57 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8

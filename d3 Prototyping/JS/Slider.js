@@ -23,7 +23,7 @@ function Slider(x, y, labels,description,colour,spacing) {
    this.height = 50;
    this.tickYPos = 35; //Amount to translate the draggable tick by in the y coordinate
    this.anchorYPos = 12; //Amount to translate the anchor which follows the draggable tick when it is not placed on the main slider
-   this.sliderHeight = 15; //Thickness of the main slider line
+   this.sliderHeight = 10; //Thickness of the main slider line
 
    this.currentTick = 0; //Start the slider always at the first tick
    this.nextTick = 1;  //The next tick is after the current one

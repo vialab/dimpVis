@@ -30,6 +30,7 @@ body {
 .hintLabels {
     font-family: sans-serif;
     font-size:10px;
+    font-weight:bold;
     text-anchor:middle;
     fill:#EDEDED;
     cursor:pointer;
@@ -37,7 +38,6 @@ body {
 
 .gDisplayArcs{
     stroke:none;
-    /**stroke-width:1;*/
 }
 /*The interaction path (sine wave)*/
 .interactionPath{
@@ -47,10 +47,10 @@ body {
 }
 
 /*The anchor along the interaction path */
-#anchor{
+/**#anchor{
     fill: none;
     stroke-width:3;
-}
+}*/
 
 /** Styles for the colour scale display */
 .legend text {

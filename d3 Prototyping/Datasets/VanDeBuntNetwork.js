@@ -535,11 +535,14 @@
     ];
 
 var xLabels = [], yLabels=[],data = [];
+//Set the labels for each node along rows and columns
+for (var i=0;i<32;i++){
+    xLabels[i] = i+1;
+    yLabels[i] = i+1;
+}
 var labels = ["1","2","3","4","5","6","7"];
 for (var i=0;i<network.length;i++){
     data[i] = {"row":network[i][0],"column":network[i][1],"values":[]};
-    xLabels[i] = i;
-    yLabels[i] = i;
     for (var j=2;j<labels.length+2;j++){
         var newValue = network[i][j];
         if (newValue==9) //Both 6 and 9 mean "no response"

@@ -26,9 +26,9 @@ body {
 /*The points */
 .displayPoints{
     /**fill:#EDEDED;*/
-    fill:#aec7e8;
-   /** stroke:#FFF;
-    stroke-width:1;*/
+    fill:#A8DDB5;
+    stroke:#2C2D2D;
+    stroke-width:1;
     fill-opacity:1;
     cursor:pointer;
 }

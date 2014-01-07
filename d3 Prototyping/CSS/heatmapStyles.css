@@ -9,15 +9,15 @@ body {
 
 .axisVertical {
     font-family:sans-serif;
-    font-size:14px;
+    font-size:10px;
     fill:#EDEDED;
 }
 
 .axisHorizontal {
     font-family:sans-serif;
-    font-size:14px;
+    font-size:10px;
     fill:#EDEDED;
-    text-anchor:end;
+    text-anchor:middle;
 }
 
 /*Cells on the heatmap*/
@@ -72,10 +72,10 @@ body {
 }
 
 /*The anchor along the interaction path */
-#anchor{
+/**#anchor{
     fill: none;
     stroke:#000;
-}
+}*/
 
 /** Styles for the colour scale display */
 .legend text {

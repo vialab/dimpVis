@@ -81,3 +81,331 @@
 8	Brittany	Mon Dec 02 2013 17:58:03 GMT-0500 (Eastern Standard Time)	0	0	0	78	1	830.00	400.00	7
 1	Brittany	Mon Dec 02 2013 17:58:03 GMT-0500 (Eastern Standard Time)	0	0	0	78	594	895	301	0	0
 0	Brittany	Mon Dec 02 2013 17:58:03 GMT-0500 (Eastern Standard Time)	0	0	0	78	1	3
+2	Brittany	Tue Jan 07 2014 11:48:36 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0	67.00	366.00	33
+5	Brittany	Tue Jan 07 2014 11:48:36 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	0	1
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	8.21	43.00	230.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	9.54	44.00	225.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	10.37	44.00	223.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	13.57	44.00	218.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	15.94	44.00	215.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	20.26	44.00	210.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	22.99	44.00	207.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	27.66	44.00	202.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	30.51	44.00	199.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	35.32	44.00	194.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	37.25	44.00	192.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	41.15	44.00	188.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	44.30	45.00	185.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	47.22	45.00	182.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	50.16	45.00	179.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	52.12	45.00	177.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	54.08	45.00	175.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	56.05	45.00	173.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	59.18	46.00	170.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	60.17	46.00	169.18	35.00	228.33
+4	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	1	-1
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	61.15	46.00	168.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	59.18	46.00	170.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	56.24	46.00	173.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	52.32	46.00	177.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	47.44	46.00	182.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	42.60	46.00	187.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	37.51	45.00	192.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	32.72	45.00	197.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	28.00	45.00	202.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	21.61	45.00	209.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	17.33	45.00	214.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	12.90	45.00	220.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	11.07	45.00	304.18	35.00	308.94
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	10.01	45.00	355.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	11.00	45.00	360.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	13.17	45.00	364.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	16.86	45.00	369.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	21.10	45.00	374.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	24.69	45.00	378.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	29.33	45.00	383.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	35.03	45.00	389.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	39.85	45.00	394.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	44.71	45.00	399.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	52.74	46.00	407.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	57.64	46.00	412.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	62.55	46.00	417.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	68.47	46.00	423.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	74.72	48.00	429.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	82.61	48.00	437.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	88.54	48.00	443.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	93.48	48.00	448.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	98.57	49.00	453.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	103.53	49.00	458.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	108.62	50.00	463.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	112.58	50.00	467.18	35.00	355.61
+3	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	taskType=0	78	0	3	50.00	472.18	34
+6	Brittany	Tue Jan 07 2014 11:48:37 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	115.55	50.00	470.18	35.00	355.61
+7	Brittany	Tue Jan 07 2014 11:49:47 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	938.00	431.00	2
+8	Brittany	Tue Jan 07 2014 11:49:48 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	938.00	431.00	2
+7	Brittany	Tue Jan 07 2014 11:49:48 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	938.00	431.00	2
+8	Brittany	Tue Jan 07 2014 11:49:48 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	938.00	431.00	2
+0	Brittany	Tue Jan 07 2014 11:49:48 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 11:49:48 GMT-0500 (Eastern Standard Time)	0	0	0	78	91	145	54	null	null
+7	Brittany	Tue Jan 07 2014 11:49:50 GMT-0500 (Eastern Standard Time)	0	0	0	79	0	887.00	383.00	2
+8	Brittany	Tue Jan 07 2014 11:49:50 GMT-0500 (Eastern Standard Time)	0	0	0	79	0	887.00	383.00	2
+7	Brittany	Tue Jan 07 2014 11:49:50 GMT-0500 (Eastern Standard Time)	0	0	0	79	0	887.00	383.00	2
+8	Brittany	Tue Jan 07 2014 11:49:50 GMT-0500 (Eastern Standard Time)	0	0	0	79	0	887.00	383.00	2
+0	Brittany	Tue Jan 07 2014 11:49:50 GMT-0500 (Eastern Standard Time)	0	0	0	79	-1	5
+1	Brittany	Tue Jan 07 2014 11:49:50 GMT-0500 (Eastern Standard Time)	0	0	0	79	0	488	488	null	null
+7	Brittany	Tue Jan 07 2014 11:49:52 GMT-0500 (Eastern Standard Time)	0	0	0	80	0	933.00	398.00	2
+8	Brittany	Tue Jan 07 2014 11:49:52 GMT-0500 (Eastern Standard Time)	0	0	0	80	0	933.00	398.00	2
+7	Brittany	Tue Jan 07 2014 11:49:52 GMT-0500 (Eastern Standard Time)	0	0	0	80	0	933.00	398.00	2
+0	Brittany	Tue Jan 07 2014 11:49:52 GMT-0500 (Eastern Standard Time)	0	0	0	80	-1	5
+8	Brittany	Tue Jan 07 2014 11:49:52 GMT-0500 (Eastern Standard Time)	0	0	0	80	0	933.00	398.00	2
+1	Brittany	Tue Jan 07 2014 11:49:52 GMT-0500 (Eastern Standard Time)	0	0	0	80	327	832	505	null	null
+7	Brittany	Tue Jan 07 2014 11:49:55 GMT-0500 (Eastern Standard Time)	0	0	0	81	0	927.00	407.00	2
+8	Brittany	Tue Jan 07 2014 11:49:55 GMT-0500 (Eastern Standard Time)	0	0	0	81	0	927.00	407.00	2
+7	Brittany	Tue Jan 07 2014 11:49:55 GMT-0500 (Eastern Standard Time)	0	0	0	81	0	927.00	407.00	2
+8	Brittany	Tue Jan 07 2014 11:49:55 GMT-0500 (Eastern Standard Time)	0	0	0	81	0	927.00	407.00	3
+0	Brittany	Tue Jan 07 2014 11:49:55 GMT-0500 (Eastern Standard Time)	0	0	0	81	-1	7
+1	Brittany	Tue Jan 07 2014 11:49:55 GMT-0500 (Eastern Standard Time)	0	0	0	81	79	856	777	null	null
+7	Brittany	Tue Jan 07 2014 11:49:58 GMT-0500 (Eastern Standard Time)	0	0	0	82	0	987.00	390.00	2
+8	Brittany	Tue Jan 07 2014 11:49:58 GMT-0500 (Eastern Standard Time)	0	0	0	82	0	985.00	390.00	2
+7	Brittany	Tue Jan 07 2014 11:49:58 GMT-0500 (Eastern Standard Time)	0	0	0	82	0	985.00	390.00	2
+8	Brittany	Tue Jan 07 2014 11:49:58 GMT-0500 (Eastern Standard Time)	0	0	0	82	0	985.00	390.00	2
+1	Brittany	Tue Jan 07 2014 11:49:58 GMT-0500 (Eastern Standard Time)	0	0	0	82	687	248	439	null	null
+0	Brittany	Tue Jan 07 2014 11:49:58 GMT-0500 (Eastern Standard Time)	0	0	0	82	-1	8
+7	Brittany	Tue Jan 07 2014 11:50:09 GMT-0500 (Eastern Standard Time)	0	1	0	90	0	975.00	432.00	13
+8	Brittany	Tue Jan 07 2014 11:50:09 GMT-0500 (Eastern Standard Time)	0	1	0	90	0	975.00	432.00	13
+7	Brittany	Tue Jan 07 2014 11:50:09 GMT-0500 (Eastern Standard Time)	0	1	0	90	0	975.00	432.00	13
+0	Brittany	Tue Jan 07 2014 11:50:09 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+8	Brittany	Tue Jan 07 2014 11:50:09 GMT-0500 (Eastern Standard Time)	0	1	0	90	0	975.00	432.00	13
+1	Brittany	Tue Jan 07 2014 11:50:09 GMT-0500 (Eastern Standard Time)	0	1	0	90	111	551	440	null	null
+7	Brittany	Tue Jan 07 2014 11:59:18 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	925.00	412.00	1100
+8	Brittany	Tue Jan 07 2014 11:59:18 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	925.00	412.00	1102
+7	Brittany	Tue Jan 07 2014 11:59:19 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	925.00	412.00	1102
+8	Brittany	Tue Jan 07 2014 11:59:19 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	925.00	412.00	1102
+1	Brittany	Tue Jan 07 2014 11:59:19 GMT-0500 (Eastern Standard Time)	0	2	0	102	649	98	551	null	null
+0	Brittany	Tue Jan 07 2014 11:59:19 GMT-0500 (Eastern Standard Time)	0	2	0	102	-1	6
+7	Brittany	Tue Jan 07 2014 12:28:43 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	825.00	388.00	4
+8	Brittany	Tue Jan 07 2014 12:28:43 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	825.00	388.00	4
+7	Brittany	Tue Jan 07 2014 12:28:43 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	825.00	388.00	4
+8	Brittany	Tue Jan 07 2014 12:28:43 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	825.00	388.00	4
+0	Brittany	Tue Jan 07 2014 12:28:43 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:28:43 GMT-0500 (Eastern Standard Time)	0	0	0	78	113	303	190	null	null
+7	Brittany	Tue Jan 07 2014 12:33:20 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	983.00	437.00	2
+8	Brittany	Tue Jan 07 2014 12:33:20 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	983.00	437.00	2
+7	Brittany	Tue Jan 07 2014 12:33:21 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	973.00	436.00	3
+8	Brittany	Tue Jan 07 2014 12:33:21 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	973.00	436.00	3
+0	Brittany	Tue Jan 07 2014 12:33:21 GMT-0500 (Eastern Standard Time)	0	0	0	78	-1	3
+1	Brittany	Tue Jan 07 2014 12:33:21 GMT-0500 (Eastern Standard Time)	0	0	0	78	466	593	127	null	null
+7	Brittany	Tue Jan 07 2014 12:34:57 GMT-0500 (Eastern Standard Time)	0	1	0	90	0	968.00	436.00	187
+8	Brittany	Tue Jan 07 2014 12:34:57 GMT-0500 (Eastern Standard Time)	0	1	0	90	0	968.00	436.00	187
+7	Brittany	Tue Jan 07 2014 12:34:57 GMT-0500 (Eastern Standard Time)	0	1	0	90	0	968.00	436.00	187
+8	Brittany	Tue Jan 07 2014 12:34:57 GMT-0500 (Eastern Standard Time)	0	1	0	90	0	968.00	436.00	187
+1	Brittany	Tue Jan 07 2014 12:34:57 GMT-0500 (Eastern Standard Time)	0	1	0	90	553	580	27	null	null
+0	Brittany	Tue Jan 07 2014 12:34:57 GMT-0500 (Eastern Standard Time)	0	1	0	90	-1	8
+7	Brittany	Tue Jan 07 2014 12:37:31 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	978.00	441.00	0
+8	Brittany	Tue Jan 07 2014 12:37:31 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	978.00	441.00	0
+7	Brittany	Tue Jan 07 2014 12:37:32 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	1085.00	341.00	1
+8	Brittany	Tue Jan 07 2014 12:37:33 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	1085.00	341.00	1
+2	Brittany	Tue Jan 07 2014 12:41:35 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0	98.00	328.00	2
+5	Brittany	Tue Jan 07 2014 12:41:36 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	0	1
+4	Brittany	Tue Jan 07 2014 12:41:38 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	1	-1
+5	Brittany	Tue Jan 07 2014 12:41:38 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	1	-1
+4	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	-1	1
+5	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	-1	1
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	14.12	49.00	230.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	14.16	49.00	226.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	15.29	49.00	222.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	15.72	49.00	221.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	17.90	49.00	217.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	19.21	49.00	215.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	21.37	49.00	212.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	22.92	49.00	210.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	27.06	49.00	205.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	26.20	49.00	206.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	29.66	49.00	202.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	30.55	49.00	201.18	35.00	228.33
+4	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	1	-1
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	33.24	49.00	198.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	31.44	49.00	200.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	29.66	49.00	202.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	28.79	49.00	203.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	27.06	49.00	205.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	24.54	49.00	208.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	22.14	49.00	211.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	18.54	49.00	216.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	17.90	49.00	217.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	15.72	49.00	221.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	14.35	49.00	225.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:39 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	15.02	50.00	308.18	35.00	308.94
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	15.01	50.00	355.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	15.01	50.00	356.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	15.22	50.00	358.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	15.68	50.00	360.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	16.00	50.00	361.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	16.80	50.00	363.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	18.95	50.00	367.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	19.57	50.00	368.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	21.62	50.00	371.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	23.11	50.00	373.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	25.46	50.00	376.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	26.28	50.00	377.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	28.79	50.00	380.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	29.65	50.00	381.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	31.39	50.00	383.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	34.06	50.00	386.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	34.96	50.00	387.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	35.86	50.00	388.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	38.61	50.00	391.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	39.53	50.00	392.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	42.32	50.00	395.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	43.26	50.00	396.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	44.20	50.00	397.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	45.14	50.00	398.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	47.03	50.00	400.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	47.98	50.00	401.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	48.93	50.00	402.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	49.88	50.00	403.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	51.80	50.00	405.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	52.75	50.00	406.18	35.00	355.61
+4	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	-1	1
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	53.71	50.00	407.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	52.75	50.00	406.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	49.88	50.00	403.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	48.93	50.00	402.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	47.03	50.00	400.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	45.14	50.00	398.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	39.53	50.00	392.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	35.86	50.00	388.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	42.32	50.00	395.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	34.06	50.00	386.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	31.39	50.00	383.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	28.79	50.00	380.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	23.11	50.00	373.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	26.28	50.00	377.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	20.92	50.00	370.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	18.35	50.00	366.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	16.38	50.00	362.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:40 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,3	15.68	50.00	360.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:41 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,4	17.00	52.00	313.18	35.00	313.18
+6	Brittany	Tue Jan 07 2014 12:41:41 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,5	17.00	52.00	292.18	35.00	291.97
+6	Brittany	Tue Jan 07 2014 12:41:42 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,6	17.01	52.00	271.18	35.00	270.76
+3	Brittany	Tue Jan 07 2014 12:41:43 GMT-0500 (Eastern Standard Time)	0	0	taskType=0	78	0	7	52.00	211.18	11
+2	Brittany	Tue Jan 07 2014 12:41:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0	65.00	360.00	1
+5	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	0	1
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	0.85	35.00	229.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	0.15	35.00	228.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	2.15	35.00	226.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	3.15	35.00	225.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	4.15	35.00	224.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	5.15	35.00	223.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	7.15	35.00	221.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	8.15	35.00	220.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:53 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	9.15	35.00	219.18	35.00	228.33
+4	Brittany	Tue Jan 07 2014 12:41:54 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	1	-1
+6	Brittany	Tue Jan 07 2014 12:41:54 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	10.15	35.00	218.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:54 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	9.15	35.00	219.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:54 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	8.39	33.00	220.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:54 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	5.53	33.00	223.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:54 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	4.61	33.00	224.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:54 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	3.73	33.00	225.18	35.00	228.33
+6	Brittany	Tue Jan 07 2014 12:41:54 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	2.14	33.00	308.18	35.00	308.94
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	0.42	35.00	355.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	0.58	35.00	356.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	2.58	35.00	358.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	4.58	35.00	360.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	5.58	35.00	361.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	8.58	35.00	364.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	9.63	36.00	365.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	12.62	36.00	368.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	13.61	36.00	369.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	14.61	36.00	370.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	17.60	36.00	373.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	18.60	36.00	374.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	19.60	36.00	375.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	22.66	37.00	378.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	23.66	37.00	379.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	24.66	37.00	380.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	27.74	38.00	383.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	28.73	38.00	384.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	29.73	38.00	385.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	32.71	38.00	388.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	33.71	38.00	389.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	34.71	38.00	390.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	35.70	38.00	391.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	37.70	38.00	393.18	35.00	355.61
+6	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	38.69	38.00	394.18	35.00	355.61
+3	Brittany	Tue Jan 07 2014 12:41:55 GMT-0500 (Eastern Standard Time)	0	0	taskType=0	78	0	3	38.00	395.18	4
+2	Brittany	Tue Jan 07 2014 12:42:15 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3	517.00	281.00	25
+5	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	0	1
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	0.64	485.00	169.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	1.36	485.00	167.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	2.36	485.00	166.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	4.36	485.00	164.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	5.36	485.00	163.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	6.36	485.00	162.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	7.36	485.00	161.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	9.36	485.00	159.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,3	10.36	485.00	158.58	485.00	168.94
+4	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,4	1	-1
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,4	11.36	485.00	157.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,4	10.36	485.00	158.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,4	9.36	485.00	159.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,4	7.36	485.00	161.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,4	5.36	485.00	163.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,4	4.36	485.00	164.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,4	2.36	485.00	166.58	485.00	168.94
+6	Brittany	Tue Jan 07 2014 12:42:16 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,5	4.13	489.00	214.58	485.00	215.61
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	10.19	495.00	264.58	485.00	266.52
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	13.01	498.00	312.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	13.44	498.00	316.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	14.07	498.00	318.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	14.49	498.00	319.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	16.04	498.00	322.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	18.67	498.00	326.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	17.29	498.00	324.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	19.40	498.00	327.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	20.15	498.00	328.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	22.52	498.00	331.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	23.35	498.00	332.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	24.18	498.00	333.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	25.03	498.00	334.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	26.76	498.00	336.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	27.64	498.00	337.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	28.53	498.00	338.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	29.42	498.00	339.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	31.23	498.00	341.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	32.14	498.00	342.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	33.98	498.00	344.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	35.84	498.00	346.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	36.77	498.00	347.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	37.71	498.00	348.58	485.00	313.18
+6	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	0	78	6	3,6	38.65	498.00	349.58	485.00	313.18
+3	Brittany	Tue Jan 07 2014 12:42:17 GMT-0500 (Eastern Standard Time)	0	0	taskType=0	78	6	7	498.00	351.58	27
+7	Brittany	Tue Jan 07 2014 12:42:18 GMT-0500 (Eastern Standard Time)	0	0	0	78	7	723.00	221.00	27
+8	Brittany	Tue Jan 07 2014 12:42:18 GMT-0500 (Eastern Standard Time)	0	0	0	78	7	723.00	221.00	27
+2	Brittany	Tue Jan 07 2014 12:42:20 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7	820.00	423.00	30
+5	Brittany	Tue Jan 07 2014 12:42:21 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	0	1
+6	Brittany	Tue Jan 07 2014 12:42:22 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,8	4.76	782.00	232.03	785.00	228.33
+4	Brittany	Tue Jan 07 2014 12:42:23 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,8	1	-1
+5	Brittany	Tue Jan 07 2014 12:42:23 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,8	1	-1
+6	Brittany	Tue Jan 07 2014 12:42:23 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	5.01	780.00	228.03	785.00	228.33
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	7.07	778.00	397.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	7.28	778.00	400.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	8.06	778.00	402.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	8.60	778.00	403.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	11.40	778.00	407.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	12.21	778.00	408.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	13.89	778.00	410.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	15.65	778.00	412.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	16.55	778.00	413.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	18.38	778.00	415.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	19.31	778.00	416.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	21.19	778.00	418.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	23.09	778.00	420.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	24.04	778.00	421.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	25.00	778.00	422.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	25.96	778.00	423.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	27.89	778.00	425.03	785.00	398.03
+6	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	0	78	10	7,7	28.44	780.00	426.03	785.00	398.03
+3	Brittany	Tue Jan 07 2014 12:42:25 GMT-0500 (Eastern Standard Time)	0	0	taskType=0	78	10	7	780.00	427.03	35
+7	Brittany	Tue Jan 07 2014 12:42:26 GMT-0500 (Eastern Standard Time)	0	0	0	78	7	1047.00	251.00	35
+8	Brittany	Tue Jan 07 2014 12:42:26 GMT-0500 (Eastern Standard Time)	0	0	0	78	7	1047.00	251.00	35
