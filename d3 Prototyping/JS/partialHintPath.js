@@ -161,7 +161,7 @@ function hidePartialHintPath (objectRef){
 /////////////////////////////////////////////////////// For the scatterplot \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 var radius = 10;
 var radiusThickness = 1;
-var circleColour = "#FFF";
+var circleColour = "#BDBDBD";
 
 /** Displays small hint path by appending its svg components to the main svg
  *  translate: amount the path should be translated by in order to align with the

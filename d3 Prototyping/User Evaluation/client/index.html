@@ -21,6 +21,7 @@ html, body {
         function startExperiment()
         {
             d3.json("http://localhost:8080/startExperiment?", function(error,response) {
+                console.log(response);
                 window.location = response;
             });
         }

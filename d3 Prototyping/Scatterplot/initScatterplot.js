@@ -9,7 +9,7 @@ window.onload = function (){
     d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
 }
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(400, 400,50,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries");
+var scatterplot   = new Scatterplot(400, 400,50);
 
 //Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
 scatterplot.clickSVG = function (){
@@ -27,7 +27,7 @@ scatterplot.clickHintLabelFunction = function (d, i){
     slider.updateSlider(i);
 };
 
-scatterplot.render( dataset, 0,labels); //Draw the scatterplot, dataset is an array created in a separate js file containing the json data,
+scatterplot.render( dataset, labels,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries"); //Draw the scatterplot, dataset is an array created in a separate js file containing the json data,
                                         // and labels is an array representing the different views of the dataset
 
 //Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot

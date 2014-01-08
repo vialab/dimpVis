@@ -2,20 +2,17 @@
  * w: width of the graph
  * h: height of the graph
  * p: a padding value, to format the axes
- * xLabel: label for the x-axis
- * yLabel: label for the y-axis
- * title: of the graph
 */
-function Scatterplot(w, h,p,xLabel,yLabel,title) {
+function Scatterplot(w, h,p) {
    // Position and size attributes for drawing the svg
    this.padding = p;
    this.width = w;
    this.height = h;
-   this.pointRadius = 5;
+   this.pointRadius = 10;
    this.loopRadius = 50;
-   this.xLabel = xLabel;
-   this.yLabel = yLabel;
-   this.graphTitle = title;
+   this.xLabel ="";
+   this.yLabel = "";
+   this.graphTitle = "";
    this.hintPathType = 0;
 
    // Create a variable to reference the main svg
@@ -23,8 +20,8 @@ function Scatterplot(w, h,p,xLabel,yLabel,title) {
    this.numPoints = -1; //Set this later
 
    //Variables to track dragged point location within the hint path, all assigned values when the dataset is provided (in render())
-   this.currentView = -1;
-   this.nextView = -1;
+   this.currentView = 0;
+   this.nextView = 1;
    this.lastView = -1;  //The index of the last view of the dataset
    this.mouseX = -1; //Keep track of mouse coordinates for the dragend event
    this.mouseY = -1;
@@ -82,7 +79,6 @@ Scatterplot.prototype.init = function() {
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
- * start: The starting view of the visualization, as an index into the labels array
  * labels: A list of labels for the hint path, indicating all the different views of the visualization
  *
  * Data MUST be provided in the following array format:
@@ -92,23 +88,16 @@ Scatterplot.prototype.init = function() {
  *       }
  *       ..... number of data points
  * */
-Scatterplot.prototype.render = function( data, start, labels) {
+Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
    var ref = this; //Reference variable
-	//Save the function parameters
+	//Save the parameters in global variables
    this.labels = labels;
-   this.currentView = start;
    this.lastView = labels.length -1;
    this.numPoints = data.length;
+   this.xLabel = xLabel;
+   this.yLabel = yLabel;
+   this.graphTitle = title;
 
-   //Resolve the index value for the next view (e.g., if currentView is 0, then nextView should be set to 1)
-   if (this.currentView ==0){
-			this.nextView = this.currentView+1;
-	}else if (this.currentView == this.lastView){
-		   this.nextView = this.currentView;
-		   this.currentView = this.currentView -1;
-	}else {
-		this.nextView = this.currentView + 1;
-	}
      //Find the max and min values of the points, used to scale the axes and the dataset
      var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
      var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));

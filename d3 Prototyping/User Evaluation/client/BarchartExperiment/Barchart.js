@@ -238,10 +238,14 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
         .call(yAxis);
 
     //Add the x-axis
-    this.svg.append("g").attr("class", "axis")
+    this.svg.append("g").attr("class", "axis").attr("id","xAxis")
         .attr("transform", "translate("+this.padding+"," + (this.height+5) + ")")
         .call(xAxis).selectAll("text")
-        .text(function (d) {return ref.xLabels[d];})
+        .text("");//Blank for the purpose of the study
+}
+Barchart.prototype.addXLabels = function(){
+    var ref = this;
+    this.svg.select("#xAxis").selectAll("text").text(function (d) {return ref.xLabels[d];})
         .style("text-anchor", "end")
         .attr("transform", "translate("+this.barWidth/3+",0)rotate(-65)");
 }
