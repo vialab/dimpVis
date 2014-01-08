@@ -42,6 +42,11 @@ body {
 }
 
 /**Main side panel */
+#skipButton{
+    margin-left:330px;
+    margin-top:50px;
+}
+
 #taskPanel{
   float:right;
   height:600px;

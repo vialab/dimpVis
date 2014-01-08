@@ -10,7 +10,7 @@ function Multiples(spacing,size) {
     this.svg = null;
     this.clickedImage = -1; //Index of the selected (clicked) image
     this.imageSpacingX = this.spacing+60; //Horizontal spacing between the images
-    this.imageSpacingY = this.spacing+20; //Vertical spacing between the images
+    this.imageSpacingY = this.spacing+60; //Vertical spacing between the images
     this.marginWidth = 15; //Margins around the entire display
     this.baseOffset = 10; //Offset of the base of the bars
     this.backgroundColour = "#2C2D2D";    //Behind the visualization

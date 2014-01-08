@@ -16,8 +16,8 @@ var isExploratory = false;
 
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
-var totalObjectiveTasks = 38; //For each interaction technique
-//var totalObjectiveTasks = 1; //For each interaction technique
+//var totalObjectiveTasks = 38; //For each interaction technique
+var totalObjectiveTasks = 1; //For each interaction technique
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
  var lastTouchUp = null;
@@ -49,6 +49,7 @@ d3.select("#doneTutorialButton").on("click", startTasks);
 d3.select("#doneQuestionnaireButton").on("click", confirmDoneQuestionnaire);
 d3.select("#submitButton").on("click", showIntermediateScreen);
 d3.select("#showVisButton").on("click", updateVisualizationDisplay);
+d3.select("#skipButton").on("click",skipTask);
 
 //////////////////////Declare functions required to run the experiment here//////////////////////
 //Function that will be executed every second to check the time
@@ -93,6 +94,40 @@ window.onload = function (){
          d3.selectAll(".questionnaire").style("font-size",0.05*screenY+"px");
     });
  }
+/** Allows the participant to skip a task (after they confirm)
+ *  Nulls the solution in the log file
+ * */
+function skipTask(){
+    var result = confirm("Are you sure you would like skip this question?");
+    if (result){
+
+       //Move to the next task, do directly to next task screen
+        logTaskSolution("null","null");
+        logTaskCompletionTime();
+
+        //Re-set the touch event trackers
+        firstTouchDown = null;
+        firstTouchDownId = null;
+        lastTouchUp = null;
+        lastTouchUpId = null;
+        taskStartTime = null;
+
+        taskCounter++;
+        var numTasks = totalObjectiveTasks;
+        if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
+            numTasks = totalObjectiveTasks + 4;
+        }
+
+        if (taskCounter>=numTasks){
+            taskCounter = 0;
+            switchInteractionTechnique();
+        }
+        updateTaskDisplay(tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]]);
+
+        stopTimer();
+        startTimer();
+    }
+}
 /** Switches the task, and checks if max tasks has been reached
  * If max tasks reached, switches interaction technique, otherwise:
  * Updates the html page when a new task begins and saves the solution entered in the text box
@@ -156,6 +191,7 @@ function updateTaskDisplay (taskInfo){
     d3.select("#taskDescription").node().innerHTML = taskInfo[4];
     d3.select("#submitButton").style("display", "none");
     d3.select("#showVisButton").style("display", "block");
+    d3.select("#skipButton").style("display", "none");
 }
 /**Draws the visualization on the screen for each task
  * (After the participant has read the task description)
@@ -165,6 +201,8 @@ function updateVisualizationDisplay(){
 
     d3.select("#submitButton").style("display", "block");
     d3.select("#showVisButton").style("display", "none");
+    d3.select("#skipButton").style("display", "block");
+
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
 
     //Re-draw the visualization for the specified dataset
@@ -388,24 +426,28 @@ function showFeedbackScreen (){
  * */
 function showIntermediateScreen (){
 
-    d3.select("#taskPanel").style("display","none");
-    var svg =  d3.select("#mainSvg");
-    svg.attr("width", screenX);
+    if (techniqueOrder[techniqueCounter]==2 && multiples.clickedImage==-1){ //Trying to submit no answer for multiples
+        var result = confirm("You must select an image as your answer");
+    }else{
+        d3.select("#taskPanel").style("display","none");
+        var svg =  d3.select("#mainSvg");
+        svg.attr("width", screenX);
 
-    svg.append("rect").attr("x",0).attr("y",0).attr("id","submitScreenBackground").attr("class","submitScreen").attr("width",screenX).attr("height",screenY)
-        .style("fill", backgroundColour).on("click",cancelSubmitTask);
+        svg.append("rect").attr("x",0).attr("y",0).attr("id","submitScreenBackground").attr("class","submitScreen").attr("width",screenX).attr("height",screenY)
+            .style("fill", backgroundColour).on("click",cancelSubmitTask);
 
-    svg.append("text").attr("id","cancelMessage").attr("x",screenX/2-170).attr("y",screenY/3+150).attr("class","submitScreen").text("[ Touch the background to cancel ]")
-        .style("display","block");
+        svg.append("text").attr("id","cancelMessage").attr("x",screenX/2-170).attr("y",screenY/3+150).attr("class","submitScreen").text("[ Touch the background to cancel ]")
+            .style("display","block");
 
-    svg.append("rect").attr("x",screenX/2-150).attr("y",screenY/3).attr("id","nextButton").attr("width",300).attr("height",100)
-        .style("display","block").attr("rx",6).attr("ry",6).attr("class","submitScreen").on("click",showFeedbackScreen);
+        svg.append("rect").attr("x",screenX/2-150).attr("y",screenY/3).attr("id","nextButton").attr("width",300).attr("height",100)
+            .style("display","block").attr("rx",6).attr("ry",6).attr("class","submitScreen").on("click",showFeedbackScreen);
 
-    svg.append("text").attr("x",screenX/2-100).attr("y",screenY/3+65).attr("id","nextButtonText").attr("class","submitScreen")
-        .text("Next Task");
+        svg.append("text").attr("x",screenX/2-100).attr("y",screenY/3+65).attr("id","nextButtonText").attr("class","submitScreen")
+            .text("Next Task");
 
-    svg.append("text").attr("x",screenX/2-150).attr("y",screenY/3-10).attr("id","feedbackMessage").attr("class","submitScreen")
-        .style("display","none").style("anchor","middle");
+        svg.append("text").attr("x",screenX/2-150).attr("y",screenY/3-10).attr("id","feedbackMessage").attr("class","submitScreen")
+            .style("display","none").style("anchor","middle");
+    }
 }
 /**A blank screen to indicate all techniques have been used and the post-technique questionnaire should be completed
  * */
