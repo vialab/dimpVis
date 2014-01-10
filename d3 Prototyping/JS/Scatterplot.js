@@ -50,8 +50,9 @@ function Scatterplot(w, h,p) {
    // interacting with another visualization) after the object has been instantiated
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
-   this.clickSVG = this.placeholder;
    this.hintPathGenerator =  d3.svg.line().interpolate("linear");
+
+   this.clickedPoints = []; //Keeps track of which points to show labels for
 }
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -120,7 +121,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
 	        return {nodes:d.points,id:i,label:d.label};
 	  }))	
       .enter().append("g")
-	  .attr("class","gDisplayPoints");
+	  .attr("class","gDisplayPoints").attr("id",function (d){return "gDisplayPoints"+ d.id});
      
 	 //Draw the data points
      this.svg.selectAll(".gDisplayPoints").append("svg:circle")
@@ -128,8 +129,8 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
           .attr("cy", function(d) {return d.nodes[ref.currentView][1]; })
           .attr("r", this.pointRadius).attr("class", "displayPoints")
           .attr("id", function (d){return "displayPoints"+d.id;})
-          .attr("title", function (d) {return d.label;})
-          .style("fill-opacity",1);
+         /** .attr("title", function (d) {return d.label;})*/
+         .style("fill-opacity",1);
 
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -238,6 +239,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
 
     //Re-draw the dragged point
     this.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
+    this.animatePointLabel(id,newPoint[0],newPoint[1]);
 
     //Save the mouse coordinates
     this.mouseX = mouseX;
@@ -432,7 +434,7 @@ Scatterplot.prototype.convertMouseToLoop_interp = function (mouseInterp){
  * startView,endView: Define the range to interpolate across
  * */
 Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,endView){
-
+  var ref = this;
   this.svg.selectAll(".displayPoints").filter(function (d){return d.id!=id;})
       .each(function (d){
           var interpolator = d3.interpolate({x:d.nodes[startView][0],y:d.nodes[startView][1]},
@@ -440,7 +442,19 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
           var newPoint = interpolator(interpAmount);
           //Update the position of the point according to the interpolated point position
           d3.select(this).attr("cx",newPoint.x).attr("cy",newPoint.y);
+
+          //Update the labels (if visible)
+          if (ref.clickedPoints.indexOf(d.id)!=-1) ref.animatePointLabel(d.id,newPoint.x,newPoint.y);
       })
+}
+/**Re-draws a point label according to the specified position (new position of the point) by
+ * updating its x and y attributes
+ * @param id of the point label
+ * @param x,y, new position of the label
+ * */
+Scatterplot.prototype.animatePointLabel = function (id,x,y){
+    var ref = this;
+    this.svg.select("#pointLabel"+id).attr("x", x).attr("y", y-ref.pointRadius);
 }
 /** Snaps to the nearest view once a dragged point is released
  *  Nearest view is the closest position (either current or next) to the
@@ -520,6 +534,15 @@ Scatterplot.prototype.snapToView = function( id, points) {
         };
     }
 }
+/** Redraws the scatterplot's point labels at the specified view
+ *  view: the view to draw
+ * */
+Scatterplot.prototype.redrawPointLabels = function(view){
+    var ref = this;
+    this.svg.selectAll(".pointLabels").filter(function (d){return (ref.clickedPoints.indexOf(d.id)!=-1)})
+        .attr("x",function (d){return d.nodes[view][0];})
+        .attr("y",function (d){return d.nodes[view][1]-ref.pointRadius;});
+}
 /** Redraws the scatterplot at a specified view
  *  view: the view to draw
  *  NOTE: view tracking variables are not updated by this function
@@ -531,9 +554,10 @@ Scatterplot.prototype.redrawView = function(view) {
         this.hideAnchor();
         //Re-colour the hint path labels
         this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
-        this.svg.selectAll(".displayPoints").transition().duration(300)
+        this.svg.selectAll(".displayPoints")/**.transition().duration(300)*/
             .attr("cx",function (d){return d.nodes[view][0];})
             .attr("cy",function (d){return d.nodes[view][1];});
+        this.redrawPointLabels(view);
     }
 }
 /** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
@@ -557,11 +581,26 @@ Scatterplot.prototype.selectPoint = function (id,points){
         drawPartialHintPath_line(this,0,points);
         redrawPartialHintPath_line(this,this.ambiguousPoints);
     }
+    if (this.clickedPoints.indexOf(id) ==-1) {
+        this.clickedPoints.push(id);
+        this.drawPointLabel(id);
+    }
 
     //Fade out the other points using a transition
     this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
         .transition().duration(300)
         .style("fill-opacity", 0.3);//.style("stroke-opacity",0.3);
+}
+/** Draws a label at the top of the selected point
+ * */
+Scatterplot.prototype.drawPointLabel = function (id){
+    var ref = this;
+    //Add labels to the points
+    this.svg.select("#gDisplayPoints"+id).append("text")
+        .attr("x", function(d) {return d.nodes[ref.currentView][0];})
+        .attr("y", function(d) {return d.nodes[ref.currentView][1]-ref.pointRadius; })
+        .attr("class","pointLabels").attr("id",function (d){return "pointLabel"+ d.id})
+        .text(function (d){return d.label;});
 }
 /** Displays the hint path by appending its svg components to the main svg
  *  view: view to draw at
@@ -642,7 +681,6 @@ Scatterplot.prototype.placeLabels = function (points){
 }
 /** Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
 Scatterplot.prototype.clearHintPath = function () {
-
     this.isAmbiguous = 0;
     this.removeAnchor();
 
@@ -653,6 +691,12 @@ Scatterplot.prototype.clearHintPath = function () {
 
 	//Re-set the transparency of faded out points
     this.svg.selectAll(".displayPoints").style("fill-opacity", 1);
+}
+/**Clears the point labels when the background is clicked
+ * */
+Scatterplot.prototype.clearPointLabels = function (){
+    this.svg.selectAll(".pointLabels").remove();
+    this.clickedPoints = [];
 }
 /** Calculates the distance between two points
  * (x1,y1) is the first point

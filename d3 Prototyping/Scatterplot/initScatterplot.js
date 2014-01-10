@@ -2,20 +2,16 @@
  * */
 
 //Add a main svg which all visualization elements will be appended to
-d3.select("#scatter").append("svg").attr("id","mainSvg").attr("width",1000).attr("height",1000).on("click",function(){
+d3.select("#scatter").append("svg").attr("id","mainSvg").on("click",function(){
     scatterplot.clearHintPath();
+    scatterplot.clearPointLabels();
 });
 window.onload = function (){
-    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
+    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerWidth-50);
 }
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(400, 400,50);
+var scatterplot   = new Scatterplot(800, 700,50);
 
-//Define the function when the SVG (background of graph) is clicked, should clear the hint path displayed
-scatterplot.clickSVG = function (){
-    d3.event.preventDefault();
-    scatterplot.clearHintPath();
-};
 scatterplot.init();
 //setHintPathType(scatterplot,1);
 
@@ -52,7 +48,7 @@ var dragPoint = d3.behavior.drag()
 scatterplot.svg.selectAll(".displayPoints").call(dragPoint);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(35, 540, labels, "","#666",50);
+var slider   = new Slider(35, 840, labels, "","#666",50);
 slider.init();
 slider.render();
 				  
