@@ -50,5 +50,9 @@ body {
     stroke-width:2;
     fill:none;
 }
+/**For the gridlines */
+.axis line{
+    opacity:0.35;
+}
 
 

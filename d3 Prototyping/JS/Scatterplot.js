@@ -141,8 +141,10 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
  Scatterplot.prototype.drawAxes = function (xScale,yScale){
 
     //Define functions to create the axes
-    var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-    var yAxis = d3.svg.axis().scale(yScale).orient("left");
+    var xAxis = d3.svg.axis().scale(xScale).orient("bottom")
+        .tickSize(-this.height,0,0);
+    var yAxis = d3.svg.axis().scale(yScale).orient("left")
+        .tickSize(-this.width,0,0);
 
     // Add the title of the graph
      this.svg.append("text").attr("id", "graphTitle")

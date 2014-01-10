@@ -5,7 +5,9 @@
   fill: none;
   shape-rendering: crispEdges;
   stroke:#bdbdbd;
+
 }
+
 /** The number ticks */
 .axis text{
   font-family: sans-serif;
