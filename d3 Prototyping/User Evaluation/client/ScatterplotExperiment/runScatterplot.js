@@ -23,9 +23,9 @@ scatterplot.clickHintLabelFunction = function (d, i){
 
 //Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot
 scatterplot.dragEvent = d3.behavior.drag()
-    .origin(function(d){ //Set the starting point of the drag interaction
+    /**.origin(function(d){ //Set the starting point of the drag interaction
         return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
-    }).on("dragstart", function(d){
+    })*/.on("dragstart", function(d){
         d3.event.sourceEvent.preventDefault();
         scatterplot.clearHintPath();
         scatterplot.draggedPoint = d.id;
@@ -84,12 +84,15 @@ var gIdName = "#gScatterplot";
 var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
 var realDataXLabel = "Program";
 var realDataTitle = "Student Enrollment Over The Years At UOIT";
+var phaseId = 1;
 
 //Customized display properties for the tutorial screens
 var tutorialInstructions = [
-    "Drag the bars to find a view of the barchart that answers the question",
-    "Drag along the slider to find a view of the barchart that answers the question",
-    "Select the image of the barchart that answers the question",
-    "Drag the bars to explore the visualization over time"
+    "Drag the points to find a view of the scatterplot that answers the question",
+    "Drag along the slider to find a view of the scatterplot that answers the question",
+    "Select the image of the scatterplot that answers the question",
+    "Drag the points to explore the visualization over time"
 ];
 var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.png","Images/exploratory.gif"];
+
+var techniqueInstructions = ["Drag the point","Drag the slider","Select an image"];

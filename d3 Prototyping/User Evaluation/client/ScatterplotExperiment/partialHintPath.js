@@ -156,10 +156,11 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
 /**Hides the small hint path whenever the user stops dragging */
 function hidePartialHintPath (objectRef){
     objectRef.svg.select("#hintPath").selectAll("path").style("stroke","none");
+    objectRef.svg.select("#hintPath").selectAll("circle").style("stroke","none");
 }
 
 /////////////////////////////////////////////////////// For the scatterplot \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-var radius = 10;
+var radius = 16;
 var radiusThickness = 1;
 var circleColour = "#BDBDBD";
 

@@ -71,7 +71,7 @@ slider.dragEvent = d3.behavior.drag()
 
 //Attach listener to the svg for logging background touches
 d3.select("#mainSvg").on("mousedown",function(){
-    //TODO: add case if in small multiples
+    //TODO: add case if not in small multiples, need to log whenever an image is clicked
     logBackgroundTouchDown(d3.mouse(this)[0],d3.mouse(this)[1]);
 }).on("mouseup", function(){
      logBackgroundTouchUp(d3.mouse(this)[0],d3.mouse(this)[1]);
@@ -85,6 +85,7 @@ var gIdName = "#gBarchart";
 var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
 var realDataXLabel = "Program";
 var realDataTitle = "Student Enrollment Over The Years At UOIT";
+var phaseId = 0;
 
 //Customized display properties for the tutorial screens
 var tutorialInstructions = [
@@ -94,7 +95,7 @@ var tutorialInstructions = [
     "Drag the bars to explore the visualization over time"
 ];
 var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.png","Images/exploratory.gif"];
-
+var techniqueInstructions = ["Drag the bar","Drag the slider","Select an image"];
 
 /**d3.select("#mainSvg").append("image").attr("xlink:href","../CSS/hand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
     .attr("id","hand");*/

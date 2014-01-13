@@ -114,12 +114,15 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
   // Set up the data for drawing the points according to the values in the data set
   this.svg.selectAll("circle")
      .data(data.map(function (d,i) {
-            //Re-scale the points such that they are drawn within the svg container
-           d.points.forEach(function (d) {
+           var scaledPoints = [];
+           for (var j=0;j< d.points.length;j++){
+               scaledPoints[j] = [xScale(d.points[j][0]),yScale(d.points[j][1])];
+           }
+          /**d.points.forEach(function (d) { //This was not clearing when the data was reloaded, at some point, look into why this was happening
                d[0] = xScale(d[0]);
                d[1] = yScale(d[1]);
-           });
-	        return {nodes:d.points,id:i,label:d.label};
+           });*/
+	        return {nodes:scaledPoints,id:i,label:d.label};
 	  }))	
       .enter().append("g")
 	  .attr("class","gDisplayPoints").attr("id",function (d){return "gDisplayPoints"+ d.id});
@@ -130,7 +133,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
           .attr("cy", function(d) {return d.nodes[ref.currentView][1]; })
           .attr("r", this.pointRadius).attr("class", "displayPoints")
           .attr("id", function (d){return "displayPoints"+d.id;})
-         /** .attr("title", function (d) {return d.label;})*/
+          .attr("title", function (d) {return d.label;})
          .style("fill-opacity",1);
 
     //Append an empty g element to contain the hint path
@@ -550,16 +553,16 @@ Scatterplot.prototype.redrawPointLabels = function(view){
  * */
 Scatterplot.prototype.redrawView = function(view) {
     if (this.hintPathType==1){
-       // hideSmallHintPath(this);
-    }else{
-        this.hideAnchor();
-        //Re-colour the hint path labels
-        this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
-        this.svg.selectAll(".displayPoints")/**.transition().duration(300)*/
-            .attr("cx",function (d){return d.nodes[view][0];})
-            .attr("cy",function (d){return d.nodes[view][1];});
-        //this.redrawPointLabels(view);
+       hidePartialHintPath(this);
     }
+    this.hideAnchor();
+    //Re-colour the hint path labels
+    this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
+    this.svg.selectAll(".displayPoints")/**.transition().duration(300)*/
+        .attr("cx",function (d){return d.nodes[view][0];})
+        .attr("cy",function (d){return d.nodes[view][1];});
+    //this.redrawPointLabels(view);
+
 }
 /** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
  *  id: the id of the dragged point
@@ -588,9 +591,9 @@ Scatterplot.prototype.selectPoint = function (id,points){
     }*/
 
     //Fade out the other points using a transition
-    this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
+    /**this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
         .transition().duration(300)
-        .style("fill-opacity", 0.3);//.style("stroke-opacity",0.3);
+        .style("fill-opacity", 0.3);//.style("stroke-opacity",0.3);*/
 }
 /** Draws a label at the top of the selected point
  * */

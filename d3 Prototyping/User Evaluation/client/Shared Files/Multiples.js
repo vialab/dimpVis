@@ -23,8 +23,11 @@ Multiples.prototype.init = function (){
     this.svg = d3.select("#mainSvg").append("g").attr("id","gMultiples");
 }
 /**Draw the multiples display by adding the images
+ * dataset to render
+ * toHighlight  the data objects to be highlighted
+ * type   the type of chart to render (0 - barchart and 1 - scatterplot)
 */
-Multiples.prototype.render = function (dataset,highlightBars){
+Multiples.prototype.render = function (dataset,toHighlight,type){
     var ref = this;
 
     //Draw the images, ordered by time from left to right, then top to bottom
@@ -63,10 +66,43 @@ Multiples.prototype.render = function (dataset,highlightBars){
         .attr("class","multiples").attr("id",function (d,i){return "multiplesBackground"+i})
         .style("fill",this.backgroundColour).style("stroke",this.imageBorderColour).style("stroke-width",10)
         .each(function(d){
-            ref.drawStaticBarchart(dataset,d.id, highlightBars,ref.imgSize, d.x);
+            if (type==0){
+                ref.drawStaticBarchart(dataset,d.id, toHighlight,ref.imgSize);
+            }else if (type==1){
+                ref.drawStaticScatterplot(dataset,d.id, toHighlight,ref.imgSize);
+            }
+
         });
 }
 ////////////////////////////////////functions added for the user study///////////////////////////////////////////////////
+Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,height){
+    //Find the max and min values of the points, used to scale the axes and the dataset
+    var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
+    var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
+
+    //Create the scales by mapping the x,y to the svg size
+    var xScale = d3.scale.linear().domain([0,max_x]).range([0,height]);
+    var yScale =  d3.scale.linear().domain([0, max_y]).range([height,0]);
+
+    this.drawAxes(view,xScale,yScale,1);
+
+    d3.select("#multiples"+view).selectAll(".multiplesPoints")
+        .data(data.map(function (d,i) {
+        //Re-scale the points such that they are drawn within the svg container
+        d.points.forEach(function (d) {
+            d[0] = xScale(d[0]);
+            d[1] = yScale(d[1]);
+        });
+        return {nodes:d.points,id:i,label:d.label};
+    })).enter().append("svg:circle")
+        .attr("cx", function(d) {return d.nodes[view][0];})
+        .attr("cy", function(d) {return d.nodes[view][1]; })
+        .attr("r", 8)
+        .style("fill", function (d){
+            return (d.id==highlightPoints[0])?"#D95F02":(d.id==highlightPoints[1])?"#1B9E77":"#BDBDBD";
+        }).style("pointer-events","none").attr("class","multiplesPoints");
+
+}
 /** Draws a static barchart without hint path, time direction prediction etc.
  *   data: set adhere to the same format as accepted by the render function
  *   id: id of g element to draw the barchart on
@@ -74,7 +110,7 @@ Multiples.prototype.render = function (dataset,highlightBars){
  *   highlightBars: bar or bars to highlight in the view
  *   height: of the barchart image
  * */
-Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,height,xOffset){
+Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,height){
     var ref = this;
 
     //Find the max value of the heights, used to scale the axes and the dataset
@@ -88,10 +124,10 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
 
     //Draw the axes
     yScale =  d3.scale.linear().domain([max_h,0]).range([0,height]); //Reverse the scale to get the corect axis display
-    this.drawAxes(view,xScale,yScale);
+    this.drawAxes(view,xScale,yScale,0);
 
     //Assign data values to a set of rectangles representing the bars of the chart and draw the bars
-    d3.select("#multiples"+view).selectAll(".mulitplesBars")
+    d3.select("#multiples"+view).selectAll(".multiplesBars")
         .data(data.map(function (d,i) {
         var newData = [base - yScale(d.heights[view]),yScale(d.heights[view])];
         return {nodes:newData,id:i,xPos:(xScale(i)+ref.spacing+ref.baseOffset)};
@@ -107,12 +143,17 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
  *  xScale: a function defining the scale of the x-axis
  *  yScale: a function defining the scale of the y-axis
  *  id: of the g element to append the axes within
+ *  grid: 1 if grid should be drawn, 0 if not
  * */
-Multiples.prototype.drawAxes = function (id,xScale,yScale){
-
-    //Define the axes
+Multiples.prototype.drawAxes = function (id,xScale,yScale,grid){
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
     var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+    //Define the axes
+    if (grid==1){
+       xAxis.tickSize(-this.imgSize,0,0);
+        yAxis.tickSize(-this.imgSize,0,0);
+    }
 
     // Add the y-axis
     d3.select("#multiples"+id).append("g").attr("class", "axis")

@@ -212,17 +212,17 @@ function randomizeTasks(){
      var practiceAmbiguousTasks = [30,31,32,33];
 
      for (var i=0;i<3;i++){ //Do for each interaction technique
-         var shuffledRetrieve = shuffle(retrieveTasks);
+         /**var shuffledRetrieve = shuffle(retrieveTasks);
          var shuffledDistribution = shuffle(distributionTasks);
          var shuffledAmbiguousRetrieve = shuffle(ambiguousRetrieveTasks);
          var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);
          var shuffledRetrieve = retrieveTasks;
          var shuffledDistribution = distributionTasks;
          var shuffledAmbiguousRetrieve = ambiguousRetrieveTasks;
-         var shuffledAmbiguousDistribution = ambiguousDistributionTasks;
+         var shuffledAmbiguousDistribution = ambiguousDistributionTasks;*/
          var randomizedArray = [];
 
-         if (taskTypeOrder[i][0]==0){ //Retrieve tasks come first
+         /**if (taskTypeOrder[i][0]==0){ //Retrieve tasks come first
             randomizedArray = shuffledRetrieve.concat(shuffledDistribution).concat(shuffledAmbiguousRetrieve).concat(shuffledAmbiguousDistribution);
          }else{ //Distribution tasks come first
              randomizedArray = shuffledDistribution.concat(shuffledRetrieve).concat(shuffledAmbiguousDistribution).concat(shuffledAmbiguousRetrieve);
@@ -231,7 +231,8 @@ function randomizeTasks(){
             taskOrder[i] = practiceTasks.concat(practiceAmbiguousTasks).concat(randomizedArray);
          }else{
             taskOrder[i] = practiceTasks.concat(randomizedArray);
-         }
+         }*/
+         taskOrder[i] = retrieveTasks;
      }
  }
 

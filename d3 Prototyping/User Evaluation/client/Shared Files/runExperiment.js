@@ -237,12 +237,13 @@ function clearVisualizations(clearPanel){
  * a slider which cannot be dragged
  * */
 function useDimpTechnique(){
-    visRef.render(currentDataset,labels,"","","");
+
+    visRef.render(currentDataset,labels,"","Age (Years)","");
     slider.render(labels);
     hideSliderInfo(slider);
     slider.widget.select("#slidingTick").call(doNothing);
     visRef.svg.selectAll(className).call(visRef.dragEvent);
-    instructions = "      Drag the bar";
+    instructions = techniqueInstructions[0];
 
     //Re-set the visualization to the first view
     changeView(visRef,0);
@@ -252,12 +253,12 @@ function useDimpTechnique(){
  /** Draws the visualization with non-interactive objects and a draggable slider
  * */
 function useSliderTechnique(){
-     visRef.render(currentDataset,labels,"","","");
+     visRef.render(currentDataset,labels,"","Age (Years)","");
      slider.render(labels);
      hideSliderInfo(slider);
      slider.widget.select("#slidingTick").call(slider.dragEvent);
      visRef.svg.selectAll(className).call(doNothing);
-     instructions = "      Drag the slider";
+     instructions = techniqueInstructions[1];
 
      //Re-set the visualization to the first view
      changeView(visRef,0);
@@ -270,11 +271,11 @@ function useSmallMultipleTechnique(){
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
 
     if (taskInfo[5]==0){ //One data object to highlight
-        multiples.render(currentDataset,[taskInfo[7][0],-1]);
+        multiples.render(currentDataset,[taskInfo[7][0],-1],phaseId);
     }else if (taskInfo[5]==1){ //Two data objects to highlight
-        multiples.render(currentDataset,taskInfo[7]);
+        multiples.render(currentDataset,taskInfo[7],phaseId);
     }
-    instructions = "      Select an image";
+    instructions = techniqueInstructions[2];
 }
 /**Updates the view to enable and disable the appropriate interaction technique
    * Technique ID's: Dimp=0, Time slider=1, Small multiples=2
@@ -304,7 +305,7 @@ function changePhase (){
 /**When all tasks are done, start the exploratory period:
    * Add full hint path and fast forwarding feature, use real dataset and clear the task panel
  * */
-//TODO: show another tutorial before entering the exploratory period
+
  function startExploratory(){
     hideTutorial();
     d3.select("#taskPanel").style("display","none");
@@ -319,7 +320,7 @@ function changePhase (){
      visRef.displayColour = "#74c476"; //Green bars
      visRef.showZeroValues = 1;
      visRef.render(realDataset,realLabels,realDataTitle,realDataXLabel,realDataYLabel);
-     visRef.svg.selectAll(".displayBars").call(visRef.dragEvent);
+     visRef.svg.selectAll(className).call(visRef.dragEvent);
      visRef.addXLabels();
 
      d3.select("#gSlider").attr("transform","translate(200,1050)");
