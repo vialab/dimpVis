@@ -2,17 +2,26 @@
 <project version="4">
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" line="350" />
-    <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" line="668" />
+    <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" line="679" />
     <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Slider.js" line="239" />
     <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js" line="121" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="09daffa6-4579-40cc-9aab-b801be98a107" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets - Copy.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Tasks - Copy.js" />
+      <change type="DELETED" beforePath="C:\Users\brittany\Documents\dimpVis\d3 Prototyping\User Evaluation\client\BarchartExperiment\Data\Tasks_Old.js" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css" afterPath="$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Datasets/Experiment_practice.js" afterPath="$PROJECT_DIR$/d3 Prototyping/Datasets/Experiment_practice.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" afterPath="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html" afterPath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" afterPath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_info.txt" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_info.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_log0.txt" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_log0.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_solutions0.txt" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_solutions0.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Tasks.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Tasks.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/runExperiment.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/runExperiment.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js" afterPath="$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js" />
     </list>
     <ignored path="dimpVis.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -34,55 +43,46 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Scatterplot.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js">
+      <file leaf-file-name="Datasets.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="51" column="50" selection-start="2500" selection-end="2500" vertical-scroll-proportion="-11.04">
+            <state line="129" column="12" selection-start="5968" selection-end="5968" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="initScatterplot.js" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js">
+      <file leaf-file-name="runExperiment.js" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/runExperiment.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="0" selection-start="549" selection-end="549" vertical-scroll-proportion="0.20190024">
+            <state line="19" column="2" selection-start="783" selection-end="783" vertical-scroll-proportion="0.2624703">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="index.html" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html">
+      <file leaf-file-name="Tasks.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Tasks.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="87" selection-start="794" selection-end="794" vertical-scroll-proportion="-8.5">
+            <state line="47" column="34" selection-start="3068" selection-end="3068" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="scatterplotStyles.css" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css">
+      <file leaf-file-name="Brittany_solutions0.txt" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_solutions0.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="55" column="16" selection-start="1043" selection-end="1043" vertical-scroll-proportion="0.0">
+            <state line="40" column="96" selection-start="3736" selection-end="3736" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Experiment_practice.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/d3 Prototyping/Datasets/Experiment_practice.js">
+      <file leaf-file-name="server.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="28" column="6" selection-start="842" selection-end="842" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="axes.css" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/axes.css">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="9" column="0" selection-start="241" selection-end="241" vertical-scroll-proportion="0.0">
+            <state line="210" column="60" selection-start="9423" selection-end="9423" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -104,22 +104,22 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/index.html" />
         <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/ScatterplotExperiment/Data/Tasks.js" />
         <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/ScatterplotExperiment/Data/Datasets.js" />
         <option value="$PROJECT_DIR$/d3 Prototyping/JS/partialHintPath.js" />
-        <option value="$PROJECT_DIR$/d3 Prototyping/Datasets/Experiment_practice.js" />
         <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/Multiples.js" />
         <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Barchart.html" />
         <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/CSS/runExperimentStyles.css" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/CSS/axes.css" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Datasets/Experiment_practice.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js" />
+        <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Tasks.js" />
         <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js" />
         <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/runExperiment.js" />
-        <option value="$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js" />
-        <option value="$PROJECT_DIR$/d3 Prototyping/CSS/axes.css" />
-        <option value="$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html" />
-        <option value="$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css" />
-        <option value="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" />
-        <option value="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" />
       </list>
     </option>
   </component>
@@ -179,6 +179,16 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -219,6 +229,110 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="User Evaluation" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="client" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="User Evaluation" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="client" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Shared Files" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="User Evaluation" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="client" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="BarchartExperiment" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="User Evaluation" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="client" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="BarchartExperiment" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Data" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="Scatterplot" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -237,14 +351,22 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
-        </subPane>
-      </pane>
-      <pane id="Scope">
-        <subPane subId="Project Files">
           <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dimpVis" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="d3 Prototyping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="JS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
@@ -256,13 +378,13 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="282" />
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="282" />
     <property name="recentsLimit" value="5" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="282" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="282" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="940" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="940" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="940" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="283" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="281" />
@@ -1103,7 +1225,11 @@
       <created>1389377243002</created>
       <updated>1389377243002</updated>
     </task>
-    <option name="localTasksCounter" value="194" />
+    <task id="LOCAL-00194" summary="Added dynamic labels to the scatterplot">
+      <created>1389383048639</created>
+      <updated>1389383048639</updated>
+    </task>
+    <option name="localTasksCounter" value="195" />
     <servers />
   </component>
   <component name="TodoView" selected-index="3">
@@ -1130,12 +1256,11 @@
     <frame x="0" y="0" width="1919" height="1040" extended-state="0" />
     <editor active="false" />
     <layout>
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32967034" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3297244" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32967034" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977587" sideWeight="0.7785433" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2902531" sideWeight="0.6722441" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.29348412" sideWeight="0.6722441" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3996004" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25987193" sideWeight="0.22047244" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3297244" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
@@ -1147,6 +1272,7 @@
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3277559" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32967034" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1190,7 +1316,7 @@
     <option name="SHOW_VCS_ERROR_NOTIFICATIONS" value="true" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added grid lines to the axes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added dynamic labels to the scatterplot" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -1203,7 +1329,6 @@
     <option name="UPDATE_GROUP_BY_CHANGELIST" value="false" />
     <option name="SHOW_FILE_HISTORY_AS_TREE" value="false" />
     <option name="FILE_HISTORY_SPLITTER_PROPORTION" value="0.6" />
-    <MESSAGE value="Changed ambiguity detection to a shared function in util file (only for piechart, barchart and heatmap because scatterplot is slightly different)" />
     <MESSAGE value="Added a small grey bar to replace a bar which has a zero height (so it can be draggable)" />
     <MESSAGE value="Added partial hint path (for user study) to the heatmap and scatterplot, doesn't work for the piechart yet" />
     <MESSAGE value="Fixed bug with piechart's time direction not being set accurately when segment is first dragged" />
@@ -1228,26 +1353,12 @@
     <MESSAGE value="Started creating a dataset to use for the scatterplot experiment" />
     <MESSAGE value="Added ability to skip a task in the experiment" />
     <MESSAGE value="Added grid lines to the axes" />
+    <MESSAGE value="Added dynamic labels to the scatterplot" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Datasets/populationShortScatterplot.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/partialHintPath.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="176" column="33" selection-start="9764" selection-end="9764" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="38" selection-start="612" selection-end="612" vertical-scroll-proportion="0.47916666" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Barchart.html">
       <provider selected="true" editor-type-id="text-editor">
         <state line="32" column="51" selection-start="1554" selection-end="1554" vertical-scroll-proportion="-9.153846" />
@@ -1258,71 +1369,86 @@
         <state line="48" column="0" selection-start="1136" selection-end="1136" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_solutions0.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="40" column="96" selection-start="3736" selection-end="3736" vertical-scroll-proportion="0.79532164" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="27" selection-start="259" selection-end="259" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/runExperiment.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="116" column="54" selection-start="4560" selection-end="4560" vertical-scroll-proportion="0.16646267" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/Multiples.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="12" column="39" selection-start="521" selection-end="521" vertical-scroll-proportion="0.23859648" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="60" column="27" selection-start="2435" selection-end="2435" vertical-scroll-proportion="0.27836257">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/axes.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="0" selection-start="241" selection-end="241" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Datasets/Experiment_practice.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="6" selection-start="842" selection-end="842" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="87" selection-start="794" selection-end="794" vertical-scroll-proportion="-8.5">
-          <folding />
-        </state>
+        <state line="9" column="0" selection-start="241" selection-end="241" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/d3 Prototyping/CSS/scatterplotStyles.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="55" column="16" selection-start="1043" selection-end="1043" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="30" column="19" selection-start="623" selection-end="623" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js">
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/util.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="51" column="50" selection-start="2500" selection-end="2500" vertical-scroll-proportion="-11.04">
+        <state line="420" column="12" selection-start="18020" selection-end="18029" vertical-scroll-proportion="0.36506024" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Datasets/Experiment_practice.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="20" selection-start="20" selection-end="20" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/partialHintPath.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="207" column="95" selection-start="11851" selection-end="11851" vertical-scroll-proportion="1.1590643" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/Scatterplot/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="14" column="94" selection-start="889" selection-end="889" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="0" selection-start="549" selection-end="549" vertical-scroll-proportion="0.20190024">
+        <state line="30" column="69" selection-start="1564" selection-end="1564" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="642" column="0" selection-start="28952" selection-end="28952" vertical-scroll-proportion="0.5964912">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/Brittany_solutions0.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="40" column="96" selection-start="3736" selection-end="3736" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/server.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="210" column="60" selection-start="9423" selection-end="9423" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Datasets.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="129" column="12" selection-start="5968" selection-end="5968" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/BarchartExperiment/Data/Tasks.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="47" column="34" selection-start="3068" selection-end="3068" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/d3 Prototyping/User Evaluation/client/Shared Files/runExperiment.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="19" column="2" selection-start="783" selection-end="783" vertical-scroll-proportion="0.2624703">
           <folding />
         </state>
       </provider>

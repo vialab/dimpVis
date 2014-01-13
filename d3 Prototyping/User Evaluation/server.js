@@ -166,7 +166,7 @@ function setFileNames(){
 //Randomization:
 // indices: 0 - 9 (Retrieve value tasks)
 // indices: 10 - 19 (Distribution tasks)
-function randomizeTasks(){
+/**function randomizeTasks(){
   var retrieveTasks = [0,1,2,3,4,5,6,7,8,9];
   var distributionTasks = [10,11,12,13,14,15,16,17,18,19];
   var ambiguousRetrieveTasks = [20,21,22];
@@ -175,10 +175,10 @@ function randomizeTasks(){
   var practiceAmbiguousTasks = [38,39,40,41];
 
  for (var i=0;i<3;i++){ //Do for each interaction technique
-     /**var shuffledRetrieve = shuffle(retrieveTasks);
+     var shuffledRetrieve = shuffle(retrieveTasks);
      var shuffledDistribution = shuffle(distributionTasks);
      var shuffledAmbiguousRetrieve = shuffle(ambiguousRetrieveTasks);
-     var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);*/
+     var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);
      var shuffledRetrieve = retrieveTasks;
      var shuffledDistribution = distributionTasks;
      var shuffledAmbiguousRetrieve = ambiguousRetrieveTasks;
@@ -196,7 +196,45 @@ function randomizeTasks(){
          taskOrder[i] = practiceTasks.concat(randomizedArray);
      }
  }
-}
+}*///Old version of the function when there were more tasks..
+
+//Generates an array determining the task order, based on the taskTypeOrder for all three interaction techniques
+//
+//Randomization:
+// indices: 0 - 5 (Retrieve value tasks)
+// indices: 6 - 11 (Distribution tasks)
+function randomizeTasks(){
+     var retrieveTasks = [0,1,2,3,4,5];
+     var distributionTasks = [6,7,8,9,10,11];
+     var ambiguousRetrieveTasks = [12,13,14];
+     var ambiguousDistributionTasks = [15,16,17];
+     var practiceTasks = [18,19,20,21,22,23,24,25,26,27,28,29];
+     var practiceAmbiguousTasks = [30,31,32,33];
+
+     for (var i=0;i<3;i++){ //Do for each interaction technique
+         var shuffledRetrieve = shuffle(retrieveTasks);
+         var shuffledDistribution = shuffle(distributionTasks);
+         var shuffledAmbiguousRetrieve = shuffle(ambiguousRetrieveTasks);
+         var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);
+         var shuffledRetrieve = retrieveTasks;
+         var shuffledDistribution = distributionTasks;
+         var shuffledAmbiguousRetrieve = ambiguousRetrieveTasks;
+         var shuffledAmbiguousDistribution = ambiguousDistributionTasks;
+         var randomizedArray = [];
+
+         if (taskTypeOrder[i][0]==0){ //Retrieve tasks come first
+            randomizedArray = shuffledRetrieve.concat(shuffledDistribution).concat(shuffledAmbiguousRetrieve).concat(shuffledAmbiguousDistribution);
+         }else{ //Distribution tasks come first
+             randomizedArray = shuffledDistribution.concat(shuffledRetrieve).concat(shuffledAmbiguousDistribution).concat(shuffledAmbiguousRetrieve);
+         }
+         if (i==0){ //Extra practice tasks for ambiguous
+            taskOrder[i] = practiceTasks.concat(practiceAmbiguousTasks).concat(randomizedArray);
+         }else{
+            taskOrder[i] = practiceTasks.concat(randomizedArray);
+         }
+     }
+ }
+
 //This was taken from stackoverflow..
 function shuffle(array) {
     var currentIndex = array.length

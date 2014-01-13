@@ -51,7 +51,7 @@ body {
     fill:none;
 }
 /**Labels on the points */
-.pointLabels{
+.pointLabels {
     font-family: sans-serif;
     font-size:14px;
     fill:#EDEDED;

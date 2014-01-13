@@ -1,5 +1,5 @@
 /**Based on the original gapminder dataset
- * 10 years, 15 points
+ * 10 years, 12 points
  * */
 
 var dataset = [

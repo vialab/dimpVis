@@ -593,14 +593,25 @@ Scatterplot.prototype.selectPoint = function (id,points){
 }
 /** Draws a label at the top of the selected point
  * */
-Scatterplot.prototype.drawPointLabel = function (id){
+//TODO: draw a line from the corner of the label to the point
+ Scatterplot.prototype.drawPointLabel = function (id){
     var ref = this;
     //Add labels to the points
-    this.svg.select("#gDisplayPoints"+id).append("text")
+    var gElement = this.svg.select("#gDisplayPoints"+id);
+    gElement.append("text")
         .attr("x", function(d) {return d.nodes[ref.currentView][0];})
         .attr("y", function(d) {return d.nodes[ref.currentView][1]-ref.pointRadius; })
         .attr("class","pointLabels").attr("id",function (d){return "pointLabel"+ d.id})
         .text(function (d){return d.label;});
+
+    /**var bbox =  this.svg.select("#pointLabel"+id).node().getBBox();
+    var padding = 2;
+
+    gElement.append("rect").attr("x", bbox.x-padding).attr("y", bbox.y-padding)
+        .attr("height",bbox.height+padding*2).attr("width",bbox.width+padding*2)
+        .attr("rx",5).attr("ry",5)
+        .attr("class","pointLabels").style("fill","#EDEDED").style("fill-opacity",0.3)
+        .style("stroke","#EDEDED").style("stroke-opacity",1);*/
 }
 /** Displays the hint path by appending its svg components to the main svg
  *  view: view to draw at

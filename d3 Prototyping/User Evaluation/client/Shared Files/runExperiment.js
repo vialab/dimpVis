@@ -16,8 +16,8 @@ var isExploratory = false;
 
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
-//var totalObjectiveTasks = 38; //For each interaction technique
-var totalObjectiveTasks = 1; //For each interaction technique
+var totalObjectiveTasks = 30; //For each interaction technique
+//var totalObjectiveTasks = 1; //For each interaction technique
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
  var lastTouchUp = null;

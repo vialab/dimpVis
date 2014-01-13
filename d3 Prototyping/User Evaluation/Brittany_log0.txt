@@ -7425,3 +7425,54 @@
 8	Brittany	Wed Jan 08 2014 17:41:53 GMT-0500 (Eastern Standard Time)	0	2	0	102	7	913.00	406.00	17
 1	Brittany	Wed Jan 08 2014 17:41:53 GMT-0500 (Eastern Standard Time)	0	2	0	102	690	354	336	7	7
 0	Brittany	Wed Jan 08 2014 17:41:53 GMT-0500 (Eastern Standard Time)	0	2	0	102	7	6
+2	Brittany	Mon Jan 13 2014 12:21:51 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0	56.00	450.00	2
+5	Brittany	Mon Jan 13 2014 12:21:51 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	0	1
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	2.24	37.00	256.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	2.83	37.00	253.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	3.61	37.00	252.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	4.47	37.00	251.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	7.28	37.00	248.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	9.06	36.00	246.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	10.05	36.00	245.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	13.04	36.00	242.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	14.04	36.00	241.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	15.03	36.00	240.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	17.03	36.00	238.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	18.03	36.00	237.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,0	19.03	36.00	236.00	35.00	255.00
+4	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	1	-1
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	20.02	36.00	235.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	19.00	35.00	236.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	18.00	35.00	237.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	14.00	35.00	241.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,1	10.00	35.00	245.00	35.00	255.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	3.00	35.00	328.00	35.00	331.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	1.00	36.00	375.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	2.24	36.00	377.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	7.07	36.00	382.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	11.05	36.00	386.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	15.03	36.00	390.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	20.02	36.00	395.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	23.02	36.00	398.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	28.02	36.00	403.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	33.06	37.00	408.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	37.05	37.00	412.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	43.05	37.00	418.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	47.04	37.00	422.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	51.16	39.00	426.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	55.15	39.00	430.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	57.14	39.00	432.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	61.13	39.00	436.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	63.13	39.00	438.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	67.12	39.00	442.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	70.11	39.00	445.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	71.11	39.00	446.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	72.11	39.00	447.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	75.11	39.00	450.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	76.11	39.00	451.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	77.10	39.00	452.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	78.10	39.00	453.00	35.00	375.00
+6	Brittany	Mon Jan 13 2014 12:21:52 GMT-0500 (Eastern Standard Time)	0	0	0	78	0	0,2	80.10	39.00	455.00	35.00	375.00
+3	Brittany	Mon Jan 13 2014 12:21:53 GMT-0500 (Eastern Standard Time)	0	0	taskType=0	78	0	3	39.00	456.00	4
+0	Brittany	Mon Jan 13 2014 12:21:56 GMT-0500 (Eastern Standard Time)	0	0	0	78	null	null
+1	Brittany	Mon Jan 13 2014 12:21:56 GMT-0500 (Eastern Standard Time)	0	0	0	78	299	122	177	0	0
