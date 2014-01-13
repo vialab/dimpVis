@@ -16,8 +16,8 @@ var isExploratory = false;
 
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
-var totalObjectiveTasks = 30; //For each interaction technique
-//var totalObjectiveTasks = 1; //For each interaction technique
+//var totalObjectiveTasks = 30; //For each interaction technique
+var totalObjectiveTasks = 1; //For each interaction technique
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
  var lastTouchUp = null;
@@ -30,15 +30,6 @@ var totalObjectiveTasks = 30; //For each interaction technique
  var screenY = 1050;
  var backgroundColour ="#2C2D2D";
  var instructions = "";
-
-//Customized display properties for the tutorial screens
- var tutorialInstructions = [
-     "Drag the bars to find a view of the barchart that answers the question",
-     "Drag along the slider to find a view of the barchart that answers the question",
-     "Select the image of the barchart that answers the question",
-     "Drag the bars to explore the visualization over time"
- ];
- var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.png","Images/exploratory.gif"];
 
  //To disable the drag function
  var doNothing = d3.behavior.drag().on("dragstart", null)
@@ -254,8 +245,8 @@ function useDimpTechnique(){
     instructions = "      Drag the bar";
 
     //Re-set the visualization to the first view
-    changeView(barchart,0);
-    barchart.redrawView(0,-1);
+    changeView(visRef,0);
+    visRef.redrawView(0,-1);
     slider.updateSlider(0);
 }
  /** Draws the visualization with non-interactive objects and a draggable slider
@@ -269,8 +260,8 @@ function useSliderTechnique(){
      instructions = "      Drag the slider";
 
      //Re-set the visualization to the first view
-     changeView(barchart,0);
-     barchart.redrawView(0,-1);
+     changeView(visRef,0);
+     visRef.redrawView(0,-1);
      slider.updateSlider(0);
  }
 /** Draws the small multiple view with clickable images

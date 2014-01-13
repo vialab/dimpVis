@@ -86,6 +86,16 @@ var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
 var realDataXLabel = "Program";
 var realDataTitle = "Student Enrollment Over The Years At UOIT";
 
+//Customized display properties for the tutorial screens
+var tutorialInstructions = [
+    "Drag the bars to find a view of the barchart that answers the question",
+    "Drag along the slider to find a view of the barchart that answers the question",
+    "Select the image of the barchart that answers the question",
+    "Drag the bars to explore the visualization over time"
+];
+var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.png","Images/exploratory.gif"];
+
+
 /**d3.select("#mainSvg").append("image").attr("xlink:href","../CSS/hand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
     .attr("id","hand");*/
 

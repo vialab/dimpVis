@@ -16,15 +16,18 @@ body {
 
 /*The hint path*/
 #path{
-    stroke-width:2;
+    /**stroke-width:2;*/
     fill:none;
-    stroke:#1f77b4;
+   /** stroke:#aec7e8;*/
+    stroke:white;
+    stroke-width:2;
 }
 
 /*The points */
 .displayPoints{
-    fill:#EDEDED;
-    stroke:#FFF;
+    /**fill:#EDEDED;*/
+    fill:#A8DDB5;
+    stroke:#2C2D2D;
     stroke-width:1;
     fill-opacity:1;
     cursor:pointer;
@@ -42,6 +45,20 @@ body {
     fill: none;
     stroke:#c7c7c7;
 }
-
+/*For the short hint path */
+#forwardPath, #backwardPath{
+    stroke-width:2;
+    fill:none;
+}
+/**Labels on the points */
+.pointLabels {
+    font-family: sans-serif;
+    font-size:14px;
+    fill:#EDEDED;
+}
+/**For the gridlines */
+.axis line{
+    opacity:0.35;
+}
 
 
