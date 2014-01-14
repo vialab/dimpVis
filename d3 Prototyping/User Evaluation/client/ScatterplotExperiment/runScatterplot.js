@@ -45,7 +45,7 @@ scatterplot.dragEvent = d3.behavior.drag()
 
 
 //////////////////////Create the time slider//////////////////////
-var slider   = new Slider(50, 900,"","#636363",80);
+var slider   = new Slider(50, 920,"","#636363",80);
 slider.init();
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()

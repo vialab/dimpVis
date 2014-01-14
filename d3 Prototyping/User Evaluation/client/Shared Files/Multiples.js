@@ -76,6 +76,8 @@ Multiples.prototype.render = function (dataset,toHighlight,type){
 }
 ////////////////////////////////////functions added for the user study///////////////////////////////////////////////////
 Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,height){
+    var ref = this;
+
     //Find the max and min values of the points, used to scale the axes and the dataset
     var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
     var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
@@ -84,20 +86,18 @@ Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,
     var xScale = d3.scale.linear().domain([0,max_x]).range([0,height]);
     var yScale =  d3.scale.linear().domain([0, max_y]).range([height,0]);
 
-    this.drawAxes(view,xScale,yScale,1);
+    this.drawAxes_scatterplot(view,xScale,yScale);
 
     d3.select("#multiples"+view).selectAll(".multiplesPoints")
         .data(data.map(function (d,i) {
-        //Re-scale the points such that they are drawn within the svg container
-        d.points.forEach(function (d) {
-            d[0] = xScale(d[0]);
-            d[1] = yScale(d[1]);
-        });
-        return {nodes:d.points,id:i,label:d.label};
-    })).enter().append("svg:circle")
+        var scaledPoints = [];
+        for (var j=0;j< d.points.length;j++){
+            scaledPoints[j] = [xScale(d.points[j][0])+ref.baseOffset+ref.spacing,yScale(d.points[j][1])+10];
+        }
+        return {nodes:scaledPoints,id:i,label:d.label};
+    })).enter().append("svg:circle").attr("r", 5)
         .attr("cx", function(d) {return d.nodes[view][0];})
-        .attr("cy", function(d) {return d.nodes[view][1]; })
-        .attr("r", 8)
+        .attr("cy", function(d) {return d.nodes[view][1];})
         .style("fill", function (d){
             return (d.id==highlightPoints[0])?"#D95F02":(d.id==highlightPoints[1])?"#1B9E77":"#BDBDBD";
         }).style("pointer-events","none").attr("class","multiplesPoints");
@@ -124,7 +124,7 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
 
     //Draw the axes
     yScale =  d3.scale.linear().domain([max_h,0]).range([0,height]); //Reverse the scale to get the corect axis display
-    this.drawAxes(view,xScale,yScale,0);
+    this.drawAxes_barchart(view,xScale,yScale);
 
     //Assign data values to a set of rectangles representing the bars of the chart and draw the bars
     d3.select("#multiples"+view).selectAll(".multiplesBars")
@@ -139,13 +139,12 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
         }).style("pointer-events","none").attr("class","multiplesBars");
 }
 
-/** Draws the axes  and the graph title on the SVG
+/** Draws the axes  and the graph title on the SVG for the barchart multiples
  *  xScale: a function defining the scale of the x-axis
  *  yScale: a function defining the scale of the y-axis
  *  id: of the g element to append the axes within
- *  grid: 1 if grid should be drawn, 0 if not
  * */
-Multiples.prototype.drawAxes = function (id,xScale,yScale,grid){
+Multiples.prototype.drawAxes_barchart = function (id,xScale,yScale){
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
     var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
@@ -159,9 +158,26 @@ Multiples.prototype.drawAxes = function (id,xScale,yScale,grid){
     d3.select("#multiples"+id).append("g").attr("class", "axis")
         .attr("transform", "translate("+ (this.spacing-5+this.baseOffset)+ ","+(this.baseOffset)+")")
         .call(yAxis)
-    .append("g").attr("class", "axis")
+    .append("g").attr("class", "axis").style("pointer-events","none")
         .attr("transform", "translate(0," + (this.imgSize+5) + ")")
         .call(xAxis).selectAll("text").text("");
+}
+/** Draws the axes  and the graph title on the SVG for the scatterplot multiples
+ *  xScale: a function defining the scale of the x-axis
+ *  yScale: a function defining the scale of the y-axis
+ *  id: of the g element to append the axes within
+ * */
+Multiples.prototype.drawAxes_scatterplot = function (id,xScale,yScale){
+    var xAxis = d3.svg.axis().scale(xScale).orient("bottom").tickSize(-this.imgSize,0,0);
+    var yAxis = d3.svg.axis().scale(yScale).orient("left").tickSize(-this.imgSize,0,0);
+
+    // Add the y-axis
+    d3.select("#multiples"+id).append("g").attr("class", "axis")
+        .attr("transform", "translate("+ (this.spacing+this.baseOffset)+ ","+(this.baseOffset)+")")
+        .call(yAxis)
+        .append("g").attr("class", "axis").style("pointer-events","none")
+        .attr("transform", "translate(0," + (this.imgSize) + ")")
+        .call(xAxis);
 }
 /** Removes the multiples from its g element
  * */

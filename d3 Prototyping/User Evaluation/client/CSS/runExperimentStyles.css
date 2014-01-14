@@ -44,7 +44,7 @@ body {
 /**Main side panel */
 #skipButton{
     margin-left:330px;
-    margin-top:50px;
+    margin-top:25px;
 }
 
 #taskPanel{
@@ -55,6 +55,13 @@ body {
   color:#636363;
   font-family: sans-serif;
   font:verdana;
+}
+#taskHelpImg{
+    height:100px;
+    width:380px;
+    margin-left:10px;
+    margin-right:10px;
+    margin-bottom:50px;
 }
 
 #counter{
@@ -76,7 +83,7 @@ body {
     margin-bottom: 15px;
     margin-left:20px;
     width: 90%;
-    height:300px;
+    height:210px;
     overflow: auto;
     background-color:#BDBDBD;
 }

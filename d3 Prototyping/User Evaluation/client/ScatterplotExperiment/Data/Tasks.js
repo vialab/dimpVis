@@ -17,26 +17,31 @@
 
 var tasks = [
     [
-        //Dummy tasks for testing the technique
+        [0,0,4,1,"When does the orange point's age change from <span style='color:#D95F02'>increasing to decreasing </span> " +
+            "<span style='font-weight:bold'>AND</span> the green point's age change from <span style='color:#1B9E77'>decreasing to increasing</span>?",1,0,[8],7],
         [0,0,0,0,"When is the orange point at 80 years?",0,0,[0],4],
         [0,0,1,0,"When is the orange point higher than 60 years?",0,0,[2],8],
-        [0,0,2,0,"When is the orange point lower than 50 years?",0,0,[7],4]
+        [0,0,2,0,"When is the orange point lower than 50 years?",0,0,[7],4],
+        [0,0,3,0,"When is the orange point at an age greater than the green point?",1,0,[7,8],8],
+        [0,0,4,1,"When does the orange point's age change from increasing to decreasing?",0,0,[8],7]
 
     ], //Tasks for dimpvis
 
     [
-        //Dummy tasks for testing the technique
-        [0,0,0,0,"When is the orange point at 50 years?",0,0,[0],3],
+        [0,0,0,0,"When is the orange point at 80 years?",0,0,[0],4],
         [0,0,1,0,"When is the orange point higher than 60 years?",0,0,[2],8],
-        [0,0,2,0,"When is the orange point lower than 50 years?",0,0,[7],4]
+        [0,0,2,0,"When is the orange point lower than 50 years?",0,0,[7],4],
+        [0,0,3,0,"When is the orange point at an age greater than the green point?",1,0,[7,8],8],
+        [0,0,4,1,"When does the orange point's age change from increasing to decreasing?",0,0,[8],7]
 
     ], //Tasks for time slider
 
     [
-        //Dummy tasks for testing the technique
-        [0,0,0,0,"When is the orange point at 50 years?",0,0,[0],3],
+        [0,0,0,0,"When is the orange point at 80 years?",0,0,[0],4],
         [0,0,1,0,"When is the orange point higher than 60 years?",0,0,[2],8],
-        [0,0,2,0,"When is the orange point lower than 50 years?",0,0,[7],4]
+        [0,0,2,0,"When is the orange point lower than 50 years?",0,0,[7],4],
+        [0,0,3,0,"When is the orange point at an age greater than the green point?",1,0,[7,8],8],
+        [0,0,4,1,"When does the orange point's age change from increasing to decreasing?",0,0,[8],7]
 
     ] //Tasks for multiples
 ];

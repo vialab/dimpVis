@@ -113,7 +113,7 @@ function skipTask(){
             taskCounter = 0;
             switchInteractionTechnique();
         }
-        updateTaskDisplay(tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]]);
+        updateTaskDisplay();
 
         stopTimer();
         startTimer();
@@ -154,7 +154,7 @@ function nextTask (){
         taskCounter = 0;
         switchInteractionTechnique();
     }
-    updateTaskDisplay(tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]]);
+    updateTaskDisplay();
 
      stopTimer();
      startTimer();
@@ -168,7 +168,7 @@ function cancelSubmitTask(){
  }
 /**Update the display according to the current task
  * taskInfo: one entry from the tasks array */
-function updateTaskDisplay (taskInfo){
+function updateTaskDisplay (){
     clearVisualizations(0);
      //Update the task panel display
     //d3.select("#counter").node().innerHTML = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2]+" "+instructions;
@@ -177,8 +177,8 @@ function updateTaskDisplay (taskInfo){
     if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
         numTasks = totalObjectiveTasks + 4;
     }
-
-    d3.select("#counter").node().innerHTML = (taskCounter+1)+"/"+numTasks+" "+instructions+" "+tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2];
+    var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
+    d3.select("#counter").node().innerHTML = (taskCounter+1)+"/"+numTasks+" "+instructions+" "+taskInfo[2];
     d3.select("#taskDescription").node().innerHTML = taskInfo[4];
     d3.select("#submitButton").style("display", "none");
     d3.select("#showVisButton").style("display", "block");
@@ -195,6 +195,13 @@ function updateVisualizationDisplay(){
     d3.select("#skipButton").style("display", "block");
 
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
+
+    //Add a helper image for distribution tasks
+    if (taskInfo[3]==1 && taskInfo[5]==1 ){ //Distribution, multiple objects
+        d3.select("#taskHelpImg").node().src = "Images/distributionMultipleObj_1.png";
+    }else{
+        d3.select("#taskHelpImg").node().src = "";
+    }
 
     //Re-draw the visualization for the specified dataset
     currentDataset = datasets[taskInfo[0]];
@@ -240,7 +247,7 @@ function useDimpTechnique(){
 
     visRef.render(currentDataset,labels,"","Age (Years)","");
     slider.render(labels);
-    hideSliderInfo(slider);
+    //hideSliderInfo(slider);
     slider.widget.select("#slidingTick").call(doNothing);
     visRef.svg.selectAll(className).call(visRef.dragEvent);
     instructions = techniqueInstructions[0];
@@ -255,7 +262,7 @@ function useDimpTechnique(){
 function useSliderTechnique(){
      visRef.render(currentDataset,labels,"","Age (Years)","");
      slider.render(labels);
-     hideSliderInfo(slider);
+     //hideSliderInfo(slider);
      slider.widget.select("#slidingTick").call(slider.dragEvent);
      visRef.svg.selectAll(className).call(doNothing);
      instructions = techniqueInstructions[1];
@@ -294,7 +301,6 @@ function setInteractionTechnique(techniqueID){
  */
 function changePhase (){
     //TODO: might have a blank confirmation screen in case participant wants to take a break
-
     //Re-direct to a new html page for the next phase
     d3.json("http://localhost:8080/nextPhase?", function(error,response) {
          console.log(response);
@@ -336,7 +342,7 @@ function changePhase (){
 function startTasks(){
     hideTutorial();
     setInteractionTechnique(techniqueOrder[techniqueCounter]);
-    updateTaskDisplay(tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]]);
+    updateTaskDisplay();
     startTimer();
     hideSliderInfo(slider);
 }
