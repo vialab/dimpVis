@@ -1783,3 +1783,10 @@ Task type order:
 Dimp: 0,1	Slider: 0,1	Multiples: 0,1
 Randomized task order: 
 Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Tue Jan 14 2014 14:56:25 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5

@@ -10,7 +10,7 @@ window.onload = function (){
     d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerWidth-50);
 }
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(800, 700,50);
+var scatterplot   = new Scatterplot(1200, 700,50);
 
 scatterplot.init();
 //setHintPathType(scatterplot,1);
@@ -23,7 +23,7 @@ scatterplot.clickHintLabelFunction = function (d, i){
     slider.updateSlider(i);
 };
 
-scatterplot.render( dataset, labels,"fertility rate (children per woman)","life expectancy (years)","Fertility Rate vs. Life Expectancy of World Countries"); //Draw the scatterplot, dataset is an array created in a separate js file containing the json data,
+scatterplot.render( dataset, labels,xLabel,yLabel,title); //Draw the scatterplot, dataset is an array created in a separate js file containing the json data,
                                         // and labels is an array representing the different views of the dataset
 
 //Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot

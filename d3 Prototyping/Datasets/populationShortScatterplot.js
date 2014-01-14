@@ -71,4 +71,6 @@ for (var j = 0;j<data.length;j++){
 
 var labels = ["1955","1960","1965","1970","1975","1980","1985","1990","1995","2000","2005"]; //Hard coded years for view labels
 
-
+var xLabel = "fertility rate (children per woman)";
+var yLabel = "life expectancy (years)";
+var title = "Fertility Rate vs. Life Expectancy of World Countries";
