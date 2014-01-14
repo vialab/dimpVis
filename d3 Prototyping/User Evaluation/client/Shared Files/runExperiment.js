@@ -147,7 +147,7 @@ function nextTask (){
     taskCounter++;
     var numTasks = totalObjectiveTasks;
     if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
-        numTasks = totalObjectiveTasks + 4;
+        //numTasks = totalObjectiveTasks + 4;
     }
 
     if (taskCounter>=numTasks){
@@ -197,11 +197,11 @@ function updateVisualizationDisplay(){
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
 
     //Add a helper image for distribution tasks
-    if (taskInfo[3]==1 && taskInfo[5]==1 ){ //Distribution, multiple objects
+    /**if (taskInfo[3]==1 && taskInfo[5]==1 ){ //Distribution, multiple objects
         d3.select("#taskHelpImg").node().src = "Images/distributionMultipleObj_1.png";
     }else{
         d3.select("#taskHelpImg").node().src = "";
-    }
+    }*/
 
     //Re-draw the visualization for the specified dataset
     currentDataset = datasets[taskInfo[0]];
@@ -323,11 +323,20 @@ function changePhase (){
      slider.render(realLabels);
      setHintPathType(visRef,0);
      showSliderInfo(slider);
-     visRef.displayColour = "#74c476"; //Green bars
-     visRef.showZeroValues = 1;
      visRef.render(realDataset,realLabels,realDataTitle,realDataXLabel,realDataYLabel);
      visRef.svg.selectAll(className).call(visRef.dragEvent);
-     visRef.addXLabels();
+
+    if (phaseId==0){ //Display properties specific to the barchart
+        visRef.addXLabels();
+        visRef.displayColour = "#74c476";
+        visRef.showZeroValues = 1;
+    }else if (phaseId==1){//Display properties specific to the scatterplot
+        visRef.showLabels = true;
+        d3.select("#mainSvg").on("click",function(){ //Need to be able to clear the labels
+            visRef.clearHintPath();
+            visRef.clearPointLabels();
+        });
+    }
 
      d3.select("#gSlider").attr("transform","translate(200,1050)");
      d3.select(gIdName).attr("transform","translate(65,65)");

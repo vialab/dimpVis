@@ -55,7 +55,7 @@ var tasks = [
 
         //Practice - Ambiguous
         [6,0,114,0,"When is the orange bar less than 60?",0,1,[5],7],
-        [6,0,115,0,"When is the orange bar at 120?",0,1,[3],4],
+        [6,0,115,0,"When is the orange bar at 120?",0,1,[3],6],
         [6,0,116,1,"When does the height of the orange bar change from increasing to decreasing?",0,1,[7],5],
         [6,0,117,1,"When does the height of the orange bar change from decreasing to increasing?",0,1,[9],6]
 

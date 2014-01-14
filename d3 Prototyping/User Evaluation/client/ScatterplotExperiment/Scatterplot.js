@@ -18,6 +18,7 @@ function Scatterplot(w, h,p) {
    // Create a variable to reference the main svg
    this.svg = null;
    this.numPoints = -1; //Set this later
+   this.showLabels = false; //Flag for drawing the point labels
 
    //Variables to track dragged point location within the hint path, all assigned values when the dataset is provided (in render())
    this.currentView = 0;
@@ -243,7 +244,7 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
 
     //Re-draw the dragged point
     this.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
-   // this.animatePointLabel(id,newPoint[0],newPoint[1]);
+    if (this.showLabels) this.animatePointLabel(id,newPoint[0],newPoint[1]);
 
     //Save the mouse coordinates
     this.mouseX = mouseX;
@@ -448,7 +449,7 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
           d3.select(this).attr("cx",newPoint.x).attr("cy",newPoint.y);
 
           //Update the labels (if visible)
-          //if (ref.clickedPoints.indexOf(d.id)!=-1) ref.animatePointLabel(d.id,newPoint.x,newPoint.y);
+          if (ref.showLabels ==true && ref.clickedPoints.indexOf(d.id)!=-1) ref.animatePointLabel(d.id,newPoint.x,newPoint.y);
       })
 }
 /**Re-draws a point label according to the specified position (new position of the point) by
@@ -561,7 +562,7 @@ Scatterplot.prototype.redrawView = function(view) {
     this.svg.selectAll(".displayPoints")/**.transition().duration(300)*/
         .attr("cx",function (d){return d.nodes[view][0];})
         .attr("cy",function (d){return d.nodes[view][1];});
-    //this.redrawPointLabels(view);
+    if (this.showLabels)  this.redrawPointLabels(view);
 
 }
 /** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
@@ -585,10 +586,10 @@ Scatterplot.prototype.selectPoint = function (id,points){
         drawPartialHintPath_line(this,0,points);
         redrawPartialHintPath_line(this,this.ambiguousPoints);
     }
-    /**if (this.clickedPoints.indexOf(id) ==-1) {
+    if (this.showLabels ==true && this.clickedPoints.indexOf(id) ==-1) {
         this.clickedPoints.push(id);
         this.drawPointLabel(id);
-    }*/
+    }
 
     //Fade out the other points using a transition
     /**this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
