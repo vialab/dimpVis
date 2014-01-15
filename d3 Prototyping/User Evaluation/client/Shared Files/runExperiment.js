@@ -18,6 +18,7 @@ var isExploratory = false;
 //var maxTaskTime = 100; Not used yet
 //var totalObjectiveTasks = 30; //For each interaction technique
 var totalObjectiveTasks = 1; //For each interaction technique
+
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
  var lastTouchUp = null;
@@ -37,10 +38,11 @@ var totalObjectiveTasks = 1; //For each interaction technique
 
 //Attach click events to the buttons
 d3.select("#doneTutorialButton").on("click", startTasks);
-d3.select("#doneQuestionnaireButton").on("click", confirmDoneQuestionnaire);
 d3.select("#submitButton").on("click", showIntermediateScreen);
 d3.select("#showVisButton").on("click", updateVisualizationDisplay);
 d3.select("#skipButton").on("click",skipTask);
+d3.select("#doneQuestionnaireButton1").on("click", confirmDoneQuestionnaire_postTasks);
+d3.select("#doneQuestionnaireButton2").on("click", confirmDoneQuestionnaire_postPhase);
 
 //////////////////////Declare functions required to run the experiment here//////////////////////
 //Function that will be executed every second to check the time
@@ -106,7 +108,7 @@ function skipTask(){
         taskCounter++;
         var numTasks = totalObjectiveTasks;
         if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
-            numTasks = totalObjectiveTasks + 4;
+           // numTasks = totalObjectiveTasks + 4;
         }
 
         if (taskCounter>=numTasks){
@@ -224,7 +226,7 @@ function switchInteractionTechnique(){
      techniqueCounter++;
      currentTaskOrder = taskOrder[techniqueOrder[techniqueCounter]];
      if (techniqueCounter > 2){ //Finished all tasks, time for participant to fill out the post-task questionnaire
-        showQuestionnaireScreen();
+        showQuestionnaireScreen(0);
      }else{
         showTutorial(techniqueOrder[techniqueCounter]);
      }
@@ -299,15 +301,17 @@ function setInteractionTechnique(techniqueID){
 /**Move to the next phase (after all tasks for both techniques), changes the visualization
   * Goes to a new html page returned from the server in "response"
  */
-function changePhase (){
-    //TODO: might have a blank confirmation screen in case participant wants to take a break
-    //Re-direct to a new html page for the next phase
-    d3.json("http://localhost:8080/nextPhase?", function(error,response) {
-         console.log(response);
-         window.location = response;
-     });
+function nextPhase (){
+    showQuestionnaireScreen(1);
  }
 
+//Re-direct to a new html page for the next phase
+function changePhase(){
+    d3.json("http://localhost:8080/nextPhase?", function(error,response) {
+     console.log(response);
+     window.location = response;
+     });
+}
 /**When all tasks are done, start the exploratory period:
    * Add full hint path and fast forwarding feature, use real dataset and clear the task panel
  * */
@@ -342,7 +346,7 @@ function changePhase (){
      d3.select(gIdName).attr("transform","translate(65,65)");
      d3.select("#changePhaseButton").style("display","block").style("width","200px").style("margin-top",screenY+"px")
          .style("float","right").style("margin-right","20px")
-         .on("click",changePhase);
+         .on("click",nextPhase);
 
      isExploratory = true;
  }
@@ -446,23 +450,34 @@ function showIntermediateScreen (){
         svg.append("text").attr("id","cancelMessage").attr("x",screenX/2-170).attr("y",screenY/3+150).attr("class","submitScreen").text("[ Touch the background to cancel ]")
             .style("display","block");
 
-        svg.append("rect").attr("x",screenX/2-150).attr("y",screenY/3).attr("id","nextButton").attr("width",300).attr("height",100)
+        svg.append("rect").attr("x",screenX/2-150).attr("y",screenY/3).attr("id","nextButton").attr("width",330).attr("height",100)
             .style("display","block").attr("rx",6).attr("ry",6).attr("class","submitScreen").on("click",showFeedbackScreen);
 
-        svg.append("text").attr("x",screenX/2-100).attr("y",screenY/3+65).attr("id","nextButtonText").attr("class","submitScreen")
-            .text("Next Task");
+        svg.append("text").attr("x",screenX/2-135).attr("y",screenY/3+65).attr("id","nextButtonText").attr("class","submitScreen")
+            .text("Next Question");
 
         svg.append("text").attr("x",screenX/2-150).attr("y",screenY/3-10).attr("id","feedbackMessage").attr("class","submitScreen")
             .style("display","none").style("anchor","middle");
     }
 }
 /**A blank screen to indicate all techniques have been used and the post-technique questionnaire should be completed
+ * type: 0 if post-tasks questionnaire
+ *       1 if post-phase questionnaire
  * */
-function showQuestionnaireScreen(){
+function showQuestionnaireScreen(type){
     clearVisualizations(1);
     d3.select("#taskPanel").style("display","none");
     d3.select("#vis").style("display","none");
     d3.selectAll(".questionnaire").style("display","block");
+    //make the appropriate confirmation button visible
+    if (type==0){
+        d3.select("#doneQuestionnaireButton2").style("display","none");
+        d3.select("#doneQuestionnaireButton1").style("display","block");
+    }else if (type==1){
+        d3.select("#changePhaseButton").style("display","none");
+        d3.select("#doneQuestionnaireButton2").style("display","block");
+        d3.select("#doneQuestionnaireButton1").style("display","none");
+    }
 }
 /**Hides all the elements of the questionnaire screen and makes the elements hidden in showQuestionnaireScreen() visible again
  * */
@@ -472,11 +487,20 @@ function hideQuestionnaireScreen(){
 }
 /** Confirms that the post-task questionnaire is finished (in case start exploring button was accidentally touched)
  * */
-function confirmDoneQuestionnaire(){
-    var result = confirm("Are you sure you would like to start exploring?");
+function confirmDoneQuestionnaire_postTasks(){
+    var result = confirm("Continue to the exploratory phase?");
     if (result){
        hideQuestionnaireScreen();
        showTutorial(3);
+    }
+}
+/** Confirms that the post-phase questionnaire is finished
+ * */
+function confirmDoneQuestionnaire_postPhase(){
+    var result = confirm("Continue to next phase?");
+    if (result){
+        hideQuestionnaireScreen();
+        changePhase();
     }
 }
  ///////////////////////Data logging functions \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
