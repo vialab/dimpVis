@@ -148,12 +148,6 @@ Multiples.prototype.drawAxes_barchart = function (id,xScale,yScale){
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
     var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
-    //Define the axes
-    if (grid==1){
-       xAxis.tickSize(-this.imgSize,0,0);
-        yAxis.tickSize(-this.imgSize,0,0);
-    }
-
     // Add the y-axis
     d3.select("#multiples"+id).append("g").attr("class", "axis")
         .attr("transform", "translate("+ (this.spacing-5+this.baseOffset)+ ","+(this.baseOffset)+")")

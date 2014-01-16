@@ -305,11 +305,11 @@ function nextPhase (){
     showQuestionnaireScreen(1);
  }
 
-//Re-direct to a new html page for the next phase
+/**Re-direct to a new html page for the next phase
+ * */
 function changePhase(){
     d3.json("http://localhost:8080/nextPhase?", function(error,response) {
-     console.log(response);
-     window.location = response;
+        window.location.href = "http://localhost:8080/"+response;
      });
 }
 /**When all tasks are done, start the exploratory period:
