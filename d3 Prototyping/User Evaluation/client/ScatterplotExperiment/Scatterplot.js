@@ -117,7 +117,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
      .data(data.map(function (d,i) {
            var scaledPoints = [];
            for (var j=0;j< d.points.length;j++){
-               scaledPoints[j] = [xScale(d.points[j][0]),yScale(d.points[j][1])];
+               scaledPoints[j] = [xScale(d.points[j][0])+ref.padding,yScale(d.points[j][1])];
            }
           /**d.points.forEach(function (d) { //This was not clearing when the data was reloaded, at some point, look into why this was happening
                d[0] = xScale(d[0]);
@@ -136,6 +136,13 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
           .attr("id", function (d){return "displayPoints"+d.id;})
           .attr("title", function (d) {return d.label;})
          .style("fill-opacity",1);
+
+   //for testing, show all labels
+   /**this.svg.selectAll(".gDisplayPoints").append("text")
+        .attr("x", function(d) {return d.nodes[ref.currentView][0];})
+        .attr("y", function(d) {return d.nodes[ref.currentView][1]-ref.pointRadius; })
+        .attr("class","pointLabels").attr("id",function (d){return "pointLabel"+ d.id})
+        .text(function (d){return d.label;});*/
 
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");

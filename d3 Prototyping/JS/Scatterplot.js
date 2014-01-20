@@ -106,7 +106,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
     //Create the scales by mapping the x,y to the svg size
     var xScale = d3.scale.linear().domain([0,max_x]).range([0,ref.width]);
     var yScale =  d3.scale.linear().domain([0, max_y]).range([ref.height,0]);
-    //var yScale =  d3.scale.linear().domain([0, 250000,max_y]).range([ref.height,ref.height/2,0]); polylinear scale for the internet user dataset
+    //var yScale =  d3.scale.linear().domain([0, 10000,max_y]).range([ref.height,ref.height/4,0]); //polylinear scale for the internet user dataset
     //Call the function which draws the axes
     this.drawAxes(xScale,yScale);
 

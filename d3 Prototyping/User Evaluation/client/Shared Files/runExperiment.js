@@ -17,7 +17,7 @@ var isExploratory = false;
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
 //var totalObjectiveTasks = 30; //For each interaction technique
-var totalObjectiveTasks = 1; //For each interaction technique
+var totalObjectiveTasks = 5; //For each interaction technique
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
@@ -225,6 +225,7 @@ function updateVisualizationDisplay(){
 function switchInteractionTechnique(){
      techniqueCounter++;
      currentTaskOrder = taskOrder[techniqueOrder[techniqueCounter]];
+
      if (techniqueCounter > 2){ //Finished all tasks, time for participant to fill out the post-task questionnaire
         showQuestionnaireScreen(0);
      }else{
@@ -247,7 +248,7 @@ function clearVisualizations(clearPanel){
  * */
 function useDimpTechnique(){
 
-    visRef.render(currentDataset,labels,"","Age (Years)","");
+    visRef.render(currentDataset,labels,xLabel,yLabel,"");
     slider.render(labels);
     //hideSliderInfo(slider);
     slider.widget.select("#slidingTick").call(doNothing);
@@ -280,9 +281,9 @@ function useSmallMultipleTechnique(){
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
 
     if (taskInfo[5]==0){ //One data object to highlight
-        multiples.render(currentDataset,[taskInfo[7][0],-1],phaseId);
+        multiples.render(currentDataset,[taskInfo[7][0],-1],phaseId,labels);
     }else if (taskInfo[5]==1){ //Two data objects to highlight
-        multiples.render(currentDataset,taskInfo[7],phaseId);
+        multiples.render(currentDataset,taskInfo[7],phaseId,labels);
     }
     instructions = techniqueInstructions[2];
 }
@@ -317,6 +318,7 @@ function changePhase(){
  * */
 
  function startExploratory(){
+
     hideTutorial();
     d3.select("#taskPanel").style("display","none");
     //TODO: time this event as well
@@ -532,7 +534,7 @@ function logTouchDown (id,touchX,touchY){
 function logTouchUp (id,touchX,touchY){
     var header = getHeaderInfo();
 
-    d3.xhr("http://localhost:8080/log?taskType="+header+"&eventId=3"+
+    d3.xhr("http://localhost:8080/log?"+header+"&eventId=3"+
         "&objectId="+id+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+"&time="+timeCounter, function(d) { });
 
     lastTouchUp = new Date().getMilliseconds();

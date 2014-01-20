@@ -11,7 +11,7 @@ function Multiples(spacing,size) {
     this.clickedImage = -1; //Index of the selected (clicked) image
     this.imageSpacingX = this.spacing+60; //Horizontal spacing between the images
     this.imageSpacingY = this.spacing+60; //Vertical spacing between the images
-    this.marginWidth = 15; //Margins around the entire display
+    this.marginWidth = 25; //Margins around the entire display
     this.baseOffset = 10; //Offset of the base of the bars
     this.backgroundColour = "#2C2D2D";    //Behind the visualization
     this.imageBorderColour = "#1C1C1C";
@@ -26,8 +26,9 @@ Multiples.prototype.init = function (){
  * dataset to render
  * toHighlight  the data objects to be highlighted
  * type   the type of chart to render (0 - barchart and 1 - scatterplot)
+ * labels names of the time slices
 */
-Multiples.prototype.render = function (dataset,toHighlight,type){
+Multiples.prototype.render = function (dataset,toHighlight,type,labels){
     var ref = this;
 
     //Draw the images, ordered by time from left to right, then top to bottom
@@ -35,16 +36,16 @@ Multiples.prototype.render = function (dataset,toHighlight,type){
     var col = 0;
 
     var imageLayout = [];
-    for (var i=0;i<10;i++){
+    for (var i=0;i<labels.length;i++){
         var imgY = row*ref.imageSpacingY + row*ref.imgSize + ref.marginWidth;
-        var imgX = ref.imgSize*col + ref.imageSpacingX*col + ref.marginWidth;
+        var imgX = ref.imgSize*col + ref.imageSpacingX*col + 15;
 
         col++;
         if (col >= 4){
             row++;
             col = 0;
         }
-        imageLayout[i] = {"id":i,"x":imgX,"y":imgY};
+        imageLayout[i] = {"id":i,"x":imgX,"y":imgY,"label":labels[i]};
     }
     this.svg.selectAll(".multiples").data(imageLayout).enter().append("g")
         .attr("transform",function (d){return "translate("+ d.x+","+ d.y+")";})
@@ -73,6 +74,11 @@ Multiples.prototype.render = function (dataset,toHighlight,type){
             }
 
         });
+    this.svg.selectAll(".multiples").append("text")
+        .style("fill","#EDEDED").style("font-family","sans-serif").style("font-size","20px")
+        .style("font-weight","bold")
+        .attr("transform","translate(-10,-10)")
+        .text(function (d){return d.label});
 }
 ////////////////////////////////////functions added for the user study///////////////////////////////////////////////////
 Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,height){
@@ -116,7 +122,7 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
     //Find the max value of the heights, used to scale the axes and the dataset
     var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
     var numBars = data.length;
-    var base = height+this.baseOffset;
+    var base = height+ this.baseOffset;
 
     //Create the scales
     var xScale = d3.scale.linear().domain([0,numBars]).range([0,height]);
@@ -146,7 +152,7 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
  * */
 Multiples.prototype.drawAxes_barchart = function (id,xScale,yScale){
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-    var yAxis = d3.svg.axis().scale(yScale).orient("left");
+    var yAxis = d3.svg.axis().scale(yScale).orient("left").tickSize(-this.imgSize,0,0);
 
     // Add the y-axis
     d3.select("#multiples"+id).append("g").attr("class", "axis")

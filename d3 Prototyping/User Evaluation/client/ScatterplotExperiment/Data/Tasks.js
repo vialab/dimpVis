@@ -15,7 +15,7 @@
 // barIndices: one or two indices of the bars involved in the task
 // solution: the solution (view index) to the task
 
-var tasks = [
+/**var tasks = [
     [
         [0,0,4,1,"When does the orange point's age change from <span style='color:#D95F02'>increasing to decreasing </span> " +
             "<span style='font-weight:bold'>AND</span> the green point's age change from <span style='color:#1B9E77'>decreasing to increasing</span>?",1,0,[8],7],
@@ -44,4 +44,33 @@ var tasks = [
         [0,0,4,1,"When does the orange point's age change from increasing to decreasing?",0,0,[8],7]
 
     ] //Tasks for multiples
+];*///Single Dimension Tasks
+
+var tasks = [
+    [
+         [0,0,0,0,"When does the orange point's age=70 years and height=3 feet?",0,0,[0],4],
+         [0,0,1,0,"When is the orange point's age > 60 years and height > 4 feet?",0,0,[2],5],
+         [0,0,4,0,"When is the orange point's age and height equal to the green points?",1,0,[2,0],8],
+         [0,0,6,1,"When does the correlation between age and height of the orange point change from negative to positive?",0,0,[10],5],
+         [0,0,7,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[10],5]
+
+    ], //Tasks for dimpvis
+
+    [
+         [0,0,0,0,"When does the orange point's age=70 years and height=3 feet?",0,0,[0],4],
+         [0,0,1,0,"When is the orange point's age > 60 years and height > 4 feet?",0,0,[2],5],
+         [0,0,4,0,"When is the orange point's age and height equal to the green points?",1,0,[2,0],8],
+         [0,0,6,1,"When does the correlation between age and height of the orange point change from negative to positive?",0,0,[10],5],
+         [0,0,7,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[10],5]
+
+ ], //Tasks for time slider
+
+ [
+     [0,0,0,0,"When does the orange point's age=70 years and height=3 feet?",0,0,[0],4],
+     [0,0,1,0,"When is the orange point's age > 60 years and height > 4 feet?",0,0,[2],5],
+     [0,0,4,0,"When is the orange point's age and height equal to the green points?",1,0,[2,0],8],
+     [0,0,6,1,"When does the correlation between age and height of the orange point change from negative to positive?",0,0,[10],5],
+     [0,0,7,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[10],5]
+
+ ] //Tasks for multiples
 ];

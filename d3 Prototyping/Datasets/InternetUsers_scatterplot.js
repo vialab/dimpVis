@@ -63,9 +63,17 @@ for (var i=0;i<data.length;i++){
     }
     dataset[i].points = pts;
 }
-console.log(dataset);
-var labels = [1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010];
-
+for (var i=0;i<dataset.length;i++){
+    var evenPts = [];
+    for (var j=0;j<dataset[i].points.length;j++){
+        if (j%2==0){
+            evenPts.push(dataset[i].points[j]);
+        }
+    }
+    dataset[i].points = evenPts;
+}
+//var labels = [1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010];
+var labels = [1990,1992,1994,1996,1998,2000,2002,2004,2006,2008,2010];
 var xLabel = "income per person (GDP/capita, PPP$ inflation-adjusted)";
 var yLabel = "total internet users";
 var title = "Total Internet Users of Selected World Countries";

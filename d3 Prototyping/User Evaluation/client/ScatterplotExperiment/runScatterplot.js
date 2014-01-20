@@ -85,6 +85,10 @@ var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
 var realDataXLabel = "Program";
 var realDataTitle = "Student Enrollment Over The Years At UOIT";
 var phaseId = 1;
+var yLabel = "Age(Years)";
+var xLabel = "Height (Feet)";
+//var yLabel = "";
+//var xLabel = "";
 
 //Customized display properties for the tutorial screens
 var tutorialInstructions = [

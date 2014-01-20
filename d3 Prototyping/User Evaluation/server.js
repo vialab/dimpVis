@@ -1,6 +1,6 @@
 ////////////////////// Counter-balanced variables to set /////////////////////////////////////////////////////////
-var phaseOrder = [1,0]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
-var techniqueOrder = [0,1,2]; //This should be counterbalanced as well , the interaction technique order within phases
+var phaseOrder = [0,1]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
+var techniqueOrder = [2,1,0]; //This should be counterbalanced as well , the interaction technique order within phases
 var taskTypeOrder = [[0,1],[0,1],[0,1]]; //Retrieve value vs. distribution tasks counterbalanced
 var participantID = "Brittany"; //Unique id assigned to the participant
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,8 @@ var static = require('node-static'),
 
 //Log file names
 var logFileName = participantID+"_log"+phaseOrder[phaseNumber]+".txt";
-var solutionFileName = participantID+"_solutions"+phaseOrder[phaseNumber]+".txt";
+var solutionFileName = participantID+"_solutions.txt";
+var timeFileName = participantID+"_time.txt";
 var infoFileName = participantID+"_info.txt";
 
 /**
@@ -58,6 +59,7 @@ app.get("/log", function(req, res) {
     //Get information needed for a specific event
     var log = fs.createWriteStream(logFileName, {"flags" : "a"});
     var solutionLog = fs.createWriteStream(solutionFileName, {"flags" : "a"});
+    var timeLog = fs.createWriteStream(timeFileName, {"flags" : "a"});
 
     if (eventId == 0){ //Task solution
         log.write(logFilePrepend + "\t" + req.query["solution"] + "\t" +req.query["correctSolution"]+"\n");
@@ -66,7 +68,7 @@ app.get("/log", function(req, res) {
         log.write(logFilePrepend + "\t" + req.query["touchDown"] + "\t" +req.query["touchUp"]
             + "\t" + req.query["touchTime"] + "\t" +req.query["objectUp"]+ "\t" +req.query["objectDown"]
             +"\n");
-        solutionLog.write(logFilePrepend + "\t" + req.query["touchDown"] + "\t" +req.query["touchUp"]
+        timeLog.write(logFilePrepend + "\t" + req.query["touchDown"] + "\t" +req.query["touchUp"]
             + "\t" + req.query["touchTime"] + "\t" +req.query["objectUp"]+ "\t" +req.query["objectDown"]
             +"\n");
     }else if (eventId == 2 || eventId==3){ //Touch down or up on an object
@@ -120,6 +122,7 @@ app.get("/getOrders", function(req, res) {
     var log = fs.createWriteStream(infoFileName, {"flags" : "a"});
     log.write(new Date().toString()+"\n");
     log.write("Participant ID: "+participantID+" \n");
+    log.write("Phase: "+phaseOrder[phaseNumber]+" \n");
     log.write("Technique order: "+techniqueOrder+" \n");
     log.write("Task type order: \n");
     log.write("Dimp: "+taskTypeOrder[0]+"\tSlider: "+taskTypeOrder[1]+"\tMultiples: "+taskTypeOrder[2]+"\n");
@@ -159,7 +162,7 @@ console.log('Listening on port 8080. Cheers!...');
 
 function setFileNames(){
     logFileName = participantID+"_log"+phaseOrder[phaseNumber]+".txt";
-    solutionFileName = participantID+"_solutions"+phaseOrder[phaseNumber]+".txt";
+    //solutionFileName = participantID+"_solutions"+phaseOrder[phaseNumber]+".txt";
 }
 //Generates an array determining the task order, based on the taskTypeOrder for all three interaction techniques
 //
