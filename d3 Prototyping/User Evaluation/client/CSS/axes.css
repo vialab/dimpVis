@@ -11,13 +11,13 @@
 .axis text{
   font-family: sans-serif;
   font:verdana;
-  font-size:18px;
+  font-size:14px;
   fill:#EDEDED;
 }
 /** The labels of x and y dimensions */
 .axisLabel {
   font-family: sans-serif;
-  font-size:20px;
+  font-size:18px;
   text-anchor: end;
   fill:#EDEDED;
 }

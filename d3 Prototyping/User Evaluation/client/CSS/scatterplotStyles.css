@@ -8,7 +8,7 @@ body {
 /**The labels on the hint path */
 .hintLabels {
     font-family: sans-serif;
-    font-size:11px;
+    font-size:18px;
     text-anchor:middle;
     fill:#EDEDED;
     cursor:pointer;

@@ -17,7 +17,7 @@ var isExploratory = false;
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
 //var totalObjectiveTasks = 30; //For each interaction technique
-var totalObjectiveTasks = 5; //For each interaction technique
+var totalObjectiveTasks = 1; //For each interaction technique
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
@@ -247,8 +247,12 @@ function clearVisualizations(clearPanel){
  * a slider which cannot be dragged
  * */
 function useDimpTechnique(){
+    if (phaseId==1){
+        visRef.render(currentDataset,labels,xLabel,yLabel,"",0);
+    }else{
+        visRef.render(currentDataset,labels,xLabel,yLabel,"");
+    }
 
-    visRef.render(currentDataset,labels,xLabel,yLabel,"");
     slider.render(labels);
     //hideSliderInfo(slider);
     slider.widget.select("#slidingTick").call(doNothing);
@@ -263,7 +267,12 @@ function useDimpTechnique(){
  /** Draws the visualization with non-interactive objects and a draggable slider
  * */
 function useSliderTechnique(){
-     visRef.render(currentDataset,labels,"","Age (Years)","");
+     if (phaseId==1){
+         visRef.render(currentDataset,labels,xLabel,yLabel,"",-1);
+     }else{
+         visRef.render(currentDataset,labels,xLabel,yLabel,"");
+     }
+
      slider.render(labels);
      //hideSliderInfo(slider);
      slider.widget.select("#slidingTick").call(slider.dragEvent);
@@ -278,6 +287,7 @@ function useSliderTechnique(){
 /** Draws the small multiple view with clickable images
  * */
 function useSmallMultipleTechnique(){
+    multiples.clickedImage = -1;
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
 
     if (taskInfo[5]==0){ //One data object to highlight
@@ -329,7 +339,12 @@ function changePhase(){
      slider.render(realLabels);
      setHintPathType(visRef,0);
      showSliderInfo(slider);
-     visRef.render(realDataset,realLabels,realDataTitle,realDataXLabel,realDataYLabel);
+     if (phaseId==1){
+        visRef.render(realDataset,realLabels,realDataTitle,realDataXLabel,realDataYLabel,-1);
+     }else{
+        visRef.render(realDataset,realLabels,realDataTitle,realDataXLabel,realDataYLabel);
+     }
+
      visRef.svg.selectAll(className).call(visRef.dragEvent);
 
     if (phaseId==0){ //Display properties specific to the barchart
@@ -396,7 +411,11 @@ function showTutorial(techniqueId){
         d3.select("#ambiguousTutorial").style("display","block").style("margin-top",screenY*0.4+"px");
         d3.select("#tutorialImages").style("border","20px solid #1C1C1C");
     }else if (techniqueId==1){
-        d3.select("#visGif").attr("width",screenX*0.2).attr("height",screenY*0.60);
+        if (phaseId==0){
+            d3.select("#visGif").attr("width",screenX*0.2).attr("height",screenY*0.60);
+        }else if (phaseId==1){
+            d3.select("#visGif").attr("width",screenX*0.3).attr("height",screenY*0.50);
+        }
         d3.select("#ambiguousTutorial").style("display","none");
         d3.select("#tutorialImages").style("border","none");
         d3.select("#hintPathExplanation").node().src = "";
@@ -446,7 +465,7 @@ function showIntermediateScreen (){
         var svg =  d3.select("#mainSvg");
         svg.attr("width", screenX);
 
-        svg.append("rect").attr("x",0).attr("y",0).attr("id","submitScreenBackground").attr("class","submitScreen").attr("width",screenX).attr("height",screenY)
+        svg.append("rect").attr("x",0).attr("y",0).attr("id","submitScreenBackground").attr("class","submitScreen").attr("width",screenX).attr("height",svgHeight)
             .style("fill", backgroundColour).on("click",cancelSubmitTask);
 
         svg.append("text").attr("id","cancelMessage").attr("x",screenX/2-170).attr("y",screenY/3+150).attr("class","submitScreen").text("[ Touch the background to cancel ]")

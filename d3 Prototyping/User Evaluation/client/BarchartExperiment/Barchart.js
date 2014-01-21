@@ -133,6 +133,13 @@ Barchart.prototype.init = function(svgId,id){
 	 var xScale = d3.scale.linear().domain([0,ref.numBars]).range([0,ref.width]);   
      var yScale =  d3.scale.linear().domain([0,max_h]).range([0,ref.height]);
 
+     //Draw the axes
+     var yScale_axis =  d3.scale.linear().domain([max_h,0]).range([0,ref.height]); //Reverse the scale to get the corect axis display
+     this.drawAxes(xScale,yScale_axis);
+
+     //Get the labels for the x-axis
+     this.xLabels = data.map(function (d){return d.label});
+
 //Assign data values to a set of rectangles representing the bars of the chart
 this.svg.selectAll("rect")
     .data(data.map(function (d,i) {
@@ -148,13 +155,6 @@ this.svg.selectAll("rect")
 	  }))
      .enter().append("g").attr("class","gDisplayBars")
 	 .attr("id", function (d){return "gDisplayBars"+d.id;});
-
-   //Save the labels for the x-axis
-   this.xLabels = this.svg.selectAll(".gDisplayBars").data().map(function (d){return d.label});
-
-   //Draw the axes
-   yScale =  d3.scale.linear().domain([max_h,0]).range([0,ref.height]); //Reverse the scale to get the corect axis display
-   this.drawAxes(xScale,yScale);
 
   //Draw the bars
    this.svg.selectAll(".gDisplayBars").append("rect")
@@ -211,7 +211,7 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     var ref = this;
     //Define the axes
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-    var yAxis = d3.svg.axis().scale(yScale).orient("left");
+    var yAxis = d3.svg.axis().scale(yScale).orient("left").tickSize(-this.width,0,0);
 
     // Add the title of the graph
     this.svg.append("text").attr("class","axis")

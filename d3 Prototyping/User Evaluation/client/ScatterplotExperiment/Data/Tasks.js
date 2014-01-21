@@ -1,5 +1,5 @@
 /**
- * Task descriptions to complete for the bar chart experiment,
+ * Task descriptions to complete for the scatterplot experiment,
  * dimpVis tasks are at index 0, time slider tasks are 1
  */
 
@@ -48,7 +48,7 @@
 
 var tasks = [
     [
-         [0,0,0,0,"When does the orange point's age=70 years and height=3 feet?",0,0,[0],4],
+         [0,0,0,0,"When does the orange point's age=70 years and height=3 feet?",0,0,[12],4],
          [0,0,1,0,"When is the orange point's age > 60 years and height > 4 feet?",0,0,[2],5],
          [0,0,4,0,"When is the orange point's age and height equal to the green points?",1,0,[2,0],8],
          [0,0,6,1,"When does the correlation between age and height of the orange point change from negative to positive?",0,0,[10],5],

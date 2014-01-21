@@ -59,7 +59,6 @@ Multiples.prototype.render = function (dataset,toHighlight,type,labels){
             //Highlight the image by colouring its border
             d3.select("#multiplesBackground"+i).style("stroke",ref.highlightColour);
             ref.clickedImage = i;
-            console.log("clicked image "+ref.clickedImage);
             logTouchDown(i,d3.mouse(this)[0],d3.mouse(this)[1]);
             logTouchUp(i,d3.mouse(this)[0],d3.mouse(this)[1]);
         })
@@ -68,7 +67,7 @@ Multiples.prototype.render = function (dataset,toHighlight,type,labels){
         .style("fill",this.backgroundColour).style("stroke",this.imageBorderColour).style("stroke-width",10)
         .each(function(d){
             if (type==0){
-                ref.drawStaticBarchart(dataset,d.id, toHighlight,ref.imgSize);
+                ref.drawStaticBarchart(dataset,d.id, toHighlight);
             }else if (type==1){
                 ref.drawStaticScatterplot(dataset,d.id, toHighlight,ref.imgSize);
             }
@@ -116,13 +115,14 @@ Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,
  *   highlightBars: bar or bars to highlight in the view
  *   height: of the barchart image
  * */
-Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,height){
+Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars){
     var ref = this;
 
     //Find the max value of the heights, used to scale the axes and the dataset
     var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
     var numBars = data.length;
-    var base = height+ this.baseOffset;
+    var base = this.imgSize -5;
+    var height = this.imgSize;
 
     //Create the scales
     var xScale = d3.scale.linear().domain([0,numBars]).range([0,height]);
@@ -135,7 +135,7 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
     //Assign data values to a set of rectangles representing the bars of the chart and draw the bars
     d3.select("#multiples"+view).selectAll(".multiplesBars")
         .data(data.map(function (d,i) {
-        var newData = [base - yScale(d.heights[view]),yScale(d.heights[view])];
+        var newData = [base - yScale(d.heights[view]),yScale(d.heights[view])+10];
         return {nodes:newData,id:i,xPos:(xScale(i)+ref.spacing+ref.baseOffset)};
     })).enter().append("rect").attr("x", function(d){return d.xPos;})
         .attr("y", function(d){ return d.nodes[1];})
@@ -151,7 +151,7 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars,heigh
  *  id: of the g element to append the axes within
  * */
 Multiples.prototype.drawAxes_barchart = function (id,xScale,yScale){
-    var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+    var xAxis = d3.svg.axis().scale(xScale).orient("bottom").tickSize(0,0,0);
     var yAxis = d3.svg.axis().scale(yScale).orient("left").tickSize(-this.imgSize,0,0);
 
     // Add the y-axis
@@ -159,7 +159,7 @@ Multiples.prototype.drawAxes_barchart = function (id,xScale,yScale){
         .attr("transform", "translate("+ (this.spacing-5+this.baseOffset)+ ","+(this.baseOffset)+")")
         .call(yAxis)
     .append("g").attr("class", "axis").style("pointer-events","none")
-        .attr("transform", "translate(0," + (this.imgSize+5) + ")")
+        .attr("transform", "translate(0," + (this.imgSize) + ")")
         .call(xAxis).selectAll("text").text("");
 }
 /** Draws the axes  and the graph title on the SVG for the scatterplot multiples

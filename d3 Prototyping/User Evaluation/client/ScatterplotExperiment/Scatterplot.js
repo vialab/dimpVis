@@ -9,7 +9,7 @@ function Scatterplot(w, h,p) {
    this.width = w;
    this.height = h;
    this.pointRadius = 15;
-   this.loopRadius = 50;
+   this.loopRadius = 100;
    this.xLabel ="";
    this.yLabel = "";
    this.graphTitle = "";
@@ -19,6 +19,7 @@ function Scatterplot(w, h,p) {
    this.svg = null;
    this.numPoints = -1; //Set this later
    this.showLabels = false; //Flag for drawing the point labels
+   this.taskId = -1;
 
    //Variables to track dragged point location within the hint path, all assigned values when the dataset is provided (in render())
    this.currentView = 0;
@@ -91,8 +92,10 @@ Scatterplot.prototype.init = function(svgId,id) {
  *       }
  *       ..... number of data points
  * */
-Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
-   var ref = this; //Reference variable
+Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNum) { //TaskNum is a hack, just to properly set the loop angle because it currently isn't set automatically
+  this.taskId = taskNum;
+
+    var ref = this; //Reference variable
 	//Save the parameters in global variables
    this.labels = labels;
    this.lastView = labels.length -1;
@@ -190,7 +193,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
 Scatterplot.prototype.appendAnchor = function (){
     if (this.svg.select("#anchor").empty()){
         this.svg.select("#hintPath").append("circle")
-         .attr("id","anchor").attr("r",5).style("stroke","none");
+         .attr("id","anchor").attr("r",this.pointRadius).style("stroke","none");
     }
 }
 /** Re-draws the anchor, based on the dragging along the loop
@@ -590,6 +593,7 @@ Scatterplot.prototype.selectPoint = function (id,points){
     if (this.hintPathType ==0){
         this.drawHintPath(drawingView,points);
     }else{
+
         drawPartialHintPath_line(this,0,points);
         redrawPartialHintPath_line(this,this.ambiguousPoints);
     }
@@ -672,7 +676,7 @@ Scatterplot.prototype.placeLabels = function (points){
               indexCounter = 0;
               offset = ref.ambiguousPoints[i][1];
           }
-          x = x + 25*indexCounter;
+          x = x + 50*indexCounter;
           indexCounter++;
       }
       return [x,d[1]];
@@ -847,13 +851,12 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
     }*/
 
     //Draw the interaction loop(s) (if any)
-    if (this.isAmbiguous == 1){
-        //TODO: automatically orient the loops such that they smoothly blend with the path
-        //Manually add the orientation angles to the repeatedPoints array (later change this)
-        //IMPORTANT: use the angle 0, instead of 360 (360 breaks the code..)
-        repeatedPoints[0].push(Math.PI/6);
-        //repeatedPoints[1].push(3*Math.PI/2);
-
+    if (this.isAmbiguous == 1){ //Major hack here, for the experiment!!
+        if (this.taskId==0){
+            repeatedPoints[0].push(3*Math.PI/2);
+        }else{ //Default case
+            repeatedPoints[0].push(Math.PI/6);
+        }
         this.drawLoops(id,repeatedPoints);
     }
 }

@@ -44,4 +44,9 @@
     fill:#74c476;
 }
 
+/**For the gridlines */
+.axis line{
+    opacity:0.35;
+}
+
 
