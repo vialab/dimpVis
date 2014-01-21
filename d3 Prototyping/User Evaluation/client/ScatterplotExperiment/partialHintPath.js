@@ -168,10 +168,8 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
 
     }
 }
-
+//Draws only a subset of labels to show the years contained in a loop
 function drawLoopLabels (){
-    console.log(labelCoords);
-    //var labelPts = labelCoords.slice(loopViews[0],loopViews[1]);
 
     ref.svg.select("#hintPath").selectAll("text")
         .data(loopViews.map(function (d,i) {

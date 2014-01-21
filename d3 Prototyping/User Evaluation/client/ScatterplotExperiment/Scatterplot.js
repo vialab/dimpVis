@@ -200,11 +200,12 @@ Scatterplot.prototype.appendAnchor = function (){
  * interp: amount along the loop to draw the anchor at
  * groupNumber: to select the id of the loop
  * */
-Scatterplot.prototype.redrawAnchor = function (interp,groupNumber){
+Scatterplot.prototype.redrawAnchor = function (interp,groupNumber,id){
     var loopPath = d3.select("#loop"+groupNumber).node();
     var totalLength = loopPath.getTotalLength();
     var newPoint = loopPath.getPointAtLength(totalLength*interp);
     this.svg.select("#anchor").attr("cx",newPoint.x).attr("cy",newPoint.y).style("stroke","#c7c7c7");
+    //logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,newPoint.x,newPoint.y),this.mouseX,this.mouseY,newPoint.x,newPoint.y);
 }
 /**Hides the circle anchor by removing it's stroke colour
  * */
@@ -275,18 +276,18 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
     //Update the position of the dragged point
     if (t<0){ //Passed current
         this.moveBackward();
-        //console.log(findPixelDistance(this.mouseX,this.mouseY,pt1_x,pt1_y));
+        logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,pt1_x,pt1_y),this.mouseX,this.mouseY,pt1_x,pt1_y);
         newPoint = [pt1_x,pt1_y];
     }else if (t>1){ //Passed next
         this.moveForward();
-        //console.log(findPixelDistance(this.mouseX,this.mouseY,pt2_x,pt2_y));
+        logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,pt2_x,pt2_y),this.mouseX,this.mouseY,pt2_x,pt2_y);
         newPoint= [pt2_x,pt2_y];
     }else{ //Some in between the views (pt1 and pt2)
         this.interpolatePoints(id,t,this.currentView,this.nextView);
         this.interpolateLabelColour(t);
         newPoint= [minDist[0],minDist[1]];
         //Save the values
-        this.timeDirection = this.findTimeDirection(t);
+        this.timeDirection = this.findTimeDirection(t,id);
         this.interpValue = t; //Save the interpolation amount
         if (this.hintPathType ==1){
           redrawPartialHintPath_line(this,this.ambiguousPoints);
@@ -298,12 +299,13 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
  *  But can be used to log events.
  * @return: the new direction travelling in time
  * */
-Scatterplot.prototype.findTimeDirection = function (interpAmount){
+Scatterplot.prototype.findTimeDirection = function (interpAmount,id){
     var direction = (interpAmount > this.interpValue)? 1 : (interpAmount < this.interpValue)?-1 : this.timeDirection;
 
     if (this.timeDirection != direction){ //Switched directions
-        console.log("switched directions "+direction+" currentInterp "+this.interpValue+" newInterp "+interpAmount+" "+this.currentView+" "+this.nextView);
+        logTimeDirectionSwitch(id,this.currentView,this.timeDirection,direction);
     }
+
     return direction;
 }
 /** Updates the view variables to move the visualization forward
@@ -391,16 +393,16 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
             }
         }else{ //Halfway around the loop
             this.interpValue = interpAmount;
-            this.timeDirection = this.findTimeDirection(interpAmount);
+            this.timeDirection = this.findTimeDirection(interpAmount,id);
         }
     }else{ //Dragging in the middle of the loop, animate the view
-        this.timeDirection = this.findTimeDirection(interpAmount);
+        this.timeDirection = this.findTimeDirection(interpAmount,id);
         this.interpolatePoints(id,interpAmount,this.currentView,this.nextView);
         this.interpolateLabelColour(interpAmount);
         this.interpValue = interpAmount;
     }
 
-     this.redrawAnchor(loopInterp,groupNumber);
+     this.redrawAnchor(loopInterp,groupNumber,id);
 
     //Save the dragging angle and directions
     this.previousLoopAngle = angles[1];
