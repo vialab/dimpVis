@@ -86,7 +86,8 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
             return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-        });
+        }).attr("filter", "url(#blur2)");
+
         objectRef.svg.select("#currentMarker").attr("d", function (d) {
             return objectRef.hintPathGenerator([[d[objectRef.nextView][0]-lineWidth,d[objectRef.nextView][1]],
                 [d[objectRef.nextView][0]+lineWidth,d[objectRef.nextView][1]]]);

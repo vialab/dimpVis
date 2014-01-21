@@ -50,14 +50,23 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
         .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
 
-    //Draw the markers along the path
-    objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","backwardMarker")
+    //Draw the markers along the path - Wireframe design
+   /** objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","backwardMarker")
         .style("stroke","none").style("fill","none").style("stroke-width",radiusThickness)
         .attr("cx",0).attr("cy",0).attr("r",radius);
     objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","forwardMarker")
         .style("stroke","none").style("fill","none").attr("cx",0).attr("cy",0).attr("r",radius).style("stroke-width",radiusThickness);
     objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","currentMarker")
-       .style("stroke","none").style("fill","none").style("stroke-width",radiusThickness).attr("cx",0).attr("cy",0).attr("r",radius);
+       .style("stroke","none").style("fill","none").style("stroke-width",radiusThickness).attr("cx",0).attr("cy",0).attr("r",radius);*/
+
+    //Draw the markers along the path - Shadow design
+     objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","backwardMarker")
+     .style("stroke","none").style("fill","none")
+     .attr("cx",0).attr("cy",0).attr("r",radius);
+     objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","forwardMarker")
+     .style("stroke","none").style("fill","none").attr("cx",0).attr("cy",0).attr("r",radius)
+     objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","currentMarker")
+     .style("stroke","none").style("fill","none").attr("cx",0).attr("cy",0).attr("r",radius);
 
     if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
         objectRef.svg.select("#nextPath").attr("d", function (d) {
@@ -110,10 +119,9 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
             return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-        });
+        }).attr("filter", "url(#blur2)");
 
-        objectRef.svg.select("#currentMarker").attr("cx", function (d) {return d[objectRef.nextView][0];})
-            .attr("cy", function (d) {return d[objectRef.nextView][1];}).style("stroke",circleColour);
+        styleMarker(objectRef,"#currentMarker",objectRef.nextView);
 
         if (objectRef.nextView < objectRef.lastView){
             objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpolateStroke(forwardPathLength,objectRef.interpValue)).style("stroke",pathColour)
@@ -121,8 +129,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
                     return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
                 }).attr("filter", "url(#blur2)");
             if (objectRef.interpValue > 0.95){
-                objectRef.svg.select("#forwardMarker").attr("cx", function (d) {return d[objectRef.nextView+1][0];})
-                    .attr("cy", function (d) {return d[objectRef.nextView+1][1];}).style("stroke",circleColour);
+                styleMarker(objectRef,"#forwardMarker",objectRef.nextView+1);
             }
         }
 
@@ -151,8 +158,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
                 objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
         }).attr("filter", "url(#blur2)");
 
-        objectRef.svg.select("#currentMarker").attr("cx", function (d) {return d[objectRef.currentView][0];})
-            .attr("cy", function (d) {return d[objectRef.currentView][1];}).style("stroke",circleColour);
+        styleMarker(objectRef,"#currentMarker",objectRef.currentView);
 
         if (objectRef.currentView > 0){
             objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpolateStroke(backwardPathLength,(1-objectRef.interpValue)))
@@ -161,8 +167,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
                         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
                 }).attr("filter", "url(#blur2)");
             if (objectRef.interpValue < 0.05){
-                objectRef.svg.select("#backwardMarker").attr("cx", function (d) {return d[objectRef.currentView-1][0];})
-                    .attr("cy", function (d) {return d[objectRef.currentView-1][1];}).style("stroke",circleColour);
+                styleMarker(objectRef,"#backwardMarker",objectRef.currentView-1);
             }
         }
 
@@ -182,4 +187,9 @@ function drawLoopLabels (){
         .attr("y", function (d) {  return d.y; })
         .attr("class","hintLabels")
         .attr("id",function (d){return "hintLabels"+ d.id});
+}
+//Changes the style properties of a marker on the hint path
+function styleMarker(objectRef,id,view){
+    objectRef.svg.select(id).attr("cx", function (d) {return d[view][0];})
+        .attr("cy", function (d) {return d[view][1];}).style("stroke",circleColour);
 }
