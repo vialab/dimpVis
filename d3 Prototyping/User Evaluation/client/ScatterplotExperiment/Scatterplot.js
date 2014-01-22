@@ -146,11 +146,11 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
          .style("fill-opacity",1);
 
    //for testing, show all labels
-   /**this.svg.selectAll(".gDisplayPoints").append("text")
+   this.svg.selectAll(".gDisplayPoints").append("text")
         .attr("x", function(d) {return d.nodes[ref.currentView][0];})
         .attr("y", function(d) {return d.nodes[ref.currentView][1]-ref.pointRadius; })
         .attr("class","pointLabels").attr("id",function (d){return "pointLabel"+ d.id})
-        .text(function (d){return d.label;});*/
+        .text(function (d){return d.label;});
 
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");

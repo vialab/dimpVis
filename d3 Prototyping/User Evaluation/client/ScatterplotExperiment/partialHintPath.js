@@ -98,7 +98,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
     //Limit the visibility of the next time interval sub-path
     if (objectRef.timeDirection == 1){ //Moving forward
 
-        if (ambiguousObjects.length > 0){
+       if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#loop"+ambiguousObjects[objectRef.nextView][1]).style("stroke",pathColour);
                 drawLoopLabels();
@@ -111,8 +111,8 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         }
         //Clear the backward path
         objectRef.svg.select("#backwardPath").style("stroke","none");
-        //objectRef.svg.select("#backwardMarker").style("stroke","none");
-        objectRef.svg.select("#backwardMarker").style("fill","none");
+        objectRef.svg.select("#backwardMarker").style("stroke","none");
+        //objectRef.svg.select("#backwardMarker").style("fill","none");
 
         //Create the interpolation function and get the total length of the path
         forwardPathLength = d3.select("#forwardPath").node().getTotalLength();
@@ -135,7 +135,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         }
 
     }else{ //Moving backward
-        if (ambiguousObjects.length > 0){
+       if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.currentView][0]==1){
                 objectRef.svg.select("#loop"+ambiguousObjects[objectRef.currentView][1]).style("stroke",pathColour);
                 drawLoopLabels();
@@ -148,8 +148,8 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         }
         //Clear the forward path
         objectRef.svg.select("#forwardPath").style("stroke","none");
-        //objectRef.svg.select("#forwardMarker").style("stroke","none");
-        objectRef.svg.select("#forwardMarker").style("fill","none");
+        objectRef.svg.select("#forwardMarker").style("stroke","none");
+        //objectRef.svg.select("#forwardMarker").style("fill","none");
 
         //Create the interpolation function and get the total length of the path
         backwardPathLength = d3.select("#backwardPath").node().getTotalLength();

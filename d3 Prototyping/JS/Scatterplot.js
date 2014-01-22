@@ -607,9 +607,9 @@ Scatterplot.prototype.selectPoint = function (point){
         this.clickedPoints.push(point.id);
         this.drawPointLabel(point.id);
     }
-
+    var ref = this;
     //Fade out the other points using a transition
-    this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
+    this.svg.selectAll(".displayPoints").filter(function (d) {return (ref.clickedPoints.indexOf(d.id)==-1)})
         .transition().duration(300)
         .style("fill-opacity", 0.3);//.style("stroke-opacity",0.3);
 }
@@ -865,11 +865,9 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
     //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){
         //TODO: automatically orient the loops such that they smoothly blend with the path
-        //Manually add the orientation angles to the repeatedPoints array (later change this)
-        //IMPORTANT: use the angle 0, instead of 360 (360 breaks the code..)
-        repeatedPoints[0].push(Math.PI/6);
-        //repeatedPoints[1].push(3*Math.PI/2);
-
+        for (var i = 0;i<repeatedPoints.length;i++){
+            repeatedPoints[i].push(Math.PI/6);
+        }
         this.drawLoops(id,repeatedPoints);
     }
 }

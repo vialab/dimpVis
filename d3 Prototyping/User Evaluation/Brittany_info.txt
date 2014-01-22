@@ -238,3 +238,771 @@ Task type order:
 Dimp: 0,1	Slider: 0,1	Multiples: 0,1
 Randomized task order: 
 Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:14:47 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:22:27 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:24:00 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:24:06 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:24:27 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:24:46 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:29:30 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:29:44 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:30:41 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:30:49 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:31:27 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:31:52 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:35:27 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:37:36 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:39:08 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:39:40 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:40:10 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:41:24 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:42:12 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:43:09 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:44:21 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:48:15 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:49:14 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 14:51:10 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:12:25 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:13:23 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:18:33 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:21:59 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:22:43 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:22:48 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:31:24 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:31:27 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:31:46 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:32:00 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:34:00 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:34:28 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:34:46 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:35:09 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:36:11 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:36:23 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:37:36 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:38:25 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:38:42 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:39:50 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:39:54 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:50:00 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:50:51 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:55:25 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 15:56:36 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:05:49 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:06:32 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:07:17 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:08:10 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:08:32 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:09:15 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:10:19 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:10:43 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:11:02 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:12:42 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:14:27 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:22:18 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:23:01 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:23:20 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:23:44 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:25:33 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:26:17 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:29:59 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:30:29 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:31:15 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:31:48 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:39:01 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:41:12 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:41:45 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:42:33 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 0 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:50:17 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 0 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:51:56 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 0 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:53:18 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 0 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:54:32 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 0 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:55:43 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 0 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:57:17 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 0 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:59:37 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 16:59:58 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:04:00 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:04:48 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:05:26 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:06:01 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:06:19 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:06:30 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:06:48 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:06:55 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:07:19 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:08:12 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:08:55 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:11:43 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:12:58 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5
+Wed Jan 22 2014 17:16:48 GMT-0500 (Eastern Standard Time)
+Participant ID: Brittany 
+Phase: 1 
+Technique order: 0,1,2 
+Task type order: 
+Dimp: 0,1	Slider: 0,1	Multiples: 0,1
+Randomized task order: 
+Dimp: 0,1,2,3,4,5	Slider: 0,1,2,3,4,5	Multiples: 0,1,2,3,4,5

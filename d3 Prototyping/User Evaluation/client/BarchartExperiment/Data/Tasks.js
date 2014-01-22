@@ -14,6 +14,8 @@
 // ambiguity: 0 -  nonAmbigous, 1 - ambiguous
 // barIndices: one or two indices of the bars involved in the task
 // solution: the solution (view index) to the task
+// type of distribution image (for DI-MO tasks ONLY, just to decide which helper image to use): 0 if orange inc-dec and green dec-inc
+//                                                                                              1 if orange dec-inc and green inc-dec
 
 var tasks = [
     [
@@ -27,9 +29,10 @@ var tasks = [
         [1,0,11,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[1],5],
         [2,0,12,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[0],4],
         [1,0,31,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[5],7],
-        [3,0,16,1,"When do the heights of the orange AND green bar change from decreasing to increasing?",1,0,[9,5],8],
-        [3,0,17,1,"When do the heights of the orange AND green bar change from increasing to decreasing?",1,0,[4,1],7],
-        [3,0,18,1,"When does the height of the orange bar change from increasing to decreasing AND the height of the green bar change from decreasing to increasing",1,0,[10,7],8],
+        [3,0,16,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from decreasing to increasing?",1,0,[9,5],8],
+        [3,0,17,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from increasing to decreasing?",1,0,[4,1],7],
+        [3,0,18,1,"When does the height of the orange bar change from <span style='color:#D95F02'> increasing to decreasing </span>" +
+            " <span style='font-weight:bold'>AND</span> the height of the green bar change from <span style='color:#1B9E77'>decreasing to increasing</span>?",1,0,[10,7],8,0],
 
         //Objective - Ambiguous
         [4,0,62,0,"When is the orange bar less than 100?",0,1,[4],4],
@@ -49,9 +52,10 @@ var tasks = [
         [5,0,84,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[1],3],
         [5,0,85,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[5],3],
         [5,0,86,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[2],4],
-        [5,0,87,1,"When do the heights of the orange AND green bar change from decreasing to increasing?",1,0,[11,1],6],
-        [5,0,88,1,"When do the heights of the orange AND green bar change from increasing to decreasing?",1,0,[9,4],7],
-        [5,0,89,1,"When does the height of the orange bar change from decreasing to increasing AND the height of the green bar change from increasing to decreasing?",1,0,[12,2],7],
+        [5,0,87,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from decreasing to increasing?",1,0,[11,1],6],
+        [5,0,88,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from increasing to decreasing?",1,0,[9,4],7],
+        [5,0,89,1,"When does the height of the orange bar change from <span style='color:#D95F02'>decreasing to increasing </span>" +
+            " <span style='font-weight:bold'>AND</span> the height of the green bar change from <span style='color:#1B9E77'>increasing to decreasing</span>?",1,0,[12,2],7,1],
 
         //Practice - Ambiguous
         [6,0,114,0,"When is the orange bar less than 60?",0,1,[5],7],
@@ -73,9 +77,10 @@ var tasks = [
         [0,1,30,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[1],5],
         [2,1,33,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[3],4],
         [2,1,32,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[0],7],
-        [3,1,35,1,"When do the heights of the orange AND green bar change from increasing to decreasing?",1,0,[5,0],7],
-        [3,1,36,1,"When do the heights of the orange AND green bar change from decreasing to increasing?",1,0,[4,0],8],
-        [3,1,38,1,"When does the height of the orange bar change from increasing to decreasing AND the height of the green bar change from decreasing to increasing",1,0,[12,8],8]
+        [3,1,35,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from increasing to decreasing?",1,0,[5,0],7],
+        [3,1,36,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from decreasing to increasing?",1,0,[4,0],8],
+        [3,1,38,1,"When does the height of the orange bar change from <span style='color:#D95F02'>increasing to decreasing </span>" +
+            "<span style='font-weight:bold'>AND</span> the height of the green bar change from <span style='color:#1B9E77'>decreasing to increasing</span>?",1,0,[12,8],8,0],
 
         //Objective - Ambiguous
         [4,1,64,0,"When is the orange bar less than 120?",0,1,[5],9],
@@ -95,9 +100,10 @@ var tasks = [
         [5,1,96,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[1],6],
         [5,1,97,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[4],7],
         [5,1,98,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[0],3],
-        [5,1,99,1,"When do the heights of the orange AND green bar change from decreasing to increasing?",1,0,[9,4],8],
-        [5,1,100,1,"When do the heights of the orange AND green bar change from increasing to decreasing?",1,0,[11,0],8],
-        [5,1,101,1,"When does the height of the orange bar change from increasing to decreasing AND the height of the green bar change from decreasing to increasing?",1,0,[12,2],4]
+        [5,1,99,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from decreasing to increasing?",1,0,[9,4],8],
+        [5,1,100,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from increasing to decreasing?",1,0,[11,0],8],
+        [5,1,101,1,"When does the height of the orange bar change from <span style='color:#D95F02'>increasing to decreasing </span>" +
+            "<span style='font-weight:bold'>AND</span> the height of the green bar change from <span style='color:#1B9E77'>decreasing to increasing</span>?",1,0,[12,2],4,0]
     ], //Tasks for time slider
 
     [
@@ -111,9 +117,10 @@ var tasks = [
         [1,2,52,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[0],5],
         [2,2,53,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[10],4],
         [1,2,34,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[12],7],
-        [3,2,56,1,"When do the heights of the orange AND green bar change from decreasing to increasing?",1,0,[1,4],8],
-        [3,2,59,1,"When does the height of the orange bar change from increasing to decreasing AND the height of the green bar change from decreasing to increasing",1,0,[3,5],8],
-        [3,2,57,1,"When do the heights of the orange AND green bar change from increasing to decreasing?",1,0,[8,5],7],
+        [3,2,56,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from decreasing to increasing?",1,0,[1,4],8],
+        [3,2,59,1,"When does the height of the orange bar change from <span style='color:#D95F02'>increasing to decreasing</span>" +
+            " <span style='font-weight:bold'>AND</span> the height of the green bar change from decreasing to increasing",1,0,[3,5],8],
+        [3,2,57,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from <span style='color:#1B9E77'>increasing to decreasing</span>?",1,0,[8,5],7,0],
 
         //Objective - Ambiguous
         [4,2,66,0,"When is the orange bar at 140?",0,1,[1],4],
@@ -133,9 +140,10 @@ var tasks = [
         [5,2,108,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[2],7],
         [5,2,109,1,"When does the height of the orange bar change from increasing to decreasing?",0,0,[6],4],
         [5,2,110,1,"When does the height of the orange bar change from decreasing to increasing?",0,0,[8],5],
-        [5,2,111,1,"When do the heights of the orange AND green bar change from decreasing to increasing?",1,0,[9,2],2],
-        [5,2,112,1,"When do the heights of the orange AND green bar change from increasing to decreasing?",1,0,[12,3],8],
-        [5,2,113,1,"When does the height of the orange bar change from decreasing to increasing AND the height of the green bar change from increasing to decreasing?",1,0,[11,1],3]
+        [5,2,111,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from decreasing to increasing?",1,0,[9,2],2],
+        [5,2,112,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from increasing to decreasing?",1,0,[12,3],8],
+        [5,2,113,1,"When does the height of the orange bar change from <span style='color:#D95F02'>decreasing to increasing</span>" +
+            " <span style='font-weight:bold'>AND</span> the height of the green bar change from <span style='color:#1B9E77'>increasing to decreasing</span>?",1,0,[11,1],3,1]
 
     ] //Tasks for multiples
 ];

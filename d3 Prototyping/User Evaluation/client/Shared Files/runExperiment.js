@@ -17,7 +17,7 @@ var isExploratory = false;
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
 //var totalObjectiveTasks = 30; //For each interaction technique
-var totalObjectiveTasks = 1; //For each interaction technique
+var totalObjectiveTasks = 5; //For each interaction technique
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
@@ -199,11 +199,15 @@ function updateVisualizationDisplay(){
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
 
     //Add a helper image for distribution tasks
-    /**if (taskInfo[3]==1 && taskInfo[5]==1 ){ //Distribution, multiple objects
-        d3.select("#taskHelpImg").node().src = "Images/distributionMultipleObj_1.png";
+    if (taskInfo[3]==1 && taskInfo[5]==1 ){ //Distribution, multiple objects
+        if (taskInfo[9]==0){ //orange inc-dec and green dec-inc
+            d3.select("#taskHelpImg").node().src = "Images/DI_MO_0.png";
+        }else{ //orange dec-inc and green inc-dec
+            d3.select("#taskHelpImg").node().src = "Images/DI_MO_1.png";
+        }
     }else{
         d3.select("#taskHelpImg").node().src = "";
-    }*/
+    }
 
     //Re-draw the visualization for the specified dataset
     currentDataset = datasets[taskInfo[0]];

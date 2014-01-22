@@ -83,8 +83,8 @@ body {
     margin-bottom: 15px;
     margin-left:20px;
     width: 90%;
-    /**height:210px;*/
-    height:300px;
+    height:210px;
+    /**height:300px;*/
     overflow: auto;
     background-color:#BDBDBD;
 }
