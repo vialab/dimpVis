@@ -113,12 +113,21 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
   // Set up the data for drawing the points according to the values in the data set
   this.svg.selectAll("circle")
      .data(data.map(function (d,i) {
-            //Re-scale the points such that they are drawn within the svg container
-           d.points.forEach(function (d) {
-               d[0] = xScale(d[0])+ref.padding;
-               d[1] = yScale(d[1]);
-           });
-	        return {nodes:d.points,id:i,label:d.label};
+              //Re-scale the points such that they are drawn within the svg container
+              var scaledPoints = [];
+              var interpolatedYears = [];
+              for (var j=0;j< d.points.length;j++){
+                  //Check for missing data, interpolate based on surrounding points
+                  if (d.points[j][0]=="missing" || d.points[j][1]=="missing"){
+                      var newPoint = ref.interpolateMissingPoint(d.points,j);
+                      interpolatedYears.push(1);
+                      scaledPoints[j] = [xScale(newPoint.x)+ref.padding,yScale(newPoint.y)];
+                  }else{
+                      interpolatedYears.push(0);
+                      scaledPoints[j] = [xScale(d.points[j][0])+ref.padding,yScale(d.points[j][1])];
+                  }
+              }
+	        return {nodes:scaledPoints,id:i,label:d.label,interpYears:interpolatedYears};
 	  }))	
       .enter().append("g")
 	  .attr("class","gDisplayPoints").attr("id",function (d){return "gDisplayPoints"+ d.id});
@@ -134,6 +143,21 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
 
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
+}
+/**Interpolates the value for a year with missing data by using surrounding points
+ * points: the array of all points over time
+ * year: the year index of the missing data
+ * */
+Scatterplot.prototype.interpolateMissingPoint = function (points,year){
+    var interpolator;
+    if (year>0 && year < points.length-1){ //Not the first or last year
+       interpolator = d3.interpolate({x:points[year-1][0],y:points[year-1][1]},
+            {x:points[year+1][0],y:points[year+1][1]});
+    }else{
+        interpolator = d3.interpolate({x:0,y:0},  //TODO:deal with end points, this is just a placeholder
+            {x:1,y:1});
+    }
+    return interpolator(0.5);
 }
 /** Draws the axes  and the graph title on the SVG
  *  xScale: a function defining the scale of the x-axis
@@ -561,29 +585,27 @@ Scatterplot.prototype.redrawView = function(view) {
     }
 }
 /** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
- *  id: the id of the dragged point
- *  points: An array of all points of the dragged point (e.g., d.nodes)
  *  */
-Scatterplot.prototype.selectPoint = function (id,points){
+Scatterplot.prototype.selectPoint = function (point){
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
     var drawingView = adjustView(this);
 
     //First check for ambiguous cases in the hint path of the dragged point, then draw loops (if any)
-    this.checkAmbiguous(id,points);
+    this.checkAmbiguous(point.id, point.nodes);
 
     if (this.isAmbiguous==1){
         this.appendAnchor();
     }
 
     if (this.hintPathType ==0){
-        this.drawHintPath(drawingView,points);
+        this.drawHintPath(drawingView, point.nodes, point.interpYears);
     }else{
-        drawPartialHintPath_line(this,0,points);
+        drawPartialHintPath_line(this,0, point.nodes);
         redrawPartialHintPath_line(this,this.ambiguousPoints);
     }
-    if (this.clickedPoints.indexOf(id) ==-1) {
-        this.clickedPoints.push(id);
-        this.drawPointLabel(id);
+    if (this.clickedPoints.indexOf(point.id) ==-1) {
+        this.clickedPoints.push(point.id);
+        this.drawPointLabel(point.id);
     }
 
     //Fade out the other points using a transition
@@ -616,7 +638,7 @@ Scatterplot.prototype.selectPoint = function (id,points){
 /** Displays the hint path by appending its svg components to the main svg
  *  view: view to draw at
  * */
- Scatterplot.prototype.drawHintPath = function (view,points){
+ Scatterplot.prototype.drawHintPath = function (view,points,interpPts){
      var ref = this;
     //Draw the hint path labels, reposition any which are in a stationary sequence
     var adjustedPoints = this.placeLabels(points);
@@ -627,7 +649,13 @@ Scatterplot.prototype.selectPoint = function (id,points){
             var yPos = d[1] + ref.pointRadius*2;
             return {x:xPos,y:yPos,id:i}
         })).enter().append("svg:text")
-        .text(function(d) { return ref.labels[d.id]; })
+        .text(function(d,i) {
+             //Don't show the labels of interpolated years
+             if (interpPts[i]==1){
+                 return "";
+             }
+             return ref.labels[d.id];
+         })
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
         .attr("class","hintLabels")

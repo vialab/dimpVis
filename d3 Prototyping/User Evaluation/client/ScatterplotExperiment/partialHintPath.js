@@ -51,22 +51,22 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
         .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
 
     //Draw the markers along the path - Wireframe design
-   /** objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","backwardMarker")
+    objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","backwardMarker")
         .style("stroke","none").style("fill","none").style("stroke-width",radiusThickness)
         .attr("cx",0).attr("cy",0).attr("r",radius);
     objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","forwardMarker")
         .style("stroke","none").style("fill","none").attr("cx",0).attr("cy",0).attr("r",radius).style("stroke-width",radiusThickness);
     objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","currentMarker")
-       .style("stroke","none").style("fill","none").style("stroke-width",radiusThickness).attr("cx",0).attr("cy",0).attr("r",radius);*/
+       .style("stroke","none").style("fill","none").style("stroke-width",radiusThickness).attr("cx",0).attr("cy",0).attr("r",radius);
 
     //Draw the markers along the path - Shadow design
-     objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","backwardMarker")
+    /** objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","backwardMarker")
      .style("stroke","none").style("fill","none")
-     .attr("cx",0).attr("cy",0).attr("r",radius);
+     .attr("cx",0).attr("cy",0).attr("r",radius/2);
      objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","forwardMarker")
-     .style("stroke","none").style("fill","none").attr("cx",0).attr("cy",0).attr("r",radius)
+     .style("stroke","none").style("fill","none").attr("cx",0).attr("cy",0).attr("r",radius/2)
      objectRef.svg.select("#hintPath").append("circle").datum(pathData).attr("id","currentMarker")
-     .style("stroke","none").style("fill","none").attr("cx",0).attr("cy",0).attr("r",radius);
+     .style("stroke","none").style("fill","none").attr("cx",0).attr("cy",0).attr("r",radius/2);*/
 
     if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
         objectRef.svg.select("#nextPath").attr("d", function (d) {
@@ -111,7 +111,8 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         }
         //Clear the backward path
         objectRef.svg.select("#backwardPath").style("stroke","none");
-        objectRef.svg.select("#backwardMarker").style("stroke","none");
+        //objectRef.svg.select("#backwardMarker").style("stroke","none");
+        objectRef.svg.select("#backwardMarker").style("fill","none");
 
         //Create the interpolation function and get the total length of the path
         forwardPathLength = d3.select("#forwardPath").node().getTotalLength();
@@ -147,7 +148,8 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         }
         //Clear the forward path
         objectRef.svg.select("#forwardPath").style("stroke","none");
-        objectRef.svg.select("#forwardMarker").style("stroke","none");
+        //objectRef.svg.select("#forwardMarker").style("stroke","none");
+        objectRef.svg.select("#forwardMarker").style("fill","none");
 
         //Create the interpolation function and get the total length of the path
         backwardPathLength = d3.select("#backwardPath").node().getTotalLength();
@@ -190,6 +192,17 @@ function drawLoopLabels (){
 }
 //Changes the style properties of a marker on the hint path
 function styleMarker(objectRef,id,view){
+    //Wireframe design
     objectRef.svg.select(id).attr("cx", function (d) {return d[view][0];})
         .attr("cy", function (d) {return d[view][1];}).style("stroke",circleColour);
+
+    //Shadow design
+   /** objectRef.svg.select(id).attr("cx", function (d) {return d[view][0];})
+        .attr("cy", function (d) {return d[view][1];}).style("fill",circleColour)
+        .attr("filter", "url(#blur2)");
+
+    //Transparent
+   /**objectRef.svg.select(id).attr("cx", function (d) {return d[view][0];})
+       .attr("cy", function (d) {return d[view][1];}).style("fill",circleColour)
+       .style("fill-opacity",0.4);*/
 }

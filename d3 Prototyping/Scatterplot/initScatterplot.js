@@ -34,7 +34,7 @@ var dragPoint = d3.behavior.drag()
                     scatterplot.clearHintPath();
                     scatterplot.draggedPoint = d.id;
                     scatterplot.previousDragAngle = 0; //To be safe, re-set this
-                    scatterplot.selectPoint(d.id,d.nodes);
+                    scatterplot.selectPoint(d);
               }).on("drag", function(d){
                    slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
                    scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y, d.nodes);

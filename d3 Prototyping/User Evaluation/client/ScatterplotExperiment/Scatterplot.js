@@ -80,6 +80,11 @@ Scatterplot.prototype.init = function(svgId,id) {
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blur2").append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
+
+    //Add the blur filter for the partial hint path
+    this.svg.append("svg:defs").append("svg:filter")
+        .attr("id", "blur3").append("svg:feGaussianBlur")
+        .attr("stdDeviation", 3);
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
