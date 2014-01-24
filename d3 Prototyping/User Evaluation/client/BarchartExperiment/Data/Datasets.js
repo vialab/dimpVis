@@ -6,7 +6,7 @@
  *  Ambiguous
  * */
 var toySet = [
-    {"label":"","heights":[5,4,2,3,1]},
+    {"label":"","heights":[5,4,4,4,1]},
     {"label":"","heights":[1,5,2,1,4]},
     {"label":"","heights":[1,2,3,5,4]}
 ]
@@ -165,7 +165,7 @@ datasets[5] = set6;
 datasets[6] = set7;
 
 var labels = ["2000","2001","2002","2003","2004","2005","2006","2007","2008","2009"];
-//var labels = ["1990","1991","1992","1993","1994"];
+var toyLabels = ["1990","1991","1992","1993","1994"];
 
 /**Real data for exploratory period */
 var realDataset = [

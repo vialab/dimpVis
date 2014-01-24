@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-	<link rel="stylesheet" type="text/css" href="../CSS/axes.css" />
+
 
     <link rel="stylesheet" type="text/css" href="../CSS/barchartStyles.css" />
       <link rel="stylesheet" type="text/css" href="../CSS/runExperimentStyles.css" />
@@ -17,13 +17,13 @@
   </head>
   <body>
 
-
   <!--For appending the visualizations -->
     <div id="vis"></div>
 
   <!-- For displaying tutorials on how to use each interaction technique-->
+  <div id="tutorialVis"></div>
   <div id="tutorialScreenBackground" class="tutorial">
-        <div id="tutorialInstructions" class="tutorial">Touch and drag the bars to find a solution to the task.</div>
+        <div id="tutorialInstructions" class="tutorial"></div>
       <div id="tutorialImages" class="tutorial">
           <img id="visGif" class="tutorial"/>
           <img id="hintPathExplanation" class="tutorial"/>
@@ -32,8 +32,9 @@
           <img id="ambiguousGif" class="tutorial"/>
           <img id="ambiguousExplanation" class="tutorial"/>
       </div>
-       <div id="readyMsg" class="tutorial">Ready?</div>
-        <button id="doneTutorialButton" class="buttons">Start</button>
+       <div id="readyMsg" class="tutorial">
+           <button id="doneTutorialButton" class="buttons">Start</button>
+       </div>
     </div>
 
   <!-- For displaying a blank screen while participant fills out a post-tasks questionnaire -->

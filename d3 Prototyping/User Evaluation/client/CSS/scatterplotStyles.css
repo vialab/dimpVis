@@ -56,9 +56,45 @@ body {
     font-size:14px;
     fill:#EDEDED;
 }
-/**For the gridlines */
-.axis line{
+/** The main line of the x and y axis*/
+.xAxis path,.yAxis path, .yAxis line, .xAxis line {
+    fill: none;
+    shape-rendering: crispEdges;
+    stroke:#EDEDED;
+    stroke-width:2;
+}
+/** The number ticks */
+.xAxis text,.yAxis text{
+    font-family: sans-serif;
+    font:verdana;
+    font-size:18px;
+    fill:#EDEDED;
+}
+/** The labels of x and y dimensions */
+.axisLabel {
+    font-family: sans-serif;
+    font-size:18px;
+    text-anchor: end;
+    fill:#EDEDED;
+}
+/** The title of the graph */
+#graphTitle{
+    font-family: sans-serif;
+    font-size:28px;
+    fill:#EDEDED;
+}
+
+/**Special styles for the axes and grid lines */
+.xAxis path{
+    stroke:#e41a1c;
+}
+.yAxis path {
+    stroke:#377eb8;
+}
+.yAxis line,.xAxis line{
     opacity:0.2;
 }
+
+
 
 

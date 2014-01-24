@@ -17,7 +17,7 @@ var isExploratory = false;
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
 //var totalObjectiveTasks = 30; //For each interaction technique
-var totalObjectiveTasks = 5; //For each interaction technique
+var totalObjectiveTasks = 1; //For each interaction technique
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
@@ -242,7 +242,7 @@ function switchInteractionTechnique(){
 function clearVisualizations(clearPanel){
     multiples.remove();
     clearVis(gClassName);
-    clearVis(".slider");
+    clearVis("#gSlider .slider");
     if (clearPanel==1){
         d3.select("#taskPanel").style("display","none");
     }
@@ -386,40 +386,65 @@ function startTasks(){
 /**Before using a new interaction technique, shows a short tutorial on how to use it
  * */
 function showTutorial(techniqueId){
-    clearVisualizations(1);
+    //clearVisualizations(1);
     d3.selectAll(".tutorial").style("display","block");
     d3.select("#taskPanel").style("display","none");
     d3.select("#vis").style("display","none");
-    d3.select("#readyMsg").style("margin-left",screenX+"px").style("margin-top",(0.85*screenY)+"px");
-    d3.select("#doneTutorialButton").style("margin-left",screenX+"px").style("height",0.10*screenY+"px")
-        .style("width",0.18*screenX+"px").style("font-size",0.04*screenY+"px");
 
-    /**tutorialBarchart.render(set1,[],"","","");
-    tutorialBarchart.svg.selectAll(className).call(tutorialBarchart.dragEvent);*/
+    //Add buttons and heading
+    /**d3.select("#readyMsg").style("margin-left",screenX+"px").style("margin-top",(0.85*screenY)+"px");
+    d3.select("#doneTutorialButton").style("margin-left",screenX+"px").style("height",0.10*screenY+"px")
+        .style("width",0.18*screenX+"px").style("font-size",0.04*screenY+"px");*/
+    d3.select("#readyMsg").style("margin-left",screenX+"px");
+    d3.select("#doneTutorialButton").style("height",0.10*screenY+"px")
+        .style("width",0.18*screenX+"px").style("font-size",0.04*screenY+"px");
 
     //Customize the display depending on the current interaction technique
     d3.select("#tutorialInstructions").node().innerHTML = tutorialInstructions[techniqueId];
     d3.select("#visGif").node().src = tutorialGifs[techniqueId];
 
-    //Adjust the size of gif image
+    //Set the display properties for each tutorial page
     if (techniqueId ==2){
-        d3.select("#visGif").attr("width",screenX*0.5).attr("height",screenY*0.65);
+        d3.select("#visGif").attr("width",screenX*0.6).attr("height",screenY*0.75);
         d3.select("#ambiguousTutorial").style("display","none");
         d3.select("#tutorialImages").style("border","none");
         d3.select("#hintPathExplanation").node().src = "";
     }else if (techniqueId==0){
-        d3.select("#visGif").attr("width",screenX*0.20).attr("height",screenY*0.60);
-        d3.select("#hintPathExplanation").attr("width",screenX*0.20).attr("height",screenY*0.35).node().src = "Images/partialHintPath.png";
+        d3.select("#tutorialVis").style("display","block");
+        d3.select("#tutorialSvg").style("display","block");
+        visRef_tutorial.render(toySet,toyLabels,"","","");
+        visRef_tutorial.svg.selectAll(tutorial_className).call(visRef_tutorial.dragEvent);
+        highlightDataObject(1,0,tutorial_className,"#969696","#D95F02","#1B9E77");
+        slider_tutorial.render(toyLabels);
+        slider_tutorial.widget.select("#slidingTick").call(doNothing);
+
+
+        if (phaseId==0){
+            d3.select("#visGif").attr("width",screenX*0.20).attr("height",screenY*0.35);
+        }else if (phaseId==1){
+            d3.select("#visGif").attr("width",screenX*0.3).attr("height",screenY*0.3);
+        }
         d3.select("#ambiguousExplanation").attr("height",0.30*screenY).attr("width",0.35*screenX).node().src = "Images/ambiguousExplanation.png";
-        d3.select("#ambiguousGif").attr("height",0.20*screenY).attr("width",0.125*screenX).node().src = "Images/ambiguous.gif";
-        d3.select("#ambiguousTutorial").style("display","block").style("margin-top",screenY*0.4+"px");
+        //d3.select("#ambiguousGif").attr("height",0.20*screenY).attr("width",0.125*screenX).node().src = "Images/ambiguous.gif";
+        //d3.select("#ambiguousTutorial").style("display","block").style("margin-top",screenY*0.4+"px");
         d3.select("#tutorialImages").style("border","20px solid #1C1C1C");
     }else if (techniqueId==1){
         if (phaseId==0){
-            d3.select("#visGif").attr("width",screenX*0.2).attr("height",screenY*0.60);
+            d3.select("#visGif").attr("width",screenX*0.45).attr("height",screenY*0.2);
         }else if (phaseId==1){
             d3.select("#visGif").attr("width",screenX*0.3).attr("height",screenY*0.50);
         }
+
+        d3.select("#tutorialVis").style("display","block");
+        d3.select("#tutorialSvg").style("display","block");
+        visRef_tutorial.render(toySet,toyLabels,"","","");
+        visRef_tutorial.svg.selectAll(className).call(doNothing);
+        highlightDataObject(1,-1,className,"#969696","#969696");
+        slider_tutorial.render(toyLabels);
+        slider_tutorial.widget.select("#slidingTick").call(slider_tutorial.dragEvent);
+        visRef_tutorial.redrawView(0,-1);
+        slider_tutorial.updateSlider(0);
+
         d3.select("#ambiguousTutorial").style("display","none");
         d3.select("#tutorialImages").style("border","none");
         d3.select("#hintPathExplanation").node().src = "";
@@ -438,7 +463,8 @@ function hideTutorial(){
     d3.selectAll(".tutorial").style("display","none");
     d3.select("#taskPanel").style("display","block");
     d3.select("#vis").style("display","block");
-    d3.select("#tutorialSvg").remove();
+    d3.select("#tutorialVis").style("display","none");
+    //d3.select("#tutorialSvg").style("display","none")
 }
 /**Compares the solution entered by the participant with the correct solution and gives feedback
  * accordingly

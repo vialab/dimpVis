@@ -12,11 +12,14 @@
  * */
 function clearVis (objectClass){
     if (!d3.selectAll(objectClass).empty()){
-        d3.selectAll(objectClass).remove();
-        d3.selectAll(".axisLabel").remove();
-        d3.selectAll(".axis").remove();
-        d3.select("#hintPath").remove();
-        d3.select("#legend").remove();
+        d3.selectAll("#mainSvg "+objectClass).remove();
+        d3.selectAll("#mainSvg .axisLabel").remove();
+        d3.selectAll("#mainSvg .axis").remove();
+        d3.selectAll("#mainSvg .xAxis").remove();
+        d3.selectAll("#mainSvg .yAxis").remove();
+        d3.selectAll("#mainSvg path").remove();
+        d3.select("#mainSvg #hintPath").remove();
+        d3.select("#mainSvg #legend").remove();
     }
 }
 /**Checks if a mobile device is being used, called when the page loads

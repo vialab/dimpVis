@@ -45,8 +45,8 @@ scatterplot.dragEvent = d3.behavior.drag()
 
 
 //////////////////////Create the time slider//////////////////////
-var slider   = new Slider(50, 920,"","#636363",80);
-slider.init();
+var slider   = new Slider(50, 950,"","#636363",80);
+slider.init("mainSvg");
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
@@ -92,11 +92,61 @@ var xLabel = "Height (Feet)";
 
 //Customized display properties for the tutorial screens
 var tutorialInstructions = [
-    "Drag the points to find a view of the scatterplot that answers the question",
+    "",
     "Drag along the slider to find a view of the scatterplot that answers the question",
     "Select the image of the scatterplot that answers the question",
     "Drag the points to explore the visualization over time"
 ];
-var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.png","Images/exploratory.gif"];
+var tutorialGifs = ["Images/partialHintPath.png", "Images/slider.gif", "Images/multiples.png","Images/exploratory.gif"];
 
 var techniqueInstructions = ["Drag the point","Drag the slider","Select an image"];
+
+
+
+////////For the tutorial /////////////////////////////////////////////////////////////////////////////////
+
+d3.select("#tutorialVis").append("svg").attr("id","tutorialSvg").attr("width",700).attr("height",550).style("display","none");
+
+//////////////////////Create a small scatterplot visualization//////////////////////
+
+var scatterplot_tutorial   = new Scatterplot(600, 400,10);
+scatterplot_tutorial.init("tutorialSvg","gScatterplot_tutorial");
+setHintPathType(scatterplot_tutorial,1);
+
+//Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot
+scatterplot_tutorial.dragEvent = d3.behavior.drag()
+.on("dragstart", function(d){
+        d3.event.sourceEvent.preventDefault();
+        scatterplot_tutorial.clearHintPath();
+        scatterplot_tutorial.draggedPoint = d.id;
+        scatterplot_tutorial.previousDragAngle = 0; //To be safe, re-set this
+        scatterplot_tutorial.selectPoint(d.id,d.nodes);
+    }).on("drag", function(d){
+        d3.event.sourceEvent.preventDefault();
+        slider_tutorial.animateTick(scatterplot_tutorial.interpValue,scatterplot_tutorial.currentView,scatterplot_tutorial.nextView);
+        scatterplot_tutorial.updateDraggedPoint(d.id,d3.event.x,d3.event.y, d.nodes);
+    }).on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
+        d3.event.sourceEvent.preventDefault();
+        scatterplot_tutorial.snapToView(d.id,d.nodes);
+        slider_tutorial.updateSlider(scatterplot_tutorial.currentView);
+    });
+
+
+//////////////////////Create the time slider//////////////////////
+var slider_tutorial   = new Slider(10, 470,"","#636363",80);
+slider_tutorial.init("tutorialSvg");
+//Define the function to respond to the dragging behaviour of the slider tick
+slider_tutorial.dragEvent = d3.behavior.drag()
+    .on("dragstart", function(){
+        scatterplot_tutorial.clearHintPath();
+    }).on("drag", function(){
+        slider_tutorial.mouseY = d3.event.y;
+        slider_tutorial.updateDraggedSlider(d3.event.x);
+        scatterplot_tutorial.interpolatePoints(-1,slider_tutorial.interpValue,slider_tutorial.currentTick,slider_tutorial.nextTick);
+    }).on("dragend",function (){
+        slider_tutorial.snapToTick();
+        changeView(scatterplot_tutorial,slider_tutorial.currentTick);
+        scatterplot_tutorial.redrawView(slider_tutorial.currentTick,-1);
+    });
+
+var visRef_tutorial = scatterplot_tutorial;

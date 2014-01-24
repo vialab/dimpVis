@@ -19,7 +19,6 @@ barchart.clickHintLabelFunction = function (d, i){
     barchart.animateBars(barchart.draggedBar,barchart.currentView,i);
     changeView(barchart,i);
     slider.updateSlider(i);
-    console.log("clicked");
 };
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
@@ -47,7 +46,7 @@ barchart.dragEvent = d3.behavior.drag()
 
 //////////////////////Create the time slider//////////////////////
 var slider   = new Slider(50, 800,"","#636363",80);
-slider.init();
+slider.init("mainSvg","gSlider");
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
@@ -79,8 +78,8 @@ d3.select("#mainSvg").on("mousedown",function(){
 
 //Important variables need to be set to be accessed by the runExperiment.js file in order to reference the barchart object
 var visRef = barchart;
-var className = ".displayBars";
-var gClassName = ".gDisplayBars";
+var className = "#gBarchart .displayBars";
+var gClassName = "#gBarchart .gDisplayBars";
 var gIdName = "#gBarchart";
 var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
 var realDataXLabel = "Program";
@@ -91,42 +90,57 @@ var xLabel = "";
 
 //Customized display properties for the tutorial screens
 var tutorialInstructions = [
-    "Drag the bars to find a view of the barchart that answers the question",
-    "Drag along the slider to find a view of the barchart that answers the question",
+    "", "",
     "Select the image of the barchart that answers the question",
     "Drag the bars to explore the visualization over time"
 ];
-var tutorialGifs = ["Images/dimpVis.gif", "Images/slider.gif", "Images/multiples.png","Images/exploratory.gif"];
+var tutorialGifs = ["Images/partialHintPath.png", "Images/slider.png", "Images/multiples.png","Images/exploratory.gif"];
 var techniqueInstructions = ["Drag the bar","Drag the slider","Select an image"];
 
-/**d3.select("#mainSvg").append("image").attr("xlink:href","../CSS/hand.png").attr("x",0).attr("y",0).attr("width", 400).attr("height", 400)
-    .attr("id","hand");*/
-
 //////////////////////////Testing a tutorial idea /////////////////////////////////////
+d3.select("#tutorialVis").append("svg").attr("id","tutorialSvg").attr("width",500).attr("height",580).style("display","none");
 
-//Add a main svg which all visualization elements will be appended to
-/**d3.select("#tutorialVis").append("svg").attr("id","tutorialSvg").attr("width",200).attr("height",200).style("display","block");
-
-var tutorialBarchart   = new Barchart(100, 20, 5);
-tutorialBarchart.init("tutorialSvg","gTutorialBarchart");
-setHintPathType(tutorialBarchart,1); //Make sure set to partial hint path initially
+var barchart_tutorial   = new Barchart(400, 70, 30);
+barchart_tutorial.init("tutorialSvg","gBarchartTutorial");
+setHintPathType(barchart_tutorial,1); //Make sure set to partial hint path initially
 
 //Define the function to respond to the dragging behaviour of the bars
-tutorialBarchart.dragEvent = d3.behavior.drag()
+barchart_tutorial.dragEvent = d3.behavior.drag()
     .origin(function(d){ //Set the starting point of the drag interaction
-        return {x:d.xPos,y:d.nodes[tutorialBarchart.currentView][0]};
+        return {x:d.xPos,y:d.nodes[barchart_tutorial.currentView][0]};
     })
     .on("dragstart", function(d){
         d3.event.sourceEvent.preventDefault();
-        tutorialBarchart.clearHintPath();
-        tutorialBarchart.draggedBar = d.id;
-        tutorialBarchart.selectBar(d.id, d.nodes, d.xPos);
+        barchart_tutorial.clearHintPath();
+        barchart_tutorial.draggedBar = d.id;
+        barchart_tutorial.selectBar(d.id, d.nodes, d.xPos);
     })
     .on("drag", function(d){
         d3.event.sourceEvent.preventDefault();
-        tutorialBarchart.updateDraggedBar(d.id,d3.event.x,d3.event.y,d.xPos,d.nodes);
+        slider_tutorial.animateTick(barchart_tutorial.interpValue,barchart_tutorial.currentView,barchart_tutorial.nextView);
+        barchart_tutorial.updateDraggedBar(d.id,d3.event.x,d3.event.y,d.xPos,d.nodes);
     })
     .on("dragend",function (d){
         d3.event.sourceEvent.preventDefault();
-        tutorialBarchart.snapToView(d.id,d.nodes);
-    });*/
+        barchart_tutorial.snapToView(d.id,d.nodes);
+        slider_tutorial.updateSlider(barchart_tutorial.currentView);
+    });
+
+var slider_tutorial   = new Slider(10, 490,"","#636363",80);
+slider_tutorial.init("tutorialSvg","gSliderTutorial");
+//Define the function to respond to the dragging behaviour of the slider tick
+slider_tutorial.dragEvent = d3.behavior.drag()
+    .on("dragstart", function(){
+        barchart_tutorial.clearHintPath();
+    }).on("drag", function(){
+        slider_tutorial.mouseY = d3.event.y;
+        slider_tutorial.updateDraggedSlider(d3.event.x);
+        barchart_tutorial.interpolateBars(-1,slider_tutorial.interpValue,slider_tutorial.currentTick,slider_tutorial.nextTick);
+    }).on("dragend",function (){
+        slider_tutorial.snapToTick();
+        changeView(barchart_tutorial,slider_tutorial.currentTick);
+        barchart_tutorial.redrawView(slider_tutorial.currentTick,-1);
+    });
+
+var visRef_tutorial = barchart_tutorial;
+var tutorial_className = "#gBarchartTutorial .displayBars";

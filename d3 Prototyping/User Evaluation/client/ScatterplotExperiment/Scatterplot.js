@@ -146,11 +146,11 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
          .style("fill-opacity",1);
 
    //for testing, show all labels
-   this.svg.selectAll(".gDisplayPoints").append("text")
+   /**this.svg.selectAll(".gDisplayPoints").append("text")
         .attr("x", function(d) {return d.nodes[ref.currentView][0];})
         .attr("y", function(d) {return d.nodes[ref.currentView][1]-ref.pointRadius; })
         .attr("class","pointLabels").attr("id",function (d){return "pointLabel"+ d.id})
-        .text(function (d){return d.label;});
+        .text(function (d){return d.label;});*/
 
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -173,12 +173,12 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
          .attr("x",1).attr("y",-15);
 
     // Add the x-axis
-    this.svg.append("g").attr("class", "axis")
+    this.svg.append("g").attr("class", "xAxis")
         .attr("transform", "translate("+this.padding+"," + this.height + ")")
         .call(xAxis);
 
     // Add the y-axis
-    this.svg.append("g").attr("class", "axis")
+    this.svg.append("g").attr("class", "yAxis")
         .attr("transform", "translate("+ this.padding+ ",0)")
         .call(yAxis);
 
@@ -859,11 +859,12 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
 
     //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){ //Major hack here, for the experiment!!
-        if (this.taskId==0){
-            repeatedPoints[0].push(3*Math.PI/2);
+        /**if (this.taskId==0){
+            repeatedPoints[0].push(Math.PI/2);
         }else{ //Default case
             repeatedPoints[0].push(Math.PI/6);
-        }
+        }*/
+        repeatedPoints[0].push(3*Math.PI/2);
         this.drawLoops(id,repeatedPoints);
     }
 }

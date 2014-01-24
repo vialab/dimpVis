@@ -39,8 +39,8 @@ function Slider(x, y, description,colour,spacing) {
 /** Append a blank svg and g container to the div tag indicated by "id", this is where the widget
  *  will be drawn.
  * */
-Slider.prototype.init = function() {
-   this.widget = d3.select("#mainSvg").append("g").attr("id","gSlider")
+Slider.prototype.init = function(svgId,gId) {
+   this.widget = d3.select("#"+svgId).append("g").attr("id",gId)
        .attr("width", this.width).attr("height", this.height)
        .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");
 }
@@ -108,9 +108,9 @@ Slider.prototype.render = function(labels) {
       .style("cursor", "pointer").attr("id","slidingTick").attr("class","slider");
 
   //Draw an anchor to attach the triangle with the main slider bar
-   this.widget.append("rect").attr("transform", "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")")
+   /**this.widget.append("rect").attr("transform", "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")")
         .attr("stroke", "none").style("fill", "#bdbdbd").attr("width", 1).attr("height", (ref.sliderHeight-4))
-        .style("cursor", "pointer").attr("id","anchor").attr("class","slider");
+        .style("cursor", "pointer").attr("id","anchor").attr("class","slider");*/
 }
 /** Re-draws the dragged tick by translating it according to the x-coordinate of the mouse
  *  mouseX: The x-coordinate of the mouse, received from the drag event
