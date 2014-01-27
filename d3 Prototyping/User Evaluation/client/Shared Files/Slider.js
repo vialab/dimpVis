@@ -108,9 +108,9 @@ Slider.prototype.render = function(labels) {
       .style("cursor", "pointer").attr("id","slidingTick").attr("class","slider");
 
   //Draw an anchor to attach the triangle with the main slider bar
-   /**this.widget.append("rect").attr("transform", "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")")
+   this.widget.append("rect").attr("transform", "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")")
         .attr("stroke", "none").style("fill", "#bdbdbd").attr("width", 1).attr("height", (ref.sliderHeight-4))
-        .style("cursor", "pointer").attr("id","anchor").attr("class","slider");*/
+        .style("cursor", "pointer").attr("id","anchor").attr("class","slider");
 }
 /** Re-draws the dragged tick by translating it according to the x-coordinate of the mouse
  *  mouseX: The x-coordinate of the mouse, received from the drag event

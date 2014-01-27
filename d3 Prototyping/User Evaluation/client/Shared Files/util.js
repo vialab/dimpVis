@@ -10,16 +10,17 @@
  * objectClass: is the class name e.g., ".bars", assigned to all data objects associated with the
  * visualization
  * */
-function clearVis (objectClass){
-    if (!d3.selectAll(objectClass).empty()){
-        d3.selectAll("#mainSvg "+objectClass).remove();
-        d3.selectAll("#mainSvg .axisLabel").remove();
-        d3.selectAll("#mainSvg .axis").remove();
-        d3.selectAll("#mainSvg .xAxis").remove();
-        d3.selectAll("#mainSvg .yAxis").remove();
-        d3.selectAll("#mainSvg path").remove();
-        d3.select("#mainSvg #hintPath").remove();
-        d3.select("#mainSvg #legend").remove();
+function clearVis (svgId,objectClass){
+    if (!d3.selectAll("#"+svgId+" "+objectClass).empty()){
+        console.log(d3.selectAll("#"+svgId+" "+objectClass));
+        d3.selectAll("#"+svgId+" "+objectClass).remove();
+        d3.selectAll("#"+svgId+" .axisLabel").remove();
+        d3.selectAll("#"+svgId+" .axis").remove();
+        d3.selectAll("#"+svgId+" .xAxis").remove();
+        d3.selectAll("#"+svgId+" .yAxis").remove();
+        d3.selectAll("#"+svgId+" path").remove();
+        d3.select("#"+svgId+" #hintPath").remove();
+        d3.select("#"+svgId+" #legend").remove();
     }
 }
 /**Checks if a mobile device is being used, called when the page loads

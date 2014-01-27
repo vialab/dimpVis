@@ -172,10 +172,10 @@ Multiples.prototype.drawAxes_scatterplot = function (id,xScale,yScale){
     var yAxis = d3.svg.axis().scale(yScale).orient("left").tickSize(-this.imgSize,0,0);
 
     // Add the y-axis
-    d3.select("#multiples"+id).append("g").attr("class", "axis")
+    d3.select("#multiples"+id).append("g").attr("class", "yAxis")
         .attr("transform", "translate("+ (this.spacing+this.baseOffset)+ ","+(this.baseOffset)+")")
         .call(yAxis)
-        .append("g").attr("class", "axis").style("pointer-events","none")
+        .append("g").attr("class", "xAxis").style("pointer-events","none")
         .attr("transform", "translate(0," + (this.imgSize) + ")")
         .call(xAxis);
 }

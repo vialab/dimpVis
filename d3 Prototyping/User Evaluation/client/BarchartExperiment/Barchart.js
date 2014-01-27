@@ -11,6 +11,7 @@
   // this.barColour = "#74c476"; green
    this.displayColour = "#bdbdbd";
    this.zeroBarColour = "#EDEDED";
+   this.id = "";
 
    this.padding = p;
    this.barWidth = bw;
@@ -81,7 +82,7 @@
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Barchart.prototype.init = function(svgId,id){
-
+    this.id = svgId;
     //Draw the main svg
     this.svg = d3.select("#"+svgId)
         .append("g").attr("id",id)
@@ -89,12 +90,12 @@ Barchart.prototype.init = function(svgId,id){
 
     //Add the blur filter to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blur").append("svg:feGaussianBlur")
+        .attr("id", "blur"+this.id).append("svg:feGaussianBlur")
         .attr("stdDeviation", 3);
 
      //Add the blur filter to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blur2").append("svg:feGaussianBlur")
+        .attr("id", "blur2"+this.id).append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
 }
 /** Render the visualization onto the svg
@@ -486,7 +487,7 @@ Barchart.prototype.findHeight = function (yPos){
            return 0.3;
        });
    if (this.hintPathType ==1){
-        redrawPartialHintPath_line(this,this.ambiguousBars);
+        redrawPartialHintPath_line(this,this.ambiguousBars,this.id);
    }
 }
 /**"Animates" the rest of the bars while one is being dragged
@@ -687,7 +688,7 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
         this.drawHintPath(xPos,translate,drawingView);
     }else{
         drawPartialHintPath_line(this,translate,this.pathData);
-        redrawPartialHintPath_line(this,this.ambiguousBars);
+        redrawPartialHintPath_line(this,this.ambiguousBars,this.id);
     }
 
     //Fade out the other bars
@@ -728,7 +729,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
 	//Draw the hint path line
    this.svg.select("#hintPath").append("path")
        .attr("d", this.hintPathGenerator(ref.pathData))
-       .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
+       .attr("filter", function (){return (ref.useMobile)?"":"url(#blur"+ref.id+")"})
        .attr("transform","translate("+(-translate)+")")
        .attr("id","path").attr("clip-path","url(#clip)");
 

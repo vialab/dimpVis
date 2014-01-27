@@ -17,7 +17,7 @@ var isExploratory = false;
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
 //var totalObjectiveTasks = 30; //For each interaction technique
-var totalObjectiveTasks = 1; //For each interaction technique
+var totalObjectiveTasks = 12; //For each interaction technique
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
@@ -149,7 +149,7 @@ function nextTask (){
     taskCounter++;
     var numTasks = totalObjectiveTasks;
     if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
-        //numTasks = totalObjectiveTasks + 4;
+        numTasks = totalObjectiveTasks + 4;
     }
 
     if (taskCounter>=numTasks){
@@ -199,14 +199,16 @@ function updateVisualizationDisplay(){
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
 
     //Add a helper image for distribution tasks
-    if (taskInfo[3]==1 && taskInfo[5]==1 ){ //Distribution, multiple objects
-        if (taskInfo[9]==0){ //orange inc-dec and green dec-inc
-            d3.select("#taskHelpImg").node().src = "Images/DI_MO_0.png";
-        }else{ //orange dec-inc and green inc-dec
-            d3.select("#taskHelpImg").node().src = "Images/DI_MO_1.png";
+    if (phaseId==0){
+        if (taskInfo[3]==1 && taskInfo[5]==1 ){ //Distribution, multiple objects
+            if (taskInfo[9]==0){ //orange inc-dec and green dec-inc
+                d3.select("#taskHelpImg").node().src = "Images/DI_MO_0.png";
+            }else{ //orange dec-inc and green inc-dec
+                d3.select("#taskHelpImg").node().src = "Images/DI_MO_1.png";
+            }
+        }else{
+            d3.select("#taskHelpImg").node().src = "";
         }
-    }else{
-        d3.select("#taskHelpImg").node().src = "";
     }
 
     //Re-draw the visualization for the specified dataset
@@ -241,8 +243,8 @@ function switchInteractionTechnique(){
  * */
 function clearVisualizations(clearPanel){
     multiples.remove();
-    clearVis(gClassName);
-    clearVis("#gSlider .slider");
+    clearVis("mainSvg",gClassName);
+    clearVis("mainSvg",".slider");
     if (clearPanel==1){
         d3.select("#taskPanel").style("display","none");
     }
@@ -252,7 +254,7 @@ function clearVisualizations(clearPanel){
  * */
 function useDimpTechnique(){
     if (phaseId==1){
-        visRef.render(currentDataset,labels,xLabel,yLabel,"",0);
+        visRef.render(currentDataset,labels,xLabel,yLabel,"",tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2]);
     }else{
         visRef.render(currentDataset,labels,xLabel,yLabel,"");
     }
@@ -386,16 +388,12 @@ function startTasks(){
 /**Before using a new interaction technique, shows a short tutorial on how to use it
  * */
 function showTutorial(techniqueId){
-    //clearVisualizations(1);
     d3.selectAll(".tutorial").style("display","block");
     d3.select("#taskPanel").style("display","none");
     d3.select("#vis").style("display","none");
 
     //Add buttons and heading
-    /**d3.select("#readyMsg").style("margin-left",screenX+"px").style("margin-top",(0.85*screenY)+"px");
-    d3.select("#doneTutorialButton").style("margin-left",screenX+"px").style("height",0.10*screenY+"px")
-        .style("width",0.18*screenX+"px").style("font-size",0.04*screenY+"px");*/
-    d3.select("#readyMsg").style("margin-left",screenX+"px");
+     d3.select("#readyMsg").style("margin-left",screenX+"px");
     d3.select("#doneTutorialButton").style("height",0.10*screenY+"px")
         .style("width",0.18*screenX+"px").style("font-size",0.04*screenY+"px");
 
@@ -417,23 +415,22 @@ function showTutorial(techniqueId){
         highlightDataObject(1,0,tutorial_className,"#969696","#D95F02","#1B9E77");
         slider_tutorial.render(toyLabels);
         slider_tutorial.widget.select("#slidingTick").call(doNothing);
-
+        visRef_tutorial.redrawView(0,-1);
+        slider_tutorial.updateSlider(0);
 
         if (phaseId==0){
             d3.select("#visGif").attr("width",screenX*0.20).attr("height",screenY*0.35);
+            d3.select("#ambiguousExplanation").attr("height",0.30*screenY).attr("width",0.35*screenX).node().src = "Images/ambiguousExplanation.png";
         }else if (phaseId==1){
             d3.select("#visGif").attr("width",screenX*0.3).attr("height",screenY*0.3);
+            d3.select("#ambiguousExplanation").attr("height",0.50*screenY).attr("width",0.45*screenX).node().src = "Images/ambiguousExplanation.png";
         }
-        d3.select("#ambiguousExplanation").attr("height",0.30*screenY).attr("width",0.35*screenX).node().src = "Images/ambiguousExplanation.png";
+
         //d3.select("#ambiguousGif").attr("height",0.20*screenY).attr("width",0.125*screenX).node().src = "Images/ambiguous.gif";
         //d3.select("#ambiguousTutorial").style("display","block").style("margin-top",screenY*0.4+"px");
         d3.select("#tutorialImages").style("border","20px solid #1C1C1C");
     }else if (techniqueId==1){
-        if (phaseId==0){
-            d3.select("#visGif").attr("width",screenX*0.45).attr("height",screenY*0.2);
-        }else if (phaseId==1){
-            d3.select("#visGif").attr("width",screenX*0.3).attr("height",screenY*0.50);
-        }
+        d3.select("#visGif").attr("width",screenX*0.45).attr("height",screenY*0.2);
 
         d3.select("#tutorialVis").style("display","block");
         d3.select("#tutorialSvg").style("display","block");
@@ -464,7 +461,8 @@ function hideTutorial(){
     d3.select("#taskPanel").style("display","block");
     d3.select("#vis").style("display","block");
     d3.select("#tutorialVis").style("display","none");
-    //d3.select("#tutorialSvg").style("display","none")
+    clearVis("tutorialSvg",className);
+    clearVis("tutorialSvg",".slider");
 }
 /**Compares the solution entered by the participant with the correct solution and gives feedback
  * accordingly
@@ -674,27 +672,3 @@ function getHeaderInfo(){
     return "taskType="+taskType+"&task="+taskId+"&interaction="+interaction+"&viewIndex="+view;
 }
 
- ////////////////functions that need to be fixed\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-/**Reloads the previous task display (called when intermediate screen was pressed)
- * and visualization display
- */
-//TODO: eventually extend this to reload when the page is refreshed (will need to save info in url), or just use full screen mode when running the experiment
-//TODO: just need to make sure the application doesn't crash
-/**function reloadTaskDisplay(){
- var taskInfo = objectiveTasks[techniqueOrder[techniqueCounter]][taskOrder[taskCounter]];
- //Update the visualization for the next task (e.g., highlight bars)
- if (taskInfo[3].length==1){ //One data object to highlight
- highlightDataObject(taskInfo[3][0],-1,"displayBars","#BDBDBD","#D95F02");
-
- }else if (taskInfo[3].length==2){ //Two data objects to highlight
- highlightDataObject(taskInfo[3][0],taskInfo[3][1],"displayBars","#BDBDBD","#D95F02","#1B9E77");
- }
- //Make the task panel visible
- d3.select("#intermediateScreen").style("display","none");
- d3.select("#taskPanel").style("display","block");
-
- //Render the visualizations
-
- //Set the visualization to the proper view
-
- }*/

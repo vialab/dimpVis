@@ -46,7 +46,7 @@ scatterplot.dragEvent = d3.behavior.drag()
 
 //////////////////////Create the time slider//////////////////////
 var slider   = new Slider(50, 950,"","#636363",80);
-slider.init("mainSvg");
+slider.init("mainSvg","gSlider");
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
@@ -92,16 +92,13 @@ var xLabel = "Height (Feet)";
 
 //Customized display properties for the tutorial screens
 var tutorialInstructions = [
-    "",
-    "Drag along the slider to find a view of the scatterplot that answers the question",
+    "", "",
     "Select the image of the scatterplot that answers the question",
     "Drag the points to explore the visualization over time"
 ];
-var tutorialGifs = ["Images/partialHintPath.png", "Images/slider.gif", "Images/multiples.png","Images/exploratory.gif"];
+var tutorialGifs = ["Images/partialHintPath.png", "Images/slider.png", "Images/multiples.png","Images/exploratory.gif"];
 
 var techniqueInstructions = ["Drag the point","Drag the slider","Select an image"];
-
-
 
 ////////For the tutorial /////////////////////////////////////////////////////////////////////////////////
 
@@ -110,7 +107,7 @@ d3.select("#tutorialVis").append("svg").attr("id","tutorialSvg").attr("width",70
 //////////////////////Create a small scatterplot visualization//////////////////////
 
 var scatterplot_tutorial   = new Scatterplot(600, 400,10);
-scatterplot_tutorial.init("tutorialSvg","gScatterplot_tutorial");
+scatterplot_tutorial.init("tutorialSvg","gScatterplotTutorial");
 setHintPathType(scatterplot_tutorial,1);
 
 //Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot
@@ -131,10 +128,9 @@ scatterplot_tutorial.dragEvent = d3.behavior.drag()
         slider_tutorial.updateSlider(scatterplot_tutorial.currentView);
     });
 
-
 //////////////////////Create the time slider//////////////////////
 var slider_tutorial   = new Slider(10, 470,"","#636363",80);
-slider_tutorial.init("tutorialSvg");
+slider_tutorial.init("tutorialSvg","gSliderTutorial");
 //Define the function to respond to the dragging behaviour of the slider tick
 slider_tutorial.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
@@ -150,3 +146,4 @@ slider_tutorial.dragEvent = d3.behavior.drag()
     });
 
 var visRef_tutorial = scatterplot_tutorial;
+var tutorial_className = "#gScatterplotTutorial .displayPoints";

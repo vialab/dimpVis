@@ -62,7 +62,7 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
 //TODO: this code is slightly inefficient, refactor later
-function redrawPartialHintPath_line (objectRef,ambiguousObjects){
+function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
 
     //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
@@ -86,7 +86,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
             return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-        }).attr("filter", "url(#blur2)");
+        }).attr("filter", "url(#blur2"+id+")");
 
         objectRef.svg.select("#currentMarker").attr("d", function (d) {
             return objectRef.hintPathGenerator([[d[objectRef.nextView][0]-lineWidth,d[objectRef.nextView][1]],
@@ -97,7 +97,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
             objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpolateStroke(forwardPathLength,objectRef.interpValue)).style("stroke",pathColour)
                 .attr("d", function (d) {
                     return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
-                }).attr("filter", "url(#blur2)");
+                }).attr("filter", "url(#blur2"+id+")");
             if (objectRef.interpValue > 0.95){
                 objectRef.svg.select("#forwardMarker").style("stroke",tickColour).style("stroke-width",lineThickness)
                     .attr("d", function (d) {
@@ -127,7 +127,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         objectRef.svg.select("#path").attr("d", function (d) {
             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                 objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-        }).attr("filter", "url(#blur2)");
+        }).attr("filter", "url(#blur2"+id+")");
 
         objectRef.svg.select("#currentMarker").attr("d", function (d) {
             return objectRef.hintPathGenerator([[d[objectRef.currentView][0]-lineWidth,d[objectRef.currentView][1]],
@@ -139,7 +139,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
                 .style("stroke",pathColour).attr("d", function (d) {
                     return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                         objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
-                }).attr("filter", "url(#blur2)");
+                }).attr("filter", "url(#blur2"+id+")");
             if (objectRef.interpValue < 0.05){
                 objectRef.svg.select("#backwardMarker").style("stroke",tickColour).style("stroke-width",lineThickness)
                     .attr("d", function (d) {

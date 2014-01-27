@@ -1,6 +1,6 @@
 ////////////////////// Counter-balanced variables to set /////////////////////////////////////////////////////////
-var phaseOrder = [0,1]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
-var techniqueOrder = [0,1,2]; //This should be counterbalanced as well , the interaction technique order within phases
+var phaseOrder = [1,0]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
+var techniqueOrder = [0,2,1]; //This should be counterbalanced as well , the interaction technique order within phases
 var taskTypeOrder = [[0,1],[0,1],[0,1]]; //Retrieve value vs. distribution tasks counterbalanced
 var participantID = "Brittany"; //Unique id assigned to the participant
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,7 +235,10 @@ function randomizeTasks(){
          }else{
             taskOrder[i] = practiceTasks.concat(randomizedArray);
          }*/
-         taskOrder[i] = retrieveTasks;
+         taskOrder[i] = retrieveTasks.concat(distributionTasks);
+         if (i==0){ //Extra practice tasks for ambiguous
+             taskOrder[i] = taskOrder[i].concat(ambiguousRetrieveTasks).concat(ambiguousDistributionTasks );
+         }
      }
  }
 

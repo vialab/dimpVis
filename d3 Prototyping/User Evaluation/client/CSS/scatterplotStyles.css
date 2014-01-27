@@ -85,12 +85,12 @@ body {
 }
 
 /**Special styles for the axes and grid lines */
-.xAxis path{
+/**.xAxis path{
     stroke:#e41a1c;
 }
 .yAxis path {
     stroke:#377eb8;
-}
+}*/
 .yAxis line,.xAxis line{
     opacity:0.2;
 }

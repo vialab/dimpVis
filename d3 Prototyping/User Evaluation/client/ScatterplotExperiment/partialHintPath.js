@@ -10,12 +10,7 @@ var interpolateStroke = function (length,amount){
     return  d3.interpolateString("0," + length, length + "," + length)(amount);
 }
 
-/**Hides the small hint path whenever the user stops dragging */
-function hidePartialHintPath (objectRef){
-    objectRef.svg.select("#hintPath").selectAll("path").style("stroke","none");
-    objectRef.svg.select("#hintPath").selectAll("circle").style("stroke","none");
-    objectRef.svg.select("#hintPath").selectAll("text").remove();
-}
+
 
 /////////////////////////////////////////////////////// For the scatterplot \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 var radius = 16;
@@ -25,6 +20,14 @@ var ref = null;
 var labelCoords = [];
 var loopViews = [];
 
+/**Hides the small hint path whenever the user stops dragging */
+function hidePartialHintPath (objectRef){
+    objectRef.svg.select("#hintPath").selectAll("path").style("stroke","none");
+    objectRef.svg.select("#hintPath").selectAll("circle").style("stroke","none");
+    objectRef.svg.select("#hintPath").selectAll("text").remove();
+    loopViews = [];
+    labelCoords = [];
+}
 /** Displays small hint path by appending its svg components to the main svg
  *  translate: amount the path should be translated by in order to align with the
  *  dragged data object
@@ -71,7 +74,6 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
     if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
         objectRef.svg.select("#nextPath").attr("d", function (d) {
             return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
-            //(typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.nextView]: piechart
         });
     }
 
@@ -92,7 +94,7 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
  * Depending on the time direction, the next path segment the user is approaching is partially visible.
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
-function redrawPartialHintPath_line (objectRef,ambiguousObjects){
+function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
 
     //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
@@ -102,6 +104,10 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#loop"+ambiguousObjects[objectRef.nextView][1]).style("stroke",pathColour);
                 drawLoopLabels();
+                //Draw the next sub-path, when the middle loop view is reached
+                /**objectRef.svg.select("#forwardPath").attr("d", function (d) {
+                    return objectRef.hintPathGenerator([d[loopViews[2]],d[loopViews[2]+1]]);
+                }).attr("filter", "url(#blurPartial"+id+")");*/
                 return;
             }else{
                 objectRef.svg.selectAll(".loops").style("stroke","none");
@@ -120,7 +126,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
             return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-        }).attr("filter", "url(#blur2)");
+        }).attr("filter", "url(#blurPartial"+id+")");
 
         styleMarker(objectRef,"#currentMarker",objectRef.nextView);
 
@@ -128,7 +134,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
             objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpolateStroke(forwardPathLength,objectRef.interpValue)).style("stroke",pathColour)
                 .attr("d", function (d) {
                     return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
-                }).attr("filter", "url(#blur2)");
+                }).attr("filter", "url(#blurPartial"+id+")");
             if (objectRef.interpValue > 0.95){
                 styleMarker(objectRef,"#forwardMarker",objectRef.nextView+1);
             }
@@ -139,6 +145,10 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
             if (ambiguousObjects[objectRef.currentView][0]==1){
                 objectRef.svg.select("#loop"+ambiguousObjects[objectRef.currentView][1]).style("stroke",pathColour);
                 drawLoopLabels();
+                //Draw the next sub-path, when the middle loop view is reached
+                /**objectRef.svg.select("#backwardPath").attr("d", function (d) {
+                    return objectRef.hintPathGenerator([d[loopViews[0]],d[loopViews[0]-1]]);
+                }).attr("filter", "url(#blurPartial"+id+")");*/
                 return;
             }else{
                 objectRef.svg.selectAll(".loops").style("stroke","none");
@@ -156,18 +166,16 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
 
         //Full sub-path of current time interval is always visible
         objectRef.svg.select("#path").attr("d", function (d) {
-            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-                objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-        }).attr("filter", "url(#blur2)");
+            return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+        }).attr("filter", "url(#blurPartial"+id+")");
 
         styleMarker(objectRef,"#currentMarker",objectRef.currentView);
 
         if (objectRef.currentView > 0){
             objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpolateStroke(backwardPathLength,(1-objectRef.interpValue)))
                 .style("stroke",pathColour).attr("d", function (d) {
-                    return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-                        objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
-                }).attr("filter", "url(#blur2)");
+                       return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
+                }).attr("filter", "url(#blurPartial"+id+")");
             if (objectRef.interpValue < 0.05){
                 styleMarker(objectRef,"#backwardMarker",objectRef.currentView-1);
             }
@@ -177,25 +185,23 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects){
 }
 //Draws only a subset of labels to show the years contained in a loop
 function drawLoopLabels (){
-
-    ref.svg.select("#hintPath").selectAll("text")
-        .data(loopViews.map(function (d,i) {
-        var xPos = labelCoords[d][0] + ref.pointRadius*2;
-        var yPos = labelCoords[d][1] + ref.pointRadius*2;
-        return {x:xPos,y:yPos,id:d}
-    })).enter().append("svg:text")
-        .text(function(d) { return ref.labels[d.id]; })
-        .attr("x", function(d) {return d.x;})
-        .attr("y", function (d) {  return d.y; })
-        .attr("class","hintLabels")
-        .attr("id",function (d){return "hintLabels"+ d.id});
+       ref.svg.select("#hintPath").selectAll("text")
+           .data(loopViews.map(function (d,i) {
+           var xPos = labelCoords[d][0] + ref.pointRadius*2;
+           var yPos = labelCoords[d][1] + ref.pointRadius*2;
+           return {x:xPos,y:yPos,id:d}
+       })).enter().append("svg:text")
+           .text(function(d) { return ref.labels[d.id]; })
+           .attr("x", function(d) {return d.x;})
+           .attr("y", function (d) {  return d.y; })
+           .attr("class","hintLabels")
+           .attr("id",function (d){return "hintLabels"+ d.id});
 }
 //Changes the style properties of a marker on the hint path
 function styleMarker(objectRef,id,view){
     //Wireframe design
     objectRef.svg.select(id).attr("cx", function (d) {return d[view][0];})
         .attr("cy", function (d) {return d[view][1];}).style("stroke",circleColour);
-
     //Shadow design
    /** objectRef.svg.select(id).attr("cx", function (d) {return d[view][0];})
         .attr("cy", function (d) {return d[view][1];}).style("fill",circleColour)

@@ -14,6 +14,7 @@ function Scatterplot(w, h,p) {
    this.yLabel = "";
    this.graphTitle = "";
    this.hintPathType = 0;
+   this.id = "";
 
    // Create a variable to reference the main svg
    this.svg = null;
@@ -61,6 +62,7 @@ function Scatterplot(w, h,p) {
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Scatterplot.prototype.init = function(svgId,id) {
+    this.id = svgId;
     //Draw the main svg
     this.svg = d3.select("#"+svgId)
         .append("g").attr("id",id)
@@ -68,23 +70,18 @@ Scatterplot.prototype.init = function(svgId,id) {
 
     //Add the blur filter used for the hint path to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blur").append("svg:feGaussianBlur")
+        .attr("id", "blur"+svgId).append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
 
     //Add the blur filter for interaction loops
     this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blurLoop").append("svg:feGaussianBlur")
+        .attr("id", "blurLoop"+svgId).append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
 
     //Add the blur filter for the partial hint path
     this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blur2").append("svg:feGaussianBlur")
+        .attr("id", "blurPartial"+svgId).append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
-
-    //Add the blur filter for the partial hint path
-    this.svg.append("svg:defs").append("svg:filter")
-        .attr("id", "blur3").append("svg:feGaussianBlur")
-        .attr("stdDeviation", 3);
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -295,7 +292,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
         this.timeDirection = this.findTimeDirection(t,id);
         this.interpValue = t; //Save the interpolation amount
         if (this.hintPathType ==1){
-          redrawPartialHintPath_line(this,this.ambiguousPoints);
+          redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
         }
     }
     return newPoint;
@@ -602,15 +599,16 @@ Scatterplot.prototype.selectPoint = function (id,points){
     }else{
 
         drawPartialHintPath_line(this,0,points);
-        redrawPartialHintPath_line(this,this.ambiguousPoints);
+        redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
     }
     if (this.showLabels ==true && this.clickedPoints.indexOf(id) ==-1) {
         this.clickedPoints.push(id);
         this.drawPointLabel(id);
     }
 
+    var ref = this;
     //Fade out the other points using a transition
-    /**this.svg.selectAll(".displayPoints").filter(function (d) {return d.id!=id})
+    /**this.svg.selectAll(".displayPoints").filter(function (d) {return (ref.clickedPoints.indexOf(d.id)==-1)})
         .transition().duration(300)
         .style("fill-opacity", 0.3);//.style("stroke-opacity",0.3);*/
 }
@@ -662,7 +660,7 @@ Scatterplot.prototype.selectPoint = function (id,points){
     this.svg.select("#hintPath").append("svg:path")
         .attr("d",  this.hintPathGenerator(points))
         .attr("id","path")
-        .attr("filter", "url(#blur)");
+        .attr("filter", "url(#blur"+this.id+")");
 
 }
 /**This function places labels in ambiguous cases such that they do not overlap
@@ -711,7 +709,7 @@ Scatterplot.prototype.placeLabels = function (points){
         .enter().append("path").attr("class","loops")
         .attr("d",function (d){return loopGenerator(d.points);})
         .attr("id",function (d,i){return "loop"+i;})
-        .attr("filter", "url(#blurLoop)");
+        .attr("filter", "url(#blurLoop"+this.id+")");
 }
 /** Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
 Scatterplot.prototype.clearHintPath = function () {
@@ -859,12 +857,15 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
 
     //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){ //Major hack here, for the experiment!!
-        /**if (this.taskId==0){
+        if (this.taskId==12 || this.taskId==14){
             repeatedPoints[0].push(Math.PI/2);
-        }else{ //Default case
-            repeatedPoints[0].push(Math.PI/6);
-        }*/
-        repeatedPoints[0].push(3*Math.PI/2);
+        }else if (this.taskId==13 || this.taskId==15 || this.taskId==17){
+            repeatedPoints[0].push(3*Math.PI/2);
+        }else if (this.taskId==16){
+            repeatedPoints[0].push(5*Math.PI/4);
+        }else{
+            repeatedPoints[0].push(3*Math.PI/2);
+        }
         this.drawLoops(id,repeatedPoints);
     }
 }
