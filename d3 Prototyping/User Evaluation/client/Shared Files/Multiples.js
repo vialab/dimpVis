@@ -100,7 +100,7 @@ Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,
             scaledPoints[j] = [xScale(d.points[j][0])+ref.baseOffset+ref.spacing,yScale(d.points[j][1])+10];
         }
         return {nodes:scaledPoints,id:i,label:d.label};
-    })).enter().append("svg:circle").attr("r", 5)
+    })).enter().append("svg:circle").attr("r", 8)
         .attr("cx", function(d) {return d.nodes[view][0];})
         .attr("cy", function(d) {return d.nodes[view][1];})
         .style("fill", function (d){
@@ -139,7 +139,7 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars){
         return {nodes:newData,id:i,xPos:(xScale(i)+ref.spacing+ref.baseOffset)};
     })).enter().append("rect").attr("x", function(d){return d.xPos;})
         .attr("y", function(d){ return d.nodes[1];})
-        .attr("width", 20).attr("height", function(d) {return d.nodes[0]})
+        .attr("width", 15).attr("height", function(d) {return d.nodes[0]})
         .style("fill", function (d){
             return (d.id==highlightBars[0])?"#D95F02":(d.id==highlightBars[1])?"#1B9E77":"#BDBDBD";
         }).style("pointer-events","none").attr("class","multiplesBars");

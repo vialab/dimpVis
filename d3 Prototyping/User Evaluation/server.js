@@ -1,6 +1,6 @@
 ////////////////////// Counter-balanced variables to set /////////////////////////////////////////////////////////
-var phaseOrder = [1,0]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
-var techniqueOrder = [0,2,1]; //This should be counterbalanced as well , the interaction technique order within phases
+var phaseOrder = [0,1]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
+var techniqueOrder = [0,1,0]; //This should be counterbalanced as well , the interaction technique order within phases
 var taskTypeOrder = [[0,1],[0,1],[0,1]]; //Retrieve value vs. distribution tasks counterbalanced
 var participantID = "Brittany"; //Unique id assigned to the participant
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +93,7 @@ app.get("/log", function(req, res) {
 
     log.end();
     solutionLog.end();
+	timeLog.end();
     res.end();
 
 });
@@ -215,10 +216,14 @@ function randomizeTasks(){
      var practiceAmbiguousTasks = [30,31,32,33];
 
      for (var i=0;i<3;i++){ //Do for each interaction technique
-         /**var shuffledRetrieve = shuffle(retrieveTasks);
-         var shuffledDistribution = shuffle(distributionTasks);
-         var shuffledAmbiguousRetrieve = shuffle(ambiguousRetrieveTasks);
-         var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);
+         //var shuffledRetrieve = shuffle(retrieveTasks);
+         //var shuffledDistribution = shuffle(distributionTasks);
+         //var shuffledAmbiguousRetrieve = shuffle(ambiguousRetrieveTasks);
+         //var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);
+         var shuffledRetrieve = retrieveTasks;
+         var shuffledDistribution = distributionTasks;
+         var shuffledAmbiguousRetrieve = ambiguousRetrieveTasks;
+         var shuffledAmbiguousDistribution = ambiguousDistributionTasks;
          var shuffledRetrieve = retrieveTasks;
          var shuffledDistribution = distributionTasks;
          var shuffledAmbiguousRetrieve = ambiguousRetrieveTasks;
@@ -234,11 +239,11 @@ function randomizeTasks(){
             taskOrder[i] = practiceTasks.concat(practiceAmbiguousTasks).concat(randomizedArray);
          }else{
             taskOrder[i] = practiceTasks.concat(randomizedArray);
-         }*/
-         taskOrder[i] = retrieveTasks.concat(distributionTasks);
+         }
+        /** taskOrder[i] = retrieveTasks.concat(distributionTasks);
          if (i==0){ //Extra practice tasks for ambiguous
              taskOrder[i] = taskOrder[i].concat(ambiguousRetrieveTasks).concat(ambiguousDistributionTasks );
-         }
+         }*/
      }
  }
 

@@ -120,7 +120,7 @@ var tasks = [
         [3,2,56,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from decreasing to increasing?",1,0,[1,4],8],
         [3,2,59,1,"When does the height of the orange bar change from <span style='color:#D95F02'>increasing to decreasing</span>" +
             " <span style='font-weight:bold'>AND</span> the height of the green bar change from decreasing to increasing",1,0,[3,5],8],
-        [3,2,57,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from <span style='color:#1B9E77'>increasing to decreasing</span>?",1,0,[8,5],7,0],
+        [3,2,57,1,"When do the heights of the orange <span style='font-weight:bold'>AND</span> green bar change from increasing to decreasing?",1,0,[8,5],7,0],
 
         //Objective - Ambiguous
         [4,2,66,0,"When is the orange bar at 140?",0,1,[1],4],

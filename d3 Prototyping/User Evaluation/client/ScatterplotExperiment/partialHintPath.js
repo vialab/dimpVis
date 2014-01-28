@@ -41,8 +41,7 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
     objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
         .attr("transform","translate("+(-translate)+")").attr("id","path").style("stroke",pathColour)
         .attr("d", function (d) {
-            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
-                objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
+            return  objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
         });
 
     //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)

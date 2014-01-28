@@ -801,3 +801,13 @@ Barchart.prototype.calculatePathPoints = function (indices){
     return pathPoints;
 }
 
+/**Highlights data object(s) with the specified id in the highlightColour from the class of data objects
+ * Used for completing the tasks in the user evaluation
+ * id2 and newColour2 are optional, if N/A then set it as -1
+ * */
+Barchart.prototype.highlightDataObject = function (id1,id2,origColour,newColour1,newColour2){
+   this.svg.selectAll(".displayBars").style("fill", function (d){
+        return (d.id==id1)?newColour1:(d.id==id2)?newColour2:origColour;
+    });
+}
+

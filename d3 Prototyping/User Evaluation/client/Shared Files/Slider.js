@@ -102,7 +102,7 @@ Slider.prototype.render = function(labels) {
        .attr("height", ref.sliderHeight).attr("fill", ref.displayColour);
 
  //Draw a triangle draggable tick
-  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(600))
+  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(1000))
       .attr("transform", "translate(" +ref.sliderPos + "," + ref.tickYPos + ")")
       .attr("fill", ref.displayColour).style("stroke","#BDBDBD").style("stroke-width",2)
       .style("cursor", "pointer").attr("id","slidingTick").attr("class","slider");
@@ -228,8 +228,7 @@ Slider.prototype.snapToTick = function() {
             ref.widget.select("#anchor").attr("width",current-ref.sliderOffset);
             return "translate(" + current + "," + ref.tickYPos + ")";
         //return (current-5);
-     });
-
+     }).style("stroke","#EDEDED").style("stroke-width",2);
 }
 /** The tick is drawn according the to the provided interpolation amount,
  *  and interpolation occurs between current and next view
@@ -248,4 +247,9 @@ Slider.prototype.animateTick = function(interpAmount, currentView, nextView) {
                      return "translate("+interpX+","+ref.tickYPos+")";
                  });
     }
+}
+
+Slider.prototype.selectTick = function (){
+    this.widget.select("#slidingTick").style("stroke","#FFFFFF").style("stroke-width",4);
+
 }

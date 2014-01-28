@@ -1,8 +1,8 @@
 /** This file is draws the interactive visualizations involved in the barchart experiment
  * */
 
-var svgWidth = 1540;
-var svgHeight = 1200;
+var svgWidth = 1300;
+var svgHeight = 900;;
 //Add a main svg which all visualization elements will be appended to
 d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",svgWidth).attr("height",svgHeight).style("display","block");
 
@@ -52,6 +52,7 @@ slider.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
         barchart.clearHintPath();
         logTouchDown(0,d3.mouse(this)[0],d3.mouse(this)[1]);
+        slider.selectTick();
     }).on("drag", function(){
         slider.mouseY = d3.event.y;
         slider.updateDraggedSlider(d3.event.x);
@@ -65,7 +66,7 @@ slider.dragEvent = d3.behavior.drag()
 
 //////////////////////Create the small multiples display//////////////////////
 
- var multiples = new Multiples(30,300);
+ var multiples = new Multiples(25,225);
  multiples.init();
 
 //Attach listener to the svg for logging background touches
@@ -94,7 +95,7 @@ var tutorialInstructions = [
     "Select the image of the barchart that answers the question",
     "Drag the bars to explore the visualization over time"
 ];
-var tutorialGifs = ["Images/partialHintPath.png", "Images/slider.png", "Images/multiples.png","Images/exploratory.gif"];
+var tutorialGifs = ["Images/partialHintPath.png", "Images/slider.png", "Images/multiples.png","Images/fastForwarding.png"];
 var techniqueInstructions = ["Drag the bar","Drag the slider","Select an image"];
 
 //////////////////////////Testing a tutorial idea /////////////////////////////////////
@@ -132,6 +133,7 @@ slider_tutorial.init("tutorialSvg","gSliderTutorial");
 slider_tutorial.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
         barchart_tutorial.clearHintPath();
+        slider_tutorial.selectTick();
     }).on("drag", function(){
         slider_tutorial.mouseY = d3.event.y;
         slider_tutorial.updateDraggedSlider(d3.event.x);

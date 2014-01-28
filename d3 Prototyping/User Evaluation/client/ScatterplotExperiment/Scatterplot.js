@@ -8,13 +8,15 @@ function Scatterplot(w, h,p) {
    this.padding = p;
    this.width = w;
    this.height = h;
-   this.pointRadius = 15;
+   this.pointRadius = 20;
    this.loopRadius = 100;
    this.xLabel ="";
    this.yLabel = "";
    this.graphTitle = "";
    this.hintPathType = 0;
    this.id = "";
+   this.experimentMode = 0;
+   this.highlightedPts = [];
 
    // Create a variable to reference the main svg
    this.svg = null;
@@ -76,7 +78,7 @@ Scatterplot.prototype.init = function(svgId,id) {
     //Add the blur filter for interaction loops
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blurLoop"+svgId).append("svg:feGaussianBlur")
-        .attr("stdDeviation", 2);
+        .attr("stdDeviation", 1);
 
     //Add the blur filter for the partial hint path
     this.svg.append("svg:defs").append("svg:filter")
@@ -96,6 +98,7 @@ Scatterplot.prototype.init = function(svgId,id) {
  * */
 Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNum) { //TaskNum is a hack, just to properly set the loop angle because it currently isn't set automatically
   this.taskId = taskNum;
+  this.highlightedPts = [];
 
     var ref = this; //Reference variable
 	//Save the parameters in global variables
@@ -140,7 +143,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
           .attr("r", this.pointRadius).attr("class", "displayPoints")
           .attr("id", function (d){return "displayPoints"+d.id;})
           .attr("title", function (d) {return d.label;})
-         .style("fill-opacity",1);
+         .style("fill-opacity",1).style("stroke","none");
 
    //for testing, show all labels
    /**this.svg.selectAll(".gDisplayPoints").append("text")
@@ -256,7 +259,12 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
     }
 
     //Re-draw the dragged point
-    this.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
+    if (this.experimentMode == 1){
+        this.svg.select("#draggedPoint").attr("cx",newPoint[0]).attr("cy",newPoint[1]);
+    }else{
+        this.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
+    }
+
     if (this.showLabels) this.animatePointLabel(id,newPoint[0],newPoint[1]);
 
     //Save the mouse coordinates
@@ -285,15 +293,15 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
         logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,pt2_x,pt2_y),this.mouseX,this.mouseY,pt2_x,pt2_y);
         newPoint= [pt2_x,pt2_y];
     }else{ //Some in between the views (pt1 and pt2)
+        if (this.hintPathType ==1){
+            redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
+        }
         this.interpolatePoints(id,t,this.currentView,this.nextView);
         this.interpolateLabelColour(t);
         newPoint= [minDist[0],minDist[1]];
         //Save the values
         this.timeDirection = this.findTimeDirection(t,id);
         this.interpValue = t; //Save the interpolation amount
-        if (this.hintPathType ==1){
-          redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
-        }
     }
     return newPoint;
 }
@@ -499,6 +507,10 @@ Scatterplot.prototype.snapToView = function( id, points) {
 		this.currentView = this.nextView;
 	    this.nextView = this.nextView +1;
      }
+    if (this.experimentMode == 1){
+        this.svg.select("#draggedPoint").remove();
+        this.svg.select("#displayPoints"+id).style("display","block");
+    }
 
     //Redraw the view
     this.redrawView(this.currentView);
@@ -607,6 +619,20 @@ Scatterplot.prototype.selectPoint = function (id,points){
     }
 
     var ref = this;
+   if (this.experimentMode ==1){
+       this.svg.append("circle").attr("id","draggedPoint").style("stroke-width",4).style("stroke","#FFF").attr("r",22)
+           .attr("cx",points[this.currentView][0]).attr("cy",points[this.currentView][1]).style("fill", function(){
+              if (ref.highlightedPts[0]==id){
+                  return "#D95F02"; //Orange
+              }else if (ref.highlightedPts[1] == id){
+                  return "#1B9E77"; //Green
+              }
+               return "#636363";
+           });
+
+       this.svg.select("#displayPoints"+id).style("display","none");
+   }
+
     //Fade out the other points using a transition
     /**this.svg.selectAll(".displayPoints").filter(function (d) {return (ref.clickedPoints.indexOf(d.id)==-1)})
         .transition().duration(300)
@@ -857,13 +883,16 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
 
     //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){ //Major hack here, for the experiment!!
-        if (this.taskId==12 || this.taskId==14){
+        if (/**this.taskId==36 || **/this.taskId==37 || this.taskId==66){
             repeatedPoints[0].push(Math.PI/2);
-        }else if (this.taskId==13 || this.taskId==15 || this.taskId==17){
+        }else if (this.taskId==38 || this.taskId==39 || this.taskId==40 || this.taskId==67 || this.taskId==68){
             repeatedPoints[0].push(3*Math.PI/2);
-        }else if (this.taskId==16){
+        }else if (this.taskId==69){
             repeatedPoints[0].push(5*Math.PI/4);
+        }else if (this.taskId==41){
+            repeatedPoints[0].push(Math.PI/3);
         }else{
+            //repeatedPoints[0].push(Math.PI/2);
             repeatedPoints[0].push(3*Math.PI/2);
         }
         this.drawLoops(id,repeatedPoints);
@@ -883,4 +912,16 @@ Scatterplot.prototype.findInArray = function (x,y,array)
       }
    }
     return -1;
+}
+
+/**Highlights data object(s) with the specified id in the highlightColour from the class of data objects
+ * Used for completing the tasks in the user evaluation
+ * id2 and newColour2 are optional, if N/A then set it as -1
+ * */
+Scatterplot.prototype.highlightDataObject  = function (id1,id2,origColour,newColour1,newColour2){
+    this.svg.selectAll(".displayPoints").style("fill", function (d){
+        return (d.id==id1)?newColour1:(d.id==id2)?newColour2:origColour;
+    });
+    if (id1!=-1) this.highlightedPts.push(id1);
+    if (id2 !=-1) this.highlightedPts.push(id2);
 }

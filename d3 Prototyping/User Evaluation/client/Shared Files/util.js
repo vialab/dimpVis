@@ -12,7 +12,6 @@
  * */
 function clearVis (svgId,objectClass){
     if (!d3.selectAll("#"+svgId+" "+objectClass).empty()){
-        console.log(d3.selectAll("#"+svgId+" "+objectClass));
         d3.selectAll("#"+svgId+" "+objectClass).remove();
         d3.selectAll("#"+svgId+" .axisLabel").remove();
         d3.selectAll("#"+svgId+" .axis").remove();
@@ -421,15 +420,6 @@ function findInteractionPaths(ambiguousObjs,values,valueThreshold){
     interactionPaths.push(indices);
 
     return [ambiguousObjs,interactionPaths];
-}
-/**Highlights data object(s) with the specified id in the highlightColour from the class of data objects
- * Used for completing the tasks in the user evaluation
- * id2 and newColour2 are optional, if N/A then set it as -1
- * */
-function highlightDataObject (id1,id2,className,origColour,newColour1,newColour2){
-    d3.selectAll(className).style("fill", function (d){
-        return (d.id==id1)?newColour1:(d.id==id2)?newColour2:origColour;
-    });
 }
 
 /**Function which shows info (year labels, middle ticks) on the slider widget */

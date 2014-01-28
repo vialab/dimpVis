@@ -1,14 +1,14 @@
 /** This file is draws the interactive visualizations involved in the barchart experiment
  * */
 
-var svgWidth = 1540;
-var svgHeight = 1200;
+var svgWidth = 1300;
+var svgHeight = 900;
 //Add a main svg which all visualization elements will be appended to
 d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",svgWidth).attr("height",svgHeight).style("display","block");
 
 //////////////////////Create a scatterplot visualization//////////////////////
 
-var scatterplot   = new Scatterplot(900, 800,50);
+var scatterplot   = new Scatterplot(900, 700,40);
 scatterplot.init("mainSvg","gScatterplot");
 setHintPathType(scatterplot,1);
 
@@ -42,16 +42,17 @@ scatterplot.dragEvent = d3.behavior.drag()
         slider.updateSlider(scatterplot.currentView);
         logTouchUp(d.id,scatterplot.mouseX,scatterplot.mouseY);
     });
-
+scatterplot.experimentMode =  1;
 
 //////////////////////Create the time slider//////////////////////
-var slider   = new Slider(50, 950,"","#636363",80);
+var slider   = new Slider(50, 830,"","#636363",80);
 slider.init("mainSvg","gSlider");
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
         scatterplot.clearHintPath();
         logTouchDown(0,d3.mouse(this)[0],d3.mouse(this)[1]);
+        slider.selectTick();
     }).on("drag", function(){
         slider.mouseY = d3.event.y;
         slider.updateDraggedSlider(d3.event.x);
@@ -65,7 +66,7 @@ slider.dragEvent = d3.behavior.drag()
 
 //////////////////////Create the small multiples display//////////////////////
 
- var multiples = new Multiples(30,300);
+ var multiples = new Multiples(30,225);
  multiples.init();
 
 //Attach listener to the svg for logging background touches
@@ -96,7 +97,7 @@ var tutorialInstructions = [
     "Select the image of the scatterplot that answers the question",
     "Drag the points to explore the visualization over time"
 ];
-var tutorialGifs = ["Images/partialHintPath.png", "Images/slider.png", "Images/multiples.png","Images/exploratory.gif"];
+var tutorialGifs = ["Images/partialHintPath.png", "Images/slider.png", "Images/multiples.png","Images/fastForwarding.png"];
 
 var techniqueInstructions = ["Drag the point","Drag the slider","Select an image"];
 
@@ -135,6 +136,7 @@ slider_tutorial.init("tutorialSvg","gSliderTutorial");
 slider_tutorial.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
         scatterplot_tutorial.clearHintPath();
+        slider_tutorial.selectTick();
     }).on("drag", function(){
         slider_tutorial.mouseY = d3.event.y;
         slider_tutorial.updateDraggedSlider(d3.event.x);
