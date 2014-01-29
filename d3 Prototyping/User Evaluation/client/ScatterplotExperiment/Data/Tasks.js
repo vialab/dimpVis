@@ -70,7 +70,6 @@ var tasks = [
         [5,0,40,1,"When does the orange point's age and height change from decreasing to increasing?",0,1,[10],7],
         [5,0,41,1,"When does the orange point's age and height change from increasing to decreasing?",0,1,[11],7],
 
-       // [5,0,36,0,"When does the orange point's age=60 years and height=5 feet?",0,1,[0],7],
         [0,0,54,0,"When does the orange point's age=70 years and height=3 feet?",0,0,[0],4],
         [0,0,55,0,"When is the orange point's age > 60 years and height = 4 feet?",0,0,[2],5],
         [0,0,56,0,"When is the orange point's age < 50 and height = 4 feet?",0,0,[3],7],

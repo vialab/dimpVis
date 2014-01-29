@@ -66,7 +66,7 @@ slider.dragEvent = d3.behavior.drag()
 
 //////////////////////Create the small multiples display//////////////////////
 
- var multiples = new Multiples(30,225);
+ var multiples = new Multiples(20,225);
  multiples.init();
 
 //Attach listener to the svg for logging background touches
@@ -109,6 +109,8 @@ d3.select("#tutorialVis").append("svg").attr("id","tutorialSvg").attr("width",70
 
 var scatterplot_tutorial   = new Scatterplot(600, 400,10);
 scatterplot_tutorial.init("tutorialSvg","gScatterplotTutorial");
+scatterplot_tutorial.experimentMode =  1;
+scatterplot_tutorial.logEvents = 0;
 setHintPathType(scatterplot_tutorial,1);
 
 //Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot

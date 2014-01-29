@@ -66,7 +66,7 @@ slider.dragEvent = d3.behavior.drag()
 
 //////////////////////Create the small multiples display//////////////////////
 
- var multiples = new Multiples(25,225);
+ var multiples = new Multiples(20,225);
  multiples.init();
 
 //Attach listener to the svg for logging background touches
@@ -104,6 +104,7 @@ d3.select("#tutorialVis").append("svg").attr("id","tutorialSvg").attr("width",50
 var barchart_tutorial   = new Barchart(400, 70, 30);
 barchart_tutorial.init("tutorialSvg","gBarchartTutorial");
 setHintPathType(barchart_tutorial,1); //Make sure set to partial hint path initially
+barchart_tutorial.logEvents = 0;
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart_tutorial.dragEvent = d3.behavior.drag()

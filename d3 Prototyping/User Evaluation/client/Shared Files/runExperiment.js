@@ -108,7 +108,7 @@ function skipTask(){
         taskCounter++;
         var numTasks = totalObjectiveTasks;
         if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
-           // numTasks = totalObjectiveTasks + 4;
+           numTasks = totalObjectiveTasks + 4;
         }
 
         if (taskCounter>=numTasks){
@@ -367,11 +367,10 @@ function changePhase(){
         });
     }
 
-     d3.select("#gSlider").attr("transform","translate(200,1050)");
+    // d3.select("#gSlider").attr("transform","translate(200,1050)");
      d3.select(gIdName).attr("transform","translate(65,65)");
      d3.select("#changePhaseButton").style("display","block").style("width","200px").style("margin-top",screenY+"px")
-         .style("float","right").style("margin-right","20px")
-         .on("click",nextPhase);
+         .style("float","right").style("margin-right","20px").on("click",nextPhase);
 
      isExploratory = true;
  }
@@ -438,7 +437,7 @@ function showTutorial(techniqueId){
         d3.select("#tutorialSvg").style("display","block");
         visRef_tutorial.render(toySet,toyLabels,"","","");
         visRef_tutorial.svg.selectAll(className).call(doNothing);
-        visRef_tutorial.highlightDataObject(1,-1,className,"#969696","#969696");
+        //visRef_tutorial.highlightDataObject(1,-1,className,"#969696","#969696");
         slider_tutorial.render(toyLabels);
         slider_tutorial.widget.select("#slidingTick").call(slider_tutorial.dragEvent);
         visRef_tutorial.redrawView(0,-1);
@@ -448,7 +447,7 @@ function showTutorial(techniqueId){
         d3.select("#tutorialImages").style("border","none");
         d3.select("#hintPathExplanation").node().src = "";
     }else if (techniqueId ==3){ //Exploratory period
-        d3.select("#visGif").attr("width",screenX*0.2).attr("height",screenY*0.40);
+        d3.select("#visGif").attr("width",screenX*0.3).attr("height",screenY*0.40);
         d3.select("#tutorialImages").style("border","20px solid #1C1C1C");
         //d3.select("#hintPathExplanation").node().src = "Images/fastForwarding.png";
         d3.select("#ambiguousTutorial").style("display","none");
@@ -637,6 +636,7 @@ function logTimeDirectionSwitch(id,viewIndex,oldDirection,newDirection){
 /** Logs the pixel distance from the participant's touch point to the data object being dragged
  * */
  function logPixelDistance(id,viewIndex,distance,touchX,touchY,objectX,objectY){
+    console.log("logging");
     var header = getHeaderInfo();
     d3.xhr("http://localhost:8080/log?"+header+"&eventId=6"+
         "&objectId="+id+"&viewIndex="+viewIndex+"&distance="+distance.toFixed(2)+"&touchX="+touchX.toFixed(2)+"&touchY="+touchY.toFixed(2)+

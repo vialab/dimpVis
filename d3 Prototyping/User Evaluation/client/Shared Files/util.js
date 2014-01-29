@@ -57,6 +57,14 @@ function getUserCoords (objectRef){
 function moveForward(objectRef,draggingDirection){
 
     if (objectRef.nextView < objectRef.lastView){ //Avoid index out of bounds
+
+        if (objectRef.logEvents==1){
+            var distance = objectRef.findPixelDistance();
+            if (distance!=false && distance > 10){
+                logPixelDistance(objectRef.draggedId,objectRef.currentView,distance,objectRef.mouseX,objectRef.mouseY,objectRef.draggedX,objectRef.draggedY);
+            }
+        }
+
         objectRef.currentView = objectRef.nextView;
         objectRef.nextView++;
         //objectRef.timeDirection = 1;
@@ -110,6 +118,14 @@ function adjustView (objectRef){
  * */
 function moveBackward (objectRef,draggingDirection){
     if (objectRef.currentView > 0){ //Avoid index out of bounds
+
+        if (objectRef.logEvents==1){
+            var distance = objectRef.findPixelDistance();
+            if (distance!=false && distance > 10){
+                logPixelDistance(objectRef.draggedId,objectRef.nextView,distance,objectRef.mouseX,objectRef.mouseY,objectRef.draggedX,objectRef.draggedY);
+            }
+        }
+
         objectRef.nextView = objectRef.currentView;
         objectRef.currentView--;
         objectRef.interpValue = 0;

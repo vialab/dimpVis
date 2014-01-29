@@ -17,6 +17,7 @@ function Scatterplot(w, h,p) {
    this.id = "";
    this.experimentMode = 0;
    this.highlightedPts = [];
+   this.logEvents = 1;
 
    // Create a variable to reference the main svg
    this.svg = null;
@@ -30,6 +31,10 @@ function Scatterplot(w, h,p) {
    this.lastView = -1;  //The index of the last view of the dataset
    this.mouseX = -1; //Keep track of mouse coordinates for the dragend event
    this.mouseY = -1;
+   this.draggedX = 0;
+   this.draggedId = -1;
+   this.draggedY = 0;
+
    this.interpValue = 0; //Stores the current interpolation value (percentage travelled) when a point is dragged between two views
    this.labels = []; //Stores the labels of the hint path
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
@@ -97,6 +102,7 @@ Scatterplot.prototype.init = function(svgId,id) {
  *       ..... number of data points
  * */
 Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNum) { //TaskNum is a hack, just to properly set the loop angle because it currently isn't set automatically
+
   this.taskId = taskNum;
   this.highlightedPts = [];
 
@@ -135,7 +141,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
 	  }))	
       .enter().append("g")
 	  .attr("class","gDisplayPoints").attr("id",function (d){return "gDisplayPoints"+ d.id});
-     
+
 	 //Draw the data points
      this.svg.selectAll(".gDisplayPoints").append("svg:circle")
           .attr("cx", function(d) {return d.nodes[ref.currentView][0];})
@@ -210,7 +216,6 @@ Scatterplot.prototype.redrawAnchor = function (interp,groupNumber,id){
     var totalLength = loopPath.getTotalLength();
     var newPoint = loopPath.getPointAtLength(totalLength*interp);
     this.svg.select("#anchor").attr("cx",newPoint.x).attr("cy",newPoint.y).style("stroke","#c7c7c7");
-    //logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,newPoint.x,newPoint.y),this.mouseX,this.mouseY,newPoint.x,newPoint.y);
 }
 /**Hides the circle anchor by removing it's stroke colour
  * */
@@ -249,6 +254,8 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
             this.previousLoopAngle = "start";
             newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
         }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
+            this.draggedX = pt1_x;
+            this.draggedY = pt1_y;
             this.dragAlongLoop(id,currentPointInfo[1],mouseX,mouseY);
             return;
         }else{
@@ -285,12 +292,14 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
 
     //Update the position of the dragged point
     if (t<0){ //Passed current
+        this.draggedX = pt1_x;
+        this.draggedY = pt1_y;
         this.moveBackward();
-        logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,pt1_x,pt1_y),this.mouseX,this.mouseY,pt1_x,pt1_y);
         newPoint = [pt1_x,pt1_y];
     }else if (t>1){ //Passed next
+        this.draggedX = pt2_x;
+        this.draggedY = pt2_y;
         this.moveForward();
-        logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,pt2_x,pt2_y),this.mouseX,this.mouseY,pt2_x,pt2_y);
         newPoint= [pt2_x,pt2_y];
     }else{ //Some in between the views (pt1 and pt2)
         if (this.hintPathType ==1){
@@ -305,6 +314,17 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
     }
     return newPoint;
 }
+/**Sees if a touch point deviates off of the anchor point
+ * */
+Scatterplot.prototype.findPixelDistance = function (){
+    var term1 = this.mouseX - this.draggedX;
+    var term2 = this.mouseY - this.draggedY;
+    var distance =  Math.sqrt((term1*term1)+(term2*term2));
+    if (distance <= 30){
+        return false; //Finger is on the point (more or less)
+    }
+    return distance;
+}
 /** Sets the time direction based on the interpolation amount, currently not needed for the interaction
  *  But can be used to log events.
  * @return: the new direction travelling in time
@@ -312,7 +332,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
 Scatterplot.prototype.findTimeDirection = function (interpAmount,id){
     var direction = (interpAmount > this.interpValue)? 1 : (interpAmount < this.interpValue)?-1 : this.timeDirection;
 
-    if (this.timeDirection != direction){ //Switched directions
+    if (this.logEvents==1 && this.timeDirection != direction){ //Switched directions
         logTimeDirectionSwitch(id,this.currentView,this.timeDirection,direction);
     }
 
@@ -596,6 +616,7 @@ Scatterplot.prototype.redrawView = function(view) {
  *  points: An array of all points of the dragged point (e.g., d.nodes)
  *  */
 Scatterplot.prototype.selectPoint = function (id,points){
+    this.draggedId = id;
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
     var drawingView = adjustView(this);
 
@@ -634,9 +655,10 @@ Scatterplot.prototype.selectPoint = function (id,points){
    }
 
     //Fade out the other points using a transition
-    /**this.svg.selectAll(".displayPoints").filter(function (d) {return (ref.clickedPoints.indexOf(d.id)==-1)})
-        .transition().duration(300)
-        .style("fill-opacity", 0.3);//.style("stroke-opacity",0.3);*/
+    if (this.experimentMode ==0){
+        this.svg.selectAll(".displayPoints").filter(function (d) {return (ref.clickedPoints.indexOf(d.id)==-1)})
+            .transition().duration(300).style("fill-opacity", 0.3);
+    }
 }
 /** Draws a label at the top of the selected point
  * */
@@ -883,7 +905,7 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
 
     //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){ //Major hack here, for the experiment!!
-        if (/**this.taskId==36 || **/this.taskId==37 || this.taskId==66){
+        if (this.taskId==36 || this.taskId==37 || this.taskId==66){
             repeatedPoints[0].push(Math.PI/2);
         }else if (this.taskId==38 || this.taskId==39 || this.taskId==40 || this.taskId==67 || this.taskId==68){
             repeatedPoints[0].push(3*Math.PI/2);
@@ -892,8 +914,8 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
         }else if (this.taskId==41){
             repeatedPoints[0].push(Math.PI/3);
         }else{
-            //repeatedPoints[0].push(Math.PI/2);
-            repeatedPoints[0].push(3*Math.PI/2);
+            repeatedPoints[0].push(Math.PI/2);
+            //repeatedPoints[0].push(3*Math.PI/2);
         }
         this.drawLoops(id,repeatedPoints);
     }

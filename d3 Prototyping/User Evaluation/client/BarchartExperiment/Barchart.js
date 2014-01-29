@@ -12,6 +12,7 @@
    this.displayColour = "#bdbdbd";
    this.zeroBarColour = "#EDEDED";
    this.id = "";
+   this.logEvents = 1;
 
    this.padding = p;
    this.barWidth = bw;
@@ -41,6 +42,10 @@
    this.interpValue=0; //For estimating the time direction and update the barchart view
    this.mouseY = 0;
    this.mouseX = 0;
+   this.draggedX = 0; //For logging events
+   this.draggedY = 0;
+   this.draggedId = -1;
+
    this.previousDragDirection = 1; //Saves the vertical dragging direction of the user
    this.peakTolerance = 0; //Tolerance frame applied on peaks of hint path
    this.previousTimeDirection = 1;
@@ -335,11 +340,11 @@ Barchart.prototype.addXLabels = function(){
         this.svg.select("#displayBars"+id).style("fill",function (d){return (d.nodes[ref.currentView][1]==0)?ref.zeroBarColour:ref.displayColour;});
     }
     //Log the change in dragging direction
-    if (this.previousDragDirection != draggingDirection){
+    if (this.logEvents==1 && this.previousDragDirection != draggingDirection){
          logDragDirectionSwitch(id,this.currentView,this.previousDragDirection,draggingDirection);
     }
     //Log change in time direction
-   if (this.timeDirection != this.previousTimeDirection){
+   if (this.logEvents ==1 && this.timeDirection != this.previousTimeDirection){
        logTimeDirectionSwitch(id,this.currentView,this.previousTimeDirection,this.timeDirection);
    }
    //Save some variables
@@ -371,6 +376,9 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
         newValues = [mouseY,this.findHeight(mouseY)];
 
     }else if (bounds == currentY ){ //Passing current
+        this.draggedX = barX;
+        this.draggedY = currentY;
+
         if (current[2]!=0 || this.atPeak == this.currentView){ //At a peak or a peak formed by hint path and sine wave
             inferTimeDirection(this,draggingDirection,1);
             newValues = this.findNewY(currentY,nextY,mouseY,current);
@@ -378,8 +386,9 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
             moveBackward(this,draggingDirection);
             newValues = (current[2]!=0)? [currentY,this.findHeight(currentY)]:[currentY,current[1]];
         }
-        logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,barX,currentY),this.mouseX,this.mouseY,barX,currentY);
     }else{ //Passing next
+        this.draggedX = barX;
+        this.draggedY = nextY;
 
         if (next[2]!=0 || this.atPeak ==this.nextView){ //At a peak or a peak formed by hint path and sine wave
             inferTimeDirection(this,draggingDirection,0);
@@ -388,10 +397,19 @@ Barchart.prototype.handleDraggedBar = function (current,next,mouseY,id,draggingD
             moveForward(this,draggingDirection);
             newValues = (next[2]!=0)?[nextY,this.findHeight(nextY)]:[nextY,next[1]];
         }
-        logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,barX,nextY),this.mouseX,this.mouseY,barX,nextY);
     }
-
-     return newValues;
+    return newValues;
+}
+/**Sees if a touch point deviates off of the bar
+ * */
+Barchart.prototype.findPixelDistance = function (){
+    if ((this.mouseX >= this.draggedX && this.mouseX <= this.draggedX+this.barWidth)&&(this.mouseY<= this.draggedY)){
+        return false; //Finger is on the bar
+    }else{
+        var term1 = this.mouseX - this.draggedX;
+        var term2 = this.mouseY - this.draggedY;
+        return Math.sqrt((term1*term1)+(term2*term2));
+    }
 }
 /**Finds the new y-value to draw the dragged bar at (this function is needed because a tolerance value is used)
  * b1,b2: the boundary view values (b1 should be the current view)
@@ -442,12 +460,14 @@ Barchart.prototype.handleDraggedBar_stationary = function (barY,mouseY,mouseX,id
         if (this.atPeak==-1){
              var newPathDirection = (this.pathDirection==1)?-1:1;
              if (this.timeDirection ==1 && this.nextView < this.lastView){
+                 this.draggedX = barX;
+                 this.draggedY = barY;
                  moveForward(this,draggingDirection);
-                 logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,barX,barY),this.mouseX,this.mouseY,barX,barY);
                  setSineWaveVariables(this,newPathDirection,barY,0);
              }else if (this.timeDirection==-1 && this.currentView >0){
+                 this.draggedX = barX;
+                 this.draggedY = barY;
                  moveBackward(this,draggingDirection);
-                 logPixelDistance(id,this.currentView,findPixelDistance(this.mouseX,this.mouseY,barX,barY),this.mouseX,this.mouseY,barX,barY);
                  setSineWaveVariables(this,newPathDirection,barY,1);
              }else if (this.nextView == this.lastView){
                  if (draggingDirection != this.previousDragDirection){ //Flip the direction when at the end of the hint path
@@ -663,6 +683,7 @@ Barchart.prototype.snapToView = function (id, heights){
  *  */
 Barchart.prototype.selectBar = function (id,heights,xPos){
     var ref = this;
+   this.draggedId = id;
 
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
     var drawingView = adjustView(this);
