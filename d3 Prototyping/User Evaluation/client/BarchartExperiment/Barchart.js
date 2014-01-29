@@ -826,9 +826,9 @@ Barchart.prototype.calculatePathPoints = function (indices){
  * Used for completing the tasks in the user evaluation
  * id2 and newColour2 are optional, if N/A then set it as -1
  * */
-Barchart.prototype.highlightDataObject = function (id1,id2,origColour,newColour1,newColour2){
+Barchart.prototype.highlightDataObject = function (ids){
    this.svg.selectAll(".displayBars").style("fill", function (d){
-        return (d.id==id1)?newColour1:(d.id==id2)?newColour2:origColour;
+        return (d.id==ids[0])?"#D95F02":(d.id==ids[1])?"#1B9E77":"#636363";
     });
 }
 

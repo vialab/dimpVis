@@ -43,6 +43,7 @@ function Scatterplot(w, h,p) {
    this.previousLoopAngle = "start"; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
    this.previousLoopSign = 0; //Keeps track of the angle switching from positive to negative or vice versa when dragging along a loop
    this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
+   this.accumulatedAngle = 0;
    //this.endView = -1;  //The view at the end of a loop
    this.timeDirection = 1; //Tracks the direction travelling over time
 
@@ -101,7 +102,7 @@ Scatterplot.prototype.init = function(svgId,id) {
  *       }
  *       ..... number of data points
  * */
-Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNum) { //TaskNum is a hack, just to properly set the loop angle because it currently isn't set automatically
+Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNum,toHighlight) { //TaskNum is a hack, just to properly set the loop angle because it currently isn't set automatically
 
   this.taskId = taskNum;
   this.highlightedPts = [];
@@ -128,7 +129,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
 
   // Set up the data for drawing the points according to the values in the data set
   this.svg.selectAll("circle")
-     .data(data.map(function (d,i) {
+      .data(data.map(function (d,i) {
            var scaledPoints = [];
            for (var j=0;j< d.points.length;j++){
                scaledPoints[j] = [xScale(d.points[j][0])+ref.padding,yScale(d.points[j][1])];
@@ -138,18 +139,38 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
                d[1] = yScale(d[1]);
            });*/
 	        return {nodes:scaledPoints,id:i,label:d.label};
-	  }))	
-      .enter().append("g")
-	  .attr("class","gDisplayPoints").attr("id",function (d){return "gDisplayPoints"+ d.id});
+	  })).enter().append("g")
+	  .attr("class","gDisplayPoints").attr("id",function (d){return "gDisplayPoints"+ d.id})
+      .sort(function(a,b){
+           if (b.id > 0 || b.id > 1){
+               return 1;
+           }else if (b.id < 0 || b.id < 1){
+               return -1;
+           }else{
+               return 0;
+           }
+        });
 
 	 //Draw the data points
-     this.svg.selectAll(".gDisplayPoints").append("svg:circle")
-          .attr("cx", function(d) {return d.nodes[ref.currentView][0];})
-          .attr("cy", function(d) {return d.nodes[ref.currentView][1]; })
-          .attr("r", this.pointRadius).attr("class", "displayPoints")
-          .attr("id", function (d){return "displayPoints"+d.id;})
-          .attr("title", function (d) {return d.label;})
-         .style("fill-opacity",1).style("stroke","none");
+     /**this.svg.selectAll(".gDisplayPoints").filter(function (d){ return (d.id!=0 && d.id!=1)})*/
+
+    //Draw the data points
+    this.svg.selectAll(".gDisplayPoints").append("svg:circle")
+        .attr("cx", function(d) {return d.nodes[ref.currentView][0];})
+        .attr("cy", function(d) {return d.nodes[ref.currentView][1]; })
+        .attr("r", this.pointRadius).attr("class", "displayPoints")
+        .attr("id", function (d){return "displayPoints"+d.id;})
+        .attr("title", function (d) {return d.label;})
+        .style("fill-opacity",1).style("stroke","none");
+
+    if (this.experimentMode==1){
+        if (toHighlight[0]!=-1) this.highlightedPts.push(toHighlight[0]);
+        if (toHighlight[1] !=-1) this.highlightedPts.push(toHighlight[1]);
+
+        this.svg.selectAll(".displayPoints").style("fill", function (d){
+            return (d.id==toHighlight[0])?"#D95F02":(d.id==toHighlight[1])?"#1B9E77":"#636363";
+        })
+    }
 
    //for testing, show all labels
    /**this.svg.selectAll(".gDisplayPoints").append("text")
@@ -440,6 +461,75 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
     this.previousDraggingDirection = draggingDirection;
 
 }
+
+/**Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
+
+    var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle]});
+    var angles = this.calculateMouseAngle(mouseX,mouseY,loopData[0][2],loopData[0][0],loopData[0][1]);
+
+    var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (+/-)
+    var travelled = angles[1]/(2*Math.PI);
+    if (this.previousLoopAngle != "start"){
+        var diff = this.previousLoopAngle - angles[1];
+        this.accumulatedAngle += diff;
+
+        console.log(this.accumulatedAngle);
+    }
+
+    //console.log(travelled+" "+this.previousLoopSign);
+    //Re-draw the anchor along the loop
+    var loopInterp = this.convertMouseToLoop_interp(angles[2]);
+
+    //Find the angular dragging direction
+    var draggingDirection = (angles[1] > this.previousLoopAngle)? 1 : (angles[1] < this.previousLoopAngle)?-1 : this.previousDraggingDirection;
+
+    //Adjust the interpolation value based on the dragging direction
+    var interpAmount = 1-angles[2];
+
+    //Check if the angle has changed signs
+   /** if (travelled<this.previousLoopSign){
+
+    }
+    if (this.currentView == 2 && Math.abs(1-travelled)<=0.10){
+        return;
+    }
+    this.redrawAnchor(loopInterp,groupNumber,id);*/
+
+
+    /**if (sign != this.previousLoopSign && this.previousLoopAngle != "start"){ //Switching Directions, might be a view change
+        var angle_deg = angles[1]*180/Math.PI;
+        if ((angle_deg >= 350 && angle_deg <= 360)||(angle_deg>=0 && angle_deg <=10)){ //Check for sign switches within 10 degrees of the 360/0 mark
+            if (draggingDirection==1){ //Dragging clockwise
+
+                if (this.ambiguousPoints[this.nextView+1][0]==0) { //Trying to detect end points to fix jumping
+                    console.log("end point next");
+                }
+                this.moveForward();
+            }else{ //Dragging counter-clockwise
+
+                if (this.ambiguousPoints[this.currentView-1][0]==0) {
+                    console.log("end point current");
+                }
+                this.moveBackward();
+            }
+        }else{ //Halfway around the loop
+            this.interpValue = interpAmount;
+            this.timeDirection = this.findTimeDirection(interpAmount,id);
+        }
+    }else{ //Dragging in the middle of the loop, animate the view
+        this.timeDirection = this.findTimeDirection(interpAmount,id);
+        this.interpolatePoints(id,interpAmount,this.currentView,this.nextView);
+        this.interpolateLabelColour(interpAmount);
+        this.interpValue = interpAmount;
+    }
+
+
+    //Save the dragging angle and directions
+    this.previousLoopAngle = angles[1];
+    this.previousLoopSign = travelled;
+    this.previousDraggingDirection = draggingDirection;
+
+}*/
 /**Finds the angle of the mouse w.r.t the center of the loop
  * @return [angle,positiveAngle,interpAmount]
  * */
@@ -934,16 +1024,4 @@ Scatterplot.prototype.findInArray = function (x,y,array)
       }
    }
     return -1;
-}
-
-/**Highlights data object(s) with the specified id in the highlightColour from the class of data objects
- * Used for completing the tasks in the user evaluation
- * id2 and newColour2 are optional, if N/A then set it as -1
- * */
-Scatterplot.prototype.highlightDataObject  = function (id1,id2,origColour,newColour1,newColour2){
-    this.svg.selectAll(".displayPoints").style("fill", function (d){
-        return (d.id==id1)?newColour1:(d.id==id2)?newColour2:origColour;
-    });
-    if (id1!=-1) this.highlightedPts.push(id1);
-    if (id2 !=-1) this.highlightedPts.push(id2);
 }
