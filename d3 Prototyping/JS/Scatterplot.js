@@ -102,11 +102,13 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
      //Find the max and min values of the points, used to scale the axes and the dataset
      var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
      var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
+    var min_y = d3.min(data.map(function (d){return d3.min(d.points.map(function (a){return a[1];}) ); }));
+console.log(min_y);
 
     //Create the scales by mapping the x,y to the svg size
     var xScale = d3.scale.linear().domain([0,max_x]).range([0,ref.width]);
-    var yScale =  d3.scale.linear().domain([0, max_y]).range([ref.height,0]);
-    //var yScale =  d3.scale.linear().domain([0, 10000,max_y]).range([ref.height,ref.height/4,0]); //polylinear scale for the internet user dataset
+    //var yScale =  d3.scale.linear().domain([min_y, max_y]).range([ref.height,0]);
+    var yScale =  d3.scale.linear().domain([min_y, 50000000,max_y]).range([ref.height,ref.height/2,0]); //polylinear scale for the internet user dataset
     //Call the function which draws the axes
     this.drawAxes(xScale,yScale);
 
@@ -645,8 +647,8 @@ Scatterplot.prototype.selectPoint = function (point){
 
      this.svg.select("#hintPath").selectAll("text")
        .data(adjustedPoints.map(function (d,i) {
-            var xPos = d[0] + ref.pointRadius*2;
-            var yPos = d[1] + ref.pointRadius*2;
+            var xPos = d[0]+ ref.pointRadius;
+            var yPos = d[1]+ ref.pointRadius;
             return {x:xPos,y:yPos,id:i}
         })).enter().append("svg:text")
         .text(function(d,i) {

@@ -40,10 +40,11 @@ function Scatterplot(w, h,p) {
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
    //this.closePoints = []; //Points which are near each other such that labels are probably overlapping
    this.loops = []; //Stores points to draw for interaction loops (if any)
-   this.previousLoopAngle = "start"; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
+   this.previousLoopAngle =0; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
    this.previousLoopSign = 0; //Keeps track of the angle switching from positive to negative or vice versa when dragging along a loop
    this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
    this.accumulatedAngle = 0;
+    this.stopLoopDragging = 0;
    //this.endView = -1;  //The view at the end of a loop
    this.timeDirection = 1; //Tracks the direction travelling over time
 
@@ -142,14 +143,23 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
 	  })).enter().append("g")
 	  .attr("class","gDisplayPoints").attr("id",function (d){return "gDisplayPoints"+ d.id})
       .sort(function(a,b){
-           if (b.id > 0 || b.id > 1){
-               return 1;
-           }else if (b.id < 0 || b.id < 1){
-               return -1;
-           }else{
-               return 0;
-           }
-        });
+          if (toHighlight[1] != -1){
+              if (b.id > toHighlight[0] || b.id > toHighlight[1]){
+                  return 1;
+              }else if (b.id < toHighlight[0] || b.id < toHighlight[1]){
+                  return -1;
+              }else{
+                  return 0;
+              }
+          }else{
+              if (b.id > toHighlight[0]){
+                  return 1;
+              }else if (b.id < toHighlight[0]){
+                  return -1;
+              }else{
+                  return 0;
+              }
+          }});
 
 	 //Draw the data points
      /**this.svg.selectAll(".gDisplayPoints").filter(function (d){ return (d.id!=0 && d.id!=1)})*/
@@ -269,10 +279,12 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
         var nextPointInfo = this.ambiguousPoints[this.nextView];
 
         if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
-            this.previousLoopAngle = "start";
+            //this.previousLoopAngle = "start";
+            this.previousLoopAngle = Math.PI*2;
             newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
         }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
-            this.previousLoopAngle = "start";
+            //this.previousLoopAngle = "start";
+            this.previousLoopAngle = Math.PI*2;
             newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
         }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
             this.draggedX = pt1_x;
@@ -401,7 +413,7 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
  * id: of the dragged point
  * groupNumber: the group of repeated points this loop belongs to
  * */
- Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
+ /**Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
 
      //TODO: if approaching loop from forward in time, can only drag clockwise (move forward in time around loop) if currentView is the first view on the stationary sequence
      //TODO: similarily, if approaching loop from other side, can only drag counter clockwise if view is the last view on the stationary sequence
@@ -432,14 +444,14 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
                    if (this.ambiguousPoints[this.nextView+1][0]==0) { //Trying to detect end points to fix jumping
                        console.log("end point next");
                    }
-                }*/
+                }
                 this.moveForward();
             }else{ //Dragging counter-clockwise
                 /**if (this.currentView > 0){
                     if (this.ambiguousPoints[this.currentView-1][0]==0) {
                         console.log("end point current");
                     }
-                }*/
+                }
                 this.moveBackward();
             }
         }else{ //Halfway around the loop
@@ -460,14 +472,14 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
     this.previousLoopSign = sign;
     this.previousDraggingDirection = draggingDirection;
 
-}
+}*/
 
-/**Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
+Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
 
     var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle]});
     var angles = this.calculateMouseAngle(mouseX,mouseY,loopData[0][2],loopData[0][0],loopData[0][1]);
 
-    var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (+/-)
+    /**var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (+/-)
     var travelled = angles[1]/(2*Math.PI);
     if (this.previousLoopAngle != "start"){
         var diff = this.previousLoopAngle - angles[1];
@@ -487,13 +499,83 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
     var interpAmount = 1-angles[2];
 
     //Check if the angle has changed signs
-   /** if (travelled<this.previousLoopSign){
+    if (travelled<this.previousLoopSign){
 
     }
     if (this.currentView == 2 && Math.abs(1-travelled)<=0.10){
         return;
+    }*/
+
+
+
+
+
+    //This is only if current view is at 2, and the user is entering the loop moving forward in time
+    if (this.currentView ==2){
+        if (angles[1] < this.previousLoopAngle && angles[1] <= 0.2){ //The user is trying to reverse around the loop
+            this.moveBackward();
+            this.stopLoopDragging = 1;
+            //this.accumulatedAngle = 0;
+            //console.log("bad");
+            return;
+        }
+        //console.log(angles[1]+" "+this.previousLoopAngle+" "+this.stopLoopDragging);
+        if (this.stopLoopDragging == 1){
+            if (Math.abs(angles[1] - Math.PI*2)<= 0.2){ //If the mouse angle is near 360 (instead of 0)
+                this.stopLoopDragging = 0;
+            }else{
+                return;
+            }
+        }
+        /**if (this.previousLoopAngle < angles[1] && this.previousLoopAngle <= 0.2){ //The user has completed 1 revolution
+            this.moveForward();
+            console.log("good");
+            return;
+        }*/
     }
-    this.redrawAnchor(loopInterp,groupNumber,id);*/
+
+    //This is only if current view is at 4 and the user has completed two revolutions, now exiting the loop
+    if (this.currentView ==4){
+        if (angles[1] < this.previousLoopAngle && angles[1] <= 0.2){ //The user is trying to reverse around the loop
+            this.moveBackward();
+            this.stopLoopDragging = 1;
+            //this.accumulatedAngle = 0;
+            //console.log("bad");
+            return;
+        }
+        //console.log(angles[1]+" "+this.previousLoopAngle+" "+this.stopLoopDragging);
+        if (this.stopLoopDragging == 1){
+            if (Math.abs(angles[1] - Math.PI*2)<= 0.2){ //If the mouse angle is near 360 (instead of 0)
+                this.stopLoopDragging = 0;
+            }else{
+                return;
+            }
+        }
+    }
+
+   if (angles[1] < this.previousLoopAngle){ //Forward in time
+       var diff = this.previousLoopAngle - angles[1];
+       this.accumulatedAngle += diff;
+       if (this.accumulatedAngle >= Math.PI*2){
+           console.log("moving forward");
+           this.accumulatedAngle = 0;
+           //if moving forward to the last view in the stationary sequence, stop the loop dragging
+           if (this.nextView== 4){
+               this.stopLoopDragging = 1;
+           }
+           this.moveForward();
+       }
+   }else{ //Backward in time
+      // console.log("moving backward");
+     /** if (Math.abs(angles[1] - Math.PI*2)<= 0.2){
+          this.moveBackward();
+          return;
+      }*/
+   }
+    console.log(angles[1]+" "+this.previousLoopAngle+" "+this.accumulatedAngle);
+
+    var loopInterp = this.convertMouseToLoop_interp(angles[2]);
+    this.redrawAnchor(loopInterp,groupNumber,id);
 
 
     /**if (sign != this.previousLoopSign && this.previousLoopAngle != "start"){ //Switching Directions, might be a view change
@@ -521,15 +603,14 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
         this.interpolatePoints(id,interpAmount,this.currentView,this.nextView);
         this.interpolateLabelColour(interpAmount);
         this.interpValue = interpAmount;
-    }
+    }*/
 
 
     //Save the dragging angle and directions
     this.previousLoopAngle = angles[1];
-    this.previousLoopSign = travelled;
-    this.previousDraggingDirection = draggingDirection;
-
-}*/
+    //this.previousLoopSign = travelled;
+    //this.previousDraggingDirection = draggingDirection;
+}
 /**Finds the angle of the mouse w.r.t the center of the loop
  * @return [angle,positiveAngle,interpAmount]
  * */

@@ -10,7 +10,7 @@ window.onload = function (){
     d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerWidth-50);
 }
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(1200, 700,50);
+var scatterplot   = new Scatterplot(1500, 900,50);
 
 scatterplot.init();
 //setHintPathType(scatterplot,1);

@@ -105,8 +105,25 @@ Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,
         .attr("cy", function(d) {return d.nodes[view][1];})
         .style("fill", function (d){
             return (d.id==highlightPoints[0])?"#D95F02":(d.id==highlightPoints[1])?"#1B9E77":"#636363";
-        }).style("pointer-events","none").attr("class","multiplesPoints");
-
+        }).style("pointer-events","none").attr("class","multiplesPoints")
+        .sort(function(a,b){
+            if (highlightPoints[1] != -1){
+                if (b.id > highlightPoints[0] || b.id > highlightPoints[1]){
+                    return 1;
+                }else if (b.id < highlightPoints[0] || b.id < highlightPoints[1]){
+                    return -1;
+                }else{
+                    return 0;
+                }
+            }else{
+                if (b.id > highlightPoints[0]){
+                    return 1;
+                }else if (b.id < highlightPoints[0]){
+                    return -1;
+                }else{
+                    return 0;
+                }
+            }});
 }
 /** Draws a static barchart without hint path, time direction prediction etc.
  *   data: set adhere to the same format as accepted by the render function

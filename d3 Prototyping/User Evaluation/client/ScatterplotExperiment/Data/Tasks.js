@@ -59,9 +59,9 @@ var tasks = [
         [3,0,6,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[9],5],
         [3,0,7,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[10],6],
         [3,0,8,1,"When does the orange point's age and height change from decreasing to increasing?",0,0,[11],5],
-        [6,0,9,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,0,10,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,0,11,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [15,0,9,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [16,0,10,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],7],
+        [17,0,11,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],8],
 
         [5,0,36,0,"When does the orange point's age=60 years and height=5 feet?",0,1,[0],7],
         [5,0,37,0,"When is the orange point's age > 60 years and height = 3 feet?",0,1,[2],8],
@@ -80,8 +80,8 @@ var tasks = [
         [0,0,61,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[5],5],
         [0,0,62,1,"When does the orange point's age and height change from decreasing to increasing?",0,0,[6],5],
         [6,0,63,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,0,64,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,0,65,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [7,0,64,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [8,0,65,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],5],
 
         [1,0,66,0,"When does the orange point's age=70 years and height=4 feet?",0,1,[0],6],
         [1,0,67,0,"When is the orange point's age > 80 years and height =7 feet?",0,1,[1],8],
@@ -98,9 +98,9 @@ var tasks = [
         [3,1,18,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[12],5],
         [3,1,19,1,"When does the orange point's age and height change from decreasing to increasing?",0,0,[13],6],
         [3,1,20,1,"When does the orange point's age and height change from decreasing to increasing?",0,0,[14],5],
-        [6,1,21,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,1,22,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,1,23,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [18,1,21,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],7],
+        [19,1,22,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],8],
+        [20,1,23,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
 
         [5,1,42,0,"When does the orange point's age=50 years and height=2 feet?",0,1,[5],8],
         [5,1,43,0,"When is the orange point's age > 80 years and height = 1 foot?",0,1,[4],7],
@@ -118,9 +118,10 @@ var tasks = [
         [0,1,76,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[8],6],
         [0,1,77,1,"When does the orange point's age and height change from decreasing to increasing?",0,0,[9],6],
         [0,1,78,1,"When does the orange point's age and height change from decreasing to increasing?",0,0,[10],5],
-        [6,1,79,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,1,80,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,1,81,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6]
+        [9,1,79,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [10,1,80,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],7],
+        [11,1,81,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],5]
+
     ], //Tasks for time slider
     [
         [3,2,24,0,"When is the orange point's age < 60 and height = 2 feet?",0,0,[7],7],
@@ -132,9 +133,9 @@ var tasks = [
         [3,2,30,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[15],5],
         [3,2,31,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[16],6],
         [3,2,32,1,"When does the orange point's age and height change from decreasing to increasing?",0,0,[17],5],
-        [6,2,33,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,2,34,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,2,35,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [21,2,33,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],8],
+        [22,2,34,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [23,2,35,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],7],
 
         [5,2,48,0,"When is the orange point's age < 40 and height = 5 feet?",0,1,[6],8],
         [5,2,49,0,"When is the orange point's age > 70 years and height = 5 feet?",0,1,[7],7],
@@ -152,8 +153,8 @@ var tasks = [
         [0,2,88,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[12],6],
         [0,2,89,1,"When does the orange point's age and height change from increasing to decreasing?",0,0,[13],5],
         [0,2,90,1,"When does the orange point's age and height change from decreasing to increasing?",0,0,[11],5],
-        [6,2,91,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,2,92,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
-        [6,2,93,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6]
+        [12,2,91,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],7],
+        [13,2,92,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6],
+        [14,2,93,1,"When does the orange point start moving in the opposite direction of the other points?",1,0,[6],6]
     ] //Tasks for multiples
 ];
