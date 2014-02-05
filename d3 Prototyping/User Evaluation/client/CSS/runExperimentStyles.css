@@ -6,15 +6,14 @@ html{
   cursor: url(invisibleCursor.png), default;*/
 }
 body {
-    /**Disables default selections (text, svg elements) of the browser*/
-    -webkit-user-select: none;
     overflow:hidden;
     background-color: #2C2D2D;
     /**background-color: #F0F0F0;*/
 }
 /*Div which hold the visualization and slider */
 #vis{
-    float:left;
+    float:right;
+    margin-right:200px;
     display:block;
     z-index:1;
 }
@@ -48,9 +47,10 @@ body {
 }
 
 #taskPanel{
-  float:right;
+  float:left;
   height:600px;
   width:400px;
+  margin-top: 100px;
   background-color:#BDBDBD;
   color:#636363;
   font-family: sans-serif;

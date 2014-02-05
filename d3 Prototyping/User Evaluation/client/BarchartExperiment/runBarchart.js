@@ -1,7 +1,7 @@
 /** This file is draws the interactive visualizations involved in the barchart experiment
  * */
 
-var svgWidth = 1300;
+var svgWidth = 1200;
 var svgHeight = 900;;
 //Add a main svg which all visualization elements will be appended to
 d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",svgWidth).attr("height",svgHeight).style("display","block");
@@ -11,6 +11,7 @@ d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",svgWidth).attr
 var barchart   = new Barchart(700, 70, 30);
 barchart.init("mainSvg","gBarchart");
 setHintPathType(barchart,1); //Make sure set to partial hint path initially
+barchart.experimentMode = 1;
 
 //Define click function for each hint path label
 barchart.clickHintLabelFunction = function (d, i){
@@ -105,6 +106,7 @@ var barchart_tutorial   = new Barchart(400, 70, 30);
 barchart_tutorial.init("tutorialSvg","gBarchartTutorial");
 setHintPathType(barchart_tutorial,1); //Make sure set to partial hint path initially
 barchart_tutorial.logEvents = 0;
+barchart_tutorial.experimentMode = 1;
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart_tutorial.dragEvent = d3.behavior.drag()

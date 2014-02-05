@@ -10,6 +10,7 @@ function Scatterplot(w, h,p) {
    this.height = h;
    this.pointRadius = 20;
    this.loopRadius = 100;
+   this.labelTransparency = 0.1; //Amount to fade the labels by
    this.xLabel ="";
    this.yLabel = "";
    this.graphTitle = "";
@@ -87,7 +88,7 @@ Scatterplot.prototype.init = function(svgId,id) {
     //Add the blur filter for interaction loops
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blurLoop"+svgId).append("svg:feGaussianBlur")
-        .attr("stdDeviation", 1);
+        .attr("stdDeviation", 3);
 
     //Add the blur filter for the partial hint path
     this.svg.append("svg:defs").append("svg:filter")
@@ -122,13 +123,20 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
      //Find the max and min values of the points, used to scale the axes and the dataset
      var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
      var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
+     var min_y = d3.min(data.map(function (d){return d3.min(d.points.map(function (a){return a[1];}) ); }));
 
     //Create the scales by mapping the x,y to the svg size
     var xScale = d3.scale.linear().domain([0,max_x]).range([0,ref.width]);
-    var yScale =  d3.scale.linear().domain([0, max_y]).range([ref.height,0]);
+    if (this.experimentMode==1){
+        var yScale =  d3.scale.linear().domain([0, max_y]).range([ref.height,0]);
+    }else{
+        var yScale =  d3.scale.linear().domain([min_y, 5,max_y]).range([ref.height,ref.height/2,0]); //polylinear scale for the internet user dataset
+    }
 
     //Call the function which draws the axes
     this.drawAxes(xScale,yScale);
+
+   var alpha = ['C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']; //For assigning point labels in experiment mode
 
   // Set up the data for drawing the points according to the values in the data set
   this.svg.selectAll("circle")
@@ -137,31 +145,33 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
            for (var j=0;j< d.points.length;j++){
                scaledPoints[j] = [xScale(d.points[j][0])+ref.padding,yScale(d.points[j][1])];
            }
+        var pointLabel = d.label;
+        if (ref.experimentMode==1){
+
+             if (i==toHighlight[0]){
+                 pointLabel = 'A';
+             }else if (i==toHighlight[1]){
+                 pointLabel = 'B';
+             }else{
+                 pointLabel=alpha[i]
+             }
+         }
           /**d.points.forEach(function (d) { //This was not clearing when the data was reloaded, at some point, look into why this was happening
                d[0] = xScale(d[0]);
                d[1] = yScale(d[1]);
            });*/
-	        return {nodes:scaledPoints,id:i,label:d.label};
+	        return {nodes:scaledPoints,id:i,label:pointLabel};
 	  })).enter().append("g")
 	  .attr("class","gDisplayPoints").attr("id",function (d){return "gDisplayPoints"+ d.id})
-      .sort(function(a,b){
-          if (toHighlight[1] != -1){
-              if (b.id > toHighlight[0] || b.id > toHighlight[1]){
-                  return 1;
-              }else if (b.id < toHighlight[0] || b.id < toHighlight[1]){
-                  return -1;
-              }else{
-                  return 0;
-              }
+      .filter(function (d){
+          if (toHighlight[1]==-1){
+              return (d.id >= toHighlight[0]);
           }else{
-              if (b.id > toHighlight[0]){
-                  return 1;
-              }else if (b.id < toHighlight[0]){
-                  return -1;
-              }else{
-                  return 0;
-              }
-          }});
+              return (d.id >= toHighlight[0] || d.id >= toHighlight[1]);
+          }
+      }).sort(function(a,b){
+          return (a.id> b.id)?-1:(a.id < b.id)?1:0;
+      });
 
 	 //Draw the data points
      /**this.svg.selectAll(".gDisplayPoints").filter(function (d){ return (d.id!=0 && d.id!=1)})*/
@@ -173,7 +183,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
         .attr("r", this.pointRadius).attr("class", "displayPoints")
         .attr("id", function (d){return "displayPoints"+d.id;})
         .attr("title", function (d) {return d.label;})
-        .style("fill-opacity",1).style("stroke","none");
+        .style("fill-opacity",1).style("stroke","#2C2D2D");
 
     if (this.experimentMode==1){
         if (toHighlight[0]!=-1) this.highlightedPts.push(toHighlight[0]);
@@ -181,16 +191,20 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
 
         this.svg.selectAll(".displayPoints").style("fill", function (d){
             return (d.id==toHighlight[0])?"#D95F02":(d.id==toHighlight[1])?"#1B9E77":"#636363";
-        })
+        });
+
+        this.svg.selectAll(".gDisplayPoints").append("text")
+            .attr("x", function(d) {return d.nodes[ref.currentView][0]-ref.pointRadius/4;})
+            .attr("y", function(d) {return d.nodes[ref.currentView][1]+ref.pointRadius/4; })
+            .attr("class","pointLabels").attr("id",function (d){return "pointLabel"+ d.id})
+            .text(function (d){return d.label;}).style("pointer-events","none");
+    }else{
+        this.svg.selectAll(".gDisplayPoints").append("text")
+            .attr("x", function(d) {return d.nodes[ref.currentView][0];})
+            .attr("y", function(d) {return d.nodes[ref.currentView][1]-ref.pointRadius; })
+            .attr("class","pointLabels").attr("id",function (d){return "pointLabel"+ d.id})
+            .text(function (d){return d.label;}).style("pointer-events","none");
     }
-
-   //for testing, show all labels
-   /**this.svg.selectAll(".gDisplayPoints").append("text")
-        .attr("x", function(d) {return d.nodes[ref.currentView][0];})
-        .attr("y", function(d) {return d.nodes[ref.currentView][1]-ref.pointRadius; })
-        .attr("class","pointLabels").attr("id",function (d){return "pointLabel"+ d.id})
-        .text(function (d){return d.label;});*/
-
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
 }
@@ -304,12 +318,12 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
 
     //Re-draw the dragged point
     if (this.experimentMode == 1){
-        this.svg.select("#draggedPoint").attr("cx",newPoint[0]).attr("cy",newPoint[1]);
+        this.svg.select("#pointLabel"+id).attr("x", newPoint[0]-this.pointRadius/4).attr("y", newPoint[1]+this.pointRadius/4);
+        this.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
     }else{
+        this.svg.select("#pointLabel"+id).attr("x", newPoint[0]).attr("y", newPoint[1]-this.pointRadius);
         this.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
     }
-
-    if (this.showLabels) this.animatePointLabel(id,newPoint[0],newPoint[1]);
 
     //Save the mouse coordinates
     this.mouseX = mouseX;
@@ -405,11 +419,11 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
     var ref = this;
     this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d) {
             if (d.id ==ref.currentView){ //Dark to light
-                return d3.interpolate(1,0.3)(interp);
+                return d3.interpolate(1,ref.labelTransparency)(interp);
             }else if (d.id == ref.nextView){ //Light to dark
-                return d3.interpolate(0.3,1)(interp);
+                return d3.interpolate(ref.labelTransparency,1)(interp);
             }
-            return 0.3;
+            return ref.labelTransparency;
         });
 }
 /**Handles a dragging interaction along an interaction loop (really a circular dragging motion)
@@ -478,15 +492,13 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
 
 }*/
 
-//TODO: what happens when dragging starts in the middle of a loop
+//TODO: hardcoded to assume point is stationary at fixed year indices
 Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
 
-    var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle,d.points]});
-    var angles = this.calculateMouseAngle(mouseX,mouseY,loopData[0][2],loopData[0][0],loopData[0][1]);
-    var loopInterp = this.convertMouseToLoop_interp(angles[2]);
-    //Adjust the interpolation value based on the dragging direction
-    var interpAmount = 1-angles[2];
-    console.log(interpAmount);
+    var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle,d.points2,d.years]});   
+    
+	//var loopGenerator = d3.svg.line().interpolate("linear"); 
+	//this.svg.select("#hintPath").append("path").attr("d",loopGenerator(loopData[0][3])).style("fill","none").style("stroke","#FFF");
 
 
 	//d.points[0] = stationary point
@@ -494,22 +506,27 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
 	//d.points[2..] = etc.. keep going counter clockwise
    // this.svg.append("circle").attr("cx",loopData[0][3][3][0]).attr("cy",loopData[0][3][3][1]).attr("r",10).style("fill","red");
 	var loopPoints = loopData[0][3];
-
     var pt1_x = loopPoints[this.loopCurrent][0];
 	var pt1_y = loopPoints[this.loopCurrent][1];
 	var pt2_x = loopPoints[this.loopNext][0];
 	var pt2_y = loopPoints[this.loopNext][1];
 
-
      var minDist = this.minDistancePoint(mouseX,mouseY,pt1_x,pt1_y,pt2_x,pt2_y);
      var newPoint = []; //The new point to draw on the line
      var t = minDist[2]; //To test whether or not the dragged point will pass pt1 or pt2
 
+	  var angles = this.calculateMouseAngle(minDist[0],minDist[1],loopData[0][2],loopData[0][0],loopData[0][1]);
+      var loopInterp = this.convertMouseToLoop_interp(angles[2]);
+    
+	//Get the loop's boundary years
+	var startYear = loopData[0][4][0];	
+	var endYear = loopData[0][4][loopData[0][4].length-1];
+	
     if (t<0){ //Passed current on loop
         this.loopNext = this.loopCurrent;
         this.loopCurrent--;
         if (this.loopCurrent < 0){ //Check if the view was passed
-           if(this.currentView >2){ //In the middle of the loop (2 is the border view)
+           if(this.currentView > startYear){ //In the middle of the loop (2 is the border view)
                 this.moveBackward();
                 this.loopCurrent = 3;
                 this.loopNext = 4;
@@ -524,7 +541,7 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
        this.loopCurrent = this.loopNext;
        this.loopNext++;
        if (this.loopCurrent > 3){ //Check if the view was passed
-            if (this.nextView < 4){ //Not at the border view
+            if (this.nextView < endYear){ //Not at the border view
                this.loopCurrent = 0;
                this.loopNext = 1;
                this.moveForward();
@@ -536,14 +553,13 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
         }
         //console.log("forward"+this.loopCurrent+" "+this.loopNext+" views"+this.currentView+" "+this.nextView);
     }else{ //Some in between the views (pt1 and pt2), redraw the anchor and the view
-        this.svg.select("#anchor").attr("cx",minDist[0]).attr("cy",minDist[1]).style("stroke","#c7c7c7");
-        this.timeDirection = this.findTimeDirection(interpAmount,id);
-        this.interpolatePoints(id,interpAmount,this.currentView,this.nextView);
-        this.interpolateLabelColour(interpAmount);
-    }
-
-    //this.redrawAnchor(loopInterp,groupNumber,id);
-    //Save the dragging angle and directions
+        //this.svg.select("#anchor").attr("cx",minDist[0]).attr("cy",minDist[1]).style("stroke","#c7c7c7");       
+        this.interpAmount = angles[2];
+		this.timeDirection = this.findTimeDirection(this.interpAmount,id);
+        this.interpolatePoints(id,this.interpAmount,this.currentView,this.nextView);
+        this.interpolateLabelColour(this.interpAmount);       
+    }	
+    this.redrawAnchor(loopInterp,groupNumber,id);    
     this.previousLoopAngle = angles[1];
     //this.previousLoopSign = travelled;
     //this.previousDraggingDirection = draggingDirection;
@@ -597,19 +613,15 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
           var newPoint = interpolator(interpAmount);
           //Update the position of the point according to the interpolated point position
           d3.select(this).attr("cx",newPoint.x).attr("cy",newPoint.y);
-
-          //Update the labels (if visible)
-          if (ref.showLabels ==true && ref.clickedPoints.indexOf(d.id)!=-1) ref.animatePointLabel(d.id,newPoint.x,newPoint.y);
+          if (ref.experimentMode==0) {
+              d3.select("#pointLabel"+ d.id).attr("x",newPoint.x).attr("y",newPoint.y-ref.pointRadius);
+          }else if (ref.experimentMode==1){
+              d3.select("#pointLabel"+ d.id).attr("x", newPoint.x-ref.pointRadius/4).attr("y", newPoint.y+ref.pointRadius/4);
+          }
       })
-}
-/**Re-draws a point label according to the specified position (new position of the point) by
- * updating its x and y attributes
- * @param id of the point label
- * @param x,y, new position of the label
- * */
-Scatterplot.prototype.animatePointLabel = function (id,x,y){
-    var ref = this;
-    this.svg.select("#pointLabel"+id).attr("x", x).attr("y", y-ref.pointRadius);
+   if (startView ==1 && this.experimentMode==1){
+       this.svg.selectAll(".displayPoints").style("fill","#636363");
+   }
 }
 /** Snaps to the nearest view once a dragged point is released
  *  Nearest view is the closest position (either current or next) to the
@@ -636,8 +648,7 @@ Scatterplot.prototype.snapToView = function( id, points) {
 	    this.nextView = this.nextView +1;
      }
     if (this.experimentMode == 1){
-        this.svg.select("#draggedPoint").remove();
-        this.svg.select("#displayPoints"+id).style("display","block");
+        this.svg.select("#displayPoints"+id).style("stroke","#2C2D2D").style("stroke-width",1);
     }
 
     //Redraw the view
@@ -686,9 +697,11 @@ Scatterplot.prototype.snapToView = function( id, points) {
             .attr("cy",d.nodes[animateView][1])
             .each("end", animate());
 
+            d3.select("#pointLabel"+ d.id).attr("x",d.nodes[animateView][0]).attr("y",d.nodes[animateView][1]-ref.pointRadius);
+
             //Re-colour the labels along the hint path (if a path is visible)
             if (d.id == id){
-                d3.selectAll(".hintLabels").attr("fill-opacity",function (b){ return ((b.id==animateView)?1:0.3)});
+                d3.selectAll(".hintLabels").attr("fill-opacity",function (b){ return ((b.id==animateView)?1:ref.labelTransparency)});
             }
         };
     }
@@ -698,7 +711,7 @@ Scatterplot.prototype.snapToView = function( id, points) {
  * */
 Scatterplot.prototype.redrawPointLabels = function(view){
     var ref = this;
-    this.svg.selectAll(".pointLabels").filter(function (d){return (ref.clickedPoints.indexOf(d.id)!=-1)})
+    this.svg.selectAll(".pointLabels")
         .attr("x",function (d){return d.nodes[view][0];})
         .attr("y",function (d){return d.nodes[view][1]-ref.pointRadius;});
 }
@@ -707,17 +720,25 @@ Scatterplot.prototype.redrawPointLabels = function(view){
  *  NOTE: view tracking variables are not updated by this function
  * */
 Scatterplot.prototype.redrawView = function(view) {
+    var ref = this;
     if (this.hintPathType==1){
        hidePartialHintPath(this);
     }
     this.hideAnchor();
     //Re-colour the hint path labels
-    this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
+    this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:ref.labelTransparency)});
     this.svg.selectAll(".displayPoints")/**.transition().duration(300)*/
         .attr("cx",function (d){return d.nodes[view][0];})
         .attr("cy",function (d){return d.nodes[view][1];});
-    if (this.showLabels)  this.redrawPointLabels(view);
-
+    if (this.experimentMode==0)  {
+        this.svg.selectAll(".pointLabels")
+            .attr("x",function (d){return d.nodes[view][0];})
+            .attr("y",function (d){return d.nodes[view][1]-ref.pointRadius;});
+    }else if (this.experimentMode==1){
+        this.svg.selectAll(".pointLabels")
+            .attr("x",function (d){return d.nodes[view][0]-ref.pointRadius/4;})
+            .attr("y",function (d){return d.nodes[view][1]+ref.pointRadius/4;});
+    }
 }
 /** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
  *  id: the id of the dragged point
@@ -725,6 +746,7 @@ Scatterplot.prototype.redrawView = function(view) {
  *  */
 Scatterplot.prototype.selectPoint = function (id,points){
     this.draggedId = id;
+
     //In case next view went out of bounds (from snapping to view), re-adjust the view variables
     var drawingView = adjustView(this);
 
@@ -738,33 +760,26 @@ Scatterplot.prototype.selectPoint = function (id,points){
     if (this.hintPathType ==0){
         this.drawHintPath(drawingView,points);
     }else{
-
         drawPartialHintPath_line(this,0,points);
         redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
     }
-    if (this.showLabels ==true && this.clickedPoints.indexOf(id) ==-1) {
+    /**if (this.showLabels ==true && this.clickedPoints.indexOf(id) ==-1) {
         this.clickedPoints.push(id);
         this.drawPointLabel(id);
-    }
+    }*/
 
     var ref = this;
    if (this.experimentMode ==1){
-       this.svg.append("circle").attr("id","draggedPoint").style("stroke-width",4).style("stroke","#FFF").attr("r",22)
-           .attr("cx",points[this.currentView][0]).attr("cy",points[this.currentView][1]).style("fill", function(){
-              if (ref.highlightedPts[0]==id){
-                  return "#D95F02"; //Orange
-              }else if (ref.highlightedPts[1] == id){
-                  return "#1B9E77"; //Green
-              }
-               return "#636363";
-           });
-
-       this.svg.select("#displayPoints"+id).style("display","none");
+       this.svg.select("#displayPoints"+id).style("stroke","white").style("stroke-width",2);
    }
 
     //Fade out the other points using a transition
     if (this.experimentMode ==0){
-        this.svg.selectAll(".displayPoints").filter(function (d) {return (ref.clickedPoints.indexOf(d.id)==-1)})
+       /** this.svg.selectAll(".displayPoints").filter(function (d) {return (ref.clickedPoints.indexOf(d.id)==-1)})
+            .transition().duration(300).style("fill-opacity", 0.3);*/
+       this.svg.selectAll(".displayPoints").filter(function (d) {return (d.id!=id)})
+           .transition().duration(300).style("fill-opacity", 0.3);
+        this.svg.selectAll(".pointLabels").filter(function (d) {return (d.id!=id)})
             .transition().duration(300).style("fill-opacity", 0.3);
     }
 }
@@ -800,15 +815,15 @@ Scatterplot.prototype.selectPoint = function (id,points){
 
      this.svg.select("#hintPath").selectAll("text")
        .data(adjustedPoints.map(function (d,i) {
-            var xPos = d[0] + ref.pointRadius*2;
-            var yPos = d[1] + ref.pointRadius*2;
+            var xPos = d[0] + ref.pointRadius/2;
+            var yPos = d[1] + ref.pointRadius/2;
             return {x:xPos,y:yPos,id:i}
         })).enter().append("svg:text")
         .text(function(d) { return ref.labels[d.id]; })
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
         .attr("class","hintLabels")
-        .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)})
+        .attr("fill-opacity",function (d){ return ((d.id==view)?1:ref.labelTransparency)})
         .attr("id",function (d){return "hintLabels"+ d.id})
         .on("click", this.clickHintLabelFunction);
 
@@ -850,10 +865,9 @@ Scatterplot.prototype.placeLabels = function (points){
  * */
  Scatterplot.prototype.drawLoops = function (id,points){
     //Create a function for drawing a loop around a stationary point, as an interaction path
-    var loopGenerator = d3.svg.line().tension(0).interpolate("monotone"); //Closed B-spline
-	//var loopGenerator = d3.svg.line().interpolate("linear"); //Closed B-spline
+    var loopGenerator = d3.svg.line().interpolate("basis-closed"); //Closed B-spline	
     var ref = this;
-
+   
    //Draw all loops at their respective stationary points
     this.svg.select("#hintPath").selectAll(".loops")
         .data(points.map(function (d,i){
@@ -861,12 +875,19 @@ Scatterplot.prototype.placeLabels = function (points){
             loopPoints = ref.calculateLoopPoints(d[0],d[1],d[2]);
             var x = d[0] + (ref.loopRadius/2)*Math.cos(d[2]);
             var y = d[1] + (ref.loopRadius/2)*Math.sin(d[2]);
-            return {points:loopPoints,id:i,orientationAngle:d[2],cx:x,cy:y};
+			var repeatedYears = [];
+			for (var j=0;j<ref.ambiguousPoints.length;j++){
+			    if (ref.ambiguousPoints[j][0] == 1 && ref.ambiguousPoints[j][1] == i){
+				    repeatedYears.push(j);
+				}
+			}
+			console.log(repeatedYears);
+            return {points:loopPoints[0],id:i,orientationAngle:d[2],cx:x,cy:y,points2:loopPoints[1],years:repeatedYears};
         }))
         .enter().append("path").attr("class","loops")
         .attr("d",function (d){return loopGenerator(d.points);})
         .attr("id",function (d,i){return "loop"+i;})
-        .attr("filter", "url(#blurLoop"+this.id+")");
+        .attr("filter", "url(#blurLoop"+this.id+")");		
 }
 /** Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
 Scatterplot.prototype.clearHintPath = function () {
@@ -880,13 +901,14 @@ Scatterplot.prototype.clearHintPath = function () {
 
 	//Re-set the transparency of faded out points
     this.svg.selectAll(".displayPoints").style("fill-opacity", 1);
+    this.svg.selectAll(".pointLabels").style("fill-opacity", 1);
 }
 /**Clears the point labels when the background is clicked
- * */
+ *
 Scatterplot.prototype.clearPointLabels = function (){
     this.svg.selectAll(".pointLabels").remove();
     this.clickedPoints = [];
-}
+}*/
 /** Calculates the distance between two points
  * (x1,y1) is the first point
  * (x2,y2) is the second point
@@ -926,20 +948,36 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
  * @return an array of all loop points and the year index in the format: [[x,y], etc.]
  * */
 Scatterplot.prototype.calculateLoopPoints = function (x,y,angle){
-    var loopPoints = [];
+    var drawingPoints = [];
     var loopWidth = Math.PI/5; //Change this value to expand/shrink the width of the loop
 
     //The first point of the path should be the original point, as a reference for drawing the loop
-    loopPoints.push([x,y]);
+    drawingPoints.push([x,y]);
 
     //Generate some polar coordinates to complete the round part of the loop
-    loopPoints.push([(x + this.loopRadius*Math.cos(angle+loopWidth)),(y+ this.loopRadius*Math.sin(angle+loopWidth))]);
-    loopPoints.push([(x + this.loopRadius*Math.cos(angle)),(y+ this.loopRadius*Math.sin(angle))]);
-    loopPoints.push([(x + this.loopRadius*Math.cos(angle-loopWidth)),(y+ this.loopRadius*Math.sin(angle-loopWidth))]);
+    drawingPoints.push([(x + this.loopRadius*Math.cos(angle+loopWidth)),(y+ this.loopRadius*Math.sin(angle+loopWidth))]);
+    drawingPoints.push([(x + this.loopRadius*Math.cos(angle)),(y+ this.loopRadius*Math.sin(angle))]);
+    drawingPoints.push([(x + this.loopRadius*Math.cos(angle-loopWidth)),(y+ this.loopRadius*Math.sin(angle-loopWidth))]);
 
    //The last point of the path should be the original point, as a reference for drawing the loop
-   loopPoints.push([x,y]);
-   return loopPoints;
+   drawingPoints.push([x,y]);
+   
+   //Hack here!!!- another set of points for handling dragging around loops
+	var loopPoints = [];
+	loopWidth = Math.PI/7; //Change this value to expand/shrink the width of the loop
+    var adjustedRadius = this.loopRadius - 15;
+	//The first point of the path should be the original point, as a reference for drawing the loop
+	loopPoints.push([x,y]);
+
+	//Generate some polar coordinates to complete the round part of the loop
+	loopPoints.push([(x + adjustedRadius*Math.cos(angle+loopWidth)),(y+ adjustedRadius*Math.sin(angle+loopWidth))]);
+	loopPoints.push([(x + adjustedRadius*Math.cos(angle)),(y+ adjustedRadius*Math.sin(angle))]);
+	loopPoints.push([(x + adjustedRadius*Math.cos(angle-loopWidth)),(y+ adjustedRadius*Math.sin(angle-loopWidth))]);
+
+	//The last point of the path should be the original point, as a reference for drawing the loop
+	loopPoints.push([x,y]);
+   
+   return [drawingPoints,loopPoints];
 }
 /** Search for ambiguous cases in a list of points.  Ambiguous cases are tagged as '1' and non-ambiguous are '0'.
  *  If ambiguous cases are found, draws loops.
@@ -1014,14 +1052,10 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
 
     //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){ //Major hack here, for the experiment!!
-        if (this.taskId==36 || this.taskId==37 || this.taskId==66){
+        if (this.taskId==36 || this.taskId==37 || this.taskId==66 || this.taskId==40 || this.taskId==69){
             repeatedPoints[0].push(Math.PI/2);
-        }else if (this.taskId==38 || this.taskId==39 || this.taskId==40 || this.taskId==67 || this.taskId==68){
+        }else if (this.taskId==38 || this.taskId==39 || this.taskId==67 || this.taskId==68 || this.taskId==41){
             repeatedPoints[0].push(3*Math.PI/2);
-        }else if (this.taskId==69){
-            repeatedPoints[0].push(5*Math.PI/4);
-        }else if (this.taskId==41){
-            repeatedPoints[0].push(Math.PI/3);
         }else{
             repeatedPoints[0].push(Math.PI/2);
             //repeatedPoints[0].push(3*Math.PI/2);

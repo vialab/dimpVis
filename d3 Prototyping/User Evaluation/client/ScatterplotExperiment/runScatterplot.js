@@ -1,8 +1,8 @@
 /** This file is draws the interactive visualizations involved in the barchart experiment
  * */
 
-var svgWidth = 1300;
-var svgHeight = 900;
+var svgWidth = 1200;
+var svgHeight = 900;;
 //Add a main svg which all visualization elements will be appended to
 d3.select("#vis").append("svg").attr("id","mainSvg").attr("width",svgWidth).attr("height",svgHeight).style("display","block");
 
@@ -82,9 +82,9 @@ var visRef = scatterplot;
 var className = ".displayPoints";
 var gClassName = ".gDisplayPoints";
 var gIdName = "#gScatterplot";
-var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
-var realDataXLabel = "Program";
-var realDataTitle = "Student Enrollment Over The Years At UOIT";
+var realDataYLabel = "total internet users (ten millions)";
+var realDataXLabel = "income per person (GDP/capita, PPP$ inflation-adjusted)";
+var realDataTitle =  "Growth of Internet Users of the World's Major Economies (2000 - 2010)";
 var phaseId = 1;
 var yLabel = "Age(Years)";
 var xLabel = "Height (Feet)";

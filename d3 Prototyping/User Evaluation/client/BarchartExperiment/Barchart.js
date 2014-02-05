@@ -13,6 +13,8 @@
    this.zeroBarColour = "#EDEDED";
    this.id = "";
    this.logEvents = 1;
+   this.highlightedBars = [];
+   this.experimentMode = 0;
 
    this.padding = p;
    this.barWidth = bw;
@@ -116,7 +118,7 @@ Barchart.prototype.init = function(svgId,id){
  *       }
  *       ..... number of bars
  * */
- Barchart.prototype.render = function(data,hLabels,title,xLabel,yLabel){
+ Barchart.prototype.render = function(data,hLabels,title,xLabel,yLabel,toHighlight){
       var ref = this;
 
     //Clear all elements in the main svg - only needed if changing the dataset
@@ -129,6 +131,7 @@ Barchart.prototype.init = function(svgId,id){
     this.graphTitle = title;
     this.xLabel = xLabel;
     this.yLabel = yLabel;
+    this.highlightedBars = toHighlight;
 
     //Set the width of the svg (based on number of bars)
      this.width = (this.barWidth+this.strokeWidth)*this.numBars;
@@ -141,10 +144,27 @@ Barchart.prototype.init = function(svgId,id){
 
      //Draw the axes
      var yScale_axis =  d3.scale.linear().domain([max_h,0]).range([0,ref.height]); //Reverse the scale to get the corect axis display
-     this.drawAxes(xScale,yScale_axis);
 
+     var alpha = ['C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']; //For assigning point labels in experiment mode
      //Get the labels for the x-axis
-     this.xLabels = data.map(function (d){return d.label});
+     this.xLabels = data.map(function (d,i){
+         var barLabel = '';
+         if (ref.experimentMode==1){
+
+             if (i==toHighlight[0]){
+                 barLabel = 'A';
+             }else if (i==toHighlight[1]){
+                 barLabel = 'B';
+             }else{
+                 barLabel=alpha[i];
+             }
+         }else{
+             barLabel = d.label;
+         }
+         return barLabel;
+     });
+
+     this.drawAxes(xScale,yScale_axis);
 
 //Assign data values to a set of rectangles representing the bars of the chart
 this.svg.selectAll("rect")
@@ -179,7 +199,10 @@ this.svg.selectAll("rect")
            }
            return ref.displayColour
        })
-	 .attr("id", function (d){return "displayBars"+d.id;});
+	 .attr("id", function (d){return "displayBars"+d.id;})
+       .style("fill", function (d){
+           return (d.id==toHighlight[0])?"#D95F02":(d.id==toHighlight[1])?"#1B9E77":"#636363";
+       });;
 
 	//Add a blank g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -246,8 +269,14 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
     //Add the x-axis
     this.svg.append("g").attr("class", "axis").attr("id","xAxis")
         .attr("transform", "translate("+this.padding+"," + (this.height+5) + ")")
-        .call(xAxis).selectAll("text")
-        .text("");//Blank for the purpose of the study
+        .call(xAxis).selectAll("text").text(function (d){
+            if  (d!=ref.numBars){
+                return ref.xLabels[d];
+            }
+            return "";
+        })
+        .style("text-anchor", "end")
+        .attr("transform", "translate("+(this.barWidth/2+6)+",0)");
 }
 Barchart.prototype.addXLabels = function(){
     var ref = this;
@@ -255,6 +284,10 @@ Barchart.prototype.addXLabels = function(){
         .style("text-anchor", "end")
         .attr("transform", "translate("+this.barWidth/3+",0)rotate(-65)");
 }
+/**Barchart.prototype.hideXLabels = function(){
+    var ref = this;
+    this.svg.select("#xAxis").selectAll("text").text("");
+}*/
 /** Re-draws the dragged bar by altering it's height according to the dragging amount.
  *  As the bar is dragged, the view variables are updated and the rest
  *  of the bars are animated by calling handleDraggedBar()
@@ -538,6 +571,10 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
           }
           return ref.displayColour
       });
+  }
+
+  if (startView ==1 && this.experimentMode==1){
+      this.svg.selectAll(".displayBars").style("fill","#636363");
   }
 }
 /** Animates all bars in the barchart along their hint paths from
@@ -830,5 +867,6 @@ Barchart.prototype.highlightDataObject = function (ids){
    this.svg.selectAll(".displayBars").style("fill", function (d){
         return (d.id==ids[0])?"#D95F02":(d.id==ids[1])?"#1B9E77":"#636363";
     });
+    this.highlightBars = ids;
 }
 

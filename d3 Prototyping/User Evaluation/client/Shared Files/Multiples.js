@@ -93,37 +93,50 @@ Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,
 
     this.drawAxes_scatterplot(view,xScale,yScale);
 
-    d3.select("#multiples"+view).selectAll(".multiplesPoints")
+    var alpha = ['C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']; //For assigning point labels in experiment mode
+
+    d3.select("#multiples"+view).selectAll("circle")
         .data(data.map(function (d,i) {
         var scaledPoints = [];
         for (var j=0;j< d.points.length;j++){
             scaledPoints[j] = [xScale(d.points[j][0])+ref.baseOffset+ref.spacing,yScale(d.points[j][1])+10];
         }
-        return {nodes:scaledPoints,id:i,label:d.label};
-    })).enter().append("svg:circle").attr("r", 8)
+        var pointLabel = '';
+            if (i==highlightPoints[0]){
+                pointLabel = 'A';
+            }else if (i==highlightPoints[1]){
+                pointLabel = 'B';
+            }else{
+                pointLabel=alpha[i];
+            }
+        return {nodes:scaledPoints,id:i,label:pointLabel};
+    })).enter().append("g").attr("class","multiplesPoints")
+        .filter(function (d){
+            if (highlightPoints[1]==-1){
+                return (d.id >= highlightPoints[0]);
+            }else{
+                return (d.id >= highlightPoints[0] || d.id >= highlightPoints[1]);
+            }
+        })
+        .sort(function(a,b){
+            return (a.id> b.id)?-1:(a.id < b.id)?1:0;
+        });
+
+    d3.select("#multiples"+view).selectAll(".multiplesPoints").append("svg:circle").attr("r", 11)
         .attr("cx", function(d) {return d.nodes[view][0];})
         .attr("cy", function(d) {return d.nodes[view][1];})
         .style("fill", function (d){
-            return (d.id==highlightPoints[0])?"#D95F02":(d.id==highlightPoints[1])?"#1B9E77":"#636363";
-        }).style("pointer-events","none").attr("class","multiplesPoints")
-        .sort(function(a,b){
-            if (highlightPoints[1] != -1){
-                if (b.id > highlightPoints[0] || b.id > highlightPoints[1]){
-                    return 1;
-                }else if (b.id < highlightPoints[0] || b.id < highlightPoints[1]){
-                    return -1;
-                }else{
-                    return 0;
-                }
+            if (view==0){
+                return (d.id==highlightPoints[0])?"#D95F02":(d.id==highlightPoints[1])?"#1B9E77":"#636363";
             }else{
-                if (b.id > highlightPoints[0]){
-                    return 1;
-                }else if (b.id < highlightPoints[0]){
-                    return -1;
-                }else{
-                    return 0;
-                }
-            }});
+                return "#636363";
+            }
+        }).style("pointer-events","none").style("stroke","#2C2D2D");
+
+    d3.select("#multiples"+view).selectAll(".multiplesPoints").append("text")
+        .attr("x", function(d) {return d.nodes[view][0]-3;})
+        .attr("y", function(d) {return d.nodes[view][1]+3; })
+        .text(function (d){return d.label;}).style("fill","#EDEDED").style("font-size","12px");
 }
 /** Draws a static barchart without hint path, time direction prediction etc.
  *   data: set adhere to the same format as accepted by the render function
@@ -134,6 +147,7 @@ Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,
  * */
 Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars){
     var ref = this;
+    var alpha = ['C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']; //For assigning point labels in experiment mode
 
     //Find the max value of the heights, used to scale the axes and the dataset
     var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
@@ -147,18 +161,35 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars){
 
     //Draw the axes
     yScale =  d3.scale.linear().domain([max_h,0]).range([0,height]); //Reverse the scale to get the corect axis display
-    this.drawAxes_barchart(view,xScale,yScale);
+    //Get the labels for the x-axis
+    var xLabels = data.map(function (d,i){
+        var barLabel = '';
+            if (i==highlightBars[0]){
+                barLabel = 'A';
+            }else if (i==highlightBars[1]){
+                barLabel = 'B';
+            }else{
+                barLabel=alpha[i];
+            }
+        return barLabel;
+    });
+
+    this.drawAxes_barchart(view,xScale,yScale,xLabels);
 
     //Assign data values to a set of rectangles representing the bars of the chart and draw the bars
     d3.select("#multiples"+view).selectAll(".multiplesBars")
         .data(data.map(function (d,i) {
-        var newData = [base - yScale(d.heights[view]),yScale(d.heights[view])+10];
-        return {nodes:newData,id:i,xPos:(xScale(i)+ref.spacing+ref.baseOffset)};
+            var newData = [base - yScale(d.heights[view]),yScale(d.heights[view])+10];
+            return {nodes:newData,id:i,xPos:(xScale(i)+ref.spacing+ref.baseOffset)};
     })).enter().append("rect").attr("x", function(d){return d.xPos;})
         .attr("y", function(d){ return d.nodes[1];})
         .attr("width", 15).attr("height", function(d) {return d.nodes[0]})
         .style("fill", function (d){
-            return (d.id==highlightBars[0])?"#D95F02":(d.id==highlightBars[1])?"#1B9E77":"#636363";
+            if (view==0){
+                return (d.id==highlightBars[0])?"#D95F02":(d.id==highlightBars[1])?"#1B9E77":"#636363";
+            }else{
+                return "#636363";
+            }
         }).style("pointer-events","none").attr("class","multiplesBars");
 }
 
@@ -167,7 +198,7 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars){
  *  yScale: a function defining the scale of the y-axis
  *  id: of the g element to append the axes within
  * */
-Multiples.prototype.drawAxes_barchart = function (id,xScale,yScale){
+Multiples.prototype.drawAxes_barchart = function (id,xScale,yScale,xLabels){
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom").tickSize(0,0,0);
     var yAxis = d3.svg.axis().scale(yScale).orient("left").tickSize(-this.imgSize,0,0);
 
@@ -177,7 +208,14 @@ Multiples.prototype.drawAxes_barchart = function (id,xScale,yScale){
         .call(yAxis)
     .append("g").attr("class", "axis").style("pointer-events","none")
         .attr("transform", "translate(0," + (this.imgSize) + ")")
-        .call(xAxis).selectAll("text").text("");
+        .call(xAxis).selectAll("text").text(function (d){
+            if  (d!=13){
+                return xLabels[d];
+            }
+            return "";
+        })
+        .style("text-anchor", "end")
+        .attr("transform", "translate(15,0)");
 }
 /** Draws the axes  and the graph title on the SVG for the scatterplot multiples
  *  xScale: a function defining the scale of the x-axis
@@ -195,6 +233,7 @@ Multiples.prototype.drawAxes_scatterplot = function (id,xScale,yScale){
         .append("g").attr("class", "xAxis").style("pointer-events","none")
         .attr("transform", "translate(0," + (this.imgSize) + ")")
         .call(xAxis);
+
 }
 /** Removes the multiples from its g element
  * */

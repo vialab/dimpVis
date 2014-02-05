@@ -1,6 +1,9 @@
 /**Styles for the barchart visualization */
 
-
+body{
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
 /*Labels on the hint path */
 .hintLabels {
   font-family: sans-serif;
@@ -49,7 +52,7 @@
     fill: none;
     shape-rendering: crispEdges;
     stroke:#EDEDED;
-    stroke-width:2;
+    stroke-width:1;
 }
 /** The number ticks */
 .axis text{
@@ -57,6 +60,10 @@
     font:verdana;
     font-size:18px;
     fill:#EDEDED;
+}
+
+.multiples .axis text{
+    font-size:12px;
 }
 /** The labels of x and y dimensions */
 .axisLabel {

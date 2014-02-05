@@ -1,8 +1,8 @@
 ////////////////////// Counter-balanced variables to set /////////////////////////////////////////////////////////
 var phaseOrder = [1,0]; //This should be counterbalanced eventually (list of indices pointing to the phaseURL arrays
-var techniqueOrder = [0,1,2]; //This should be counterbalanced as well , the interaction technique order within phases
+var techniqueOrder = [2,1,2]; //This should be counterbalanced as well , the interaction technique order within phases
 var taskTypeOrder = [[0,1],[0,1],[0,1]]; //Retrieve value vs. distribution tasks counterbalanced
-var participantID = "Brittany"; //Unique id assigned to the participant
+var participantID = "Rafa"; //Unique id assigned to the participant
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Other variables for storing participant info
@@ -216,14 +216,11 @@ function randomizeTasks(){
      var practiceAmbiguousTasks = [30,31,32,33];
 
      for (var i=0;i<3;i++){ //Do for each interaction technique
-         //var shuffledRetrieve = shuffle(retrieveTasks);
-         //var shuffledDistribution = shuffle(distributionTasks);
-         //var shuffledAmbiguousRetrieve = shuffle(ambiguousRetrieveTasks);
-         //var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);
-         var shuffledRetrieve = retrieveTasks;
-         var shuffledDistribution = distributionTasks;
-         var shuffledAmbiguousRetrieve = ambiguousRetrieveTasks;
-         var shuffledAmbiguousDistribution = ambiguousDistributionTasks;
+         /**var shuffledRetrieve = shuffle(retrieveTasks);
+         var shuffledDistribution = shuffle(distributionTasks);
+         var shuffledAmbiguousRetrieve = shuffle(ambiguousRetrieveTasks);
+         var shuffledAmbiguousDistribution = shuffle(ambiguousDistributionTasks);*/
+
          var shuffledRetrieve = retrieveTasks;
          var shuffledDistribution = distributionTasks;
          var shuffledAmbiguousRetrieve = ambiguousRetrieveTasks;
