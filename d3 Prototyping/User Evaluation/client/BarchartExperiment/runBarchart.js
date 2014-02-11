@@ -37,12 +37,17 @@ barchart.dragEvent = d3.behavior.drag()
         d3.event.sourceEvent.preventDefault();
         slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
         barchart.updateDraggedBar(d.id,d3.event.x,d3.event.y,d.xPos,d.nodes);
+        //barchart.svg.selectAll(".displayBars").on("mouseenter",function(){});
     })
     .on("dragend",function (d){
         d3.event.sourceEvent.preventDefault();
         barchart.snapToView(d.id,d.nodes);
         slider.updateSlider(barchart.currentView);
         logTouchUp(d.id,barchart.mouseX,barchart.mouseY);
+       /** barchart.svg.selectAll(".displayBars").on("mouseenter",function(d){
+            barchart.clearHintPath();
+            barchart.hoverBar(d.id,d.nodes, d.xPos);
+        });*/
     });
 
 //////////////////////Create the time slider//////////////////////
@@ -51,14 +56,17 @@ slider.init("mainSvg","gSlider");
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
+        d3.event.sourceEvent.preventDefault();
         barchart.clearHintPath();
         logTouchDown(0,d3.mouse(this)[0],d3.mouse(this)[1]);
         slider.selectTick();
     }).on("drag", function(){
+        d3.event.sourceEvent.preventDefault();
         slider.mouseY = d3.event.y;
         slider.updateDraggedSlider(d3.event.x);
         barchart.interpolateBars(-1,slider.interpValue,slider.currentTick,slider.nextTick);
     }).on("dragend",function (){
+        d3.event.sourceEvent.preventDefault();
         slider.snapToTick();
         changeView(barchart,slider.currentTick);
         barchart.redrawView(slider.currentTick,-1);
@@ -80,8 +88,8 @@ d3.select("#mainSvg").on("mousedown",function(){
 
 //Important variables need to be set to be accessed by the runExperiment.js file in order to reference the barchart object
 var visRef = barchart;
-var className = "#gBarchart .displayBars";
-var gClassName = "#gBarchart .gDisplayBars";
+var className = ".displayBars";
+var gClassName = ".gDisplayBars";
 var gIdName = "#gBarchart";
 var realDataYLabel = "Total Enrollment (Bachelors Degree, Full Time)";
 var realDataXLabel = "Program";
@@ -123,11 +131,16 @@ barchart_tutorial.dragEvent = d3.behavior.drag()
         d3.event.sourceEvent.preventDefault();
         slider_tutorial.animateTick(barchart_tutorial.interpValue,barchart_tutorial.currentView,barchart_tutorial.nextView);
         barchart_tutorial.updateDraggedBar(d.id,d3.event.x,d3.event.y,d.xPos,d.nodes);
+       // barchart_tutorial.svg.selectAll(".displayBars").on("mouseenter",function(){});
     })
     .on("dragend",function (d){
         d3.event.sourceEvent.preventDefault();
         barchart_tutorial.snapToView(d.id,d.nodes);
         slider_tutorial.updateSlider(barchart_tutorial.currentView);
+       /** barchart_tutorial.svg.selectAll(".displayBars").on("mouseenter",function(d){
+            barchart.clearHintPath();
+            barchart.hoverBar(d.id,d.nodes, d.xPos);
+        });*/
     });
 
 var slider_tutorial   = new Slider(10, 490,"","#636363",80);

@@ -13,7 +13,7 @@ body {
 /*Div which hold the visualization and slider */
 #vis{
     float:right;
-    margin-right:200px;
+    /**margin-right:200px;*/
     display:block;
     z-index:1;
 }

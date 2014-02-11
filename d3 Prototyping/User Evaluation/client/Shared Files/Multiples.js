@@ -127,9 +127,9 @@ Multiples.prototype.drawStaticScatterplot = function (data,view,highlightPoints,
         .attr("cy", function(d) {return d.nodes[view][1];})
         .style("fill", function (d){
             if (view==0){
-                return (d.id==highlightPoints[0])?"#D95F02":(d.id==highlightPoints[1])?"#1B9E77":"#636363";
+                return (d.id==highlightPoints[0])?"#D95F02":(d.id==highlightPoints[1])?"#D95F02":"#636363";
             }else{
-                return "#636363";
+                return "#D95F02";
             }
         }).style("pointer-events","none").style("stroke","#2C2D2D");
 
@@ -186,9 +186,9 @@ Multiples.prototype.drawStaticBarchart = function (data,view,highlightBars){
         .attr("width", 15).attr("height", function(d) {return d.nodes[0]})
         .style("fill", function (d){
             if (view==0){
-                return (d.id==highlightBars[0])?"#D95F02":(d.id==highlightBars[1])?"#1B9E77":"#636363";
+                return (d.id==highlightBars[0])?"#D95F02":(d.id==highlightBars[1])?"#D95F02":"#636363";
             }else{
-                return "#636363";
+                return "#D95F02";
             }
         }).style("pointer-events","none").attr("class","multiplesBars");
 }

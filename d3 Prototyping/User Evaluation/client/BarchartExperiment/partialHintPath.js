@@ -5,6 +5,7 @@
  //Variables for the hint path line (barchart, heatmap)
 var lineWidth= 12;
 var lineThickness = 1;
+var waveViews = [];
 var pathColour = "#EDEDED";
 var tickColour = "#EDEDED";
 var forwardPathLength = 0;
@@ -55,6 +56,12 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
     //Make the interaction paths (if any) invisible
     if (objectRef.isAmbiguous ==1){
         objectRef.svg.select("#hintPath").selectAll(".interactionPath").style("stroke","none");
+        waveViews = [];
+        objectRef.ambiguousBars.forEach(function (d,i){
+            if (d[0]==1){
+                waveViews.push(i);
+            }
+        });
     }
 }
 /**Redraws the shortened hint path, where the full path segment is always displayed between next and current view.
@@ -63,6 +70,7 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
  * */
 //TODO: this code is slightly inefficient, refactor later
 function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
+    objectRef.svg.selectAll(".hintLabels").style("display","none");
 
     //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
@@ -71,6 +79,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
         if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke",pathColour);
+                drawLoopLabels (objectRef);
                 return;
             }else{
                 objectRef.svg.selectAll(".interactionPath").style("stroke","none");
@@ -88,10 +97,12 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
             return objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
         }).attr("filter", "url(#blur2"+id+")");
 
+
         objectRef.svg.select("#currentMarker").attr("d", function (d) {
             return objectRef.hintPathGenerator([[d[objectRef.nextView][0]-lineWidth,d[objectRef.nextView][1]],
                 [d[objectRef.nextView][0]+lineWidth,d[objectRef.nextView][1]]]);
         }).style("stroke",tickColour).style("stroke-width",lineThickness);
+        objectRef.svg.select("#hintLabel"+objectRef.nextView).style("display","block");
 
         if (objectRef.nextView < objectRef.lastView){
             objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpolateStroke(forwardPathLength,objectRef.interpValue)).style("stroke",pathColour)
@@ -104,6 +115,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
                         return objectRef.hintPathGenerator([[d[objectRef.nextView+1][0]-lineWidth,d[objectRef.nextView+1][1]],
                             [d[objectRef.nextView+1][0]+lineWidth,d[objectRef.nextView+1][1]]]);
                     });
+                objectRef.svg.select("#hintLabel"+(objectRef.nextView+1)).style("display","block");
             }
         }
 
@@ -111,6 +123,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
         if (ambiguousObjects.length > 0){
             if (ambiguousObjects[objectRef.currentView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke",pathColour);
+                drawLoopLabels (objectRef);
                 return;
             }else{
                 objectRef.svg.selectAll(".interactionPath").style("stroke","none");
@@ -133,6 +146,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
             return objectRef.hintPathGenerator([[d[objectRef.currentView][0]-lineWidth,d[objectRef.currentView][1]],
                 [d[objectRef.currentView][0]+lineWidth,d[objectRef.currentView][1]]]);
         }).style("stroke",tickColour).style("stroke-width",lineThickness);
+        objectRef.svg.select("#hintLabel"+objectRef.currentView).style("display","block");
 
         if (objectRef.currentView > 0){
             objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpolateStroke(backwardPathLength,(1-objectRef.interpValue)))
@@ -146,10 +160,17 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
                         return objectRef.hintPathGenerator([[d[objectRef.currentView-1][0]-lineWidth,d[objectRef.currentView-1][1]],
                             [d[objectRef.currentView-1][0]+lineWidth,d[objectRef.currentView-1][1]]]);
                     });
+                objectRef.svg.select("#hintLabel"+(objectRef.currentView-1)).style("display","block");
             }
         }
 
     }
+}
+//Draws only a subset of labels to show the years contained in a loop
+function drawLoopLabels (objectRef){
+    objectRef.svg.select("#hintPath").selectAll(".hintLabels").filter(function (d){
+        return (waveViews.indexOf(d.id)!=-1)
+    }).style("display","block");
 }
 /**Hides the small hint path whenever the user stops dragging */
 function hidePartialHintPath (objectRef){

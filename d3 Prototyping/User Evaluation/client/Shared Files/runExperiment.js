@@ -16,10 +16,6 @@ var isExploratory = false;
 
 //Stoppers for the counters
 //var maxTaskTime = 100; Not used yet
-//var totalObjectiveTasks = 30; //For each interaction technique
-//var extraTasksDimp = 4;
-var totalObjectiveTasks = 1; //For each interaction technique
-var extraTasksDimp = 0;
 
 //Tracking touch events to mark task completion time
  var firstTouchDown = null;
@@ -42,6 +38,7 @@ var extraTasksDimp = 0;
 //Attach click events to the buttons
 d3.select("#doneTutorialButton").on("click", startTasks);
 d3.select("#submitButton").on("click", showIntermediateScreen);
+
 d3.select("#showVisButton").on("click", updateVisualizationDisplay);
 d3.select("#skipButton").on("click",skipTask);
 d3.select("#doneQuestionnaireButton1").on("click", confirmDoneQuestionnaire_postTasks);
@@ -110,10 +107,7 @@ function skipTask(){
         taskEndTime = null;
 
         taskCounter++;
-        var numTasks = totalObjectiveTasks;
-        if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
-           numTasks = totalObjectiveTasks + extraTasksDimp;
-        }
+        var numTasks = findNumTasks();
 
         if (taskCounter>=numTasks){
             taskCounter = 0;
@@ -154,10 +148,7 @@ function nextTask (){
      taskEndTime = null;
 
     taskCounter++;
-    var numTasks = totalObjectiveTasks;
-    if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
-        numTasks = totalObjectiveTasks + extraTasksDimp;
-    }
+    var numTasks = findNumTasks();
 
     if (taskCounter>=numTasks){
         taskCounter = 0;
@@ -168,6 +159,21 @@ function nextTask (){
      stopTimer();
      startTimer();
  }
+/**Finds and returns the number of objective tasks for each phase*/
+function findNumTasks(){
+    var numTasks;
+    if (phaseId==0){
+        numTasks = 24;//24
+    }else{
+        numTasks = 30; //30
+    }
+
+    if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
+        return (numTasks + 4);
+    }else{
+        return numTasks;
+    }
+}
 /**Cancel submitting the task solution by tapping the background of the intermediate screen
  * This will take the user back to the task */
 function cancelSubmitTask(){
@@ -181,11 +187,7 @@ function updateTaskDisplay (){
     clearVisualizations(0);
      //Update the task panel display
     //d3.select("#counter").node().innerHTML = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]][2]+" "+instructions;
-
-    var numTasks = totalObjectiveTasks;
-    if (techniqueOrder[techniqueCounter]==0){ //Extra tasks for dimp
-        numTasks = totalObjectiveTasks + extraTasksDimp;
-    }
+    var numTasks = findNumTasks();
     var taskInfo = tasks[techniqueOrder[techniqueCounter]][currentTaskOrder[taskCounter]];
     d3.select("#counter").node().innerHTML = (taskCounter+1)+"/"+numTasks+" "+instructions+" "+taskInfo[2];
     d3.select("#taskDescription").node().innerHTML = taskInfo[4];
@@ -265,6 +267,7 @@ function useDimpTechnique(){
     }
 
     slider.render(labels);
+    slider.hideTriangle();
     //hideSliderInfo(slider);
     slider.widget.select("#slidingTick").call(doNothing);
     visRef.svg.selectAll(className).call(visRef.dragEvent);
@@ -293,9 +296,9 @@ function useSliderTechnique(){
      }
 
      slider.render(labels);
-     //hideSliderInfo(slider);
      slider.widget.select("#slidingTick").call(slider.dragEvent);
      visRef.svg.selectAll(className).call(doNothing);
+    // visRef.svg.selectAll(className).on("mouseenter",doNothing);
      instructions = techniqueInstructions[1];
 
      //Re-set the visualization to the first view
@@ -359,18 +362,21 @@ function changePhase(){
      //Update the visualization
      slider.render(realLabels);
      setHintPathType(visRef,0);
-     showSliderInfo(slider);
+     //showSliderInfo(slider);
+     slider.hideTriangle();
      visRef.experimentMode =  0;
 
     if (phaseId==1){
          visRef.showLabels = true;
-         visRef.width = 1000;
-         //visRef.height = 900;
+         visRef.width = 1300;
+         visRef.height = 750;
         visRef.render(realDataset,realLabels,realDataXLabel,realDataYLabel,realDataTitle,-1,[-1,-1]);
-        /** d3.select("#mainSvg").attr("width",1700).attr("height",1200);
-         d3.select("#gSlider").attr("transform","translate(100,1100)");
-         d3.select("#gScatterplot").attr("transform","translate(1000,0)");*/
+         d3.select("#mainSvg").attr("width",1500).attr("height",1000);
+         d3.select("#gSlider").attr("transform","translate(100,870)");
+         d3.select("#gScatterplot").attr("transform","translate(1000,0)");
      }else{
+	     d3.select("#mainSvg").attr("height",1000);
+		 d3.select("#gSlider").attr("transform","translate(100,930)");
         visRef.render(realDataset,realLabels,realDataTitle,realDataXLabel,realDataYLabel,[-1,-1]);
      }
 
@@ -388,7 +394,7 @@ function changePhase(){
 
     // d3.select("#gSlider").attr("transform","translate(200,1050)");
      d3.select(gIdName).attr("transform","translate(65,65)");
-     d3.select("#changePhaseButton").style("display","block").style("width","200px").style("margin-top",screenY+"px")
+     d3.select("#changePhaseButton").style("display","block").style("width","200px").style("margin-top","20px")
          .style("float","right").style("margin-right","20px").on("click",nextPhase);
 
      isExploratory = true;
@@ -433,16 +439,17 @@ function showTutorial(techniqueId){
 
         if (phaseId==0){
             visRef_tutorial.render(toySet,toyLabels,"","","",[1,0]);
-            d3.select("#visGif").attr("width",screenX*0.30).attr("height",screenY*0.35);
+            d3.select("#visGif").attr("width",screenX*0.30).attr("height",screenY*0.30);
             d3.select("#ambiguousExplanation").attr("height",0.30*screenY).attr("width",0.35*screenX).node().src = "Images/ambiguousExplanation.png";
         }else if (phaseId==1){
             visRef_tutorial.render(toySet,toyLabels,"","","",-1,[1,0]);
-            d3.select("#visGif").attr("width",screenX*0.35).attr("height",screenY*0.3);
-            d3.select("#ambiguousExplanation").attr("height",0.35*screenY).attr("width",0.33*screenX).node().src = "Images/ambiguousExplanation.png";
+            d3.select("#visGif").attr("width",screenX*0.35).attr("height",screenY*0.28);
+            d3.select("#ambiguousExplanation").attr("height",0.31*screenY).attr("width",0.33*screenX).node().src = "Images/ambiguousExplanation.png";
         }
 
         visRef_tutorial.svg.selectAll(tutorial_className).call(visRef_tutorial.dragEvent);
         slider_tutorial.render(toyLabels);
+        slider_tutorial.hideTriangle();
         slider_tutorial.widget.select("#slidingTick").call(doNothing);
         visRef_tutorial.redrawView(0,-1);
         slider_tutorial.updateSlider(0);
@@ -482,7 +489,7 @@ function hideTutorial(){
     d3.select("#taskPanel").style("display","block");
     d3.select("#vis").style("display","block");
     d3.select("#tutorialVis").style("display","none");
-    clearVis("tutorialSvg",className);
+    clearVis("tutorialSvg",gClassName);
     clearVis("tutorialSvg",".slider");
 }
 /**Compares the solution entered by the participant with the correct solution and gives feedback

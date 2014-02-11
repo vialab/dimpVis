@@ -37,8 +37,9 @@ body {
 /*The interaction path (loop)*/
 .loops {
     fill:none;
-    stroke-dasharray:1,1;
-    stroke:#EDEDED;
+    /**stroke-dasharray:5,5;*/
+	stroke-width:2;
+    stroke:white;
 }
 
 /*The anchor along the interaction path */

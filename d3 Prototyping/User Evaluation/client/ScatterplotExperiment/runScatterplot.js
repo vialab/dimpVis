@@ -1,6 +1,3 @@
-/** This file is draws the interactive visualizations involved in the barchart experiment
- * */
-
 var svgWidth = 1200;
 var svgHeight = 900;;
 //Add a main svg which all visualization elements will be appended to
@@ -23,9 +20,9 @@ scatterplot.clickHintLabelFunction = function (d, i){
 
 //Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot
 scatterplot.dragEvent = d3.behavior.drag()
-    /**.origin(function(d){ //Set the starting point of the drag interaction
+    .origin(function(d){ //Set the starting point of the drag interaction
         return {x:d.nodes[scatterplot.currentView][0],y:d.nodes[scatterplot.currentView][1]};
-    })*/.on("dragstart", function(d){
+    }).on("dragstart", function(d){
         d3.event.sourceEvent.preventDefault();
         scatterplot.clearHintPath();
         scatterplot.draggedPoint = d.id;
@@ -36,11 +33,16 @@ scatterplot.dragEvent = d3.behavior.drag()
         d3.event.sourceEvent.preventDefault();
         slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
         scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y, d.nodes);
+        //scatterplot_tutorial.svg.selectAll(".displayPoints").on("mouseenter",function(){});
     }).on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
         d3.event.sourceEvent.preventDefault();
         scatterplot.snapToView(d.id,d.nodes);
         slider.updateSlider(scatterplot.currentView);
         logTouchUp(d.id,scatterplot.mouseX,scatterplot.mouseY);
+        /**scatterplot.svg.selectAll(".displayPoints").on("mouseenter",function(d){
+            scatterplot_tutorial.clearHintPath();
+            scatterplot_tutorial.hoverPoint(d.id,d.nodes);
+        });*/
     });
 scatterplot.experimentMode =  1;
 
@@ -50,14 +52,17 @@ slider.init("mainSvg","gSlider");
 //Define the function to respond to the dragging behaviour of the slider tick
 slider.dragEvent = d3.behavior.drag()
     .on("dragstart", function(){
+        d3.event.sourceEvent.preventDefault();
         scatterplot.clearHintPath();
         logTouchDown(0,d3.mouse(this)[0],d3.mouse(this)[1]);
         slider.selectTick();
     }).on("drag", function(){
+        d3.event.sourceEvent.preventDefault();
         slider.mouseY = d3.event.y;
         slider.updateDraggedSlider(d3.event.x);
         scatterplot.interpolatePoints(-1,slider.interpValue,slider.currentTick,slider.nextTick);
     }).on("dragend",function (){
+        d3.event.sourceEvent.preventDefault();
         slider.snapToTick();
         changeView(scatterplot,slider.currentTick);
         scatterplot.redrawView(slider.currentTick,-1);
@@ -77,7 +82,6 @@ d3.select("#mainSvg").on("mousedown",function(){
      logBackgroundTouchUp(d3.mouse(this)[0],d3.mouse(this)[1]);
 });
 
-//Important variables need to be set to be accessed by the runExperiment.js file in order to reference the barchart object
 var visRef = scatterplot;
 var className = ".displayPoints";
 var gClassName = ".gDisplayPoints";
@@ -115,7 +119,7 @@ setHintPathType(scatterplot_tutorial,1);
 
 //Define the dragging interaction of the scatterplot points, which will continuously update the scatterplot
 scatterplot_tutorial.dragEvent = d3.behavior.drag()
-.on("dragstart", function(d){
+    .on("dragstart", function(d){
         d3.event.sourceEvent.preventDefault();
         scatterplot_tutorial.clearHintPath();
         scatterplot_tutorial.draggedPoint = d.id;
@@ -125,10 +129,16 @@ scatterplot_tutorial.dragEvent = d3.behavior.drag()
         d3.event.sourceEvent.preventDefault();
         slider_tutorial.animateTick(scatterplot_tutorial.interpValue,scatterplot_tutorial.currentView,scatterplot_tutorial.nextView);
         scatterplot_tutorial.updateDraggedPoint(d.id,d3.event.x,d3.event.y, d.nodes);
+        //scatterplot_tutorial.svg.selectAll(".displayPoints").on("mouseenter",function(){});
     }).on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
         d3.event.sourceEvent.preventDefault();
         scatterplot_tutorial.snapToView(d.id,d.nodes);
         slider_tutorial.updateSlider(scatterplot_tutorial.currentView);
+        /**scatterplot_tutorial.svg.selectAll(".displayPoints").on("mouseenter",function(d){
+            d3.event.preventDefault();
+            scatterplot_tutorial.clearHintPath();
+            scatterplot_tutorial.hoverPoint(d.id,d.nodes);
+        });*/
     });
 
 //////////////////////Create the time slider//////////////////////

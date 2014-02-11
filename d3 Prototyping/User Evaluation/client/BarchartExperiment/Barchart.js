@@ -201,8 +201,12 @@ this.svg.selectAll("rect")
        })
 	 .attr("id", function (d){return "displayBars"+d.id;})
        .style("fill", function (d){
-           return (d.id==toHighlight[0])?"#D95F02":(d.id==toHighlight[1])?"#1B9E77":"#636363";
-       });;
+           return (d.id==toHighlight[0])?"#D95F02":(d.id==toHighlight[1])?"#D95F02":"#636363";
+       });/** .on("mouseenter",function(d){
+           d3.event.preventDefault();
+           ref.clearHintPath();
+           ref.hoverBar(d.id, d.nodes, d.xPos);
+       });*/
 
 	//Add a blank g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -573,8 +577,8 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
       });
   }
 
-  if (startView ==1 && this.experimentMode==1){
-      this.svg.selectAll(".displayBars").style("fill","#636363");
+  if (startView ==0 && interpAmount >0.2 && this.experimentMode==1){
+      this.svg.selectAll(".displayBars").style("fill","#D95F02");
   }
 }
 /** Animates all bars in the barchart along their hint paths from
@@ -647,9 +651,6 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  * */
 Barchart.prototype.redrawView = function (view,id){
     var ref = this;
-  if (this.hintPathType==1){
-       hidePartialHintPath(this);
-   }
    //else{
        //Re-draw the  bars at the specified view
       this.svg.selectAll(".displayBars").transition().duration(300)
@@ -713,6 +714,26 @@ Barchart.prototype.snapToView = function (id, heights){
   //Re-draw at the snapped view
   this.redrawView(this.currentView,id);
 }
+/**Function added because of the dragstart delay in firefox,
+ * draws the hint path and selection indicator when mouse is hovered
+ * on a bar
+ * */
+Barchart.prototype.hoverBar = function (id,heights,xPos){
+    var ref = this;
+    var drawingView = adjustView(this);
+    var translate = this.hintPathSpacing*drawingView;
+
+    //Create a dataset to draw the hint path in the format: [x,y]
+    this.pathData = heights.map(function (d,i){return [ref.findHintX(xPos,i),d[0],d[2]];});
+
+    if (this.hintPathType ==0){
+        this.drawHintPath(xPos,translate,drawingView);
+    }else{
+        drawPartialHintPath_line(this,translate,this.pathData);
+        redrawPartialHintPath_line(this,this.ambiguousBars,this.id);
+    }
+
+}
 /** Called each time a new bar is dragged.  Searches for ambiguous regions, and draws the hint path
  *  id: the id of the dragged bar
  *  heights: the array of heights and y positions of the bar [ypos,height]
@@ -745,6 +766,20 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     if (this.hintPathType ==0){
         this.drawHintPath(xPos,translate,drawingView);
     }else{
+        //Draw the hint labels
+        this.svg.select("#hintPath").selectAll("text").data(ref.pathData.map(function(d,i){
+            var yCoord = d[1];
+            if (d[2] == -1){ //If the label is at a downwards peak, adjust the y-coordinate such that it doesn't lie on top of the point on the hint path
+                yCoord = yCoord + 10;
+            }
+            return {x:d[0],y:yCoord,label:ref.hintLabels[i],id:i};
+        })).enter().append("svg:text")
+            .text(function(d) { return d.label; })
+            .attr("x",function (d){return d.x}).attr("y",function (d){return d.y})
+            .attr("fill-opacity",function (d){ return ((d.id==drawingView)?1:0.3)})
+            .attr("transform", "translate("+(-translate)+")")
+            .attr("id",function (d) {return "hintLabel"+ d.id})
+            .attr("class","hintLabels");
         drawPartialHintPath_line(this,translate,this.pathData);
         redrawPartialHintPath_line(this,this.ambiguousBars,this.id);
     }
@@ -865,7 +900,7 @@ Barchart.prototype.calculatePathPoints = function (indices){
  * */
 Barchart.prototype.highlightDataObject = function (ids){
    this.svg.selectAll(".displayBars").style("fill", function (d){
-        return (d.id==ids[0])?"#D95F02":(d.id==ids[1])?"#1B9E77":"#636363";
+        return (d.id==ids[0])?"#D95F02":(d.id==ids[1])?"#D95F02":"#636363";
     });
     this.highlightBars = ids;
 }

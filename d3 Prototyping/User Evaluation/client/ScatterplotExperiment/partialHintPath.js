@@ -35,7 +35,6 @@ function hidePartialHintPath (objectRef){
  * */
 function drawPartialHintPath_line (objectRef,translate,pathData){
 
-
     //Partial hint path by drawing individual segments...
     //Draw the hint path line segment at current and next view
     objectRef.svg.select("#hintPath").append("path").datum(pathData)//.attr("clip-path", "url(#clip)")
@@ -94,6 +93,7 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
  * Currently, the entire interaction path is displayed, because setting the stroke-dasharray property won't work
  * */
 function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
+    objectRef.svg.selectAll(".hintLabels").style("display","none");
 
     //Partial hint path by drawing individual segments...
     //Limit the visibility of the next time interval sub-path
@@ -110,7 +110,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
                 return;
             }else{
                 objectRef.svg.selectAll(".loops").style("stroke","none");
-                objectRef.svg.selectAll(".hintLabels").remove();
+                //objectRef.svg.selectAll(".hintLabels").remove();
                 objectRef.hideAnchor();
             }
         }
@@ -151,7 +151,7 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
                 return;
             }else{
                 objectRef.svg.selectAll(".loops").style("stroke","none");
-                objectRef.svg.selectAll(".hintLabels").remove();
+                //objectRef.svg.selectAll(".hintLabels").remove();
                 objectRef.hideAnchor();
             }
         }
@@ -182,10 +182,13 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
 
     }
 }
+
 //Draws only a subset of labels to show the years contained in a loop
 function drawLoopLabels (){
-       ref.svg.select("#hintPath").selectAll("text")
-           .data(loopViews.map(function (d,i) {
+       ref.svg.select("#hintPath").selectAll(".hintLabels").filter(function (d){
+           return (loopViews.indexOf(d.id)!=-1)
+       }).style("display","block");
+        /**   .data(loopViews.map(function (d,i) {
            var xPos = labelCoords[d][0] + ref.pointRadius*2;
            var yPos = labelCoords[d][1] + ref.pointRadius*2;
            return {x:xPos,y:yPos,id:d}
@@ -194,13 +197,15 @@ function drawLoopLabels (){
            .attr("x", function(d) {return d.x;})
            .attr("y", function (d) {  return d.y; })
            .attr("class","hintLabels")
-           .attr("id",function (d){return "hintLabels"+ d.id});
+           .attr("id",function (d){return "hintLabels"+ d.id});*/
 }
 //Changes the style properties of a marker on the hint path
 function styleMarker(objectRef,id,view){
     //Wireframe design
     objectRef.svg.select(id).attr("cx", function (d) {return d[view][0];})
         .attr("cy", function (d) {return d[view][1];}).style("stroke",circleColour);
+    objectRef.svg.select("#hintLabels"+view).style("display","block");
+
     //Shadow design
    /** objectRef.svg.select(id).attr("cx", function (d) {return d[view][0];})
         .attr("cy", function (d) {return d[view][1];}).style("fill",circleColour)
@@ -211,3 +216,4 @@ function styleMarker(objectRef,id,view){
        .attr("cy", function (d) {return d[view][1];}).style("fill",circleColour)
        .style("fill-opacity",0.4);*/
 }
+

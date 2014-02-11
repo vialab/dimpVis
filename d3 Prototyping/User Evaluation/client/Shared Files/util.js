@@ -13,6 +13,7 @@
 function clearVis (svgId,objectClass){
     if (!d3.selectAll("#"+svgId+" "+objectClass).empty()){
         d3.selectAll("#"+svgId+" "+objectClass).remove();
+
         d3.selectAll("#"+svgId+" .axisLabel").remove();
         d3.selectAll("#"+svgId+" .axis").remove();
         d3.selectAll("#"+svgId+" .xAxis").remove();

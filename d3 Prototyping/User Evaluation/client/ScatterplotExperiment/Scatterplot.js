@@ -9,7 +9,7 @@ function Scatterplot(w, h,p) {
    this.width = w;
    this.height = h;
    this.pointRadius = 20;
-   this.loopRadius = 100;
+   this.loopRadius = 70;
    this.labelTransparency = 0.1; //Amount to fade the labels by
    this.xLabel ="";
    this.yLabel = "";
@@ -67,6 +67,7 @@ function Scatterplot(w, h,p) {
    this.placeholder = function() {};
    this.clickHintLabelFunction = this.placeholder;
    this.hintPathGenerator =  d3.svg.line().interpolate("linear");
+   this.touchStartFunc = this.placeholder();
 
    this.clickedPoints = []; //Keeps track of which points to show labels for
 }
@@ -88,7 +89,7 @@ Scatterplot.prototype.init = function(svgId,id) {
     //Add the blur filter for interaction loops
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blurLoop"+svgId).append("svg:feGaussianBlur")
-        .attr("stdDeviation", 3);
+        .attr("stdDeviation", 2);
 
     //Add the blur filter for the partial hint path
     this.svg.append("svg:defs").append("svg:filter")
@@ -169,7 +170,7 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
           }else{
               return (d.id >= toHighlight[0] || d.id >= toHighlight[1]);
           }
-      }).sort(function(a,b){
+      }).sort(function(a,b){i
           return (a.id> b.id)?-1:(a.id < b.id)?1:0;
       });
 
@@ -182,15 +183,20 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title,taskNu
         .attr("cy", function(d) {return d.nodes[ref.currentView][1]; })
         .attr("r", this.pointRadius).attr("class", "displayPoints")
         .attr("id", function (d){return "displayPoints"+d.id;})
-        .attr("title", function (d) {return d.label;})
+        //.attr("title", function (d) {return d.label;})
         .style("fill-opacity",1).style("stroke","#2C2D2D");
+       /** .on("mouseenter",function(d){
+           d3.event.preventDefault();
+           ref.clearHintPath();
+           ref.hoverPoint(d.id,d.nodes);
+        });*/
 
     if (this.experimentMode==1){
         if (toHighlight[0]!=-1) this.highlightedPts.push(toHighlight[0]);
         if (toHighlight[1] !=-1) this.highlightedPts.push(toHighlight[1]);
 
         this.svg.selectAll(".displayPoints").style("fill", function (d){
-            return (d.id==toHighlight[0])?"#D95F02":(d.id==toHighlight[1])?"#1B9E77":"#636363";
+            return (d.id==toHighlight[0])?"#D95F02":(d.id==toHighlight[1])?"#D95F02":"#636363";
         });
 
         this.svg.selectAll(".gDisplayPoints").append("text")
@@ -355,6 +361,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
     }else{ //Some in between the views (pt1 and pt2)
         if (this.hintPathType ==1){
             redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
+            //this.redrawPartialHintPath();
         }
         this.interpolatePoints(id,t,this.currentView,this.nextView);
         this.interpolateLabelColour(t);
@@ -619,8 +626,8 @@ Scatterplot.prototype.interpolatePoints = function(id,interpAmount,startView,end
               d3.select("#pointLabel"+ d.id).attr("x", newPoint.x-ref.pointRadius/4).attr("y", newPoint.y+ref.pointRadius/4);
           }
       })
-   if (startView ==1 && this.experimentMode==1){
-       this.svg.selectAll(".displayPoints").style("fill","#636363");
+   if (startView ==0 && interpAmount >0.2 && this.experimentMode==1){
+       this.svg.selectAll(".displayPoints").transition(100).style("fill","#D95F02");
    }
 }
 /** Snaps to the nearest view once a dragged point is released
@@ -721,9 +728,9 @@ Scatterplot.prototype.redrawPointLabels = function(view){
  * */
 Scatterplot.prototype.redrawView = function(view) {
     var ref = this;
-    if (this.hintPathType==1){
+    /**if (this.hintPathType==1){
        hidePartialHintPath(this);
-    }
+    }*/
     this.hideAnchor();
     //Re-colour the hint path labels
     this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:ref.labelTransparency)});
@@ -735,11 +742,41 @@ Scatterplot.prototype.redrawView = function(view) {
             .attr("x",function (d){return d.nodes[view][0];})
             .attr("y",function (d){return d.nodes[view][1]-ref.pointRadius;});
     }else if (this.experimentMode==1){
+        //snapPartialHintPath(this);
         this.svg.selectAll(".pointLabels")
             .attr("x",function (d){return d.nodes[view][0]-ref.pointRadius/4;})
             .attr("y",function (d){return d.nodes[view][1]+ref.pointRadius/4;});
     }
 }
+/**Function added because of the dragstart delay in firefox,
+ * draws the hint path and selection indicator when mouse is hovered
+ * on a point
+ *
+Scatterplot.prototype.hoverPoint = function (id,points){
+    var drawingView = adjustView(this);
+
+    if (this.hintPathType ==0){
+        this.drawHintPath(drawingView,points);
+    }else{
+        drawPartialHintPath_line(this,0,points);
+        redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
+    }
+
+    if (this.experimentMode ==1){
+        this.svg.select("#displayPoints"+id).style("stroke","white").style("stroke-width",2);
+    }
+
+    //Fade out the other points using a transition
+    if (this.experimentMode ==0){
+        /** this.svg.selectAll(".displayPoints").filter(function (d) {return (ref.clickedPoints.indexOf(d.id)==-1)})
+         .transition().duration(300).style("fill-opacity", 0.3);
+        this.svg.selectAll(".displayPoints").filter(function (d) {return (d.id!=id)})
+            .transition().duration(300).style("fill-opacity", 0.3);
+        this.svg.selectAll(".pointLabels").filter(function (d) {return (d.id!=id)})
+            .transition().duration(300).style("fill-opacity", 0.3);
+    }
+}*/ //Not used anymore
+
 /** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
  *  id: the id of the dragged point
  *  points: An array of all points of the dragged point (e.g., d.nodes)
@@ -756,19 +793,28 @@ Scatterplot.prototype.selectPoint = function (id,points){
     if (this.isAmbiguous==1){
         this.appendAnchor();
     }
-
+    var ref = this;
     if (this.hintPathType ==0){
         this.drawHintPath(drawingView,points);
     }else{
+        var adjustedPoints = this.placeLabels(points);
+        this.svg.select("#hintPath").selectAll("text")
+            .data(adjustedPoints.map(function (d,i) {
+            var xPos = d[0] + ref.pointRadius*1.3;
+            var yPos = d[1] + ref.pointRadius*1.3;
+            return {x:xPos,y:yPos,id:i}
+        })).enter().append("svg:text")
+            .text(function(d) { return ref.labels[d.id]; })
+            .attr("x", function(d) {return d.x;})
+            .attr("y", function (d) {  return d.y; })
+            .attr("class","hintLabels").style("display","none")
+            .attr("fill-opacity",function (d){ return ((d.id==drawingView)?1:ref.labelTransparency)})
+            .attr("id",function (d){return "hintLabels"+ d.id});
+        //this.drawPartialHintPath(drawingView,points);
         drawPartialHintPath_line(this,0,points);
         redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
     }
-    /**if (this.showLabels ==true && this.clickedPoints.indexOf(id) ==-1) {
-        this.clickedPoints.push(id);
-        this.drawPointLabel(id);
-    }*/
 
-    var ref = this;
    if (this.experimentMode ==1){
        this.svg.select("#displayPoints"+id).style("stroke","white").style("stroke-width",2);
    }
@@ -834,6 +880,136 @@ Scatterplot.prototype.selectPoint = function (id,points){
         .attr("filter", "url(#blur"+this.id+")");
 
 }
+Scatterplot.prototype.drawPartialHintPath = function(view,points){
+    var ref = this;
+    //Draw the hint path labels, reposition any which are in a stationary sequence
+    var adjustedPoints = this.placeLabels(points);
+
+    this.svg.select("#hintPath").selectAll("text")
+        .data(adjustedPoints.map(function (d,i) {
+        var xPos = d[0] + ref.pointRadius*1.3;
+        var yPos = d[1] + ref.pointRadius* 1.3;
+        return {x:xPos,y:yPos,id:i}
+    })).enter().append("svg:text")
+        .text(function(d) { return ref.labels[d.id]; })
+        .attr("x", function(d) {return d.x;})
+        .attr("y", function (d) {  return d.y; })
+        .attr("class","hintLabels")
+        .attr("fill-opacity",function (d){ return ((d.id==view)?1:ref.labelTransparency)})
+        .style("display","none")
+        .attr("id",function (d){return "hintLabels"+ d.id});
+
+    this.svg.select("#hintPath").selectAll("circle").data(adjustedPoints.map(function (d,i) {
+        return {x:d[0],y:d[1],id:i}
+    })).enter().append("circle").style("stroke","none").style("fill","none").attr("cx",function(d){return d.x}).attr("cy",function(d){return d.y})
+        .attr("r",ref.pointRadius).style("stroke-width",1).attr("class","markers").attr("id",function(d){return "marker"+ d.id});
+
+   this.svg.select("#hintPath").append("path").datum(adjustedPoints).style("stroke","#EDEDED").attr("d", function (d) {
+            return  ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]]);
+        }).attr("filter", "url(#blurPartial"+this.id+")");
+
+    this.svg.select("#hintPath").append("path").datum(adjustedPoints).attr("id","forwardPath").style("stroke","none");
+    this.svg.select("#hintPath").append("path").datum(adjustedPoints).attr("id","backwardPath").style("stroke","none");
+
+    //Make the interaction paths (if any) invisible
+    if (this.isAmbiguous ==1){
+        this.svg.select("#hintPath").selectAll(".loops").style("stroke","none");
+        /**ref = objectRef;
+        labelCoords = objectRef.placeLabels(pathData);
+
+        objectRef.ambiguousPoints.forEach(function (d,i){
+            if (d[0]==1){
+                loopViews.push(i);
+            }
+        });*/
+    }
+}
+Scatterplot.prototype.redrawPartialHintPath = function (){
+    this.svg.selectAll(".hintLabels").style("display","none");
+    this.svg.selectAll(".markers").style("stroke","none");
+
+    var interpolateStroke = function (length,amount){
+        return  d3.interpolateString("0," + length, length + "," + length)(amount);
+    }
+    var ref = this;
+        if (this.timeDirection == 1){ //Moving forward
+
+            if (this.ambiguousPoints.length > 0){
+                if (this.ambiguousPoints[this.nextView][0]==1){
+                    this.svg.select("#loop"+this.ambiguousPoints[this.nextView][1]).style("stroke",pathColour);
+                    //drawLoopLabels();
+                }else{
+                    this.svg.selectAll(".loops").style("stroke","none");
+                    this.hideAnchor();
+                }
+            }
+            //Clear the backward path
+            this.svg.select("#backwardPath").style("stroke","none");
+            //this.svg.select("#marker"+this.currentView).style("stroke","none");
+
+            //Create the interpolation function and get the total length of the path
+            var forwardPathLength = d3.select("#forwardPath").node().getTotalLength();
+
+            //Full sub-path of current time interval is always visible
+            this.svg.select("#path").attr("d", function (d) {
+                return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]]);
+            }).attr("filter", "url(#blurPartial"+this.id+")");
+
+            this.svg.select("#marker"+(this.nextView)).style("stroke","#EDEDED");
+            this.svg.select("#hintLabels"+this.nextView).style("display","block");
+
+            if (this.nextView < this.lastView){
+                this.svg.select("#forwardPath").attr("stroke-dasharray",interpolateStroke(forwardPathLength,ref.interpValue)).style("stroke","#EDEDED")
+                    .attr("d", function (d) {
+                        return ref.hintPathGenerator([d[ref.nextView],d[ref.nextView+1]]);
+                    }).attr("filter", "url(#blurPartial"+this.id+")");
+                if (this.interpValue > 0.95){
+                    this.svg.select("#marker"+(this.nextView+1)).style("stroke","#EDEDED");
+                    this.svg.select("#hintLabels"+(this.nextView+1)).style("display","block");
+                }
+            }
+
+        }else{ //Moving backward
+            if (this.ambiguousPoints.length > 0){
+                if (this.ambiguousPoints[this.currentView][0]==1){
+                    this.svg.select("#loop"+this.ambiguousPoints[this.currentView][1]).style("stroke",pathColour);
+                    //drawLoopLabels();
+                    //return;
+                }else{
+                    this.svg.selectAll(".loops").style("stroke","none");
+                    this.hideAnchor();
+                }
+            }
+            //Clear the forward path
+            this.svg.select("#forwardPath").style("stroke","none");
+           // this.svg.select("#marker"+this.nextView).style("stroke","none");
+
+            //Create the interpolation function and get the total length of the path
+            var backwardPathLength = d3.select("#backwardPath").node().getTotalLength();
+
+            //Full sub-path of current time interval is always visible
+            this.svg.select("#path").attr("d", function (d) {
+                return ref.hintPathGenerator([d[ref.currentView],d[ref.nextView]]);
+            }).attr("filter", "url(#blurPartial"+this.id+")");
+
+            this.svg.select("#marker"+this.currentView).style("stroke","#EDEDED");
+            this.svg.select("#hintLabels"+this.currentView).style("display","block");
+            //styleMarker(objectRef,"#currentMarker",objectRef.currentView);
+
+            if (this.currentView > 0){
+                this.svg.select("#backwardPath").attr("stroke-dasharray",interpolateStroke(backwardPathLength,(1-this.interpValue)))
+                    .style("stroke","#EDEDED").attr("d", function (d) {
+                        return ref.hintPathGenerator([d[ref.currentView],d[ref.currentView-1]]);
+                    }).attr("filter", "url(#blurPartial"+this.id+")");
+                if (this.interpValue < 0.05){
+                    this.svg.select("#marker"+(this.currentView-1)).style("stroke","#EDEDED");
+                    this.svg.select("#hintLabels"+(this.currentView-1)).style("display","block");
+                    //styleMarker(objectRef,"#backwardMarker",objectRef.currentView-1);
+                }
+            }
+
+        }
+}
 /**This function places labels in ambiguous cases such that they do not overlap
  * points: a 2D array of positions of each label [x,y]...
  * */
@@ -881,7 +1057,6 @@ Scatterplot.prototype.placeLabels = function (points){
 				    repeatedYears.push(j);
 				}
 			}
-			console.log(repeatedYears);
             return {points:loopPoints[0],id:i,orientationAngle:d[2],cx:x,cy:y,points2:loopPoints[1],years:repeatedYears};
         }))
         .enter().append("path").attr("class","loops")
@@ -965,7 +1140,7 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,angle){
    //Hack here!!!- another set of points for handling dragging around loops
 	var loopPoints = [];
 	loopWidth = Math.PI/7; //Change this value to expand/shrink the width of the loop
-    var adjustedRadius = this.loopRadius - 15;
+    var adjustedRadius = this.loopRadius - 25;
 	//The first point of the path should be the original point, as a reference for drawing the loop
 	loopPoints.push([x,y]);
 

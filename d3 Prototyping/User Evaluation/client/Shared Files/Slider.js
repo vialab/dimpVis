@@ -19,7 +19,7 @@ function Slider(x, y, description,colour,spacing) {
    this.sliderOffset = x+(description.length*20); //Font size of title is 20px
    this.width = this.sliderOffset + this.numTicks*this.tickSpacing;
    this.height = 50;
-   this.tickYPos = 45; //Amount to translate the draggable tick by in the y coordinate
+   this.tickYPos = 50; //Amount to translate the draggable tick by in the y coordinate
    this.anchorYPos = 12; //Amount to translate the anchor which follows the draggable tick when it is not placed on the main slider
    this.sliderHeight = 15; //Thickness of the main slider line
 
@@ -102,7 +102,7 @@ Slider.prototype.render = function(labels) {
        .attr("height", ref.sliderHeight).attr("fill", ref.displayColour);
 
  //Draw a triangle draggable tick
-  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(1000))
+  this.widget.append("path").attr("d",d3.svg.symbol().type("triangle-up").size(1500))
       .attr("transform", "translate(" +ref.sliderPos + "," + ref.tickYPos + ")")
       .attr("fill", ref.displayColour).style("stroke","#BDBDBD").style("stroke-width",2)
       .style("cursor", "pointer").attr("id","slidingTick").attr("class","slider");
@@ -111,6 +111,11 @@ Slider.prototype.render = function(labels) {
    this.widget.append("rect").attr("transform", "translate(" +(ref.sliderPos+1) + "," + ref.anchorYPos + ")")
         .attr("stroke", "none").style("fill", "#bdbdbd").attr("width", 1).attr("height", (ref.sliderHeight-4))
         .style("cursor", "pointer").attr("id","anchor").attr("class","slider");
+}
+/**Hides the triangle tick, for experimental purposes
+ * */
+Slider.prototype.hideTriangle = function (){
+    this.widget.select("#slidingTick").remove();
 }
 /** Re-draws the dragged tick by translating it according to the x-coordinate of the mouse
  *  mouseX: The x-coordinate of the mouse, received from the drag event
@@ -129,7 +134,7 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
            ref.nextTick++;
            ref.interpValue = (ref.timeDirection == -1)? 1:0;
            translateX = mouseX;
-           logPixelDistance(0,ref.currentTick,findPixelDistance(mouseX,ref.mouseY,mouseX,ref.anchorYPos),mouseX,ref.mouseY,mouseX,ref.anchorYPos);
+           //logPixelDistance(0,ref.currentTick,findPixelDistance(mouseX,ref.mouseY,mouseX,ref.anchorYPos),mouseX,ref.mouseY,mouseX,ref.anchorYPos);
         }else{
            ref.setInterpolation(mouseX,current,next);
            translateX = mouseX;
@@ -142,7 +147,7 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
             ref.currentTick--;
             ref.interpValue = (ref.timeDirection == -1)? 1:0;
             translateX = mouseX;
-           logPixelDistance(0,ref.currentTick,findPixelDistance(mouseX,ref.mouseY,mouseX,ref.anchorYPos),mouseX,ref.mouseY,mouseX,ref.anchorYPos);
+           //logPixelDistance(0,ref.currentTick,findPixelDistance(mouseX,ref.mouseY,mouseX,ref.anchorYPos),mouseX,ref.mouseY,mouseX,ref.anchorYPos);
        }else{
            ref.setInterpolation(mouseX,current,next);
            translateX = mouseX;
@@ -152,12 +157,12 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
             ref.nextTick = ref.currentTick;
             ref.currentTick--;
             ref.interpValue = (ref.timeDirection == -1)? 1:0;
-            logPixelDistance(0,ref.currentTick,findPixelDistance(mouseX,ref.mouseY,mouseX,ref.anchorYPos),mouseX,ref.mouseY,mouseX,ref.anchorYPos);
+            //logPixelDistance(0,ref.currentTick,findPixelDistance(mouseX,ref.mouseY,mouseX,ref.anchorYPos),mouseX,ref.mouseY,mouseX,ref.anchorYPos);
         }else if (mouseX>=next){ //Passed next
             ref.currentTick = ref.nextTick;
             ref.nextTick++;
             ref.interpValue = (ref.timeDirection == -1)? 1:0;
-            logPixelDistance(0,ref.currentTick,findPixelDistance(mouseX,ref.mouseY,mouseX,ref.anchorYPos),mouseX,ref.mouseY,mouseX,ref.anchorYPos);
+            //logPixelDistance(0,ref.currentTick,findPixelDistance(mouseX,ref.mouseY,mouseX,ref.anchorYPos),mouseX,ref.mouseY,mouseX,ref.anchorYPos);
         }else{
             ref.setInterpolation(mouseX,current,next);
         }
@@ -166,7 +171,6 @@ Slider.prototype.updateDraggedSlider = function( mouseX ) {
     this.mouseX = mouseX;
     this.widget.select("#slidingTick").attr("transform","translate(" + translateX + "," + ref.tickYPos + ")");
     this.widget.select("#anchor").attr("width",translateX-ref.sliderOffset);
-    //this.widget.select("#anchor").attr("transform", "translate(" + translateX + "," + ref.anchorYPos + ")");
 }
 /** Determines how far the slider has travelled between two ticks (current and next) and sets
  * the interpolation value accordingly (as percentage travelled)
@@ -204,6 +208,7 @@ Slider.prototype.updateSlider = function( newView ) {
     this.widget.select("#slidingTick")
 	           //.attr("x",function (){return ref.tickPositions[newView];});
                 .attr("transform",function (){return "translate(" + ref.tickPositions[newView] + "," + ref.tickYPos + ")";});
+
     this.widget.select("#anchor").attr("width",this.tickPositions[newView] - this.sliderOffset);
 }
 /** Snaps the draggable tick to the nearest tick on the slider after the mouse is
@@ -238,14 +243,13 @@ Slider.prototype.snapToTick = function() {
 Slider.prototype.animateTick = function(interpAmount, currentView, nextView) {
     var ref = this;
     if (interpAmount != 0){
+        var current = ref.tickPositions[currentView];
+        var next = ref.tickPositions[nextView];
+        var interpX = d3.interpolate(current,next)(interpAmount);
+
         this.widget.select("#slidingTick")
-               .attr("transform",function (){
-                     var current = ref.tickPositions[currentView];
-                     var next = ref.tickPositions[nextView];
-                     var interpX = d3.interpolate(current,next)(interpAmount);
-                     ref.widget.select("#anchor").attr("width",interpX-ref.sliderOffset)
-                     return "translate("+interpX+","+ref.tickYPos+")";
-                 });
+               .attr("transform","translate("+interpX+","+ref.tickYPos+")");
+        this.widget.select("#anchor").attr("width",interpX-ref.sliderOffset);
     }
 }
 
