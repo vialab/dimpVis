@@ -28,23 +28,26 @@ function drawPartialHintPath_line (objectRef,translate,pathData){
         .attr("d", function (d) {
             return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
                 objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.nextView]]);
-        });
+        }).style("pointer-events","none");
 
      //Draw the next hint path line segment to show dragging direction (shown when travelling forwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
-        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath");
+        .attr("transform","translate("+(-translate)+")").attr("id","forwardPath").style("pointer-events","none");
 
     //Draw the current hint path line segment to show dragging direction (shown when travelling backwards)
     objectRef.svg.select("#hintPath").append("path").datum(pathData)
-        .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none");
+        .attr("transform","translate("+(-translate)+")").attr("id","backwardPath").style("stroke","none").style("pointer-events","none");
 
     //Draw the markers along the path
     objectRef.svg.select("#hintPath").append("path").datum(pathData).attr("id","backwardMarker")
-        .attr("transform","translate("+(-translate)+")").style("stroke","none").style("stroke-width",lineThickness);
+        .attr("transform","translate("+(-translate)+")").style("stroke","none").style("stroke-width",lineThickness)
+        .style("pointer-events","none");
     objectRef.svg.select("#hintPath").append("path").datum(pathData).attr("id","forwardMarker")
-        .attr("transform","translate("+(-translate)+")").style("stroke","none").style("stroke-width",lineThickness);
+        .attr("transform","translate("+(-translate)+")").style("stroke","none").style("stroke-width",lineThickness)
+        .style("pointer-events","none");
     objectRef.svg.select("#hintPath").append("path").datum(pathData).attr("id","currentMarker")
-        .attr("transform","translate("+(-translate)+")").style("stroke","none").style("stroke-width",lineThickness);
+        .attr("transform","translate("+(-translate)+")").style("stroke","none").style("stroke-width",lineThickness)
+        .style("pointer-events","none");
 
     if (objectRef.nextView != objectRef.lastView){ //Assume when the hint path is first drawn, user is moving forward in time
         objectRef.svg.select("#nextPath").attr("d", function (d) {
@@ -80,6 +83,12 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.nextView][1]).style("stroke",pathColour);
                 drawLoopLabels (objectRef);
+                if (objectRef.nextView==waveViews[2]){
+                    objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpolateStroke(forwardPathLength,objectRef.interpValue)).style("stroke",pathColour)
+                        .attr("d", function (d) {
+                            return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
+                        }).attr("filter", "url(#blur2"+id+")");
+                }
                 return;
             }else{
                 objectRef.svg.selectAll(".interactionPath").style("stroke","none");
@@ -124,6 +133,13 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
             if (ambiguousObjects[objectRef.currentView][0]==1){
                 objectRef.svg.select("#interactionPath"+ambiguousObjects[objectRef.currentView][1]).style("stroke",pathColour);
                 drawLoopLabels (objectRef);
+                if (objectRef.currentView==waveViews[0]){
+                    objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpolateStroke(backwardPathLength,(1-objectRef.interpValue)))
+                        .style("stroke",pathColour).attr("d", function (d) {
+                            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                                objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
+                        }).attr("filter", "url(#blur2"+id+")");
+                }
                 return;
             }else{
                 objectRef.svg.selectAll(".interactionPath").style("stroke","none");

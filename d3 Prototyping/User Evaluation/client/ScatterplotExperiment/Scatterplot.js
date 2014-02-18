@@ -564,7 +564,10 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
         this.interpAmount = angles[2];
 		this.timeDirection = this.findTimeDirection(this.interpAmount,id);
         this.interpolatePoints(id,this.interpAmount,this.currentView,this.nextView);
-        this.interpolateLabelColour(this.interpAmount);       
+        this.interpolateLabelColour(this.interpAmount);
+        if (this.hintPathType ==1){
+            redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
+        }
     }	
     this.redrawAnchor(loopInterp,groupNumber,id);    
     this.previousLoopAngle = angles[1];

@@ -44,6 +44,11 @@ var tasks = [
         [4,0,70,1,"After the height of A has been decreasing, find the first year when it is increasing.",0,1,[12],7],
         [4,0,76,1,"After the height of A has been increasing, find the first year when it is decreasing.",0,1,[11],9],
 
+        [6,0,114,0,"When is A less than 60?",0,1,[5],7],
+        [6,0,115,0,"When is A at 120?",0,1,[3],6],
+        [6,0,116,1,"After the height of A has been increasing, find the first year when it is decreasing.",0,1,[7],6],
+        [6,0,117,1,"After the height of A has been decreasing, find the first year when it is increasing.",0,1,[9],7],
+
         //Practice
         [5,0,78,0,"When is A at 80?",0,0,[0],3],
         [5,0,79,0,"When is A less than 40?",0,0,[8],5],

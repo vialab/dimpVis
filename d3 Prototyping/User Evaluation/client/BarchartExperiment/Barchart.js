@@ -659,7 +659,11 @@ Barchart.prototype.redrawView = function (view,id){
 
     if (this.showZeroValues==1){
            this.svg.selectAll(".displayBars") .style("fill",function (d){return (d.nodes[view][1]==0)?ref.zeroBarColour:ref.displayColour;});
-       }
+      }
+
+    if (this.experimentMode == 1){
+        this.svg.select("#displayBars"+id).style("stroke","none");
+    }
 
        //Re-draw the hint path (if id is specified)
        if (id!=-1){
@@ -779,11 +783,15 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
             .attr("fill-opacity",function (d){ return ((d.id==drawingView)?1:0.3)})
             .attr("transform", "translate("+(-translate)+")")
             .attr("id",function (d) {return "hintLabel"+ d.id})
+            .style("pointer-events","none").style("font-size","13px")
             .attr("class","hintLabels");
         drawPartialHintPath_line(this,translate,this.pathData);
         redrawPartialHintPath_line(this,this.ambiguousBars,this.id);
     }
 
+    if (this.experimentMode ==1){
+        this.svg.select("#displayBars"+id).style("stroke","white").style("stroke-width",2);
+    }
     //Fade out the other bars
     if (!this.useMobile){
         //this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})

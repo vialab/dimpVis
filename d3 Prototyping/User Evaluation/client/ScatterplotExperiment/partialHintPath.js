@@ -103,10 +103,12 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
             if (ambiguousObjects[objectRef.nextView][0]==1){
                 objectRef.svg.select("#loop"+ambiguousObjects[objectRef.nextView][1]).style("stroke",pathColour);
                 drawLoopLabels();
-                //Draw the next sub-path, when the middle loop view is reached
-                /**objectRef.svg.select("#forwardPath").attr("d", function (d) {
-                    return objectRef.hintPathGenerator([d[loopViews[2]],d[loopViews[2]+1]]);
-                }).attr("filter", "url(#blurPartial"+id+")");*/
+                if (objectRef.nextView==loopViews[2]){
+                    objectRef.svg.select("#forwardPath").attr("stroke-dasharray",interpolateStroke(forwardPathLength,objectRef.interpValue)).style("stroke",pathColour)
+                        .attr("d", function (d) {
+                            return objectRef.hintPathGenerator([d[objectRef.nextView],d[objectRef.nextView+1]]);
+                        }).attr("filter", "url(#blurPartial"+id+")");
+                }
                 return;
             }else{
                 objectRef.svg.selectAll(".loops").style("stroke","none");
@@ -144,10 +146,13 @@ function redrawPartialHintPath_line (objectRef,ambiguousObjects,id){
             if (ambiguousObjects[objectRef.currentView][0]==1){
                 objectRef.svg.select("#loop"+ambiguousObjects[objectRef.currentView][1]).style("stroke",pathColour);
                 drawLoopLabels();
-                //Draw the next sub-path, when the middle loop view is reached
-                /**objectRef.svg.select("#backwardPath").attr("d", function (d) {
-                    return objectRef.hintPathGenerator([d[loopViews[0]],d[loopViews[0]-1]]);
-                }).attr("filter", "url(#blurPartial"+id+")");*/
+                if (objectRef.currentView==loopViews[0]){
+                    objectRef.svg.select("#backwardPath").attr("stroke-dasharray",interpolateStroke(backwardPathLength,(1-objectRef.interpValue)))
+                        .style("stroke",pathColour).attr("d", function (d) {
+                            return (typeof(objectRef.hintPathGenerator) === "undefined")?d[objectRef.currentView]:
+                                objectRef.hintPathGenerator([d[objectRef.currentView],d[objectRef.currentView-1]]);
+                        }).attr("filter", "url(#blurPartial"+id+")");
+                }
                 return;
             }else{
                 objectRef.svg.selectAll(".loops").style("stroke","none");
