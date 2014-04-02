@@ -5,14 +5,14 @@
 d3.select("#bargraph").append("svg").attr("id","mainSvg").on("click",function(){
     barchart.clearHintPath();
  });
-
+var screenWidth = window.innerWidth-50;
+var screenHeight = window.innerHeight-50;
 //Create new barchart visualization
-var barchart   = new Barchart(300, 45, 50);
+var barchart   = new Barchart(screenHeight*0.6, screenWidth*0.6, 50);
 
 window.onload = function (){
     barchart.useMobile = checkDevice();
-    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
-    //alert(window.innerHeight+" "+window.innerWidth);
+    d3.select("#mainSvg").attr("width",screenWidth).attr("height",screenHeight);
 }
 
 //Toggle the type of indicator displayed when dragging along the sine wave
@@ -37,7 +37,7 @@ barchart.clickHintLabelFunction = function (d, i){
     slider.updateSlider(i);
 
 };
-barchart.render(dataset,labels,"Student Enrollment Over The Years At UOIT","Program","Total Enrollment (Bachelors Degree, Full Time)");
+barchart.render(dataset,labels,"Student Enrollment Over The Years At UOIT","","Total Enrollment (Bachelors Degree, Full Time)");
 
 //Define the function to respond to the dragging behaviour of the bars
 barchart.dragEvent = d3.behavior.drag()
@@ -65,7 +65,8 @@ barchart.dragEvent = d3.behavior.drag()
 barchart.svg.selectAll(".displayBars").call(barchart.dragEvent);
 
 //Create a slider widget
-var slider   = new Slider(30, 500, labels, "","#666",110);
+var sliderSpacing = barchart.width/(labels.length);
+var slider   = new Slider(50, screenHeight*0.8, labels, "","#666",sliderSpacing);
 slider.init();
 slider.render();
 
@@ -76,9 +77,10 @@ slider.render();
                           barchart.clearHintPath();
                       })
                       .on("drag", function(){
-                          d3.event.sourceEvent.preventDefault();
-                          var userX = getUserCoords(this);
-						   slider.updateDraggedSlider(userX[0]);
+                          //d3.event.sourceEvent.preventDefault();
+                         // var userX = getUserCoords(this);
+						  // slider.updateDraggedSlider(userX[0]);
+                         slider.updateDraggedSlider(d3.event.x);
                            barchart.interpolateBars(-1,slider.interpValue,slider.currentTick,slider.nextTick);
 					  })
 					  .on("dragend",function (){

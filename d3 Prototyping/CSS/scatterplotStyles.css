@@ -3,14 +3,14 @@ body {
     /**Disables default selections (text, svg elements) of the browser*/
     -webkit-user-select: none;
     overflow:hidden;
-    background-color: #2C2D2D;
+    background-color: #FFF;
 }
 /**The labels on the hint path */
 .hintLabels {
     font-family: sans-serif;
     font-size:11px;
     text-anchor:middle;
-    fill:#EDEDED;
+    fill:#bdbdbd;
     cursor:pointer;
 }
 
@@ -19,15 +19,16 @@ body {
     /**stroke-width:2;*/
     fill:none;
    /** stroke:#aec7e8;*/
-    stroke:white;
+    /**stroke:white;*/
+	stroke:#dd1c77;
     stroke-width:2;
 }
 
 /*The points */
 .displayPoints{
     /**fill:#EDEDED;*/
-    fill:#A8DDB5;
-    stroke:#2C2D2D;
+    fill:#dd1c77;
+    stroke:#FFF;
     stroke-width:1;
     fill-opacity:1;
     cursor:pointer;
@@ -54,7 +55,7 @@ body {
 .pointLabels {
     font-family: sans-serif;
     font-size:14px;
-    fill:#EDEDED;
+    fill:#BDBDBD;
 }
 /**For the gridlines */
 .axis line{

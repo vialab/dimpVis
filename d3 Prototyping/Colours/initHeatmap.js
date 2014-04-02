@@ -5,13 +5,15 @@ d3.select("#heatmap").append("svg").attr("id","mainSvg").on("click",function(){
     d3.event.preventDefault();
     heatmap.clearHintPath();
 });
+var screenWidth = window.innerWidth-50;
+var screenHeight = window.innerHeight-50;
+
 window.onload = function (){
     //TODO:barchart.useMobile = checkDevice();
-    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
-    //alert(window.innerHeight+" "+window.innerWidth);
+    d3.select("#mainSvg").attr("width",screenWidth).attr("height",screenHeight);
 }
 //Create new heatmap visualization
-var heatmap = new Heatmap(70,15,"Network of Student Relationships over Time (Gerhard van de Bunt)",labels);
+var heatmap = new Heatmap(70,screenWidth,screenHeight,"Network of Student Relationships over Time (Gerhard van de Bunt)",labels);
 
 heatmap.init();
 //setHintPathType(heatmap,1);
@@ -57,7 +59,6 @@ slider.render();
 slider.dragEvent = d3.behavior.drag()
                   .on("dragstart", function(){ heatmap.clearHintPath();})
                   .on("drag", function(){
-                       console.log(slider.currentTick+" "+slider.nextTick+" "+slider.interpValue);
                         heatmap.interpolateColours(slider.currentTick,slider.nextTick,slider.interpValue);
                         slider.updateDraggedSlider(d3.event.x);
                   })

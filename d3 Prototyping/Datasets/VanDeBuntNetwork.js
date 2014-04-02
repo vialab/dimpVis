@@ -554,4 +554,5 @@ for (var i=0;i<network.length;i++){
         data[i].values.push(newValue);
     }
 }
-legendLabels = ["No Response","Unknown Person","Troubled Relationship","Neutral Relationship","Friendly Relationship","Friendship","Best Friendship"];
+//legendLabels = ["No Response","Unknown Person","Troubled Relationship","Neutral Relationship","Friendly Relationship","Friendship","Best Friendship"];
+legendLabels = ["Best Friendship","Friendship","Friendly Relationship","Neutral Relationship","Troubled Relationship","Unknown Person","No Response"];

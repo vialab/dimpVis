@@ -5,19 +5,19 @@
  * title: of the graph
  * hLabels: A list of labels for the hint path, indicating all the different views of the visualization
  */
-function Piechart(p, r,title,hLabels){
+function Piechart(p, w,h,title,hLabels){
     //Save some display properties
    this.padding = p;
    this.graphTitle = title;
-   this.radius = r;
-   this.labelOffset = r;
    this.hintRadiusSpacing = 25;
 
    //Height and width of SVG can be calculated based on radius
-   this.width = this.padding + r*5;
-   this.height = this.padding + r*5;
-   this.cx = this.width/3; //Center of the piechart
-   this.cy = this.height/3;
+   this.width = w;
+   this.height = h;
+   this.radius = (w*0.7)/2;
+   this.labelOffset = this.radius;
+    this.cx = this.radius; //Center of the piechart
+    this.cy = this.radius+this.padding;
 
    //Variables to save display information
    this.svg = null; //Reference to svg container
@@ -47,7 +47,7 @@ function Piechart(p, r,title,hLabels){
    this.mouseX = 0;
    this.mouseY = 0;
    this.hintArcInfo = []; //The points and radii along the hint path
-   this.angleThreshold = 0.01;
+   this.angleThreshold = 0.05;
 
    this.ambiguousSegments = [];
    this.interactionPaths = [];
@@ -81,7 +81,7 @@ function Piechart(p, r,title,hLabels){
    this.interpolator = function (a,b,amount) {return d3.interpolate(a,b)(amount)};
 }
 /**Colour constants */
-Piechart.prototype.labelColour = "#FFF";
+Piechart.prototype.labelColour = "#666";
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
@@ -109,13 +109,14 @@ Piechart.prototype.init = function(){
  Piechart.prototype.render = function(data){
       var ref = this;
 	  this.numArcs = data.length-1;
-      this.colours = colorbrewer.Dark2[data.length];
+      //this.colours = colorbrewer.Dark2[data.length];
+	  this.colours = colorbrewer.Set2[data.length];
       var colourScale;
      //Create a colour scale for the pie segments
      if (this.numArcs <= this.colours.length){
          colourScale = d3.scale.quantize().domain([0,this.numArcs]).range(this.colours);
      }else{
-         colourScale = d3.scale.linear().domain([0,this.numArcs]).range(this.colourscolours);
+         colourScale = d3.scale.linear().domain([0,this.numArcs]).range(this.colours);
      }
 
 	//Assign the data to the paths drawn as pie segments
@@ -553,7 +554,9 @@ Piechart.prototype.redrawHintPath = function (view,angles){
     this.svg.selectAll(".hintLabels").attr("transform",function (d,i) {
         return "translate("+hintArcInfo[i][0]+","+hintArcInfo[i][1]+")";
     }).style("fill-opacity",function (d){return ref.changeLabelOpacity(d,view)})
-       .style("fill",this.labelColour);
+       .style("fill",this.labelColour).style("font-family","sans-serif").style("font-size","10px")
+	   .style("font-weight","bold").style("text-anchor","middle");
+    
 
     //Redraw the interaction path(s) if any
     if (this.isAmbiguous ==1){
@@ -674,15 +677,17 @@ Piechart.prototype.drawHintPath = function (id,view){
     var hintPathArcString = this.createArcString(this.hintArcInfo,false);
 
     //Render white path under the main hint path
-    /**this.svg.select("#hintPath").append("path")
+    this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","pathUnderlayer").attr("class","path")
-        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"});*/
+		.style("stroke-width",7).style("stroke","#FFF").style("fill","none")
+        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"});
 
     //Render the hint path
     this.svg.select("#hintPath").append("path")
         .attr("d", hintPathArcString)
         .attr("id","path").attr("class","path")
+		.style("stroke-width",2).style("stroke","#969696").style("fill","none")
         .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"});
 
     if (this.useMobile){ //Adjust the display properties of the hint path
@@ -712,7 +717,7 @@ Piechart.prototype.drawHintPath = function (id,view){
  * x,y: position of the legend on the screen
  * */
 Piechart.prototype.showLegend = function(x,y){
-    drawColourLegend(this,this.colours,this.segmentLabels,x,y,30,15,1.2);
+    drawColourLegend(this,this.colours,this.segmentLabels,this.cx+this.radius,y,30,15,1.2);
 }
  /** Angle has to be converted to match the svg rotate standard coordinate system: (offset by 90 deg)
  *  source: http://commons.oreilly.com/wiki/index.php/SVG_Essentials/Transforming_the_Coordinate_System#The_rotate_Transformation
@@ -816,48 +821,6 @@ Piechart.prototype.createArcString = function (pathInfo,isSmallHintPath){
 
     return (isSmallHintPath)? strings:dString;
 }
-/** Might remove this function later (just an alternative method for drawing the hint path, but results are the same as drawing arcs)
- * */
-/** Piechart.prototype.calculateHintPathPoints = function (pathInfo){
-   var newPoints = [];
-   var lastIndex = pathInfo.length-1;
-   var startAngle,angleDiff,startRadius,radiusDiff;
-   var totalIntervals = 8; //Play around with this value, will depend on the amount of blur setting
-   //TODO: to save time, can adjust this based on how far apart the angles are (if it's only couple of degrees difference then don't need a big interval)
-   var intermediaryAngle, intermediaryRadius, x, y,factor;
-
-   for (var j=0;j<lastIndex;j++){ //Exclude the last array entry
-        startAngle = pathInfo[j][3];
-        angleDiff= pathInfo[j+1][3] - startAngle;
-        startRadius = pathInfo[j][2];
-        radiusDiff = pathInfo[j+1][2] - startRadius;
-
-        newPoints.push([pathInfo[j][0],pathInfo[j][1]]);
-
-        if (this.corners[j]==1){ //Make the corners look like a loop
-            var cornerX = this.cx + (startRadius + radiusDiff*0.35)*Math.cos(startAngle -this.halfPi);
-            var cornerY = this.cy+ (startRadius + radiusDiff*0.35)*Math.sin(startAngle - this.halfPi);
-            newPoints.push([cornerX,cornerY]);
-        }
-
-       //TODO: stationary regions do not need any intermediary points
-        for (var k = 1;k<totalIntervals;k++){
-            factor = k/totalIntervals;
-            if (factor <=0.35){
-                intermediaryRadius = startRadius + radiusDiff*0.35;
-            }else{
-                intermediaryRadius = startRadius + radiusDiff*factor;
-            }
-            intermediaryAngle = startAngle + angleDiff*factor;
-
-            x = this.cx + intermediaryRadius*Math.cos(intermediaryAngle  - this.halfPi);
-            y = this.cy+ intermediaryRadius*Math.sin(intermediaryAngle  - this.halfPi);
-            newPoints.push([x,y]);
-        }
-    }
-    newPoints.push([pathInfo[lastIndex][0],pathInfo[lastIndex][1]]);
-    return newPoints;
-}*/
 /** Animates all segments on the piechart along the hint path of a selected segment
  *  startView to endView, this function is called when a label on the hint path is clicked
  *  startView, endView: View indices bounding the animation

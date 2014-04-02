@@ -8,12 +8,15 @@ function Scatterplot(w, h,p) {
    this.padding = p;
    this.width = w;
    this.height = h;
-   this.pointRadius = 10;
-   this.loopRadius = 50;
+   this.pointRadius = 8;
+   this.loopRadius = 40;
    this.xLabel ="";
    this.yLabel = "";
    this.graphTitle = "";
-   this.hintPathType = 0;
+   this.hintPathType = 0;   
+   
+   this.loopCurrent = 0;
+   this.loopNext = 1;
 
    // Create a variable to reference the main svg
    this.svg = null;
@@ -28,12 +31,7 @@ function Scatterplot(w, h,p) {
    this.interpValue = 0; //Stores the current interpolation value (percentage travelled) when a point is dragged between two views
    this.labels = []; //Stores the labels of the hint path
    this.ambiguousPoints = [];  //Keeps track of any points which are ambiguous when the hint path is rendered, by assigning the point a flag
-   //this.closePoints = []; //Points which are near each other such that labels are probably overlapping
    this.loops = []; //Stores points to draw for interaction loops (if any)
-   this.previousLoopAngle = "start"; //Stores the angle of dragging along a loop, used to determine rotation direction along loop
-   this.previousLoopSign = 0; //Keeps track of the angle switching from positive to negative or vice versa when dragging along a loop
-   this.previousDraggingDirection = 1; //Saves the dragging direction around an interaction loop
-   //this.endView = -1;  //The view at the end of a loop
    this.timeDirection = 1; //Tracks the direction travelling over time
 
    //Save some angle values
@@ -53,6 +51,9 @@ function Scatterplot(w, h,p) {
    this.hintPathGenerator =  d3.svg.line().interpolate("linear");
 
    this.clickedPoints = []; //Keeps track of which points to show labels for
+      
+   this.pointColour = "00A2E8";
+   this.hintPathColour = "#aec7e8";
 }
  /** Append a blank svg and g container to the div tag indicated by "id", this is where the visualization
  *  will be drawn. Also, add a blur filter for the hint path effect.
@@ -71,7 +72,7 @@ Scatterplot.prototype.init = function() {
     //Add the blur filter for interaction loops
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blurLoop").append("svg:feGaussianBlur")
-        .attr("stdDeviation", 2);
+        .attr("stdDeviation", 1);
 
     //Add the blur filter for the partial hint path
     this.svg.append("svg:defs").append("svg:filter")
@@ -102,13 +103,13 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
      //Find the max and min values of the points, used to scale the axes and the dataset
      var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
      var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
-    var min_y = d3.min(data.map(function (d){return d3.min(d.points.map(function (a){return a[1];}) ); }));
-console.log(min_y);
+    //var min_y = d3.min(data.map(function (d){return d3.min(d.points.map(function (a){return a[1];}) ); }));
 
     //Create the scales by mapping the x,y to the svg size
     var xScale = d3.scale.linear().domain([0,max_x]).range([0,ref.width]);
-    //var yScale =  d3.scale.linear().domain([min_y, max_y]).range([ref.height,0]);
-    var yScale =  d3.scale.linear().domain([min_y, 50000000,max_y]).range([ref.height,ref.height/2,0]); //polylinear scale for the internet user dataset
+    var yScale =  d3.scale.linear().domain([0, max_y]).range([ref.height,0]);
+    //var yScale =  d3.scale.linear().domain([min_y, 50000000,max_y]).range([ref.height,ref.height/2,0]); //polylinear scale for the internet user dataset
+
     //Call the function which draws the axes
     this.drawAxes(xScale,yScale);
 
@@ -141,7 +142,8 @@ console.log(min_y);
           .attr("r", this.pointRadius).attr("class", "displayPoints")
           .attr("id", function (d){return "displayPoints"+d.id;})
          /** .attr("title", function (d) {return d.label;})*/
-         .style("fill-opacity",1);
+         .style("fill-opacity",1).style("stroke","#FFF").style("stroke-width",1)		
+		.style("fill",this.pointColour).style("fill-opacity",1);
 
     //Append an empty g element to contain the hint path
     this.svg.append("g").attr("id","hintPath");
@@ -181,12 +183,12 @@ Scatterplot.prototype.interpolateMissingPoint = function (points,year){
     // Add the x-axis
     this.svg.append("g").attr("class", "axis")
         .attr("transform", "translate("+this.padding+"," + this.height + ")")
-        .call(xAxis);
+        .call(xAxis).selectAll("line").style("fill","none").style("stroke","#BDBDBD");
 
     // Add the y-axis
     this.svg.append("g").attr("class", "axis")
         .attr("transform", "translate("+ this.padding+ ",0)")
-        .call(yAxis);
+        .call(yAxis).selectAll("line").style("fill","none").style("stroke","#BDBDBD");
 
     // Add an x-axis label
     this.svg.append("text").attr("class", "axisLabel")
@@ -204,7 +206,8 @@ Scatterplot.prototype.interpolateMissingPoint = function (points,year){
 Scatterplot.prototype.appendAnchor = function (){
     if (this.svg.select("#anchor").empty()){
         this.svg.select("#hintPath").append("circle")
-         .attr("id","anchor").attr("r",5).style("stroke","none");
+         .attr("id","anchor").attr("r",this.pointRadius).style("stroke","none")
+		 .style("fill","none").style("stroke","#666");
     }
 }
 /** Re-draws the anchor, based on the dragging along the loop
@@ -249,9 +252,13 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
 
         if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
             this.previousLoopAngle = "start";
+			this.loopCurrent = 3;
+            this.loopNext = 4;
             newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
         }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
-            this.previousLoopAngle = "start";
+            this.loopCurrent = 0;
+            this.loopNext = 1;
+			this.previousLoopAngle = "start";
             newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
         }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
             this.dragAlongLoop(id,currentPointInfo[1],mouseX,mouseY);
@@ -303,6 +310,7 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
           redrawPartialHintPath_line(this,this.ambiguousPoints);
         }
     }
+	
     return newPoint;
 }
 /** Sets the time direction based on the interpolation amount, currently not needed for the interaction
@@ -347,77 +355,86 @@ Scatterplot.prototype.interpolateLabelColour = function (interp){
     var ref = this;
     this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d) {
             if (d.id ==ref.currentView){ //Dark to light
-                return d3.interpolate(1,0.3)(interp);
+                return d3.interpolate(1,0.5)(interp);
             }else if (d.id == ref.nextView){ //Light to dark
-                return d3.interpolate(0.3,1)(interp);
+                return d3.interpolate(0.5,1)(interp);
             }
-            return 0.3;
+            return 0.5;
         });
 }
-/**Handles a dragging interaction along an interaction loop (really a circular dragging motion)
- * used to advance forward or backward along the hint path in the stationary point case
- * id: of the dragged point
- * groupNumber: the group of repeated points this loop belongs to
- * */
- Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
+Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
 
-     //TODO: if approaching loop from forward in time, can only drag clockwise (move forward in time around loop) if currentView is the first view on the stationary sequence
-     //TODO: similarily, if approaching loop from other side, can only drag counter clockwise if view is the last view on the stationary sequence
-     //TODO:These are constants and do not need to be computed each time the mouse drags
+    var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle,d.points2,d.years]});   
+    
+	//var loopGenerator = d3.svg.line().interpolate("linear"); 
+	//this.svg.select("#hintPath").append("path").attr("d",loopGenerator(loopData[0][3])).style("fill","none").style("stroke","#FFF");
 
-     //TODO: dragging direction is toggling..
 
-     //TODO:These values can be saved and do not need to be computed each time the mouse drags
-     var loopData = this.svg.select("#loop"+groupNumber).data().map(function (d) {return [d.cx, d.cy,d.orientationAngle]});
-     var angles = this.calculateMouseAngle(mouseX,mouseY,loopData[0][2],loopData[0][0],loopData[0][1]);
-     var sign = (angles[0]>0)?1:-1;  //Determine the sign of the angle (+/-)
+	//d.points[0] = stationary point
+	//d.points[1] = to the left of the stationary pt (forward path)
+	//d.points[2..] = etc.. keep going counter clockwise
+   // this.svg.append("circle").attr("cx",loopData[0][3][3][0]).attr("cy",loopData[0][3][3][1]).attr("r",10).style("fill","red");
+	var loopPoints = loopData[0][3];
+    var pt1_x = loopPoints[this.loopCurrent][0];
+	var pt1_y = loopPoints[this.loopCurrent][1];
+	var pt2_x = loopPoints[this.loopNext][0];
+	var pt2_y = loopPoints[this.loopNext][1];
 
-     //Re-draw the anchor along the loop
-     var loopInterp = this.convertMouseToLoop_interp(angles[2]);
+     var minDist = this.minDistancePoint(mouseX,mouseY,pt1_x,pt1_y,pt2_x,pt2_y);
+     var newPoint = []; //The new point to draw on the line
+     var t = minDist[2]; //To test whether or not the dragged point will pass pt1 or pt2
 
-     //Find the angular dragging direction
-     var draggingDirection = (angles[1] > this.previousLoopAngle)? 1 : (angles[1] < this.previousLoopAngle)?-1 : this.previousDraggingDirection;
-
-     //Adjust the interpolation value based on the dragging direction
-    var interpAmount = 1-angles[2];
-
-    //Check if the angle has changed signs
-    if (sign != this.previousLoopSign && this.previousLoopAngle != "start"){ //Switching Directions, might be a view change
-        var angle_deg = angles[1]*180/Math.PI;
-        if ((angle_deg >= 350 && angle_deg <= 360)||(angle_deg>=0 && angle_deg <=10)){ //Check for sign switches within 10 degrees of the 360/0 mark
-            if (draggingDirection==1){ //Dragging clockwise
-                /**if (this.nextView != this.lastView){
-                   if (this.ambiguousPoints[this.nextView+1][0]==0) { //Trying to detect end points to fix jumping
-                       console.log("end point next");
-                   }
-                }*/
-                this.moveForward();
-            }else{ //Dragging counter-clockwise
-                /**if (this.currentView > 0){
-                    if (this.ambiguousPoints[this.currentView-1][0]==0) {
-                        console.log("end point current");
-                    }
-                }*/
+	  var angles = this.calculateMouseAngle(minDist[0],minDist[1],loopData[0][2],loopData[0][0],loopData[0][1]);
+      var loopInterp = this.convertMouseToLoop_interp(angles[2]);
+    
+	//Get the loop's boundary years
+	var startYear = loopData[0][4][0];	
+	var endYear = loopData[0][4][loopData[0][4].length-1];
+	
+    if (t<0){ //Passed current on loop
+        this.loopNext = this.loopCurrent;
+        this.loopCurrent--;
+        if (this.loopCurrent < 0){ //Check if the view was passed
+           if(this.currentView > startYear){ //In the middle of the loop (2 is the border view)
                 this.moveBackward();
-            }
-        }else{ //Halfway around the loop
-            this.interpValue = interpAmount;
-            this.timeDirection = this.findTimeDirection(interpAmount);
+                this.loopCurrent = 3;
+                this.loopNext = 4;
+           }else{ //Move back to the full hint path
+               this.loopCurrent = 0;
+               this.loopNext = 1;
+               this.moveBackward();
+           }
         }
-    }else{ //Dragging in the middle of the loop, animate the view
-        this.timeDirection = this.findTimeDirection(interpAmount);
-        this.interpolatePoints(id,interpAmount,this.currentView,this.nextView);
-        this.interpolateLabelColour(interpAmount);
-        this.interpValue = interpAmount;
-    }
-
-     this.redrawAnchor(loopInterp,groupNumber);
-
-    //Save the dragging angle and directions
+        //console.log("backward"+this.loopCurrent+" "+this.loopNext+" views"+this.currentView+" "+this.nextView);
+    }else if (t>1){ //Passed next on the loop
+       this.loopCurrent = this.loopNext;
+       this.loopNext++;
+       if (this.loopCurrent > 3){ //Check if the view was passed
+            if (this.nextView < endYear){ //Not at the border view
+               this.loopCurrent = 0;
+               this.loopNext = 1;
+               this.moveForward();
+            }else{
+                this.loopCurrent = 3;
+                this.loopNext = 4;
+                this.moveForward();
+            }
+        }
+        //console.log("forward"+this.loopCurrent+" "+this.loopNext+" views"+this.currentView+" "+this.nextView);
+    }else{ //Some in between the views (pt1 and pt2), redraw the anchor and the view
+        //this.svg.select("#anchor").attr("cx",minDist[0]).attr("cy",minDist[1]).style("stroke","#c7c7c7");       
+        this.interpAmount = angles[2];
+		this.timeDirection = this.findTimeDirection(this.interpAmount,id);
+        this.interpolatePoints(id,this.interpAmount,this.currentView,this.nextView);
+        this.interpolateLabelColour(this.interpAmount);
+        if (this.hintPathType ==1){
+            redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
+        }
+    }	
+    this.redrawAnchor(loopInterp,groupNumber,id);    
     this.previousLoopAngle = angles[1];
-    this.previousLoopSign = sign;
-    this.previousDraggingDirection = draggingDirection;
-
+    //this.previousLoopSign = travelled;
+    //this.previousDraggingDirection = draggingDirection;
 }
 /**Finds the angle of the mouse w.r.t the center of the loop
  * @return [angle,positiveAngle,interpAmount]
@@ -555,7 +572,7 @@ Scatterplot.prototype.snapToView = function( id, points) {
 
             //Re-colour the labels along the hint path (if a path is visible)
             if (d.id == id){
-                d3.selectAll(".hintLabels").attr("fill-opacity",function (b){ return ((b.id==animateView)?1:0.3)});
+                d3.selectAll(".hintLabels").attr("fill-opacity",function (b){ return ((b.id==animateView)?1:0.5)});
             }
         };
     }
@@ -579,7 +596,7 @@ Scatterplot.prototype.redrawView = function(view) {
     }else{
         this.hideAnchor();
         //Re-colour the hint path labels
-        this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
+        this.svg.selectAll(".hintLabels").attr("fill-opacity",function (d){ return ((d.id==view)?1:0.5)});
         this.svg.selectAll(".displayPoints")/**.transition().duration(300)*/
             .attr("cx",function (d){return d.nodes[view][0];})
             .attr("cy",function (d){return d.nodes[view][1];});
@@ -661,15 +678,18 @@ Scatterplot.prototype.selectPoint = function (point){
         .attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; })
         .attr("class","hintLabels")
-        .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)})
+        .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.5)})
         .attr("id",function (d){return "hintLabels"+ d.id})
+		.style("font-family","sans-serif").style("font-size","12px").style("text-anchor","middle")
+		.style("fill","#666")
         .on("click", this.clickHintLabelFunction);
 
     //Render the hint path line
     this.svg.select("#hintPath").append("svg:path")
         .attr("d",  this.hintPathGenerator(points))
         .attr("id","path")
-        .attr("filter", "url(#blur)");
+        .attr("filter", "url(#blur)")
+		.style("fill","none").style("stroke-width",2).style("stroke",this.hintPathColour);  
 
 }
 /**This function places labels in ambiguous cases such that they do not overlap
@@ -713,11 +733,18 @@ Scatterplot.prototype.placeLabels = function (points){
             loopPoints = ref.calculateLoopPoints(d[0],d[1],d[2]);
             var x = d[0] + (ref.loopRadius/2)*Math.cos(d[2]);
             var y = d[1] + (ref.loopRadius/2)*Math.sin(d[2]);
-            return {points:loopPoints,id:i,orientationAngle:d[2],cx:x,cy:y};
+			var repeatedYears = [];
+			for (var j=0;j<ref.ambiguousPoints.length;j++){
+			    if (ref.ambiguousPoints[j][0] == 1 && ref.ambiguousPoints[j][1] == i){
+				    repeatedYears.push(j);
+				}
+			}
+            return {points:loopPoints[0],id:i,orientationAngle:d[2],cx:x,cy:y,points2:loopPoints[1],years:repeatedYears};
         }))
         .enter().append("path").attr("class","loops")
         .attr("d",function (d){return loopGenerator(d.points);})
         .attr("id",function (d,i){return "loop"+i;})
+		.style("fill","none").style("stroke","#666").style("stroke-dasharray","3,3")
         .attr("filter", "url(#blurLoop)");
 }
 /** Clears the hint path by removing it, also re-sets the transparency of the faded out points and the isAmbiguous flag */
@@ -778,20 +805,42 @@ Scatterplot.prototype.minDistancePoint = function(x,y,pt1_x,pt1_y,pt2_x,pt2_y){
  * @return an array of all loop points and the year index in the format: [[x,y], etc.]
  * */
 Scatterplot.prototype.calculateLoopPoints = function (x,y,angle){
-    var loopPoints = [];
+   var drawingPoints = [];
     var loopWidth = Math.PI/5; //Change this value to expand/shrink the width of the loop
 
     //The first point of the path should be the original point, as a reference for drawing the loop
-    loopPoints.push([x,y]);
+    drawingPoints.push([x,y]);
 
     //Generate some polar coordinates to complete the round part of the loop
-    loopPoints.push([(x + this.loopRadius*Math.cos(angle+loopWidth)),(y+ this.loopRadius*Math.sin(angle+loopWidth))]);
-    loopPoints.push([(x + this.loopRadius*Math.cos(angle)),(y+ this.loopRadius*Math.sin(angle))]);
-    loopPoints.push([(x + this.loopRadius*Math.cos(angle-loopWidth)),(y+ this.loopRadius*Math.sin(angle-loopWidth))]);
+    drawingPoints.push([(x + this.loopRadius*Math.cos(angle+loopWidth)),(y+ this.loopRadius*Math.sin(angle+loopWidth))]);
+    drawingPoints.push([(x + this.loopRadius*Math.cos(angle)),(y+ this.loopRadius*Math.sin(angle))]);
+    drawingPoints.push([(x + this.loopRadius*Math.cos(angle-loopWidth)),(y+ this.loopRadius*Math.sin(angle-loopWidth))]);
 
    //The last point of the path should be the original point, as a reference for drawing the loop
-   loopPoints.push([x,y]);
-   return loopPoints;
+   drawingPoints.push([x,y]);
+   
+   //Hack here!!!- another set of points for handling dragging around loops
+	var loopPoints = [];
+	loopWidth = Math.PI/7; //Change this value to expand/shrink the width of the loop
+    var adjustedRadius = this.loopRadius - 10;
+	//The first point of the path should be the original point, as a reference for drawing the loop
+	loopPoints.push([x,y]);
+
+	//Generate some polar coordinates to complete the round part of the loop
+	//HACK: use this when dragging segways to the left
+	/**loopPoints.push([(x + adjustedRadius*Math.cos(angle+loopWidth)),(y+ adjustedRadius*Math.sin(angle+loopWidth))]);
+	loopPoints.push([(x + adjustedRadius*Math.cos(angle)),(y+ adjustedRadius*Math.sin(angle))]);
+	loopPoints.push([(x + adjustedRadius*Math.cos(angle-loopWidth)),(y+ adjustedRadius*Math.sin(angle-loopWidth))]);*/
+    
+	//HACK: use this point order when dragging segways right
+	loopPoints.push([(x + adjustedRadius*Math.cos(angle-loopWidth)),(y+ adjustedRadius*Math.sin(angle-loopWidth))]);
+	loopPoints.push([(x + adjustedRadius*Math.cos(angle)),(y+ adjustedRadius*Math.sin(angle))]);
+	loopPoints.push([(x + adjustedRadius*Math.cos(angle+loopWidth)),(y+ adjustedRadius*Math.sin(angle+loopWidth))]);
+	
+	//The last point of the path should be the original point, as a reference for drawing the loop
+	loopPoints.push([x,y]);
+   
+   return [drawingPoints,loopPoints];
 }
 /** Search for ambiguous cases in a list of points.  Ambiguous cases are tagged as '1' and non-ambiguous are '0'.
  *  If ambiguous cases are found, draws loops.
@@ -868,7 +917,7 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
     if (this.isAmbiguous == 1){
         //TODO: automatically orient the loops such that they smoothly blend with the path
         for (var i = 0;i<repeatedPoints.length;i++){
-            repeatedPoints[i].push(Math.PI/6);
+            repeatedPoints[i].push(Math.PI*3/2);
         }
         this.drawLoops(id,repeatedPoints);
     }

@@ -3,7 +3,7 @@
  * bw: width of the bars
  * p: a padding value, to format the axes
  */
- function Barchart(h,bw,p){
+ function Barchart(h,w,p){
    this.svg = null; //Reference to svg container
    this.useMobile = false;
 
@@ -12,7 +12,8 @@
    this.zeroBarColour = "#c7c7c7";
 
    this.padding = p;
-   this.barWidth = bw;
+   this.width = w;
+   this.barWidth = 0;
    this.strokeWidth=5;
    this.height = h;
    this.hintPathSpacing = 40; //Amount of horizontal distance between labels on hint path
@@ -23,7 +24,6 @@
 
    //Variables set later (in render or init)
    this.numBars = 0;
-   this.width = 0;
    this.hintLabels = [];
    this.lastView = -1; //Index of the last view on the hint path
    this.xLabels = []; //To store the labels along the x-axis
@@ -86,7 +86,7 @@ Barchart.prototype.init = function(){
      //Add the blur filter to the SVG so other elements can call it
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blur").append("svg:feGaussianBlur")
-        .attr("stdDeviation", 3);
+        .attr("stdDeviation", 2);
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -116,7 +116,8 @@ Barchart.prototype.init = function(){
     this.yLabel = yLabel;
 
     //Set the width of the svg (based on number of bars)
-     this.width = (this.barWidth+this.strokeWidth)*this.numBars
+     //this.width = (this.barWidth+this.strokeWidth)*this.numBars
+     this.barWidth = (this.width-(this.padding*2)-(this.numBars))/this.numBars;
 
      //Find the max value of the heights, used to scale the axes and the dataset
      var max_h = d3.max(data.map(function (d){return d3.max(d.heights);}));
@@ -642,7 +643,8 @@ Barchart.prototype.drawInteractionPaths = function(translate){
         .data(this.interactionPaths.map(function (d,i){return {points:d,id:i}}))
         .enter().append("path").attr("d",function (d){return ref.interactionPathGenerator(d.points)})
         .attr("transform","translate("+(-translate)+")")
-        .attr("class","interactionPath").attr("id",function (d){return "interactionPath"+ d.id;});
+        .attr("class","interactionPath").attr("id",function (d){return "interactionPath"+ d.id;})
+		.style("fill","none").style("stroke","#BDBDBD").style("stroke-dasharray","3,3");
     this.passedMiddle = -1; //In case dragging has started in the middle of a sine wave..
 }
 /** Displays the hint path by appending its svg components to the main svg
@@ -658,13 +660,15 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("d", this.hintPathGenerator(ref.pathData))
         .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
         .attr("transform","translate("+(-translate)+")")
-        .attr("id","underLayer").attr("clip-path","url(#clip)");
+		.style("stroke","#FFF").style("fill","none").style("stroke-width",3)
+        .attr("id","underLayer");//.attr("clip-path","url(#clip)");
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("path")
        .attr("d", this.hintPathGenerator(ref.pathData))
        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
        .attr("transform","translate("+(-translate)+")")
+	   .style("stroke","#74c476").style("fill","none").style("stroke-width",1)
        .attr("id","path").attr("clip-path","url(#clip)");
 
     if (this.useMobile){ //Adjust the display properties of the hint path
@@ -684,6 +688,8 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)})
         .attr("transform", "translate("+(-translate)+")")
         .attr("id",function (d) {return "hintLabel"+ d.id})
+		.style("font-family","sans-serif").style("font-size","10px")
+		.style("text-anchor","middle").style("fill","#666")
         //.attr("clip-path","url(#clip)")
         .attr("class","hintLabels").on("click",this.clickHintLabelFunction);
 }

@@ -6,11 +6,13 @@ d3.select("#scatter").append("svg").attr("id","mainSvg").on("click",function(){
     scatterplot.clearHintPath();
     scatterplot.clearPointLabels();
 });
+var screenWidth = window.innerWidth-50;
+var screenHeight = window.innerHeight-50;
 window.onload = function (){
-    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerWidth-50);
+    d3.select("#mainSvg").attr("width",screenWidth).attr("height",screenHeight);
 }
 //Create a new scatterplot visualization
-var scatterplot   = new Scatterplot(1500, 900,50);
+var scatterplot   = new Scatterplot(screenWidth*0.6, screenHeight*0.6,50);
 
 scatterplot.init();
 //setHintPathType(scatterplot,1);
@@ -48,7 +50,8 @@ var dragPoint = d3.behavior.drag()
 scatterplot.svg.selectAll(".displayPoints").call(dragPoint);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(35, 840, labels, "","#666",50);
+var sliderSpacing = scatterplot.width/labels.length;
+var slider   = new Slider(35, screenHeight*0.8, labels, "","#666",sliderSpacing);
 slider.init();
 slider.render();
 				  

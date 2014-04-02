@@ -351,6 +351,7 @@ function drawColourLegend (objectRef,colours,labels,x,y,w,h,spacing){
     //Draw the labels for each colour
     objectRef.svg.selectAll(".legend").append("text").attr("x",x+w+5)
         .attr("y",function(d){return (d.y + h/2*spacing)})
+		.style("fill","#666")
         .text(function (d){return d.label})
 }
 /** Search for ambiguous cases in a list of values along the hint path.  Ambiguous objects are tagged as 1, this is stored in

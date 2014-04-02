@@ -33,7 +33,7 @@ var matrixColours = [];
 //var labels = [1,2,3,4];
 //var xLabels = ["a","b","c"];
 //var yLabels = ["d","e","f"];
-var labels = [1,2,3,4];
+var labels = [2000,2001,2002,2003];
 var xLabels = ["","","",""];
 var yLabels = ["","","",""];
 var counter = 0;
@@ -48,5 +48,6 @@ for (var row =0;row < xLabels.length;row++){
         counter++;
     }
 }
+
 
 

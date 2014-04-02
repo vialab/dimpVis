@@ -4,14 +4,13 @@
  * title: of the chart
  * hLabels: labels to appear along the hint paths
  */
-function Heatmap(p, cs,title,hLabels) {
+function Heatmap(p, w,h,title,hLabels) {
    // Position and size attributes
    this.padding = p;
-   this.cellSize = cs;
    this.chartTitle = title;
    this.svg = null;
-   this.width = null;
-   this.height = null;
+   this.width = w;
+   this.height = h;
 
    //Variables to track interaction events
    this.currentView = 0;
@@ -68,13 +67,7 @@ function Heatmap(p, cs,title,hLabels) {
  *  will be drawn. Also, add a blur filter for the hint path effect.
  * */
 Heatmap.prototype.init = function() {
-    /**this.svg = d3.select(this.id)
-      .append("svg").attr("id","mainSvg")
-      .on("click",this.clickSVG)
-      .append("g")
-      .attr("transform", "translate(" + this.xpos + "," + this.ypos + ")");*/
-
-   this.svg = d3.select("#mainSvg")
+    this.svg = d3.select("#mainSvg")
         .append("g").attr("id","gHeatmap")
         .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
 
@@ -90,7 +83,7 @@ Heatmap.prototype.init = function() {
  * x,y: position of the legend on the screen
  * */
 Heatmap.prototype.showLegend = function(colourLabels,x,y){
-    drawColourLegend(this,this.colours,colourLabels,x,y,30,15,1.2);
+    drawColourLegend(this,this.colours.reverse(),colourLabels,x,y,30,15,1.2);
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -102,14 +95,17 @@ Heatmap.prototype.showLegend = function(colourLabels,x,y){
  * */
 Heatmap.prototype.render = function(data,xLabels,yLabels) {
     var ref = this;
+    this.numCells = xLabels.length+yLabels.length;
+
+    if (this.width>this.height){ //Trying to fit a square..
+        this.cellSize = (this.height-this.numCells/2)/(this.numCells/2);
+    }else{
+        this.cellSize = (this.width-this.numCells/2)/(this.numCells/2);
+    }
 
     this.colours = colorbrewer.YlOrRd[7];
     //Set the width and height of the svg, now that the dimensions are known
-    this.width = xLabels.length*this.cellSize+100;
-    this.height = yLabels.length*this.cellSize+100;
     d3.select(this.id).select("#mainSvg").attr("width", this.width).attr("height", this.height);
-
-    this.numCells = data.length;
 
     //Find the max and min score in the dataset (used for the colour scale)
     var maxScore = d3.max(data.map(function (d){return d3.max(d.values); }));
@@ -158,6 +154,7 @@ Heatmap.prototype.render = function(data,xLabels,yLabels) {
             .attr("id", function (d) {return "cell"+d.id;})
             .attr("x", function(d) {return d.x; })
             .attr("y", function(d) {return d.y; })
+			.style("stroke","#FFF")
             .attr("fill", function(d) {return d.values[ref.currentView][0]; });
 
     //Add the g element to contain the hint path for the dragged tile
@@ -211,7 +208,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
     this.svg.selectAll(".axisVertical").data(yLabels)
         .enter().append("svg:text")
         .text(function(d) {return d;})
-        .attr("x",this.padding+this.width-/**100*/160)
+        .attr("x",10+(this.numCells/2)*this.cellSize)
         .attr("y",function (d,i){return ref.cellSize*i+ref.cellSize/2;})
         .attr("class","axisVertical");
 
@@ -219,8 +216,7 @@ Heatmap.prototype.addAxisLabels = function (xLabels,yLabels){
         .enter().append("svg:text")
         .text(function(d) { return d;})
         .attr("transform",function (d,i) {
-            return "translate("+(ref.cellSize*i+ref.cellSize/2)+",-10)"/**+
-                ","+(ref.padding+ref.height-100)+")" "rotate(-65)";*/
+            return "translate("+(ref.cellSize*i+ref.cellSize/2)+",-10)";
         }).attr("class","axisHorizontal");
 }
 /** Compares the vertical distance of the mouse with the two bounding views (using the
@@ -585,6 +581,7 @@ Heatmap.prototype.selectCell = function (id,pathData,x,y){
     //Append a clear cell with a black border to show which cell is currently selected and dragged
     this.svg.select("#hintPath").append("rect")
         .attr("x",x).attr("y",y).attr("id","draggedCell")
+		.style("fill","none").style("stroke-width",2).style("stroke","#000")
         .attr("width",this.cellSize).attr("height",this.cellSize);
 
      if (this.hintPathType ==0){
@@ -617,6 +614,7 @@ if (this.allStationary == 0){
     this.svg.select("#hintPath").append("svg:path")
         .attr("d", this.hintPathGenerator(coords))
         .attr("id","pathUnderlayer")
+		.style("stroke-width",7).style("stroke","#FFF").style("fill","none")
         .attr("transform","translate("+translateX+")")
         .attr("filter", "url(#blur2)");
 
@@ -624,6 +622,7 @@ if (this.allStationary == 0){
     this.svg.select("#hintPath").append("svg:path")
         .attr("d",this.hintPathGenerator(coords))
         .style("stroke", "url(#line-gradient)")
+		.style("stroke-width",3).style("fill","none")
         .attr("transform","translate("+translateX+")")
         .attr("id","path").attr("filter", "url(#blur)");
 
@@ -645,6 +644,8 @@ this.svg.select("#hintPath").selectAll("text")
        .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)})
        .text(function (d){ return d.label;})
        .attr("class","hintLabels")
+	   .style("font-family","sans-serif").style("font-size","11px").style("text-anchor","middle")
+	   .style("fill","#000")
        .on("click",this.clickHintLabelFunction);
 
 }

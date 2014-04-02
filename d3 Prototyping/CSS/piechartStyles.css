@@ -3,12 +3,12 @@ body {
     /**Disables default selections (text, svg elements) of the browser*/
     -webkit-user-select: none;
     /**overflow:hidden;*/
-    background-color: #2C2D2D;
+    background-color: #FFF;
 }
 #graphTitle{
     font-family: sans-serif;
     font-size:18px;
-    fill:#EDEDED;
+    fill:#666;
 }
 
 /*White layer underneath the main hint path*/
@@ -22,8 +22,8 @@ body {
 #path{
     stroke-width:2;
     fill:none;
-    /**stroke:#969696;*/
-    stroke:white;
+    stroke:#969696;
+    /**stroke:white;*/
 }
 
 /*Labels on the hint path */
@@ -32,7 +32,7 @@ body {
     font-size:10px;
     font-weight:bold;
     text-anchor:middle;
-    fill:#EDEDED;
+    fill:#666;
     cursor:pointer;
 }
 
@@ -43,7 +43,7 @@ body {
 .interactionPath{
     stroke-dasharray:3,3;
     fill: none;
-    stroke:#EDEDED;
+    stroke:#BDBDBD;
 }
 
 /*The anchor along the interaction path */

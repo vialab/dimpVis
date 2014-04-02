@@ -6,13 +6,15 @@
 d3.select("#piegraph").append("svg").attr("id","mainSvg").on("click",function(){
     piechart.clearHintPath();
 });
+var screenWidth = window.innerWidth-50;
+var screenHeight = window.innerHeight-50;
 
 //Create a new piechart visualization
-var piechart   = new Piechart(20 , 150,"Secondary School Averages of Full Time, First Year Science Students",labels);
+var piechart   = new Piechart(50, screenWidth*0.6,screenHeight*0.6,"Secondary School Averages First Year Science Students at UOIT",labels);
 
 window.onload = function (){
     piechart.useMobile = checkDevice();
-    d3.select("#mainSvg").attr("width",window.innerWidth-50).attr("height",window.innerHeight-50);
+    d3.select("#mainSvg").attr("width",screenWidth).attr("height",screenHeight);
 }
 
 //Define the function when the SVG (background) is clicked, should clear the hint path displayed
@@ -52,7 +54,8 @@ piechart.dragEvent = d3.behavior.drag()
     .on("drag", function(d){
         d3.event.sourceEvent.preventDefault();
         var coords = getUserCoords(this);
-        piechart.updateDraggedSegment(d.id,coords[0],coords[1], d.nodes);
+       // piechart.updateDraggedSegment(d.id,coords[0],coords[1], d.nodes);
+        piechart.updateDraggedSegment(d.id,d3.event.x,d3.event.y, d.nodes);
         slider.animateTick(piechart.interpValue,piechart.currentView,piechart.nextView);
     })
     .on("dragend",function (d){
@@ -64,7 +67,8 @@ piechart.dragEvent = d3.behavior.drag()
 piechart.svg.selectAll(".displayArcs").call(piechart.dragEvent);
 
 //Create a new slider widget as an alternative for switching views of the scatterplot visualization
-var slider   = new Slider(60, 500, labels, "","#666",50);
+var sliderHeight = piechart.cy+piechart.radius+75;
+var slider   = new Slider(50,sliderHeight , labels, "","#666",50);
 slider.init();
 slider.render();
 
