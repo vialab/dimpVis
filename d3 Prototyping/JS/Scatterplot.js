@@ -688,40 +688,34 @@ Scatterplot.prototype.selectPoint = function (point){
     this.svg.select("#hintPath").append("svg:path")
         .attr("d",  this.hintPathGenerator(points))
         .attr("id","path")
-       // .attr("filter", "url(#blur)")
-		.style("fill","none").style("stroke-width",2).style("stroke",this.hintPathColour);  
+        .attr("filter", "url(#blur)")
+		.style("fill","none").style("stroke-width",1.5).style("stroke",this.hintPathColour);
 
 }
 /**This function places labels in ambiguous cases such that they do not overlap
  * points: a 2D array of positions of each label [x,y]...
  * */
 Scatterplot.prototype.placeLabels = function (points){
-
-  //if (this.isAmbiguous == 0){return points} //TODO: inefficient because this function will always be called even if there aren't any ambiguous cases
+  if (this.isAmbiguous == 0){return points} //No ambiguous cases, don't need to adjust the points
 
   var ref = this;
   var offset = -1;
-  var indexCounter = 0;
+  var indexCounter = -1;
   var x = 0;
   var y = 0;
-  console.log(ref.ambiguousPoints);
   var adjustedPoints = points.map(function (d,i){
-
       if (ref.ambiguousPoints[i][0] == 1 /**|| ref.ambiguousPoints[i][0] == 2*/){
           if (ref.ambiguousPoints[i][1] != offset){
-              indexCounter = 0;
+              indexCounter = -1;
               offset = ref.ambiguousPoints[i][1];
               x= d[0];
               y = d[1];
           }
-          x = x + 25*indexCounter;
           indexCounter++;
-          console.log(x+" "+offset);
-          return [x,y-10];
+          return [x + 25*indexCounter,y-10];
       }
       return [d[0],d[1]];
   });
-
   return adjustedPoints;
 }
 /** Draws interaction loops as svg paths onto the hint path (if point has stationary cases)

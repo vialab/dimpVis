@@ -71,6 +71,5 @@ slider.render();
 					  });	
 
 //Apply the dragging event to the slider's movable tick
-slider.widget.select("#slidingTick")				                 			  
-                   .call(slider.dragEvent);	   
+slider.widget.select("#slidingTick").call(slider.dragEvent);
 				   
