@@ -103,11 +103,11 @@ Scatterplot.prototype.render = function( data, labels,xLabel,yLabel,title) {
      //Find the max and min values of the points, used to scale the axes and the dataset
      var max_x = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[0];}) ); }));
      var max_y = d3.max(data.map(function (d){return d3.max(d.points.map(function (a){return a[1];}) ); }));
-    //var min_y = d3.min(data.map(function (d){return d3.min(d.points.map(function (a){return a[1];}) ); }));
+    var min_y = d3.min(data.map(function (d){return d3.min(d.points.map(function (a){return a[1];}) ); }));
 
     //Create the scales by mapping the x,y to the svg size
     var xScale = d3.scale.linear().domain([0,max_x]).range([0,ref.width]);
-    var yScale =  d3.scale.linear().domain([0, max_y]).range([ref.height,0]);
+    var yScale =  d3.scale.linear().domain([min_y, max_y]).range([ref.height,0]);
     //var yScale =  d3.scale.linear().domain([min_y, 50000000,max_y]).range([ref.height,ref.height/2,0]); //polylinear scale for the internet user dataset
 
     //Call the function which draws the axes
@@ -680,7 +680,7 @@ Scatterplot.prototype.selectPoint = function (point){
         .attr("class","hintLabels")
         .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.5)})
         .attr("id",function (d){return "hintLabels"+ d.id})
-		.style("font-family","sans-serif").style("font-size","12px").style("text-anchor","middle")
+		.style("font-family","sans-serif").style("font-size","10px").style("text-anchor","middle")
 		.style("fill","#666")
         .on("click", this.clickHintLabelFunction);
 
@@ -688,7 +688,7 @@ Scatterplot.prototype.selectPoint = function (point){
     this.svg.select("#hintPath").append("svg:path")
         .attr("d",  this.hintPathGenerator(points))
         .attr("id","path")
-        .attr("filter", "url(#blur)")
+       // .attr("filter", "url(#blur)")
 		.style("fill","none").style("stroke-width",2).style("stroke",this.hintPathColour);  
 
 }
@@ -702,18 +702,24 @@ Scatterplot.prototype.placeLabels = function (points){
   var ref = this;
   var offset = -1;
   var indexCounter = 0;
-
+  var x = 0;
+  var y = 0;
+  console.log(ref.ambiguousPoints);
   var adjustedPoints = points.map(function (d,i){
-      var x = d[0];
-      if (ref.ambiguousPoints[i][0] == 1 || ref.ambiguousPoints[i][0] == 2){
+
+      if (ref.ambiguousPoints[i][0] == 1 /**|| ref.ambiguousPoints[i][0] == 2*/){
           if (ref.ambiguousPoints[i][1] != offset){
               indexCounter = 0;
               offset = ref.ambiguousPoints[i][1];
+              x= d[0];
+              y = d[1];
           }
           x = x + 25*indexCounter;
           indexCounter++;
+          console.log(x+" "+offset);
+          return [x,y-10];
       }
-      return [x,d[1]];
+      return [d[0],d[1]];
   });
 
   return adjustedPoints;
@@ -855,7 +861,7 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
     var j, currentPoint;
     var repeatedPoints = [];
     var foundIndex = -1;
-    var groupNum = -1;
+    var groupNum = 0;
 
     //Clear and re-set the global arrays
     this.ambiguousPoints = [];
@@ -864,61 +870,43 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
         this.ambiguousPoints[j] = [0];
         //this.closePoints[j] = [0];
     }
-
+    var savedIndex= -1;
     //Populate the stationary and revisiting points array
     //Search for points that match in the x and y values (called "stationary points")
     for (j=0;j<=this.lastView;j++){
         currentPoint = points[j];
         for (var k=0;k<=this.lastView;k++){
             if (j!=k){
-                if (points[k][0] == currentPoint[0] && points[k][1] == currentPoint[1]){ //A repeated point is found
-
+                var distance = findPixelDistance(points[k][0],points[k][1],currentPoint[0],currentPoint[1]);
+                if ((points[k][0] == currentPoint[0] && points[k][1] == currentPoint[1])||(distance<=10)){ //A repeated point is found
                     if (Math.abs(k-j)==1){ //Stationary point
                         this.isAmbiguous = 1;
-                        //Add this stationary point to repeatedPoints, according to it's x and y value
-                        foundIndex = this.findInArray(currentPoint[0],currentPoint[1],repeatedPoints);
-                        if (foundIndex==-1) {
+                        if (Math.abs(savedIndex-j)>1 && savedIndex!=-1){
                             groupNum++;
-                            repeatedPoints.push([currentPoint[0],currentPoint[1]]);
                         }
                         this.ambiguousPoints[j] = [1,groupNum];
-                       // this.closePoints[j] = [1];
-                    }else{ //Found a revisiting point
+                        savedIndex = j;
+                    }/**else{ //Found a revisiting point
                         if (this.ambiguousPoints[j][0] ==0){ //Don't want to overwrite a stationary point
                             this.ambiguousPoints[j] = [2,groupNum];
                         }
-                    }
-                }/**else{ //Possibly a point with overlapping labels
-                    var term1 = points[k][0] - currentPoint[0];
-                    var term2 = points[k][1] - currentPoint[1];
-                    var dist = Math.sqrt((term1*term1)+(term2*term2));
-                    if (dist <= 10){
-                        this.closePoints[j] = [1];
-                    }
-                }*/
+                    }*/
+                }
             }
         }
-    }
-    //Now, need to add adjustedIndex to each ambiguous point so the hint labels can be placed at the correct positions
-    //Also, populate the loops array to contain all loops which must be drawn where there are areas of stationary points
-    /**var foundStationary = 0;
-    for (j=0;j<repeatedPoints.length;j++){
-        var viewIndices = repeatedPoints[j][2];
-        for (k=0;k<viewIndices.length;k++){
-            var type = viewIndices[k][1];
-            this.ambiguousPoints[viewIndices[k][0]] = [type,k,j];
-            if (type==1) foundStationary = 1;
-        }
-        if (foundStationary==1) this.loops.push([repeatedPoints[j][0],repeatedPoints[j][1],viewIndices.length]);
-        foundStationary = 0;
-    }*/
-
-    //Draw the interaction loop(s) (if any)
+    }   //Draw the interaction loop(s) (if any)
     if (this.isAmbiguous == 1){
-        //TODO: automatically orient the loops such that they smoothly blend with the path
-        for (var i = 0;i<repeatedPoints.length;i++){
-            repeatedPoints[i].push(Math.PI*3/2);
+        //TODO: automatically orient the loops such that they blend with the path
+        var currentGroupNum = -1;
+        for (var i=0;i<this.ambiguousPoints.length;i++){
+            if (this.ambiguousPoints[i].length>1){
+                if (this.ambiguousPoints[i][1]!=currentGroupNum){
+                    repeatedPoints.push([points[i][0],points[i][1],Math.PI*3/2]);
+                }
+                currentGroupNum = this.ambiguousPoints[i][1];
+            }
         }
+        console.log(repeatedPoints);
         this.drawLoops(id,repeatedPoints);
     }
 }
