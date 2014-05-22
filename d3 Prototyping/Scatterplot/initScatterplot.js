@@ -11,6 +11,11 @@ var screenHeight = window.innerHeight-50;
 window.onload = function (){
     d3.select("#mainSvg").attr("width",screenWidth).attr("height",screenHeight);
 }
+
+d3.select("#hintPathForm").selectAll("input").on("change", function change() {
+    scatterplot.hintPathType = this.value;
+});
+
 //Create a new scatterplot visualization
 var scatterplot   = new Scatterplot(screenWidth*0.6, screenHeight*0.6,50);
 

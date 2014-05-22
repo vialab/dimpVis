@@ -13,7 +13,13 @@
 <script type="text/javascript" src="../JS/Slider.js"></script>
       <script type="text/javascript" src="../Datasets/populationFullScatterplot.js"></script>
   </head>
-  <body>   
+  <body>
+
+  <form id="hintPathForm">
+      <label><input type="radio" name="mode" value=0 checked>Trajectory</label>
+      <label><input type="radio" name="mode" value=1>Flashlight</label>
+  </form>
+
    <div id="scatter"></div>
     <script type="text/javascript" src="initScatterplot.js"></script>
   </body>
