@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" line="821" />
+    <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" line="823" />
     <bookmark url="file://$PROJECT_DIR$/d3 Prototyping/JS/Slider.js" line="239" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="09daffa6-4579-40cc-9aab-b801be98a107" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" afterPath="$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/Scatterplot.html" afterPath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/Scatterplot.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" afterPath="$PROJECT_DIR$/d3 Prototyping/Scatterplot/initScatterplot.js" />
     </list>
     <ignored path="dimpVis.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -61,7 +59,7 @@
       <file leaf-file-name="Scatterplot.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="567" column="63" selection-start="25704" selection-end="25704" vertical-scroll-proportion="0.63975906">
+            <state line="769" column="55" selection-start="35032" selection-end="35032" vertical-scroll-proportion="0.5987952">
               <folding />
             </state>
           </provider>
@@ -1306,7 +1304,11 @@
       <created>1400768281446</created>
       <updated>1400768281446</updated>
     </task>
-    <option name="localTasksCounter" value="223" />
+    <task id="LOCAL-00223" summary="First iteration of adding the flashlight hint path to the scatterplot, draws the four nearest points on the path as a point is dragged">
+      <created>1400774120774</created>
+      <updated>1400774120774</updated>
+    </task>
+    <option name="localTasksCounter" value="224" />
     <servers />
   </component>
   <component name="TodoView" selected-index="3">
@@ -1393,7 +1395,7 @@
     <option name="SHOW_VCS_ERROR_NOTIFICATIONS" value="true" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added tutorial video" />
+    <option name="LAST_COMMIT_MESSAGE" value="First iteration of adding the flashlight hint path to the scatterplot, draws the four nearest points on the path as a point is dragged" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -1406,7 +1408,6 @@
     <option name="UPDATE_GROUP_BY_CHANGELIST" value="false" />
     <option name="SHOW_FILE_HISTORY_AS_TREE" value="false" />
     <option name="FILE_HISTORY_SPLITTER_PROPORTION" value="0.6" />
-    <MESSAGE value="Fixed issue with scatterplot SM's, points were not being transformed according to padding/spacing values" />
     <MESSAGE value="Added the exploratory period to the scatterplot experiment, integrating the point labels" />
     <MESSAGE value="Testing a new dataset with the scatterplot using polylinear scales" />
     <MESSAGE value="Added a intermediate screen between phases in the user experiment" />
@@ -1431,6 +1432,7 @@
     <MESSAGE value="Fixed issue with multiple loops on scatterplot hint path and added loops for very close points" />
     <MESSAGE value="Fixed label alignment at loops on scatterplot" />
     <MESSAGE value="Added tutorial video" />
+    <MESSAGE value="First iteration of adding the flashlight hint path to the scatterplot, draws the four nearest points on the path as a point is dragged" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1527,7 +1529,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/d3 Prototyping/JS/Scatterplot.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="567" column="63" selection-start="25704" selection-end="25704" vertical-scroll-proportion="0.63975906">
+        <state line="769" column="55" selection-start="35032" selection-end="35032" vertical-scroll-proportion="0.5987952">
           <folding />
         </state>
       </provider>

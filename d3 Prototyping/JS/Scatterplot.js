@@ -760,19 +760,21 @@ Scatterplot.prototype.drawHintPath_flashlight = function (currentPosition,points
           distances.push([this.calculateDistance(currentPosition[0],currentPosition[1],points[i][0],points[i][1]),i]);
     }
     distances.sort(function(a,b){return a[0]-b[0]}); //Sort ascending
+    var maxDistance = distances[4][0]; //For scaling the transparency
+
     //var pathPoints = [];
     var ref = this;
-    for (var i=1;i<4;i++){ //Start at 1, we know the zero distance will be the first element in the sorted array
+    for (var i=0;i<4;i++){ //Start at 1, we know the zero distance will be the first element in the sorted array
         //pathPoints.push(points[distances[i][1]]);
         var pointIndex = distances[i][1];
         this.svg.select("#hintPath").append("svg:path")
             .attr("d",  this.hintPathGenerator([points[pointIndex],currentPosition]))
-            .attr("id","path").attr("filter", "url(#blur)")
-            .style("fill","none").style("stroke-width",1.5).style("stroke",this.hintPathColour);
+            .attr("id","path").attr("filter", "url(#blur)").attr("fill-opacity",1-distances[i][0]/maxDistance)
+            .style("fill","none").style("stroke-width",1).style("stroke",this.hintPathColour);
         this.svg.select("#hintPath").append("text").text(ref.labels[pointIndex]).attr("x",points[pointIndex][0])
             .attr("y", points[pointIndex][1]).attr("class","hintLabels")
-            //.attr("fill-opacity",function (d){ return ((d.id==view)?1:0.5)})
-            .attr("id",function (d){return "hintLabels"+ pointIndex})
+            .attr("fill-opacity",1-distances[i][0]/maxDistance)
+            .attr("id","hintLabels"+ pointIndex)
             .style("font-family","sans-serif").style("font-size","10px").style("text-anchor","middle")
             .style("fill","#666").on("click", this.clickHintLabelFunction);
         this.hintPathPoints_flashlight.push(pointIndex);
