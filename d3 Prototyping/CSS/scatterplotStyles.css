@@ -26,8 +26,6 @@ body {
 
 /*The points */
 .displayPoints{
-    /**fill:#EDEDED;*/
-    fill:#dd1c77;
     stroke:#FFF;
     stroke-width:1;
     fill-opacity:1;
@@ -44,7 +42,7 @@ body {
 /*The anchor along the interaction path */
 #anchor{
     fill: none;
-    stroke:#c7c7c7;
+    /**stroke:#c7c7c7;*/
 }
 /*For the short hint path */
 #forwardPath, #backwardPath{

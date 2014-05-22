@@ -207,7 +207,7 @@ Scatterplot.prototype.appendAnchor = function (){
     if (this.svg.select("#anchor").empty()){
         this.svg.select("#hintPath").append("circle")
          .attr("id","anchor").attr("r",this.pointRadius).style("stroke","none")
-		 .style("fill","none").style("stroke","#666");
+		 .style("fill","none");
     }
 }
 /** Re-draws the anchor, based on the dragging along the loop
@@ -569,7 +569,7 @@ Scatterplot.prototype.snapToView = function( id, points) {
             .attr("cx",d.nodes[animateView][0])
             .attr("cy",d.nodes[animateView][1])
             .each("end", animate());
-
+            ref.animatePointLabel(d.id, d.nodes[animateView][0], d.nodes[animateView][1]);
             //Re-colour the labels along the hint path (if a path is visible)
             if (d.id == id){
                 d3.selectAll(".hintLabels").attr("fill-opacity",function (b){ return ((b.id==animateView)?1:0.5)});
