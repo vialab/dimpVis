@@ -23,11 +23,11 @@ scatterplot.init();
 //setHintPathType(scatterplot,1);
 
 //Define the click interaction of the hint labels to invoke fast switching among views
-scatterplot.clickHintLabelFunction = function (d, i){
+scatterplot.clickHintLabelFunction = function (d){
     d3.event.stopPropagation(); //Prevents the event from propagating down to the SVG
-    scatterplot.animatePoints(scatterplot.draggedPoint,scatterplot.currentView, i);
-    changeView(scatterplot,i);
-    slider.updateSlider(i);
+    scatterplot.animatePoints(scatterplot.draggedPoint,scatterplot.currentView, d.id);
+    changeView(scatterplot, d.id);
+    slider.updateSlider(d.id);
 };
 
 scatterplot.render( dataset, labels,xLabel,yLabel,title); //Draw the scatterplot, dataset is an array created in a separate js file containing the json data,

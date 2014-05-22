@@ -545,7 +545,7 @@ Scatterplot.prototype.snapToView = function( id, points) {
         distanceNext = this.calculateDistance(this.mouseX,this.mouseY, points[this.nextView][0],points[this.nextView][1]);
     }
 
-    //Based on the smaller distance, update the scatterplot to that view
+    //Based on the smaller distance, update the scatter plot to that view
     if (distanceCurrent > distanceNext && this.nextView <= this.lastView){ //Snapping to next view
 		this.currentView = this.nextView;
 	    this.nextView = this.nextView +1;
@@ -567,7 +567,7 @@ Scatterplot.prototype.snapToView_flashlight = function (id,points){
      for (var i=0;i<this.hintPathPoints_flashlight.length;i++){
          currentPointIndex = this.hintPathPoints_flashlight[i];
          var currentDist = this.calculateDistance(points[currentPointIndex][0],points[currentPointIndex][1],this.mouseX,this.mouseY);
-         if (currentDist!= 0 && currentDist<minDist) {
+         if (currentDist<minDist) {
              minDist = currentDist;
              viewToSnapTo = currentPointIndex;
          }
@@ -576,6 +576,7 @@ Scatterplot.prototype.snapToView_flashlight = function (id,points){
         this.currentView = viewToSnapTo;
         this.nextView = this.currentView+1;
     }
+    this.drawHintPath_flashlight(points[viewToSnapTo],points);
     this.redrawView(viewToSnapTo);
 }
 /** Animates all points in the scatterplot along their hint paths from
@@ -587,7 +588,13 @@ Scatterplot.prototype.snapToView_flashlight = function (id,points){
  *            http://bost.ocks.org/mike/transition/
  * */
  Scatterplot.prototype.animatePoints = function( id, startView, endView) {
-     if (startView == endView){return;}
+
+     if (this.hintPathType==1){ //Go directly to the year, when using flashlight path
+         this.redrawView(endView);
+         return;
+     }
+
+     if (startView == endView)return;
      var ref = this;
      //Determine the travel direction (e.g., forward or backward in time)
      var direction = 1;
@@ -652,12 +659,13 @@ Scatterplot.prototype.redrawView = function(view) {
         this.svg.selectAll(".displayPoints")/**.transition().duration(300)*/
             .attr("cx",function (d){return d.nodes[view][0];})
             .attr("cy",function (d){return d.nodes[view][1];});
-        this.redrawPointLabels(view);
+
     }else if (this.hintPathType==1){ //Flashlight
         this.svg.selectAll(".displayPoints").transition().duration(300)
             .attr("cx",function (d){return d.nodes[view][0];})
             .attr("cy",function (d){return d.nodes[view][1];});
     }
+    this.redrawPointLabels(view);
 }
 /** Called each time a new point is dragged.  Searches for ambiguous regions, and draws the hint path
  *  */
@@ -723,9 +731,7 @@ Scatterplot.prototype.selectPoint = function (point){
 
      this.svg.select("#hintPath").selectAll("text")
        .data(adjustedPoints.map(function (d,i) {
-            var xPos = d[0]+ ref.pointRadius;
-            var yPos = d[1]+ ref.pointRadius;
-            return {x:xPos,y:yPos,id:i}
+            return {x:d[0]+ ref.pointRadius,y:d[1]+ ref.pointRadius,id:i}
         })).enter().append("svg:text")
         .text(function(d,i) {
              if (interpPts[i]==1) return "";  //Don't show the labels of interpolated years
@@ -762,23 +768,27 @@ Scatterplot.prototype.drawHintPath_flashlight = function (currentPosition,points
     distances.sort(function(a,b){return a[0]-b[0]}); //Sort ascending
     var maxDistance = distances[4][0]; //For scaling the transparency
 
-    //var pathPoints = [];
+    var pathPoints = [];
     var ref = this;
     for (var i=0;i<4;i++){ //Start at 1, we know the zero distance will be the first element in the sorted array
-        //pathPoints.push(points[distances[i][1]]);
+        pathPoints.push(points[distances[i][1]]);
         var pointIndex = distances[i][1];
         this.svg.select("#hintPath").append("svg:path")
             .attr("d",  this.hintPathGenerator([points[pointIndex],currentPosition]))
             .attr("id","path").attr("filter", "url(#blur)").attr("fill-opacity",1-distances[i][0]/maxDistance)
             .style("fill","none").style("stroke-width",1).style("stroke",this.hintPathColour);
-        this.svg.select("#hintPath").append("text").text(ref.labels[pointIndex]).attr("x",points[pointIndex][0])
-            .attr("y", points[pointIndex][1]).attr("class","hintLabels")
-            .attr("fill-opacity",1-distances[i][0]/maxDistance)
-            .attr("id","hintLabels"+ pointIndex)
-            .style("font-family","sans-serif").style("font-size","10px").style("text-anchor","middle")
-            .style("fill","#666").on("click", this.clickHintLabelFunction);
         this.hintPathPoints_flashlight.push(pointIndex);
     }
+
+    //Draw the hint path labels
+    this.svg.select("#hintPath").selectAll("text").data(pathPoints.map(function (d,i){
+        return {x:d[0],y:d[1],id:ref.hintPathPoints_flashlight[i]}
+    })).enter().append("text").text(function (d){return ref.labels[d.id]}).attr("x", function(d) {return d.x;})
+        .attr("y", function (d) {  return d.y; }).attr("class","hintLabels")
+        .attr("fill-opacity",function (d) {return 1-distances[d.id][0]/maxDistance})
+        .attr("id",function (d){return "hintLabels"+ d.id})
+        .style("font-family","sans-serif").style("font-size","10px").style("text-anchor","middle")
+        .style("fill","#666").on("click", this.clickHintLabelFunction);
 }
 /**This function places labels in ambiguous cases such that they do not overlap
  * points: a 2D array of positions of each label [x,y]...
