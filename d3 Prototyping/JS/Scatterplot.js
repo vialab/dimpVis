@@ -775,17 +775,17 @@ Scatterplot.prototype.drawHintPath_flashlight = function (currentPosition,points
         var pointIndex = distances[i][1];
         this.svg.select("#hintPath").append("svg:path")
             .attr("d",  this.hintPathGenerator([points[pointIndex],currentPosition]))
-            .attr("id","path").attr("filter", "url(#blur)").attr("fill-opacity",1-distances[i][0]/maxDistance)
+            .attr("id","path").attr("filter", "url(#blur)")//.attr("fill-opacity",1-distances[i][0]/maxDistance)
             .style("fill","none").style("stroke-width",1).style("stroke",this.hintPathColour);
         this.hintPathPoints_flashlight.push(pointIndex);
     }
 
     //Draw the hint path labels
     this.svg.select("#hintPath").selectAll("text").data(pathPoints.map(function (d,i){
-        return {x:d[0],y:d[1],id:ref.hintPathPoints_flashlight[i]}
+        return {x:d[0],y:d[1],id:ref.hintPathPoints_flashlight[i],id2:i}
     })).enter().append("text").text(function (d){return ref.labels[d.id]}).attr("x", function(d) {return d.x;})
         .attr("y", function (d) {  return d.y; }).attr("class","hintLabels")
-        .attr("fill-opacity",function (d) {return 1-distances[d.id][0]/maxDistance})
+        .attr("fill-opacity",function (d) {return Math.abs(1-distances[d.id2][0]/maxDistance)})
         .attr("id",function (d){return "hintLabels"+ d.id})
         .style("font-family","sans-serif").style("font-size","10px").style("text-anchor","middle")
         .style("fill","#666").on("click", this.clickHintLabelFunction);
@@ -815,6 +815,32 @@ Scatterplot.prototype.placeLabels = function (points){
       return [d[0],d[1]];
   });
   return adjustedPoints;
+}
+/**This function places labels in ambiguous cases for a flashlight hint path, aligned vertically and equally spaced
+ * points: a 2D array of positions of each label [x,y]...
+ * */
+Scatterplot.prototype.placeLabels_flashlight= function (points){
+    if (this.isAmbiguous == 0){return points} //No ambiguous cases, don't need to adjust the points
+
+    var ref = this;
+    var offset = -1;
+    var indexCounter = -1;
+    var x = 0;
+    var y = 0;
+    var adjustedPoints = points.map(function (d,i){
+        if (ref.ambiguousPoints[i][0] == 1 /**|| ref.ambiguousPoints[i][0] == 2*/){
+            if (ref.ambiguousPoints[i][1] != offset){
+                indexCounter = -1;
+                offset = ref.ambiguousPoints[i][1];
+                x= d[0];
+                y = d[1];
+            }
+            indexCounter++;
+            return [x ,y+ 25*indexCounter];
+        }
+        return [d[0],d[1]];
+    });
+    return adjustedPoints;
 }
 /** Draws interaction loops as svg paths onto the hint path (if point has stationary cases)
  *  id: of the dragged point

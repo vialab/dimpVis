@@ -13,6 +13,7 @@ var barchart   = new Barchart(screenHeight*0.6, screenWidth*0.6, 50);
 window.onload = function (){
     barchart.useMobile = checkDevice();
     d3.select("#mainSvg").attr("width",screenWidth).attr("height",screenHeight);
+    d3.select("#hintPathFormDiv").style("margin-left",(screenWidth*0.6+90)+"px");
 }
 
 //Toggle the type of indicator displayed when dragging along the sine wave

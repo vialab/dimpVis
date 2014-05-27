@@ -15,10 +15,13 @@
   </head>
   <body>
 
-  <form id="hintPathForm">
-      <label><input type="radio" name="mode" value=0 checked>Trajectory</label>
+<div style="background:#c7c7c7;width:90px;height:90px;margin-top:20px;position:absolute;" id="hintPathFormDiv">
+    <div style="color:#666;font-family:sans-serif;font-size:14px;padding:10px">Hint Path</div>
+  <form id="hintPathForm" style="font-family:sans-serif;font-size:12px;color:#666;">
+      <label><input type="radio" name="mode" value=0 checked>Trajectory</label><br/>
       <label><input type="radio" name="mode" value=1>Flashlight</label>
   </form>
+</div>
 
    <div id="scatter"></div>
     <script type="text/javascript" src="initScatterplot.js"></script>

@@ -10,6 +10,7 @@ var screenWidth = window.innerWidth-50;
 var screenHeight = window.innerHeight-50;
 window.onload = function (){
     d3.select("#mainSvg").attr("width",screenWidth).attr("height",screenHeight);
+    d3.select("#hintPathFormDiv").style("margin-left",(screenWidth*0.6+90)+"px");
 }
 
 d3.select("#hintPathForm").selectAll("input").on("change", function change() {
