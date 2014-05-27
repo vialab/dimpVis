@@ -15,7 +15,9 @@ window.onload = function (){
     d3.select("#mainSvg").attr("width",screenWidth).attr("height",screenHeight);
     d3.select("#hintPathFormDiv").style("margin-left",(screenWidth*0.6+90)+"px");
 }
-
+d3.select("#hintPathForm").selectAll("input").on("change", function change() {
+    barchart.hintPathType = this.value;
+});
 //Toggle the type of indicator displayed when dragging along the sine wave
 //Currently not being used..
 /**d3.select("#indicatorForm").selectAll("input").on("change", function change() {

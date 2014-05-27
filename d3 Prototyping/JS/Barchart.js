@@ -51,6 +51,7 @@
    this.peakValue = null; //The y-value of the sine wave's peak (or trough)
    this.atPeak = -1; //The view index of a peak formed by an end point of the sine wave and the hint path
    this.heightThreshold = 2; //Pixel difference between bar heights, if less than this value, then the views are considered as stationary (draw interaction paths)
+   this.hintPathHeights_flashlight = [];
 
    //Set up some event functions, all declared in main.js
    this.placeholder = function() {};
@@ -235,6 +236,10 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
  *  Recall: the base of every bar is at this.base, therefore top of the bar is this.base-barHeight
  * */
  Barchart.prototype.updateDraggedBar = function (id,mouseX,mouseY,barX,nodes){
+     if (this.hintPathType==1){
+         this.updateDraggedBar_flashlight(id,mouseX,mouseY,barX);
+         return;
+     }
 
     //Set the current vertical dragging direction of the user
     //TODO: use Math.round() to round mouse coordinates into integers such that small (accidental) changes in mouse movement doesn't trigger a switch in dragging direction
@@ -305,6 +310,21 @@ Barchart.prototype.drawAxes = function (xScale,yScale){
    this.previousDragDirection = draggingDirection;
    this.mouseY = mouseY;
    this.mouseX = mouseX;
+}
+/** Re-draws the dragged bar and updates the flashlight hint path
+ *  id: The id of the dragged bar, for selecting by id
+ *  mouseX,Y: Coordinates of the mouse
+ * */
+Barchart.prototype.updateDraggedBar_flashlight = function (id,mouseX,mouseY,barX){
+    //TODO:ambiguity?
+    this.drawHintPath_flashlight(barX,mouseY);
+
+    //Re-draw the dragged bar
+    this.svg.select("#displayBars"+id).attr("y",mouseY).attr("height",this.findHeight(mouseY)).style("fill",this.barColour);
+
+    //Save some variables
+    this.mouseY = mouseY;
+    this.mouseX = mouseX;
 }
 /** Resolves a dragging interaction by comparing the current mouse position with the bounding
  *  y positions of current and next views.  Ensures the mouse dragging does not cause the dragged
@@ -443,7 +463,7 @@ Barchart.prototype.findHeight = function (yPos){
            }
            return 0.3;
        });
-   if (this.hintPathType ==1){
+   if (this.hintPathType ==2){
         redrawPartialHintPath_line(this,this.ambiguousBars);
    }
 }
@@ -528,7 +548,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  * */
 Barchart.prototype.redrawView = function (view,id){
     var ref = this;
-  if (this.hintPathType==1){
+  if (this.hintPathType==2){
        hidePartialHintPath(this);
    }
    //else{
@@ -621,17 +641,55 @@ Barchart.prototype.selectBar = function (id,heights,xPos){
     }
     if (this.hintPathType ==0){
         this.drawHintPath(xPos,translate,drawingView);
-    }else{
+    }else if (this.hintPathType==1){
+       this.drawHintPath_flashlight(xPos,this.pathData[drawingView][1]);
+    }else if (this.hintPathType==2){
         drawPartialHintPath_line(this,translate,this.pathData);
         redrawPartialHintPath_line(this,this.ambiguousBars);
     }
-
     //Fade out the other bars
     if (!this.useMobile){
         this.svg.selectAll(".displayBars").filter(function (d){ return d.id!=id})
         /**.transition().duration(300)*/.style("fill-opacity", 0.5);
         //highlightDataObject(0,1,"displayBars",this.barColour,"#D95F02");
     }
+}
+/** Re-draws a flashlight style hint path as the bar is dragged
+ *  xPos, yPos: the x position and height of the dragged bar
+ *  */
+Barchart.prototype.drawHintPath_flashlight = function (xPos,yPos){
+    this.svg.select("#hintPath").selectAll(".hintLabels").remove();
+    this.svg.select("#hintPath").selectAll("rect").remove();
+    this.hintPathHeights_flashlight = [];
+
+    //TODO: ambiguity?
+    var distances = [];
+    for (var i=0;i<this.pathData.length;i++){ //Grab the closest n heights to the current height of the bar
+        distances.push([Math.abs(yPos-this.pathData[i][0]),i]);
+    }
+    distances.sort(function(a,b){return a[0]-b[0]}); //Sort ascending
+    var maxDistance = distances[4][0]; //For scaling the transparency
+
+    var pathHeights = [];
+    var ref = this;
+    for (var i=0;i<4;i++){ //Start at 1, we know the zero distance will be the first element in the sorted array
+        var index = distances[i][1];
+        pathHeights.push(this.pathData[index][1]);
+        this.svg.select("#hintPath").append("rect").attr("x",xPos)
+            .attr("y",this.pathData[index][1]).attr("width",this.barWidth)
+            .attr("height",5).attr("fill-opacity",Math.abs(1-distances[i][0]/maxDistance))
+            .style("fill","#c7c7c7");
+        this.hintPathHeights_flashlight.push(index);
+    }
+    //Draw the hint path labels
+   this.svg.select("#hintPath").selectAll("text").data(pathHeights.map(function (d,i){
+        return {y:d,id:ref.hintPathHeights_flashlight[i],id2:i}
+    })).enter().append("text").text(function (d){return ref.hintLabels[d.id]}).attr("x", xPos)
+        .attr("y", function (d) {  return d.y; }).attr("class","hintLabels")
+        .attr("fill-opacity",function (d) {return Math.abs(1-distances[d.id2][0]/maxDistance)})
+        .attr("id",function (d){return "hintLabels"+ d.id})
+        .style("font-family","sans-serif").style("font-size","10px").style("text-anchor","middle")
+        .style("fill","#666").on("click", this.clickHintLabelFunction);
 }
 /** Draws interaction paths as sine waves with a dashed line, also sets the passedMiddle variable
  *  translate: the amount to translate the path such that it corresponds with the dragged bar
