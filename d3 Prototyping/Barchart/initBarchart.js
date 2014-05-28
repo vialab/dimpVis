@@ -61,7 +61,7 @@ barchart.dragEvent = d3.behavior.drag()
     })
     .on("dragend",function (d){
         d3.event.sourceEvent.preventDefault();
-        barchart.snapToView(d.id,d.nodes);
+        barchart.snapToView(d.id,d.nodes, d.xPos);
         slider.updateSlider(barchart.currentView);
     });
 //Apply the dragging function to each bar

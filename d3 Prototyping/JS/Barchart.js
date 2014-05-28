@@ -320,6 +320,7 @@ Barchart.prototype.updateDraggedBar_flashlight = function (id,mouseX,mouseY,barX
     this.drawHintPath_flashlight(barX,mouseY);
 
     //Re-draw the dragged bar
+    console.log(mouseY+" ");
     this.svg.select("#displayBars"+id).attr("y",mouseY).attr("height",this.findHeight(mouseY)).style("fill",this.barColour);
 
     //Save some variables
@@ -453,7 +454,7 @@ Barchart.prototype.findHeight = function (yPos){
   var translateAmount = this.hintPathSpacing*interpAmount + this.hintPathSpacing*this.currentView;
 
     //Translate the hint path and labels and interpolate the label colour opacity to show the transition from current to next view
-   this.svg.select("#hintPath").selectAll("path").attr("transform","translate(" + (-translateAmount) + ")");
+   this.svg.select("#hintPath").selectAll(".pathElements").attr("transform","translate(" + (-translateAmount) + ")");
    this.svg.select("#hintPath").selectAll(".hintLabels").attr("transform","translate(" + (-translateAmount) + ")")
        .attr("fill-opacity",function (d) {
            if (d.id ==ref.currentView){ //Dark to light
@@ -534,7 +535,7 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
                 var translate = animateView*ref.hintPathSpacing;
 
                 //Re-draw the hint path and labels
-                d3.select("#hintPath").selectAll("path").attr("transform","translate("+(-translate)+")");
+                d3.select("#hintPath").selectAll(".pathElements").attr("transform","translate("+(-translate)+")");
                 d3.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
                     .attr("fill-opacity", function (b) {return (b.id==animateView)?1:0.3});
             }
@@ -550,8 +551,7 @@ Barchart.prototype.redrawView = function (view,id){
     var ref = this;
   if (this.hintPathType==2){
        hidePartialHintPath(this);
-   }
-   //else{
+   }else if (this.hintPathType == 0){
        //Re-draw the  bars at the specified view
        this.svg.selectAll(".displayBars").transition().duration(300)
            .attr("height", function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?2:d.nodes[view][1];})
@@ -563,11 +563,16 @@ Barchart.prototype.redrawView = function (view,id){
            var translate = view*this.hintPathSpacing;
 
            //Re-draw the hint path and labels
-           this.svg.select("#hintPath").selectAll("path").attr("transform","translate("+(-translate)+")");
+           this.svg.select("#hintPath").selectAll(".pathElements").attr("transform","translate("+(-translate)+")");
            this.svg.selectAll(".hintLabels").attr("transform","translate("+(-translate)+")")
                .attr("fill-opacity",function (d){ return ((d.id==view)?1:0.3)});
        }
-   //}
+   }else if (this.hintPathType==1){
+      this.svg.selectAll(".displayBars").transition().duration(300)
+          .attr("height", function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?2:d.nodes[view][1];})
+          .attr("y", function (d){return d.nodes[view][0];})
+          .style("fill",function (d){return (d.nodes[view][1]==0 /**&& d.id==id*/)?ref.zeroBarColour:ref.barColour;});
+  }
 }
 /** Re-calculates the x-values for the moving hint path x-coordinates
  * (for both points comprising the path and labels)
@@ -585,7 +590,11 @@ Barchart.prototype.findHintX = function (oldX,index){
  *  id: The id of the dragged bar
  *  heights: An array of all heights of the dragged bar (e.g., d.nodes)
  * */
-Barchart.prototype.snapToView = function (id, heights){  
+Barchart.prototype.snapToView = function (id, heights,barX){
+    if (this.hintPathType==1){ //Snapping is different for flashlight hint path
+        this.snapToView_flashlight(id,heights,barX);
+        return;
+    }
    var currentDist, nextDist;
 
    //Check if the views are an ambiguous case, set the distances
@@ -610,6 +619,32 @@ Barchart.prototype.snapToView = function (id, heights){
   
   //Re-draw at the snapped view
   this.redrawView(this.currentView,id);
+}
+/** Snaps to the nearest view once a dragged bar is released
+ *  Nearest view is determined by the closest height
+ *  id: The id of the dragged bar
+ *  heights: All heights along the hint path
+ * */
+Barchart.prototype.snapToView_flashlight = function (id,heights,barX){
+    var minDist = Number.MAX_VALUE;
+    var viewToSnapTo = -1;
+    var currentIndex = -1;
+    //TODO: might want to save the current positions visible on the hint path to avoid re-calculating all distances
+    for (var i=0;i<this.hintPathHeights_flashlight.length;i++){
+        currentIndex = this.hintPathHeights_flashlight[i];
+        var currentDist = Math.abs(this.findHeight(this.mouseY) - heights[currentIndex][2]);
+        if (currentDist<minDist) {
+            minDist = currentDist;
+            viewToSnapTo = currentIndex;
+        }
+    }
+    if (viewToSnapTo<this.lastView){
+        this.currentView = viewToSnapTo;
+        this.nextView = this.currentView+1;
+    }
+
+    this.drawHintPath_flashlight(barX,heights[viewToSnapTo][1]);
+    this.redrawView(viewToSnapTo,id);
 }
 /** Called each time a new bar is dragged.  Searches for ambiguous regions, and draws the hint path
  *  id: the id of the dragged bar
@@ -665,7 +700,7 @@ Barchart.prototype.drawHintPath_flashlight = function (xPos,yPos){
     //TODO: ambiguity?
     var distances = [];
     for (var i=0;i<this.pathData.length;i++){ //Grab the closest n heights to the current height of the bar
-        distances.push([Math.abs(yPos-this.pathData[i][0]),i]);
+        distances.push([Math.abs(yPos-this.pathData[i][1]),i]);
     }
     distances.sort(function(a,b){return a[0]-b[0]}); //Sort ascending
     var maxDistance = distances[4][0]; //For scaling the transparency
@@ -678,7 +713,7 @@ Barchart.prototype.drawHintPath_flashlight = function (xPos,yPos){
         this.svg.select("#hintPath").append("rect").attr("x",xPos)
             .attr("y",this.pathData[index][1]).attr("width",this.barWidth)
             .attr("height",5).attr("fill-opacity",Math.abs(1-distances[i][0]/maxDistance))
-            .style("fill","#c7c7c7");
+            .style("fill","#c7c7c7").attr("class","pathElements");
         this.hintPathHeights_flashlight.push(index);
     }
     //Draw the hint path labels
@@ -719,7 +754,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
         .attr("transform","translate("+(-translate)+")")
 		.style("stroke","#FFF").style("fill","none").style("stroke-width",3)
-        .attr("id","underLayer");//.attr("clip-path","url(#clip)");
+        .attr("id","underLayer").attr("class","pathElements");//.attr("clip-path","url(#clip)");
 
 	//Draw the hint path line
    this.svg.select("#hintPath").append("path")
@@ -727,7 +762,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
        .attr("filter", function (){return (ref.useMobile)?"":"url(#blur)"})
        .attr("transform","translate("+(-translate)+")")
 	   .style("stroke","#74c476").style("fill","none").style("stroke-width",1)
-       .attr("id","path").attr("clip-path","url(#clip)");
+       .attr("id","path").attr("clip-path","url(#clip)").attr("class","pathElements");
 
     if (this.useMobile){ //Adjust the display properties of the hint path
        drawMobileHintPath(this);
@@ -757,7 +792,7 @@ Barchart.prototype.drawHintPath = function (xPos,translate,view){
         this.pathData = [];
         this.interactionPaths = [];
         this.svg.select("#hintPath").selectAll("text").remove();
-        this.svg.select("#hintPath").selectAll("path").remove();
+        this.svg.select("#hintPath").selectAll(".pathElements").remove();
 		this.svg.selectAll(".displayBars").style("fill-opacity", 1);
  }
 /** Calculates a set of points to compose a sine wave (for an interaction path)
