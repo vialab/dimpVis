@@ -319,10 +319,10 @@ Barchart.prototype.updateDraggedBar_flashlight = function (id,mouseX,mouseY,barX
     //TODO:ambiguity?
     this.drawHintPath_flashlight(barX,mouseY);
 
-    //Re-draw the dragged bar
-    console.log(mouseY+" ");
-    this.svg.select("#displayBars"+id).attr("y",mouseY).attr("height",this.findHeight(mouseY)).style("fill",this.barColour);
-
+    //Re-draw the dragged bar, only if it's not being dragged below the bar chart's base
+    if (mouseY<this.base){
+        this.svg.select("#displayBars"+id).attr("y",mouseY).attr("height",this.findHeight(mouseY)).style("fill",this.barColour);
+    }
     //Save some variables
     this.mouseY = mouseY;
     this.mouseX = mouseX;
@@ -497,6 +497,12 @@ Barchart.prototype.interpolateBars = function(id,interpAmount,startView,endView)
  Barchart.prototype.animateBars = function( id, startView, endView) {
 
     if (startView == endView){return;}
+
+     if (this.hintPathType==1){ //Go directly to the year, when using flashlight path
+         this.redrawView(id,endView);
+         return;
+     }
+
     var ref = this;
 
     //Determine the travel direction (e.g., forward or backward in time)
@@ -710,10 +716,18 @@ Barchart.prototype.drawHintPath_flashlight = function (xPos,yPos){
     for (var i=0;i<4;i++){ //Start at 1, we know the zero distance will be the first element in the sorted array
         var index = distances[i][1];
         pathHeights.push(this.pathData[index][1]);
+        //White underlayer
         this.svg.select("#hintPath").append("rect").attr("x",xPos)
             .attr("y",this.pathData[index][1]).attr("width",this.barWidth)
-            .attr("height",5).attr("fill-opacity",Math.abs(1-distances[i][0]/maxDistance))
-            .style("fill","#c7c7c7").attr("class","pathElements");
+            .attr("height",4).attr("filter", "url(#blur)")
+            .style("fill","#FFF").attr("class","pathElements");
+
+        //Coloured rectangle
+        this.svg.select("#hintPath").append("rect").attr("x",xPos)
+            .attr("y",this.pathData[index][1]).attr("width",this.barWidth)
+            .attr("height",3).attr("fill-opacity",Math.abs(1-distances[i][0]/maxDistance))
+            .attr("filter", "url(#blur)").style("fill",this.barColour).attr("class","pathElements");
+
         this.hintPathHeights_flashlight.push(index);
     }
     //Draw the hint path labels

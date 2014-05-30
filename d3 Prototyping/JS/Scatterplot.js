@@ -80,6 +80,11 @@ Scatterplot.prototype.init = function() {
     this.svg.append("svg:defs").append("svg:filter")
         .attr("id", "blur2").append("svg:feGaussianBlur")
         .attr("stdDeviation", 2);
+
+    //Add the blur filter for the flashlight hint path
+    this.svg.append("svg:defs").append("svg:filter")
+        .attr("id", "blurFlashlight").append("svg:feGaussianBlur")
+        .attr("stdDeviation", 2);
 }
 /** Render the visualization onto the svg
  * data: The dataset to be visualized
@@ -775,8 +780,8 @@ Scatterplot.prototype.drawHintPath_flashlight = function (currentPosition,points
         var pointIndex = distances[i][1];
         this.svg.select("#hintPath").append("svg:path")
             .attr("d",  this.hintPathGenerator([points[pointIndex],currentPosition]))
-            .attr("id","path").attr("filter", "url(#blur)")//.attr("fill-opacity",1-distances[i][0]/maxDistance)
-            .style("fill","none").style("stroke-width",1).style("stroke",this.hintPathColour);
+            .attr("id","path").attr("filter", "url(#blurFlashlight)").attr("fill-opacity",Math.abs(1-distances[i][0]/maxDistance))
+            .style("fill","none").style("stroke-width",1).style("stroke",this.pointColour);
         this.hintPathPoints_flashlight.push(pointIndex);
     }
 
