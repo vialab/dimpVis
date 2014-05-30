@@ -44,7 +44,9 @@ var dragPoint = d3.behavior.drag()
                     scatterplot.previousDragAngle = 0; //To be safe, re-set this
                     scatterplot.selectPoint(d);
               }).on("drag", function(d){
-                   slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
+                   if (scatterplot.hintPathType!=1){
+                       slider.animateTick(scatterplot.interpValue,scatterplot.currentView,scatterplot.nextView);
+                   }
                    scatterplot.updateDraggedPoint(d.id,d3.event.x,d3.event.y, d.nodes);
               }).on("dragend",function (d){ //In this event, mouse coordinates are undefined, need to use the saved
                                           //coordinates of the scatterplot object

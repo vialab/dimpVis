@@ -598,7 +598,7 @@ Barchart.prototype.findHintX = function (oldX,index){
  * */
 Barchart.prototype.snapToView = function (id, heights,barX){
     if (this.hintPathType==1){ //Snapping is different for flashlight hint path
-        this.snapToView_flashlight(id,heights,barX);
+        this.snapToView_flashlight(id,barX);
         return;
     }
    var currentDist, nextDist;
@@ -631,14 +631,14 @@ Barchart.prototype.snapToView = function (id, heights,barX){
  *  id: The id of the dragged bar
  *  heights: All heights along the hint path
  * */
-Barchart.prototype.snapToView_flashlight = function (id,heights,barX){
+Barchart.prototype.snapToView_flashlight = function (id,barX){
     var minDist = Number.MAX_VALUE;
     var viewToSnapTo = -1;
     var currentIndex = -1;
     //TODO: might want to save the current positions visible on the hint path to avoid re-calculating all distances
     for (var i=0;i<this.hintPathHeights_flashlight.length;i++){
         currentIndex = this.hintPathHeights_flashlight[i];
-        var currentDist = Math.abs(this.findHeight(this.mouseY) - heights[currentIndex][2]);
+        var currentDist = Math.abs(this.findHeight(this.mouseY) - this.findHeight(this.pathData[currentIndex][1]));
         if (currentDist<minDist) {
             minDist = currentDist;
             viewToSnapTo = currentIndex;
@@ -649,7 +649,7 @@ Barchart.prototype.snapToView_flashlight = function (id,heights,barX){
         this.nextView = this.currentView+1;
     }
 
-    this.drawHintPath_flashlight(barX,heights[viewToSnapTo][1]);
+    //this.drawHintPath_flashlight(barX,heights[viewToSnapTo][1]);
     this.redrawView(viewToSnapTo,id);
 }
 /** Called each time a new bar is dragged.  Searches for ambiguous regions, and draws the hint path
@@ -713,6 +713,7 @@ Barchart.prototype.drawHintPath_flashlight = function (xPos,yPos){
 
     var pathHeights = [];
     var ref = this;
+
     for (var i=0;i<4;i++){ //Start at 1, we know the zero distance will be the first element in the sorted array
         var index = distances[i][1];
         pathHeights.push(this.pathData[index][1]);

@@ -55,7 +55,9 @@ barchart.dragEvent = d3.behavior.drag()
     })
     .on("drag", function(d){
         d3.event.sourceEvent.preventDefault();
-        slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
+        if (barchart.hintPathType!=1){
+            slider.animateTick(barchart.interpValue,barchart.currentView,barchart.nextView);
+        }
         var coords = getUserCoords(this);
         barchart.updateDraggedBar(d.id,coords[0],coords[1],d.xPos,d.nodes);
     })
