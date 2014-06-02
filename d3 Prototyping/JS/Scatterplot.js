@@ -780,7 +780,7 @@ Scatterplot.prototype.drawHintPath_flashlight = function (currentPosition,points
         var pointIndex = distances[i][1];
         this.svg.select("#hintPath").append("svg:path")
             .attr("d",  this.hintPathGenerator([points[pointIndex],currentPosition]))
-            .attr("id","path").attr("filter", "url(#blurFlashlight)").attr("fill-opacity",Math.abs(1-distances[i][0]/maxDistance))
+            .attr("id","path").attr("filter", "url(#blurFlashlight)").attr("opacity",Math.abs(1-distances[i][0]/maxDistance))
             .style("fill","none").style("stroke-width",1).style("stroke",this.pointColour);
         this.hintPathPoints_flashlight.push(pointIndex);
     }
@@ -955,6 +955,7 @@ Scatterplot.prototype.calculateLoopPoints = function (x,y,angle){
 	//The first point of the path should be the original point, as a reference for drawing the loop
 	loopPoints.push([x,y]);
 
+    //TODO: automatically assign dragging direction to loops
 	//Generate some polar coordinates to complete the round part of the loop
 	//HACK: use this when dragging segways to the left
 	/**loopPoints.push([(x + adjustedRadius*Math.cos(angle+loopWidth)),(y+ adjustedRadius*Math.sin(angle+loopWidth))]);
@@ -1029,7 +1030,6 @@ Scatterplot.prototype.checkAmbiguous = function (id,points){
                 currentGroupNum = this.ambiguousPoints[i][1];
             }
         }
-        console.log(repeatedPoints);
         this.drawLoops(id,repeatedPoints);
     }
 }

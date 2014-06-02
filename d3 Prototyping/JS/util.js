@@ -136,14 +136,8 @@ function checkBounds (objectRef,a,b,mouse){
 
     //Check if the mouse is between start and end values
     if (mouse <= start) {
-       // if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
-       //else{objectRef.interpValue = 0;}
-        //objectRef.interpValue = 0;
         return start;
     }else if (mouse >= end) {
-        //if (objectRef.timeDirection == -1) {objectRef.interpValue = 1; }
-       // else{objectRef.interpValue = 0;}
-        //objectRef.interpValue = 0;
         return end;
     }
     return mouse;
