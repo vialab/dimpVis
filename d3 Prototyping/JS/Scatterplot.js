@@ -263,14 +263,12 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
         var nextPointInfo = this.ambiguousPoints[this.nextView];
 
         if (currentPointInfo[0]==1 && nextPointInfo[0] == 0){ //Approaching loop from left side of hint path (not on loop yet)
-            this.previousLoopAngle = "start";
 			this.loopCurrent = 3;
             this.loopNext = 4;
             newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
         }else if (currentPointInfo[0]==0 && nextPointInfo[0] == 1){ //Approaching loop from right side on hint path (not on loop yet)
             this.loopCurrent = 0;
             this.loopNext = 1;
-			this.previousLoopAngle = "start";
             newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
         }else if (currentPointInfo[0]==1 && nextPointInfo[0] == 1){ //In middle of stationary point sequence
             this.dragAlongLoop(id,currentPointInfo[1],mouseX,mouseY);
@@ -282,8 +280,19 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
         newPoint = this.dragAlongPath(id,pt1_x,pt1_y,pt2_x,pt2_y);
     }
 
+    var draggedPoint = this.svg.select("#displayPoints"+id);
+
+    if (this.hintPathType==3){ //Combined hint path mode
+        //Find the distance from mouse to the point along the path
+        var distance = findPixelDistance(this.mouseX,this.mouseY,newPoint[0],newPoint[1]);
+        if (distance >100){
+            this.hintPathType = 1;
+        }
+        draggedPoint.style("fill-opacity",1-Math.abs(findPixelDistance(this.mouseX,this.mouseY,newPoint[0],newPoint[1])/100));
+    }
+
     //Re-draw the dragged point
-    this.svg.select("#displayPoints"+id).attr("cx",newPoint[0]).attr("cy",newPoint[1]);
+    draggedPoint.attr("cx",newPoint[0]).attr("cy",newPoint[1]);
     this.animatePointLabel(id,newPoint[0],newPoint[1]);
 
     //Save the mouse coordinates
@@ -298,6 +307,10 @@ Scatterplot.prototype.updateDraggedPoint = function(id,mouseX,mouseY,nodes) {
  * */
 Scatterplot.prototype.updateDraggedPoint_flashlight = function(id,mouseX,mouseY,nodes){
   //TODO: ambiguity?
+    if (this.hintPathType==3){ //Check if near the time line hint path, if using combined hint path mode
+
+    }
+
     this.drawHintPath_flashlight([mouseX,mouseY],nodes);
     //Re-draw the dragged point
     this.svg.select("#displayPoints"+id).attr("cx",mouseX).attr("cy",mouseY);
@@ -322,11 +335,9 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
     //Update the position of the dragged point
     if (t<0){ //Passed current
         this.moveBackward();
-        //console.log(findPixelDistance(this.mouseX,this.mouseY,pt1_x,pt1_y));
         newPoint = [pt1_x,pt1_y];
     }else if (t>1){ //Passed next
         this.moveForward();
-        //console.log(findPixelDistance(this.mouseX,this.mouseY,pt2_x,pt2_y));
         newPoint= [pt2_x,pt2_y];
     }else{ //Some in between the views (pt1 and pt2)
         this.interpolatePoints(id,t,this.currentView,this.nextView);
@@ -339,7 +350,6 @@ Scatterplot.prototype.dragAlongPath = function(id,pt1_x,pt1_y,pt2_x,pt2_y){
           redrawPartialHintPath_line(this,this.ambiguousPoints);
         }
     }
-	
     return newPoint;
 }
 /** Sets the time direction based on the interpolation amount, currently not needed for the interaction
@@ -460,10 +470,7 @@ Scatterplot.prototype.dragAlongLoop = function (id,groupNumber,mouseX,mouseY){
             redrawPartialHintPath_line(this,this.ambiguousPoints,this.id);
         }
     }	
-    this.redrawAnchor(loopInterp,groupNumber,id);    
-    this.previousLoopAngle = angles[1];
-    //this.previousLoopSign = travelled;
-    //this.previousDraggingDirection = draggingDirection;
+    this.redrawAnchor(loopInterp,groupNumber);
 }
 /**Finds the angle of the mouse w.r.t the center of the loop
  * @return [angle,positiveAngle,interpAmount]
@@ -692,7 +699,10 @@ Scatterplot.prototype.selectPoint = function (point){
     }else if (this.hintPathType==2){ //Partial hint path used in evaluation
         drawPartialHintPath_line(this,0, point.nodes);
         redrawPartialHintPath_line(this,this.ambiguousPoints);
+    }else if (this.hintPathType==3){ //Combined
+        this.drawHintPath(drawingView, point.nodes, point.interpYears);
     }
+
     if (this.clickedPoints.indexOf(point.id) ==-1) {
         this.clickedPoints.push(point.id);
         this.drawPointLabel(point.id);
@@ -753,7 +763,7 @@ Scatterplot.prototype.selectPoint = function (point){
     this.svg.select("#hintPath").append("svg:path")
         .attr("d",  this.hintPathGenerator(points))
         .attr("id","path").attr("filter", "url(#blur)")
-		.style("fill","none").style("stroke-width",1.5).style("stroke",this.hintPathColour);
+		.style("fill","none").style("stroke-width",1.5).style("stroke",this.pointColour);
 }
 /** Re-draws a flashlight style hint path as the point is dragged
  *  currentPosition: position of the dragged point
